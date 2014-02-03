@@ -88,7 +88,12 @@ namespace MicroMVVM
 
         public void Execute(object parameter)
         {
+            if (this.target == null)
+                throw new Exception("Target not set");
+
             var methodInfo = this.target.GetType().GetMethod(this.methodName);
+            if (methodInfo == null)
+                throw new Exception(String.Format("Unable to find method {0} on {1}", this.methodName, this.target.GetType().Name));
 
             if (methodInfo != null)
             {

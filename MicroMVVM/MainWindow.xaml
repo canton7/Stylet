@@ -4,6 +4,6 @@
         xmlns:my="clr-namespace:MicroMVVM"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <Button Click="{my:Action Testy}"/>
+        <ContentControl my:View.Model="{Binding ViewModel}"/>
     </Grid>
 </Window>

@@ -22,10 +22,12 @@ namespace MicroMVVM
         {
             var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
             if (valueService.TargetProperty is ICommand)
+            {
                 return new ActionCommand((FrameworkElement)valueService.TargetObject, this.Method);
+            }
             else
             {
-                var ec = new EventCommand((FrameworkElement)valueService.TargetObject, valueService.TargetProperty);
+                var ec = new EventCommand((FrameworkElement)valueService.TargetObject, valueService.TargetProperty, this.Method);
                 return ec.GetDelegate();
             }
 

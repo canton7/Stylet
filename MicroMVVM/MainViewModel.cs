@@ -8,11 +8,14 @@ namespace MicroMVVM
 {
     class MainViewModel
     {
-        public bool CanTesty { get { return true; } }
-
-        public void Testy(object parameter)
+        public object ViewModel
         {
-
+            get { return new SubViewModel(); }
         }
+    }
+
+    class SubViewModel
+    {
+
     }
 }

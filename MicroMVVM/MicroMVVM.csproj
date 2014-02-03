@@ -58,6 +58,7 @@
     <Compile Include="EventCommand.cs" />
     <Compile Include="MainViewModel.cs" />
     <Compile Include="View.cs" />
+    <Compile Include="ViewLocator.cs" />
     <Compile Include="ViewModelBinder.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
