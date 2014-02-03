@@ -13,15 +13,19 @@ namespace MicroMVVM
     {
         public static UIElement LocateForModel(object model)
         {
-            var viewName = model.GetType().FullName;
-            var modelName = Regex.Replace(viewName, @"ViewModel", "View");
-            var modelType = Assembly.GetEntryAssembly().GetType(modelName);
-            if (modelType == null)
-                throw new Exception(String.Format("Unable to find a View with type {0}", modelName));
+            var modelName = model.GetType().FullName;
+            var viewName = Regex.Replace(modelName, @"ViewModel", "View");
+            var viewType = Assembly.GetEntryAssembly().GetType(modelName);
+            if (viewType == null)
+                throw new Exception(String.Format("Unable to find a View with type {0}", viewName));
 
-            var instance = Activator.CreateInstance(modelType);
+            var instance = Activator.CreateInstance(viewType);
             if (!(instance is UIElement))
-                throw new Exception(String.Format("Managed to create a {0}, but it wasn't a UIElement", modelName));
+                throw new Exception(String.Format("Managed to create a {0}, but it wasn't a UIElement", viewName));
+
+            var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
+            if (initializer != null)
+                initializer.Invoke(instance, null);
 
             return (UIElement)instance;
         }
