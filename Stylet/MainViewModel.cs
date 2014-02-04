@@ -16,6 +16,6 @@ namespace Stylet
 
     class SubViewModel
     {
-
+        public string Testy { get { return "Testy"; } }
     }
 }

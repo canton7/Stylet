@@ -15,19 +15,22 @@ namespace Stylet
         {
             var modelName = model.GetType().FullName;
             var viewName = Regex.Replace(modelName, @"ViewModel", "View");
-            var viewType = Assembly.GetEntryAssembly().GetType(modelName);
+            var viewType = Assembly.GetEntryAssembly().GetType(viewName);
+
             if (viewType == null)
                 throw new Exception(String.Format("Unable to find a View with type {0}", viewName));
 
-            var instance = Activator.CreateInstance(viewType);
-            if (!(instance is UIElement))
-                throw new Exception(String.Format("Managed to create a {0}, but it wasn't a UIElement", viewName));
+            if (viewType.IsInterface || viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
+                throw new Exception(String.Format("Found type for view : {0}, but it wasn't a class derived from UIElement", viewType.Name));
 
+            var view = (UIElement)Activator.CreateInstance(viewType);
+
+            // If it doesn't have a code-behind, this won't be called
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
             if (initializer != null)
-                initializer.Invoke(instance, null);
+                initializer.Invoke(view, null);
 
-            return (UIElement)instance;
+            return (UIElement)view;
         }
     }
 }

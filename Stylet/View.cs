@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Markup;
 
 namespace Stylet
 {
     public class View : DependencyObject
     {
+        static readonly ContentPropertyAttribute DefaultContentProperty = new ContentPropertyAttribute("Content");
+
         public static object GetTarget(DependencyObject obj)
         {
             return (object)obj.GetValue(TargetProperty);
@@ -48,7 +52,22 @@ namespace Stylet
             if (e.NewValue != null)
             {
                 var view = ViewLocator.LocateForModel(e.NewValue);
+                ViewModelBinder.Bind(view, e.NewValue);
+
+                SetContentProperty(targetLocation, view);
             }
+            else
+            {
+                SetContentProperty(targetLocation, null);
+            }
+        }
+
+        private static void SetContentProperty(DependencyObject targetLocation, UIElement view)
+        {
+            var type = targetLocation.GetType();
+            var contentProperty = Attribute.GetCustomAttributes(type, true).OfType<ContentPropertyAttribute>().FirstOrDefault() ?? DefaultContentProperty;
+
+            type.GetProperty(contentProperty.Name).SetValue(targetLocation, view, null);
         }
     }
 }

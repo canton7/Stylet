@@ -9,10 +9,13 @@ namespace Stylet
 {
     public static class ViewModelBinder
     {
-        public static void Bind(FrameworkElement view, object viewModel)
+        public static void Bind(DependencyObject view, object viewModel)
         {
-            view.DataContext = viewModel;
             View.SetTarget(view, viewModel);
+
+            var viewAsFrameworkElement = view as FrameworkElement;
+            if (viewAsFrameworkElement != null)
+                viewAsFrameworkElement.DataContext = viewModel;
         }
     }
 }
