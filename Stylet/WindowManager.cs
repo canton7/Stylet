@@ -10,7 +10,7 @@ namespace Stylet
 {
     public interface IWindowManager
     {
-
+        void ShowWindow(object viewModel, IDictionary<string, object> settings = null);
     }
 
     public class WindowManager : IWindowManager

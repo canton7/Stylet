@@ -23,7 +23,7 @@ namespace Stylet
             if (viewType.IsInterface || viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
                 throw new Exception(String.Format("Found type for view : {0}, but it wasn't a class derived from UIElement", viewType.Name));
 
-            var view = (UIElement)Activator.CreateInstance(viewType);
+            var view = (UIElement)IoC.GetInstance(viewType, null);
 
             // If it doesn't have a code-behind, this won't be called
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);

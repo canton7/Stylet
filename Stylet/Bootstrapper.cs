@@ -27,9 +27,26 @@ namespace Stylet
 
             this.Application.Startup += (o, e) =>
             {
-                new WindowManager().ShowWindow(Activator.CreateInstance(typeof(TRootViewModel)));
+                IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
             };
+
+            IoC.GetInstance = this.GetInstance;
+            IoC.GetAllInstances = this.GetAllInstances;
+            IoC.BuildUp = this.BuildUp;
         }
+
+        protected virtual object GetInstance(Type service, string key = null)
+        {
+            if (service == typeof(IWindowManager)) service = typeof(WindowManager);
+            return Activator.CreateInstance(service);
+        }
+
+        protected virtual IEnumerable<object> GetAllInstances(Type service)
+        {
+            return new[] { Activator.CreateInstance(service) };
+        }
+
+        protected virtual void BuildUp(object instance) { }
 
         protected virtual void OnStartup(object sender, StartupEventArgs e) { }
         protected virtual void OnExit(object sender, EventArgs e) { }

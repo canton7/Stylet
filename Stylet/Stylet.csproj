@@ -54,6 +54,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="IoC.cs" />
     <Compile Include="SubView.xaml.cs">
       <DependentUpon>SubView.xaml</DependentUpon>
     </Compile>
