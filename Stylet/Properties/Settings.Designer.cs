@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MicroMVVM.Properties
+namespace Stylet.Properties
 {
 
 

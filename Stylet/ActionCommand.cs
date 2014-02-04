@@ -9,7 +9,7 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
-namespace MicroMVVM
+namespace Stylet
 {
     public class ActionCommand : ICommand
     {

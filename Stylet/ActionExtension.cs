@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
 
-namespace MicroMVVM
+namespace Stylet
 {
     public class ActionExtension : MarkupExtension
     {

@@ -1,7 +1,7 @@
-﻿<Window x:Class="MicroMVVM.MainWindow"
+﻿<Window x:Class="Stylet.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:my="clr-namespace:MicroMVVM"
+        xmlns:my="clr-namespace:Stylet"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
         <ContentControl my:View.Model="{Binding ViewModel}"/>
