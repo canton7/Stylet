@@ -55,6 +55,7 @@
     </ApplicationDefinition>
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="IoC.cs" />
+    <Compile Include="Screen.cs" />
     <Compile Include="SubView.xaml.cs">
       <DependentUpon>SubView.xaml</DependentUpon>
     </Compile>

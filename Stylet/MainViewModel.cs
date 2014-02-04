@@ -6,11 +6,16 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
-    class MainViewModel
+    class MainViewModel : Screen
     {
         public object ViewModel
         {
             get { return new SubViewModel(); }
+        }
+
+        protected override void OnViewLoaded()
+        {
+            this.TryClose();
         }
     }
 

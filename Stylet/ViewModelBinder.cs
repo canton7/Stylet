@@ -16,6 +16,10 @@ namespace Stylet
             var viewAsFrameworkElement = view as FrameworkElement;
             if (viewAsFrameworkElement != null)
                 viewAsFrameworkElement.DataContext = viewModel;
+
+            var viewModelAsViewAware = viewModel as IViewAware;
+            if (viewModelAsViewAware != null)
+                viewModelAsViewAware.AttachView(view);
         }
     }
 }
