@@ -54,7 +54,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="Conductor.cs" />
+    <Compile Include="Execute.cs" />
+    <Compile Include="IConductor.cs" />
     <Compile Include="IoC.cs" />
+    <Compile Include="IScreen.cs" />
+    <Compile Include="PropertyChangedBase.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="SubView.xaml.cs">
       <DependentUpon>SubView.xaml</DependentUpon>

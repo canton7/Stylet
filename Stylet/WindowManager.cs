@@ -4,29 +4,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Navigation;
 
 namespace Stylet
 {
     public interface IWindowManager
     {
-        void ShowWindow(object viewModel, IDictionary<string, object> settings = null);
+        void ShowWindow(object viewModel);
     }
 
     public class WindowManager : IWindowManager
     {
-        public void ShowWindow(object viewModel, IDictionary<string, object> settings = null)
+        public void ShowWindow(object viewModel)
         {
-            this.CreateWindow(viewModel, false, settings).Show();
+            this.CreateWindow(viewModel, false).Show();
         }
 
-        private Window CreateWindow(object viewModel, bool isDialog, IDictionary<string, object> settings)
+        private Window CreateWindow(object viewModel, bool isDialog)
         {
             var view = ViewLocator.LocateForModel(viewModel) as Window;
             if (view == null)
                 throw new Exception(String.Format("Tried to show {0} as a window, but it isn't a Window", view.GetType().Name));
 
             ViewModelBinder.Bind(view, viewModel);
+
+            var haveDisplayName = viewModel as IHaveDisplayName;
+            if (haveDisplayName != null)
+            {
+                var binding = new Binding("DisplayName") { Mode = BindingMode.TwoWay };
+                view.SetBinding(Window.TitleProperty, binding);
+            }
 
             if (isDialog)
             {

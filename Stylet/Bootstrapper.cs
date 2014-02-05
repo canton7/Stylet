@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -20,6 +21,7 @@ namespace Stylet
         public void Start()
         {
             this.Application = Application.Current;
+            Execute.SynchronizationContext = SynchronizationContext.Current;
 
             this.Application.Startup += OnStartup;
             this.Application.Exit += OnExit;
