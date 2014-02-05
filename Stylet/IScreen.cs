@@ -44,7 +44,7 @@ namespace Stylet
         Task<bool> CanCloseAsync();
     }
 
-    public interface IScreen : IViewAware, IHaveDisplayName, IActivate, IDeactivate, IChild
+    public interface IScreen : IViewAware, IHaveDisplayName, IActivate, IDeactivate, IChild, IGuardClose
     {
     }
 

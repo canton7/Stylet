@@ -12,11 +12,6 @@ namespace Stylet
         {
             get { return new SubViewModel(); }
         }
-
-        protected override void OnViewLoaded()
-        {
-            this.TryClose();
-        }
     }
 
     class SubViewModel
