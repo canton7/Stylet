@@ -30,7 +30,7 @@ namespace Stylet
                 this.ChangeActiveItem(default(T), close);
         }
 
-        public override Task<bool> CanClose()
+        public override Task<bool> CanCloseAsync()
         {
             return this.CanCloseItem(this.ActiveItem);
         }

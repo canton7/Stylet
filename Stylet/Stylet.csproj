@@ -56,8 +56,10 @@
     <Compile Include="BindableCollection.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="Conductor.cs" />
+    <Compile Include="ConductorAllActive.cs" />
+    <Compile Include="ConductorBase.cs" />
     <Compile Include="ConductorOneActive.cs" />
-    <Compile Include="ConductorWithActiveItem.cs" />
+    <Compile Include="ConductorBaseWithActiveItem.cs" />
     <Compile Include="Execute.cs" />
     <Compile Include="IConductor.cs" />
     <Compile Include="IoC.cs" />

@@ -147,9 +147,14 @@ namespace Stylet
 
         #region IGuardClose
 
-        public virtual Task<bool> CanClose()
+        public virtual Task<bool> CanCloseAsync()
         {
             return Task.FromResult(true);
+        }
+
+        public void TryClose()
+        {
+            this.TryClose(null);
         }
 
         #endregion

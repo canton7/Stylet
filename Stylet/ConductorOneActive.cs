@@ -10,7 +10,7 @@ namespace Stylet
 {
     public partial class Conductor<T>
     {
-        public class Collections
+        public partial class Collections
         {
             public class OneActive : ConductorBaseWithActiveItem<T>
             {
@@ -119,9 +119,9 @@ namespace Stylet
                     }
                 }
 
-                public override async Task<bool> CanClose()
+                public override Task<bool> CanCloseAsync()
                 {
-                    return (await this.ItemsThatCanCloseAsync(this.items)).Any();
+                    return this.CanAllItemsCloseAsync(this.items);
                 }
 
                 protected override void OnDeactivate(bool close)
@@ -137,7 +137,20 @@ namespace Stylet
                     }
                 }
 
-                
+                protected override T EnsureItem(T newItem)
+                {
+                    if (newItem == null)
+                    {
+                        newItem = this.DetermineNextItemToActivate(this.items, this.ActiveItem == null ? 0 : this.items.IndexOf(this.ActiveItem));
+                    }
+                    else
+                    {
+                        if (!this.items.Contains(newItem))
+                            this.items.Add(newItem);
+                    }
+                    return base.EnsureItem(newItem);
+
+                }
             }
         }
     }
