@@ -12,6 +12,7 @@ namespace Stylet
     public interface IWindowManager
     {
         void ShowWindow(object viewModel);
+        bool? ShowDialog(object viewModel);
     }
 
     public class WindowManager : IWindowManager
@@ -19,6 +20,11 @@ namespace Stylet
         public void ShowWindow(object viewModel)
         {
             this.CreateWindow(viewModel, false).Show();
+        }
+
+        public bool? ShowDialog(object viewModel)
+        {
+            return this.CreateWindow(viewModel, true).ShowDialog();
         }
 
         private Window CreateWindow(object viewModel, bool isDialog)
