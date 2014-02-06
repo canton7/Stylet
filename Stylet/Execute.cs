@@ -13,25 +13,36 @@ namespace Stylet
 
         public static void OnUIThread(Action action)
         {
-            SynchronizationContext.Post(_ => action(), null);
+            if (SynchronizationContext != null)
+                SynchronizationContext.Post(_ => action(), null);
+            else
+                action();
         }
 
         public static Task OnUIThreadAsync(Action action)
         {
-            var tcs = new TaskCompletionSource<object>();
-            SynchronizationContext.Post(_ =>
+            if (SynchronizationContext != null)
             {
-                try
+                var tcs = new TaskCompletionSource<object>();
+                SynchronizationContext.Post(_ =>
                 {
-                    action();
-                    tcs.SetResult(null);
-                }
-                catch (Exception e)
-                {
-                    tcs.SetException(e);
-                }
-            }, null);
-            return tcs.Task;
+                    try
+                    {
+                        action();
+                        tcs.SetResult(null);
+                    }
+                    catch (Exception e)
+                    {
+                        tcs.SetException(e);
+                    }
+                }, null);
+                return tcs.Task;
+            }
+            else
+            {
+                action();
+                return Task.FromResult(false);
+            }
         }
     }
 }

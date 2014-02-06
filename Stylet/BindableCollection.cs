@@ -19,7 +19,6 @@ namespace Stylet
     public class BindableCollection<T> : ObservableCollection<T>, IObservableCollection<T>
     {
         private bool isNotifying = true;
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public BindableCollection() : base() { }
         public BindableCollection(IEnumerable<T> collection) : base(collection) { }
