@@ -61,6 +61,7 @@
     <Compile Include="PropertyChangedBase.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="ScreenExtensions.cs" />
+    <Compile Include="StyletIoC.cs" />
     <Compile Include="View.cs" />
     <Compile Include="ViewLocator.cs" />
     <Compile Include="ViewModelBinder.cs" />
