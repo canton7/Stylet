@@ -32,6 +32,7 @@ namespace Stylet
         #region Main Class
 
         private Dictionary<Type, List<IRegistration>> registrations = new Dictionary<Type, List<IRegistration>>();
+        private bool compiled;
 
         public void AutoBind(Assembly assembly = null)
         {
@@ -53,12 +54,8 @@ namespace Stylet
 
         public void Compile()
         {
-            // Reset everything
-            foreach (var registrations in this.registrations.Values)
-            {
-                foreach (var registration in registrations)
-                    registration.Reset();
-            }
+            if (this.compiled)
+                throw new StyletIoCException("This StyletIoC container has already been compiled");
 
             var toRemove = new List<IRegistration>();
             foreach (var kvp in this.registrations)
@@ -88,26 +85,38 @@ namespace Stylet
                 foreach (var remove in toRemove)
                     this.registrations[kvp.Key].Remove(remove);
             }
+
+            this.compiled = true;
         }
 
         public object Get(Type type, string key = null)
         {
+            this.EnsureCompiled();
             return this.GetRegistration(type, key).Generator();
         }
 
         public T Get<T>(string key = null)
         {
+            this.EnsureCompiled();
             return (T)this.Get(typeof(T), key);
         }
 
         public IEnumerable<object> GetAll(Type type, string key = null)
         {
+            this.EnsureCompiled();
             return this.GetRegistrations(type, key).Select(x => x.Generator());
         }
 
         public IEnumerable<T> GetAll<T>(string key = null)
         {
+            this.EnsureCompiled();
             return this.GetAll(typeof(T), key).Cast<T>();
+        }
+
+        private void EnsureCompiled()
+        {
+            if (!this.compiled)
+                throw new StyletIocNotCompiledException("You need to run Compile() after adding bindings, before fetching any");
         }
 
         private bool CanResolve(Type type)
@@ -131,9 +140,6 @@ namespace Stylet
 
             if (registrations.Count == 0)
                 throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0} with key '{1}'.", type.Name, key));
-
-            if (registrations.Any(x => x.Generator == null))
-                throw new StyletIocNotCompiledException("It looks like you've requested a registration which hasn't been compiled. Call Compile() after adding new registrations");
 
             return registrations;
         }
@@ -238,7 +244,6 @@ namespace Stylet
             bool WasAutoCreated { get; set; }
             void EnsureGenerator(StyletIoC service);
             Expression GetInstanceExpression(StyletIoC service);
-            void Reset();
         }
 
         private abstract class RegistrationBase : IRegistration
@@ -252,12 +257,6 @@ namespace Stylet
 
             public abstract void EnsureGenerator(StyletIoC service);
             public abstract Expression GetInstanceExpression(StyletIoC service);
-
-            public virtual void Reset()
-            {
-                this.Generator = null;
-                this.creator.Reset();
-            }
         }
 
 
@@ -319,14 +318,6 @@ namespace Stylet
                 this.instanceExpression = Expression.Constant(this.instance);
                 return this.instanceExpression;
             }
-
-            public override void Reset()
-            {
-                base.Reset();
-                this.instance = default(T);
-                this.instanceInstantiated = false;
-                this.instanceExpression = null;
-            }
         }
 
         #endregion
@@ -338,7 +329,6 @@ namespace Stylet
             string Key { get; }
             Type Type { get; }
             Expression GetInstanceExpression(StyletIoC service);
-            void Reset();
         }
 
         private abstract class CreatorBase : ICreator
@@ -346,7 +336,6 @@ namespace Stylet
             public string Key { get; protected set; }
             public virtual Type Type { get; protected set; }
             public abstract Expression GetInstanceExpression(StyletIoC service);
-            public abstract void Reset();
         }
 
         private class TypeCreator : CreatorBase
@@ -426,11 +415,6 @@ namespace Stylet
                 this.creationExpression = creator;
                 return creator;
             }
-
-            public override void Reset()
-            {
-                this.creationExpression = null;
-            }
         }
 
         private class FactoryCreator<T> : CreatorBase
@@ -450,10 +434,6 @@ namespace Stylet
                 return Expression.Invoke(expr, null);
             }
 
-            public override void Reset()
-            {
-                // Nothing to do
-            }
         }
 
         #endregion
