@@ -8,19 +8,38 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    public interface IKernel
+    {
+        IStyletIoCBindTo<TService> Bind<TService>();
+        IStyletIoCBindTo<TService> BindSingleton<TService>();
+        void Compile();
+        object Get(Type type, string key = null);
+        T Get<T>(string key = null);
+        IEnumerable<object> GetAll(Type type, string key = null);
+        IEnumerable<T> GetAll<T>(string key = null);
+    }
+
     public interface IStyletIoCBindTo<TService>
     {
         void ToSelf(string key = null);
         void To<TImplementation>(string key = null);
-        void ToFactory<TImplementation>(Func<StyletIoC, TImplementation> factory);
-        void ToFactory<TImplementation>(string key, Func<StyletIoC, TImplementation> factory);
+        void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory);
+        void ToFactory<TImplementation>(string key, Func<IKernel, TImplementation> factory);
     }
 
-    public class StyletIoC
+    public class StyletIoC : IKernel
     {
         #region Main Class
 
         private Dictionary<Type, List<IRegistration>> registrations = new Dictionary<Type, List<IRegistration>>();
+
+        public void AutoBind(Assembly assembly = null)
+        {
+            assembly = assembly ?? Assembly.GetCallingAssembly();
+            var classes = assembly.GetTypes().Where(c => c.IsClass);
+            foreach (var cls in classes)
+                this.AddRegistration(cls, new TransientRegistration(new TypeCreator(cls)) { WasAutoCreated = true });
+        }
 
         public IStyletIoCBindTo<TService> Bind<TService>()
         {
@@ -34,10 +53,32 @@ namespace Stylet
 
         public void Compile()
         {
-            foreach (var registrations in this.registrations.Values)
+            var toRemove = new List<IRegistration>();
+            foreach (var kvp in this.registrations)
             {
-                foreach (var registration in registrations)
-                    registration.EnsureGenerator(this);
+                toRemove.Clear();
+                foreach (var registration in kvp.Value)
+                {
+                    try
+                    {
+                        registration.EnsureGenerator(this);
+                    }
+                    catch (StyletIoCFindConstructorException e)
+                    {
+                        // If we can't resolve an auto-created type, that's fine - remove it from the list of types
+                        if (registration.WasAutoCreated)
+                        {
+                            System.Diagnostics.Debug.WriteLine(String.Format("ERROR: Unable to auto-bind type {0}: {1}", registration.Type.Name, e.Message), "StyletIoC");
+                            toRemove.Add(registration);
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+                }
+                foreach (var remove in toRemove)
+                    this.registrations[kvp.Key].Remove(remove);
             }
         }
 
@@ -49,6 +90,16 @@ namespace Stylet
         public T Get<T>(string key = null)
         {
             return (T)this.Get(typeof(T), key);
+        }
+
+        public IEnumerable<object> GetAll(Type type, string key = null)
+        {
+            return this.GetRegistrations(type, key);
+        }
+
+        public IEnumerable<T> GetAll<T>(string key = null)
+        {
+            return this.GetAll(typeof(T), key).Cast<T>();
         }
 
         private bool CanResolve(Type type)
@@ -91,6 +142,11 @@ namespace Stylet
             if (!this.registrations.ContainsKey(type))
                 this.registrations[type] = new List<IRegistration>();
 
+            // Is there an auto-registration for this type? If so, remove it
+            var autoRegistration = this.registrations[type].Where(x => x.WasAutoCreated && x.Type == registration.Type && x.Key == registration.Key).FirstOrDefault();
+            if (autoRegistration != null)
+                this.registrations[type].Remove(autoRegistration);
+
             this.registrations[type].Add(registration);
         }
 
@@ -121,14 +177,14 @@ namespace Stylet
                 this.Add<TImplementation>(new TypeCreator(implementationType, key));
             }
 
-            public void ToFactory<TImplementation>(string key, Func<StyletIoC, TImplementation> factory)
+            public void ToFactory<TImplementation>(string key, Func<IKernel, TImplementation> factory)
             {
                 Type implementationType = typeof(TImplementation);
                 this.EnsureType(implementationType);
                 this.Add<TImplementation>(new FactoryCreator<TImplementation>(factory, key));
             }
 
-            public void ToFactory<TImplementation>(Func<StyletIoC, TImplementation> factory)
+            public void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory)
             {
                 this.ToFactory<TImplementation>(null, factory);
             }
@@ -164,43 +220,47 @@ namespace Stylet
             string Key { get; }
             Type Type { get; }
             Func<object> Generator { get; }
+            bool WasAutoCreated { get; set; }
             void EnsureGenerator(StyletIoC service);
             Expression GetInstanceExpression(StyletIoC service);
         }
 
-        private class TransientRegistration : IRegistration
+        private abstract class RegistrationBase : IRegistration
         {
+            protected ICreator creator;
+
             public string Key { get { return this.creator.Key; } }
             public Type Type { get { return this.creator.Type; } }
-            private ICreator creator;
-            public Func<object> Generator { get; private set; }
+            public Func<object> Generator { get; protected set; }
+            public bool WasAutoCreated { get; set; }
 
+            public abstract void EnsureGenerator(StyletIoC service);
+            public abstract Expression GetInstanceExpression(StyletIoC service);
+        }
+
+
+        private class TransientRegistration : RegistrationBase
+        {
             public TransientRegistration(ICreator creator)
             {
                 this.creator = creator;
             }
 
-            public Expression GetInstanceExpression(StyletIoC service)
+            public override Expression GetInstanceExpression(StyletIoC service)
             {
                 return this.creator.GetInstanceExpression(service);
             }
 
-            public void EnsureGenerator(StyletIoC service)
+            public override void EnsureGenerator(StyletIoC service)
             {
                 this.Generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(service)).Compile();
             }
         }
 
-        private class SingletonRegistration<T> : IRegistration
+        private class SingletonRegistration<T> : RegistrationBase
         {
-            private ICreator creator;
             private T instance;
             private Expression instanceExpression;
-
-            public string Key { get { return this.creator.Key; } }
-            public Type Type { get { return this.creator.Type; } }
-            public Func<object> Generator { get; private set; }
-
 
             public SingletonRegistration(ICreator creator)
             {
@@ -213,7 +273,7 @@ namespace Stylet
                     this.instance = Expression.Lambda<Func<T>>(this.creator.GetInstanceExpression(service)).Compile()();
             }
 
-            public void EnsureGenerator(StyletIoC service)
+            public override void EnsureGenerator(StyletIoC service)
             {
                 if (this.Generator != null)
                     return;
@@ -222,7 +282,7 @@ namespace Stylet
                 this.Generator = () => this.instance;
             }
 
-            public Expression GetInstanceExpression(StyletIoC service)
+            public override Expression GetInstanceExpression(StyletIoC service)
             {
                 if (this.instanceExpression != null)
                     return this.instanceExpression;
@@ -275,14 +335,14 @@ namespace Stylet
                 var ctorsWithAttribute = this.Type.GetConstructors().Where(x => x.GetCustomAttributes(typeof(InjectAttribute), false).Any()).ToList();
                 if (ctorsWithAttribute.Count > 1)
                 {
-                    throw new StyletIoCException(String.Format("Found more than one constructor with [Inject] on type {0}", this.Type.Name));
+                    throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", this.Type.Name));
                 }
                 else if (ctorsWithAttribute.Count == 1)
                 {
                     ctor = ctorsWithAttribute[0];
                     var cantResolve = ctor.GetParameters().Where(p => !service.CanResolve(p.ParameterType) && !p.HasDefaultValue).FirstOrDefault();
                     if (cantResolve != null)
-                        throw new StyletIoCException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (which doesn't have a default value).", this.Type.Name, cantResolve.Name));
+                        throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (which doesn't have a default value).", this.Type.Name, cantResolve.Name));
                 }
                 else
                 {
@@ -293,7 +353,7 @@ namespace Stylet
 
                     if (ctor == null)
                     {
-                        throw new StyletIoCException(String.Format("Unable to find a constructor for type {0} which we can call", this.Type.Name));
+                        throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call.", this.Type.Name));
                     }
                 }
 
@@ -314,7 +374,7 @@ namespace Stylet
                         }
                         catch (StyletIoCRegistrationException e)
                         {
-                            throw new StyletIoCRegistrationException(String.Format("{0} Required by paramter '{1}' of type {2}", e.Message, x.Name, this.Type.Name), e);
+                            throw new StyletIoCFindConstructorException(String.Format("{0} Required by paramter '{1}' of type {2}.", e.Message, x.Name, this.Type.Name), e);
                         }
                     }
                     return Expression.Constant(x.DefaultValue);
@@ -358,6 +418,12 @@ namespace Stylet
     {
         public StyletIoCRegistrationException(string message) : base(message) { }
         public StyletIoCRegistrationException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+    public class StyletIoCFindConstructorException : StyletIoCException
+    {
+        public StyletIoCFindConstructorException(string message) : base(message) { }
+        public StyletIoCFindConstructorException(string message, Exception innerException) : base(message, innerException) { }
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
