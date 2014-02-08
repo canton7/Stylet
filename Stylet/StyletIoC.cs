@@ -22,9 +22,9 @@ namespace Stylet
     public interface IStyletIoCBindTo<TService>
     {
         void ToSelf(string key = null);
-        void To<TImplementation>(string key = null);
-        void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory);
-        void ToFactory<TImplementation>(string key, Func<IKernel, TImplementation> factory);
+        void To<TImplementation>(string key = null) where TImplementation : class;
+        void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory) where TImplementation : class;
+        void ToFactory<TImplementation>(string key, Func<IKernel, TImplementation> factory) where TImplementation : class;
     }
 
     public class StyletIoC : IKernel
@@ -53,6 +53,13 @@ namespace Stylet
 
         public void Compile()
         {
+            // Reset everything
+            foreach (var registrations in this.registrations.Values)
+            {
+                foreach (var registration in registrations)
+                    registration.Reset();
+            }
+
             var toRemove = new List<IRegistration>();
             foreach (var kvp in this.registrations)
             {
@@ -77,6 +84,7 @@ namespace Stylet
                         }
                     }
                 }
+
                 foreach (var remove in toRemove)
                     this.registrations[kvp.Key].Remove(remove);
             }
@@ -94,7 +102,7 @@ namespace Stylet
 
         public IEnumerable<object> GetAll(Type type, string key = null)
         {
-            return this.GetRegistrations(type, key);
+            return this.GetRegistrations(type, key).Select(x => x.Generator());
         }
 
         public IEnumerable<T> GetAll<T>(string key = null)
@@ -123,6 +131,9 @@ namespace Stylet
 
             if (registrations.Count == 0)
                 throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0} with key '{1}'.", type.Name, key));
+
+            if (registrations.Any(x => x.Generator == null))
+                throw new StyletIocNotCompiledException("It looks like you've requested a registration which hasn't been compiled. Call Compile() after adding new registrations");
 
             return registrations;
         }
@@ -167,24 +178,26 @@ namespace Stylet
 
             public void ToSelf(string key = null)
             {
-                this.To<TService>(key);
+                Type implementationType = typeof(TService);
+                this.EnsureType(implementationType);
+                this.Add<TService>(new TypeCreator(implementationType, key));
             }
 
-            public void To<TImplementation>(string key = null)
+            public void To<TImplementation>(string key = null) where TImplementation : class
             {
                 Type implementationType = typeof(TImplementation);
                 this.EnsureType(implementationType);
                 this.Add<TImplementation>(new TypeCreator(implementationType, key));
             }
 
-            public void ToFactory<TImplementation>(string key, Func<IKernel, TImplementation> factory)
+            public void ToFactory<TImplementation>(string key, Func<IKernel, TImplementation> factory) where TImplementation : class
             {
                 Type implementationType = typeof(TImplementation);
                 this.EnsureType(implementationType);
                 this.Add<TImplementation>(new FactoryCreator<TImplementation>(factory, key));
             }
 
-            public void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory)
+            public void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory) where TImplementation : class
             {
                 this.ToFactory<TImplementation>(null, factory);
             }
@@ -194,6 +207,8 @@ namespace Stylet
                 Type serviceType = typeof(TService);
                 if (!serviceType.IsAssignableFrom(implementationType))
                     throw new StyletIoCException(String.Format("Type {0} does not implement service {1}", implementationType.Name, serviceType.Name));
+                if (!implementationType.IsClass)
+                    throw new StyletIoCException(String.Format("Type {0} is not a class, and so can't be used to implemented service {1}", implementationType.Name, serviceType.Name));
             }
 
             private void Add<TImplementation>(ICreator creator)
@@ -223,6 +238,7 @@ namespace Stylet
             bool WasAutoCreated { get; set; }
             void EnsureGenerator(StyletIoC service);
             Expression GetInstanceExpression(StyletIoC service);
+            void Reset();
         }
 
         private abstract class RegistrationBase : IRegistration
@@ -236,6 +252,12 @@ namespace Stylet
 
             public abstract void EnsureGenerator(StyletIoC service);
             public abstract Expression GetInstanceExpression(StyletIoC service);
+
+            public virtual void Reset()
+            {
+                this.Generator = null;
+                this.creator.Reset();
+            }
         }
 
 
@@ -253,12 +275,14 @@ namespace Stylet
 
             public override void EnsureGenerator(StyletIoC service)
             {
-                this.Generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(service)).Compile();
+                if (this.Generator == null)
+                    this.Generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(service)).Compile();
             }
         }
 
         private class SingletonRegistration<T> : RegistrationBase
         {
+            private bool instanceInstantiated;
             private T instance;
             private Expression instanceExpression;
 
@@ -269,8 +293,11 @@ namespace Stylet
 
             private void EnsureInstantiated(StyletIoC service)
             {
-                if (this.instance == null)
-                    this.instance = Expression.Lambda<Func<T>>(this.creator.GetInstanceExpression(service)).Compile()();
+                if (this.instanceInstantiated)
+                    return;
+
+                this.instance = Expression.Lambda<Func<T>>(this.creator.GetInstanceExpression(service)).Compile()();
+                this.instanceInstantiated = true;
             }
 
             public override void EnsureGenerator(StyletIoC service)
@@ -292,6 +319,14 @@ namespace Stylet
                 this.instanceExpression = Expression.Constant(this.instance);
                 return this.instanceExpression;
             }
+
+            public override void Reset()
+            {
+                base.Reset();
+                this.instance = default(T);
+                this.instanceInstantiated = false;
+                this.instanceExpression = null;
+            }
         }
 
         #endregion
@@ -303,12 +338,19 @@ namespace Stylet
             string Key { get; }
             Type Type { get; }
             Expression GetInstanceExpression(StyletIoC service);
+            void Reset();
         }
 
-        private class TypeCreator : ICreator
+        private abstract class CreatorBase : ICreator
         {
-            public string Key { get; private set; }
-            public Type Type { get; private set; }
+            public string Key { get; protected set; }
+            public virtual Type Type { get; protected set; }
+            public abstract Expression GetInstanceExpression(StyletIoC service);
+            public abstract void Reset();
+        }
+
+        private class TypeCreator : CreatorBase
+        {
             private Expression creationExpression;
 
             public TypeCreator(Type type, string key = null)
@@ -325,7 +367,7 @@ namespace Stylet
                 this.Key = key;
             }
 
-            public Expression GetInstanceExpression(StyletIoC service)
+            public override Expression GetInstanceExpression(StyletIoC service)
             {
                 if (this.creationExpression != null)
                     return this.creationExpression;
@@ -384,12 +426,16 @@ namespace Stylet
                 this.creationExpression = creator;
                 return creator;
             }
+
+            public override void Reset()
+            {
+                this.creationExpression = null;
+            }
         }
 
-        private class FactoryCreator<T> : ICreator
+        private class FactoryCreator<T> : CreatorBase
         {
-            public string Key { get; private set; }
-            public Type Type { get { return typeof(T); } }
+            public override Type Type { get { return typeof(T); } }
             private Func<StyletIoC, T> factory;
 
             public FactoryCreator(Func<StyletIoC, T> factory, string key = null)
@@ -398,10 +444,15 @@ namespace Stylet
                 this.Key = key;
             }
 
-            public Expression GetInstanceExpression(StyletIoC service)
+            public override Expression GetInstanceExpression(StyletIoC service)
             {
                 var expr = (Expression<Func<T>>)(() => this.factory(service));
                 return Expression.Invoke(expr, null);
+            }
+
+            public override void Reset()
+            {
+                // Nothing to do
             }
         }
 
@@ -424,6 +475,12 @@ namespace Stylet
     {
         public StyletIoCFindConstructorException(string message) : base(message) { }
         public StyletIoCFindConstructorException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+    public class StyletIocNotCompiledException : StyletIoCException
+    {
+        public StyletIocNotCompiledException(string message) : base(message) { }
+        public StyletIocNotCompiledException(string message, Exception innerException) : base(message, innerException) { }
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
