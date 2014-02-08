@@ -8,46 +8,99 @@ using System.Threading.Tasks;
 
 namespace StyletUnitTests
 {
+    interface ISimpleTest
+    {
+    }
+
+    class SimpleTest : ISimpleTest
+    {
+    }
+
     [TestFixture]
     public class StyletIoCTests
     {
         [Test]
-        public void Temp()
+        public void SimpleSelfTransientBindingResolves()
         {
             var ioc = new StyletIoC();
-            ioc.AutoBind();
-            //ioc.BindSingleton<Dummy1>().ToSelf("test");
-            ////ioc.Bind<Dummy2, Dummy2>();
-            //ioc.Bind<Dummy2>().ToSelf();
-
+            ioc.Bind<SimpleTest>().ToSelf();
             ioc.Compile();
+            var obj1 = ioc.Get<SimpleTest>();
+            var obj2 = ioc.Get<SimpleTest>();
 
-            var two = ioc.Get(typeof(Dummy2), "test");
+            Assert.That(obj1, Is.Not.Null);
+            Assert.That(obj2, Is.Not.Null);
+            Assert.That(obj1, Is.Not.EqualTo(obj2));
         }
 
-        [Inject("test")]
-        private class Dummy2
+        [Test]
+        public void SimpleSelfSingletonBindingResolves()
         {
-            public Dummy1 Dummy1;
-            public string Foo;
+            var ioc = new StyletIoC();
+            ioc.BindSingleton<SimpleTest>().ToSelf();
+            ioc.Compile();
+            var obj1 = ioc.Get<SimpleTest>();
+            var obj2 = ioc.Get<SimpleTest>();
 
-            public Dummy2()
-            {
-            }
-
-            [Inject]
-            public Dummy2(Dummy1 dummy1)
-            {
-                this.Dummy1 = dummy1;
-            }
+            Assert.That(obj1, Is.Not.Null);
+            Assert.That(obj2, Is.Not.Null);
+            Assert.That(obj1, Is.EqualTo(obj2));
         }
 
-        private class Dummy1
+        [Test]
+        public void SimpleFactoryTransientBindingResolves()
         {
-            public Dummy1(string foo)
-            {
+            var ioc = new StyletIoC();
+            ioc.Bind<SimpleTest>().ToFactory(c => new SimpleTest());
+            ioc.Compile();
+            var obj1 = ioc.Get<SimpleTest>();
+            var obj2 = ioc.Get<SimpleTest>();
 
-            }
+            Assert.That(obj1, Is.Not.Null);
+            Assert.That(obj2, Is.Not.Null);
+            Assert.That(obj1, Is.Not.EqualTo(obj2));
+        }
+
+        [Test]
+        public void SimpleFactorySingletonBindingResolves()
+        {
+            var ioc = new StyletIoC();
+            ioc.BindSingleton<SimpleTest>().ToFactory(c => new SimpleTest());
+            ioc.Compile();
+            var obj1 = ioc.Get<SimpleTest>();
+            var obj2 = ioc.Get<SimpleTest>();
+
+            Assert.That(obj1, Is.Not.Null);
+            Assert.That(obj2, Is.Not.Null);
+            Assert.That(obj1, Is.EqualTo(obj2));
+        }
+
+        [Test]
+        public void SimpleImplementationTransientBindingResolves()
+        {
+            var ioc = new StyletIoC();
+            ioc.Bind<ISimpleTest>().To<SimpleTest>();
+            ioc.Compile();
+            var obj1 = ioc.Get<ISimpleTest>();
+            var obj2 = ioc.Get<ISimpleTest>();
+
+            Assert.That(obj1, Is.Not.Null);
+            Assert.That(obj2, Is.Not.Null);
+            Assert.That(obj1, Is.Not.EqualTo(obj2));
+        }
+
+        [Test]
+        public void SimpleImplementationSingletonBindingResolves()
+        {
+            var ioc = new StyletIoC();
+            ioc.BindSingleton<ISimpleTest>().To<SimpleTest>();
+            ioc.Compile();
+            var obj1 = ioc.Get<ISimpleTest>();
+            var obj2 = ioc.Get<ISimpleTest>();
+
+            Assert.That(obj1, Is.Not.Null);
+            Assert.That(obj2, Is.Not.Null);
+            Assert.That(obj1, Is.EqualTo(obj2));
         }
     }
 }
