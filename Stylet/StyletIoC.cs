@@ -32,7 +32,7 @@ namespace Stylet
         #region Main Class
 
         private Dictionary<Type, List<IRegistration>> registrations = new Dictionary<Type, List<IRegistration>>();
-        private bool compiled;
+        private bool compilationStarted;
 
         public void AutoBind(Assembly assembly = null)
         {
@@ -44,18 +44,25 @@ namespace Stylet
 
         public IStyletIoCBindTo<TService> Bind<TService>()
         {
+            this.CheckCompilationStarted();
             return new BindTo<TService>(this, false);
         }
 
         public IStyletIoCBindTo<TService> BindSingleton<TService>()
         {
+            this.CheckCompilationStarted();
             return new BindTo<TService>(this, true);
+        }
+
+        private void CheckCompilationStarted()
+        {
+            if (this.compilationStarted)
+                throw new StyletIoCException("Once you've started to retrieve items from the container, or have called Compile(), you cannot register new services");
         }
 
         public void Compile()
         {
-            if (this.compiled)
-                throw new StyletIoCException("This StyletIoC container has already been compiled");
+            this.compilationStarted = true;
 
             var toRemove = new List<IRegistration>();
             foreach (var kvp in this.registrations)
@@ -65,7 +72,7 @@ namespace Stylet
                 {
                     try
                     {
-                        registration.EnsureGenerator(this);
+                        registration.GetGenerator(this);
                     }
                     catch (StyletIoCFindConstructorException e)
                     {
@@ -85,38 +92,27 @@ namespace Stylet
                 foreach (var remove in toRemove)
                     this.registrations[kvp.Key].Remove(remove);
             }
-
-            this.compiled = true;
         }
 
         public object Get(Type type, string key = null)
         {
-            this.EnsureCompiled();
-            return this.GetRegistration(type, key).Generator();
+            return this.GetRegistration(type, key).GetGenerator(this)();
         }
 
         public T Get<T>(string key = null)
         {
-            this.EnsureCompiled();
+
             return (T)this.Get(typeof(T), key);
         }
 
         public IEnumerable<object> GetAll(Type type, string key = null)
         {
-            this.EnsureCompiled();
-            return this.GetRegistrations(type, key).Select(x => x.Generator());
+            return this.GetRegistrations(type, key).Select(x => x.GetGenerator(this)());
         }
 
         public IEnumerable<T> GetAll<T>(string key = null)
         {
-            this.EnsureCompiled();
             return this.GetAll(typeof(T), key).Cast<T>();
-        }
-
-        private void EnsureCompiled()
-        {
-            if (!this.compiled)
-                throw new StyletIocNotCompiledException("You need to run Compile() after adding bindings, before fetching any");
         }
 
         private bool CanResolve(Type type)
@@ -240,9 +236,8 @@ namespace Stylet
         {
             string Key { get; }
             Type Type { get; }
-            Func<object> Generator { get; }
             bool WasAutoCreated { get; set; }
-            void EnsureGenerator(StyletIoC service);
+            Func<object> GetGenerator(StyletIoC service);
             Expression GetInstanceExpression(StyletIoC service);
         }
 
@@ -252,10 +247,11 @@ namespace Stylet
 
             public string Key { get { return this.creator.Key; } }
             public Type Type { get { return this.creator.Type; } }
-            public Func<object> Generator { get; protected set; }
             public bool WasAutoCreated { get; set; }
 
-            public abstract void EnsureGenerator(StyletIoC service);
+            protected Func<object> generator { get; set; }
+
+            public abstract Func<object> GetGenerator(StyletIoC service);
             public abstract Expression GetInstanceExpression(StyletIoC service);
         }
 
@@ -272,10 +268,11 @@ namespace Stylet
                 return this.creator.GetInstanceExpression(service);
             }
 
-            public override void EnsureGenerator(StyletIoC service)
+            public override Func<object> GetGenerator(StyletIoC service)
             {
-                if (this.Generator == null)
-                    this.Generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(service)).Compile();
+                if (this.generator == null)
+                    this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(service)).Compile();
+                return this.generator;
             }
         }
 
@@ -299,13 +296,14 @@ namespace Stylet
                 this.instanceInstantiated = true;
             }
 
-            public override void EnsureGenerator(StyletIoC service)
+            public override Func<object> GetGenerator(StyletIoC service)
             {
-                if (this.Generator != null)
-                    return;
-
                 this.EnsureInstantiated(service);
-                this.Generator = () => this.instance;
+
+                if (this.generator == null)
+                    this.generator = () => this.instance;
+
+                return this.generator;
             }
 
             public override Expression GetInstanceExpression(StyletIoC service)

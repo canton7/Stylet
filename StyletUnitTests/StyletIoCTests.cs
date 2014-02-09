@@ -24,7 +24,6 @@ namespace StyletUnitTests
         {
             var ioc = new StyletIoC();
             ioc.Bind<SimpleTest>().ToSelf();
-            ioc.Compile();
             var obj1 = ioc.Get<SimpleTest>();
             var obj2 = ioc.Get<SimpleTest>();
 
@@ -38,7 +37,6 @@ namespace StyletUnitTests
         {
             var ioc = new StyletIoC();
             ioc.BindSingleton<SimpleTest>().ToSelf();
-            ioc.Compile();
             var obj1 = ioc.Get<SimpleTest>();
             var obj2 = ioc.Get<SimpleTest>();
 
@@ -52,7 +50,6 @@ namespace StyletUnitTests
         {
             var ioc = new StyletIoC();
             ioc.Bind<SimpleTest>().ToFactory(c => new SimpleTest());
-            ioc.Compile();
             var obj1 = ioc.Get<SimpleTest>();
             var obj2 = ioc.Get<SimpleTest>();
 
@@ -66,7 +63,6 @@ namespace StyletUnitTests
         {
             var ioc = new StyletIoC();
             ioc.BindSingleton<SimpleTest>().ToFactory(c => new SimpleTest());
-            ioc.Compile();
             var obj1 = ioc.Get<SimpleTest>();
             var obj2 = ioc.Get<SimpleTest>();
 
@@ -80,7 +76,6 @@ namespace StyletUnitTests
         {
             var ioc = new StyletIoC();
             ioc.Bind<ISimpleTest>().To<SimpleTest>();
-            ioc.Compile();
             var obj1 = ioc.Get<ISimpleTest>();
             var obj2 = ioc.Get<ISimpleTest>();
 
@@ -94,7 +89,6 @@ namespace StyletUnitTests
         {
             var ioc = new StyletIoC();
             ioc.BindSingleton<ISimpleTest>().To<SimpleTest>();
-            ioc.Compile();
             var obj1 = ioc.Get<ISimpleTest>();
             var obj2 = ioc.Get<ISimpleTest>();
 
