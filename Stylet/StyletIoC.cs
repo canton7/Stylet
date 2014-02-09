@@ -115,9 +115,14 @@ namespace Stylet
             return this.GetAll(typeof(T), key).Cast<T>();
         }
 
-        private bool CanResolve(Type type)
+        private bool CanResolve(Type type, string key)
         {
-            return this.registrations.ContainsKey(type);
+            bool canResolve = this.registrations.ContainsKey(type);
+            // Try calling GetExpression and see if that blows up...
+            // TODO actually catch the resulting exception
+            if (canResolve)
+                this.GetExpression(type, key);
+            return canResolve;
         }
 
         private Expression GetExpression(Type type, string key)
@@ -354,6 +359,12 @@ namespace Stylet
                 this.Key = key;
             }
 
+            private string KeyForParameter(ParameterInfo parameter)
+            {
+                var attribute = (InjectAttribute)parameter.GetCustomAttributes(typeof(InjectAttribute)).FirstOrDefault();
+                return attribute == null ? null : attribute.Key;
+            }
+
             public override Expression GetInstanceExpression(StyletIoC service)
             {
                 if (this.creationExpression != null)
@@ -369,14 +380,15 @@ namespace Stylet
                 else if (ctorsWithAttribute.Count == 1)
                 {
                     ctor = ctorsWithAttribute[0];
-                    var cantResolve = ctor.GetParameters().Where(p => !service.CanResolve(p.ParameterType) && !p.HasDefaultValue).FirstOrDefault();
+                    var key = ((InjectAttribute)ctorsWithAttribute[0].GetCustomAttribute(typeof(InjectAttribute), false)).Key;
+                    var cantResolve = ctor.GetParameters().Where(p => !service.CanResolve(p.ParameterType, key) && !p.HasDefaultValue).FirstOrDefault();
                     if (cantResolve != null)
                         throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (which doesn't have a default value).", this.Type.Name, cantResolve.Name));
                 }
                 else
                 {
                     ctor = this.Type.GetConstructors()
-                        .Where(c => c.GetParameters().All(p => service.CanResolve(p.ParameterType) || p.HasDefaultValue))
+                        .Where(c => c.GetParameters().All(p => service.CanResolve(p.ParameterType, this.KeyForParameter(p)) || p.HasDefaultValue))
                         .OrderByDescending(c => c.GetParameters().Count(p => !p.HasDefaultValue))
                         .FirstOrDefault();
 
@@ -391,12 +403,9 @@ namespace Stylet
                 // If there parameter's got an InjectAttribute with a key, use that key to resolve
                 var ctorParams = ctor.GetParameters().Select(x =>
                 {
-                    if (service.CanResolve(x.ParameterType))
+                    var key = this.KeyForParameter(x);
+                    if (service.CanResolve(x.ParameterType, key))
                     {
-                        string key = null;
-                        var attribute = x.GetCustomAttributes(typeof(InjectAttribute), false).FirstOrDefault();
-                        if (attribute != null)
-                            key = ((InjectAttribute)attribute).Key;
                         try
                         {
                             return service.GetExpression(x.ParameterType, key);
