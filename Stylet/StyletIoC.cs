@@ -106,12 +106,15 @@ namespace Stylet
 
         private bool CanResolve(Type type, string key)
         {
-            bool canResolve = this.registrations.ContainsKey(type);
-            // Try calling GetExpression and see if that blows up...
-            // TODO actually catch the resulting exception
-            if (canResolve)
-                this.GetExpression(type, key);
-            return canResolve;
+            if (this.registrations.ContainsKey(type))
+                return true;
+            // Is it something which can be implemented by a List<T> ?
+            else if (type.IsGenericType && type.GenericTypeArguments.Length == 1 && this.registrations.ContainsKey(type.GenericTypeArguments[0]))
+            {
+                Type listType = typeof(List<>).MakeGenericType(type.GenericTypeArguments[0]);
+                return type.IsAssignableFrom(listType);
+            }
+            return false;
         }
 
         private Expression GetExpression(Type type, string key)
@@ -136,12 +139,39 @@ namespace Stylet
 
         private IRegistration GetRegistration(Type type, string key)
         {
-            var registrations = this.GetRegistrations(type, key);
+            IRegistration registration;
 
-            if (registrations.Count > 1)
-                throw new StyletIoCRegistrationException(String.Format("Multiple registrations found for service {0} with key '{1}'.", type.Name, key));
+            try
+            {
+                var registrations = this.GetRegistrations(type, key);
+                if (registrations.Count > 1)
+                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations found for service {0} with key '{1}'.", type.Name, key));
+                registration = registrations[0];
+            }
+            catch (StyletIoCRegistrationException)
+            {
+                registration = this.MakeGetAllRegistration(type, key);
+                if (registration == null)
+                    throw;
+            }
 
-            return registrations[0];
+            return registration;
+        }
+
+        private IRegistration MakeGetAllRegistration(Type type, string key)
+        {
+            IRegistration registration = null;
+            // TODO Remove duplication
+            if (type.IsGenericType && type.GenericTypeArguments.Length == 1 && this.registrations.ContainsKey(type.GenericTypeArguments[0]))
+            {
+                Type listType = typeof(List<>).MakeGenericType(type.GenericTypeArguments[0]);
+                if (type.IsAssignableFrom(listType))
+                {
+                    registration = new GetAllRegistration(listType, key);
+                    this.AddRegistration(listType, registration);
+                }
+            }
+            return registration;
         }
 
         private void AddRegistration(Type type, IRegistration registration)
@@ -309,6 +339,41 @@ namespace Stylet
 
                 this.instanceExpression = Expression.Constant(this.instance);
                 return this.instanceExpression;
+            }
+        }
+
+        private class GetAllRegistration : IRegistration
+        {
+            public string Key { get; private set; }
+            public Type Type { get; private set; }
+            public bool WasAutoCreated { get; set; }
+
+            private Expression expression;
+            private Func<object> generator;
+
+            public GetAllRegistration(Type type, string key)
+            {
+                this.Type = type;
+                this.Key = key;
+            }
+
+            public Func<object> GetGenerator(StyletIoC service)
+            {
+                if (this.generator == null)
+                    this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(service)).Compile();
+                return this.generator;
+            }
+
+            public Expression GetInstanceExpression(StyletIoC service)
+            {
+                if (this.expression != null)
+                    return this.expression;
+
+                var list = Expression.New(this.Type);
+                var init = Expression.ListInit(list, service.GetRegistrations(this.Type.GenericTypeArguments[0], this.Key).Select(x => x.GetInstanceExpression(service)));
+                
+                this.expression = init;
+                return init;
             }
         }
 
