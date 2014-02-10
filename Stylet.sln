@@ -14,8 +14,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{AE3462
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{2C2BAF14-AF38-459A-BB80-9B7CADE315A5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,10 +28,6 @@ Global
 		{13AFA20D-CCEA-4A58-920E-4D8816C7296B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13AFA20D-CCEA-4A58-920E-4D8816C7296B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13AFA20D-CCEA-4A58-920E-4D8816C7296B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2C2BAF14-AF38-459A-BB80-9B7CADE315A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2C2BAF14-AF38-459A-BB80-9B7CADE315A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2C2BAF14-AF38-459A-BB80-9B7CADE315A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2C2BAF14-AF38-459A-BB80-9B7CADE315A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
