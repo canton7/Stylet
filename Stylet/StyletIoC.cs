@@ -32,6 +32,7 @@ namespace Stylet
         #region Main Class
 
         private Dictionary<Type, List<IRegistration>> registrations = new Dictionary<Type, List<IRegistration>>();
+        private Dictionary<Type, List<IRegistration>> getAllRegistrations = new Dictionary<Type, List<IRegistration>>();
         private bool compilationStarted;
 
         public void AutoBind(Assembly assembly = null)
@@ -96,37 +97,49 @@ namespace Stylet
 
         public IEnumerable<object> GetAll(Type type, string key = null)
         {
-            return this.GetRegistrations(type, key).Select(x => x.GetGenerator(this)());
+            return (List<object>)this.GetRegistration(typeof(List<>).MakeGenericType(type), key).GetGenerator(this)();
         }
 
         public IEnumerable<T> GetAll<T>(string key = null)
         {
-            return this.GetAll(typeof(T), key).Cast<T>();
+            return (List<T>)this.GetRegistration(typeof(List<T>), key).GetGenerator(this)();
         }
 
         private bool CanResolve(Type type, string key)
         {
             if (this.registrations.ContainsKey(type))
                 return true;
-            // Is it something which can be implemented by a List<T> ?
-            Type makeAllType;
-            return this.TryMakeGetAllType(type, out makeAllType);
+
+            // Is it a 'get all' request?
+            var elementType = this.TryEnsureGetAllRegistrationCreated(type, key);
+            return elementType != null;
         }
 
-        private bool TryMakeGetAllType(Type type, out Type makeAllType)
+        private Type GetElementTypeFromCollectionType(Type type)
         {
-            makeAllType = null;
+            if (!type.IsGenericType || type.GenericTypeArguments.Length != 1 || !this.registrations.ContainsKey(type.GenericTypeArguments[0]))
+                return null;
+            return type.GenericTypeArguments[0];
+        }
 
-            if (type.IsGenericType && type.GenericTypeArguments.Length == 1 && this.registrations.ContainsKey(type.GenericTypeArguments[0]))
-            {
-                var listType = typeof(List<>).MakeGenericType(type.GenericTypeArguments[0]);
-                if (type.IsAssignableFrom(listType))
-                {
-                    makeAllType = listType;
-                    return true;
-                }
-            }
-            return false;
+        // Returns the type of element if it's valid
+        private Type TryEnsureGetAllRegistrationCreated(Type type, string key)
+        {
+            var elementType = this.GetElementTypeFromCollectionType(type);
+            if (elementType == null)
+                return null;
+
+            if (this.getAllRegistrations.ContainsKey(elementType) && this.getAllRegistrations[elementType].Any(x => x.Key == key))
+                return elementType;
+
+            var listType = typeof(List<>).MakeGenericType(elementType);
+            if (!type.IsAssignableFrom(listType))
+                return null;
+
+            var registration = new GetAllRegistration(listType, key);
+            this.AddGetAllRegistration(elementType, registration);
+
+            return elementType;
         }
 
         private Expression GetExpression(Type type, string key)
@@ -134,16 +147,28 @@ namespace Stylet
             return this.GetRegistration(type, key).GetInstanceExpression(this);
         }
 
-        private List<IRegistration> GetRegistrations(Type type, string key)
+        private IEnumerable<IRegistration> GetRegistrations(Type type, string key)
         {
+            IEnumerable<IRegistration> registrations;
+
             if (!this.registrations.ContainsKey(type))
-                throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", type.Name));
+            {
+                // Couldn't find this type - is it a 'get all' collection type? (i.e. they've put IEnumerable<TypeWeCanResolve> in a ctor param)
+                var collectionElementType = this.TryEnsureGetAllRegistrationCreated(type, key);
+                if (collectionElementType == null)
+                    throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", type.Name));
 
-            var registrations = this.registrations[type];
-            if (key != null)
-                registrations = registrations.Where(x => x.Key == key).ToList();
+                // Got this far? Good. There's actually a 'get all' collection type. Proceed with that
+                registrations = this.getAllRegistrations[collectionElementType];
+            }
+            else
+            {
+                registrations = this.registrations[type];
+            }
 
-            if (registrations.Count == 0)
+            registrations = registrations.Where(x => x.Key == key);
+
+            if (!registrations.Any())
                 throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0} with key '{1}'.", type.Name, key));
 
             return registrations;
@@ -153,32 +178,11 @@ namespace Stylet
         {
             IRegistration registration;
 
-            try
-            {
-                var registrations = this.GetRegistrations(type, key);
-                if (registrations.Count > 1)
-                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations found for service {0} with key '{1}'.", type.Name, key));
-                registration = registrations[0];
-            }
-            catch (StyletIoCRegistrationException)
-            {
-                registration = this.MakeGetAllRegistration(type, key);
-                if (registration == null)
-                    throw;
-            }
+            var registrations = this.GetRegistrations(type, key).ToList();
+            if (registrations.Count > 1)
+                throw new StyletIoCRegistrationException(String.Format("Multiple registrations found for service {0} with key '{1}'.", type.Name, key));
+            registration = registrations[0];
 
-            return registration;
-        }
-
-        private IRegistration MakeGetAllRegistration(Type type, string key)
-        {
-            IRegistration registration = null;
-            Type getAllType;
-            if (this.TryMakeGetAllType(type, out getAllType))
-            { 
-                registration = new GetAllRegistration(getAllType, key);
-                this.AddRegistration(getAllType, registration);
-            }
             return registration;
         }
 
@@ -193,6 +197,14 @@ namespace Stylet
                 this.registrations[type].Remove(autoRegistration);
 
             this.registrations[type].Add(registration);
+        }
+
+        private void AddGetAllRegistration(Type type, IRegistration registration)
+        {
+            if (!this.getAllRegistrations.ContainsKey(type))
+                this.getAllRegistrations[type] = new List<IRegistration>();
+
+            this.getAllRegistrations[type].Add(registration);
         }
 
         #endregion
