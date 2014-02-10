@@ -63,34 +63,23 @@ namespace Stylet
         public void Compile()
         {
             this.compilationStarted = true;
-
-            var toRemove = new List<IRegistration>();
             foreach (var kvp in this.registrations)
             {
-                toRemove.Clear();
                 foreach (var registration in kvp.Value)
                 {
                     try
                     {
                         registration.GetGenerator(this);
                     }
-                    catch (StyletIoCFindConstructorException e)
+                    catch (StyletIoCFindConstructorException)
                     {
-                        // If we can't resolve an auto-created type, that's fine - remove it from the list of types
-                        if (registration.WasAutoCreated)
-                        {
-                            System.Diagnostics.Debug.WriteLine(String.Format("ERROR: Unable to auto-bind type {0}: {1}", registration.Type.Name, e.Message), "StyletIoC");
-                            toRemove.Add(registration);
-                        }
-                        else
-                        {
+                        // If we can't resolve an auto-created type, that's fine
+                        // Don't remove it from the list of types - that way they'll get a
+                        // decent error message if they actually try and resolve it
+                        if (!registration.WasAutoCreated)
                             throw;
-                        }
                     }
                 }
-
-                foreach (var remove in toRemove)
-                    this.registrations[kvp.Key].Remove(remove);
             }
         }
 
