@@ -109,10 +109,22 @@ namespace Stylet
             if (this.registrations.ContainsKey(type))
                 return true;
             // Is it something which can be implemented by a List<T> ?
-            else if (type.IsGenericType && type.GenericTypeArguments.Length == 1 && this.registrations.ContainsKey(type.GenericTypeArguments[0]))
+            Type makeAllType;
+            return this.TryMakeGetAllType(type, out makeAllType);
+        }
+
+        private bool TryMakeGetAllType(Type type, out Type makeAllType)
+        {
+            makeAllType = null;
+
+            if (type.IsGenericType && type.GenericTypeArguments.Length == 1 && this.registrations.ContainsKey(type.GenericTypeArguments[0]))
             {
-                Type listType = typeof(List<>).MakeGenericType(type.GenericTypeArguments[0]);
-                return type.IsAssignableFrom(listType);
+                var listType = typeof(List<>).MakeGenericType(type.GenericTypeArguments[0]);
+                if (type.IsAssignableFrom(listType))
+                {
+                    makeAllType = listType;
+                    return true;
+                }
             }
             return false;
         }
@@ -161,15 +173,11 @@ namespace Stylet
         private IRegistration MakeGetAllRegistration(Type type, string key)
         {
             IRegistration registration = null;
-            // TODO Remove duplication
-            if (type.IsGenericType && type.GenericTypeArguments.Length == 1 && this.registrations.ContainsKey(type.GenericTypeArguments[0]))
-            {
-                Type listType = typeof(List<>).MakeGenericType(type.GenericTypeArguments[0]);
-                if (type.IsAssignableFrom(listType))
-                {
-                    registration = new GetAllRegistration(listType, key);
-                    this.AddRegistration(listType, registration);
-                }
+            Type getAllType;
+            if (this.TryMakeGetAllType(type, out getAllType))
+            { 
+                registration = new GetAllRegistration(getAllType, key);
+                this.AddRegistration(getAllType, registration);
             }
             return registration;
         }
