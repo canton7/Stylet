@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -44,9 +45,33 @@ namespace Stylet
         public void AutoBind(Assembly assembly = null)
         {
             assembly = assembly ?? Assembly.GetCallingAssembly();
-            var classes = assembly.GetTypes().Where(c => c.IsClass);
+            var classes = assembly.GetTypes().Where(c => c.IsClass && !c.IsAbstract);
             foreach (var cls in classes)
-                this.AddRegistration(cls, new TransientRegistration(new TypeCreator(cls)) { WasAutoCreated = true });
+            {
+                try
+                {
+                    this.Bind(cls).To(cls);
+                }
+                catch (StyletIoCRegistrationException e)
+                {
+                    Debug.WriteLine(String.Format("Unable to auto-bind type {0}: {1}", cls.Name, e.Message), "StyletIoC");
+                }
+            }
+        }
+
+        public void AutoBindImplementationsOfUnboundType(Type unboundType, Assembly assembly = null)
+        {
+            assembly = assembly ?? Assembly.GetCallingAssembly();
+
+            var candidates = from type in assembly.GetTypes()
+                             let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == unboundType)
+                             where baseType != null
+                             select new { Type = type, Base = baseType};
+
+            foreach (var candidate in candidates)
+            {
+                this.Bind(candidate.Base).To(candidate.Type);
+            }
         }
 
         public IStyletIoCBindTo Bind<TService>()
@@ -125,6 +150,8 @@ namespace Stylet
 
         private bool CanResolve(Type type, string key)
         {
+            this.TryEnsureGenericRegistrationCreated(type, key);
+
             if (this.registrations.ContainsKey(type))
                 return true;
 
@@ -164,22 +191,31 @@ namespace Stylet
             return this.TryEnsureGetAllRegistrationCreatedFromElementType(elementType, type, key) ? elementType : null;
         }
 
-        private Type TryEnsureGenericTypeCreated(Type type, string key)
+        private void TryEnsureGenericRegistrationCreated(Type type, string key)
         {
-            if (type.GenericTypeArguments.Length != 1)
-                return null;
+            if (this.registrations.ContainsKey(type) || !type.IsGenericType)
+                return;
 
-            Type genericType = type.GetGenericTypeDefinition();
+            if (type.GenericTypeArguments.Length == 0)
+                return;
 
-            if (!this.unboundGenerics.ContainsKey(genericType))
-                return null;
+            Type unboundGenericType = type.GetGenericTypeDefinition();
 
-            var unboundGeneric = this.unboundGenerics[genericType];
+            if (!this.unboundGenerics.ContainsKey(unboundGenericType))
+                return;
+
+            var unboundGeneric = this.unboundGenerics[unboundGenericType];
             if (unboundGeneric.Key != key)
-                return null;
+                return;
 
-            Type newType = unboundGeneric.Type.MakeGenericType(type.GenericTypeArguments[0]);
-            return newType;
+            Type newType = unboundGeneric.Type.MakeGenericType(type.GenericTypeArguments);
+
+            if (!type.IsAssignableFrom(newType))
+                return;
+
+            // Right! We've made a new generic type we can use
+            var registration = unboundGeneric.CreateRegistrationForType(newType);
+            this.AddRegistration(type, registration);
         }
 
         private Expression GetExpression(Type type, string key, bool searchGetAllTypes)
@@ -190,6 +226,8 @@ namespace Stylet
         private IEnumerable<IRegistration> GetRegistrations(Type type, string key, bool searchGetAllTypes)
         {
             IEnumerable<IRegistration> registrations;
+
+            this.TryEnsureGenericRegistrationCreated(type, key);
 
             if (!this.registrations.ContainsKey(type))
             {
@@ -294,7 +332,7 @@ namespace Stylet
             {
                 this.EnsureType(implementationType);
                 if (this.serviceType.IsGenericTypeDefinition)
-                    this.service.AddUnboundGeneric(serviceType, new UnboundGeneric(implementationType, key));
+                    this.service.AddUnboundGeneric(serviceType, new UnboundGeneric(implementationType, key, this.isSingleton));
                 else
                     this.AddRegistration(new TypeCreator(implementationType, key), implementationType);
             }
@@ -303,6 +341,8 @@ namespace Stylet
             {
                 Type implementationType = typeof(TImplementation);
                 this.EnsureType(implementationType);
+                if (this.serviceType.IsGenericTypeDefinition)
+                    throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Name));
                 this.AddRegistration(new FactoryCreator<TImplementation>(factory, key), implementationType);
             }
 
@@ -313,22 +353,27 @@ namespace Stylet
 
             private void EnsureType(Type implementationType)
             {
-                if (!this.serviceType.IsAssignableFrom(implementationType))
-                    throw new StyletIoCException(String.Format("Type {0} does not implement service {1}", implementationType.Name, this.serviceType.Name));
-                if (!implementationType.IsClass)
-                    throw new StyletIoCException(String.Format("Type {0} is not a class, and so can't be used to implemented service {1}", implementationType.Name, this.serviceType.Name));
+                if (!implementationType.Implements(this.serviceType))
+                    throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Name, this.serviceType.Name));
+
+                if (!implementationType.IsClass || implementationType.IsAbstract)
+                    throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.Name, this.serviceType.Name));
 
                 if (implementationType.IsGenericTypeDefinition)
                 {
                     if (this.isSingleton)
-                        throw new StyletIoCException(String.Format("Cannot create singleton registration for unbound generic type {0}", implementationType.Name));
+                        throw new StyletIoCRegistrationException(String.Format("You cannot create singleton registration for unbound generic type {0}", implementationType.Name));
 
                     if (!this.serviceType.IsGenericTypeDefinition)
-                        throw new StyletIoCException(String.Format("You may not bind the unbound generic type {0} to the bound generic / non-generic service {1}", implementationType.Name, this.serviceType.Name));
+                        throw new StyletIoCRegistrationException(String.Format("You may not bind the unbound generic type {0} to the bound generic / non-generic service {1}", implementationType.Name, this.serviceType.Name));
 
                     // This restriction may change when I figure out how to pass down the correct type argument
-                    if (IntrospectionExtensions.GetTypeInfo(this.serviceType).GenericTypeParameters.Length != 1 || IntrospectionExtensions.GetTypeInfo(implementationType).GenericTypeParameters.Length != 1)
-                        throw new StyletIoCException(String.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have 1 type parameter. Service: {0}, Type: {1}", this.serviceType.Name, implementationType.Name));
+                    if (this.serviceType.GetTypeInfo().GenericTypeParameters.Length != implementationType.GetTypeInfo().GenericTypeParameters.Length)
+                        throw new StyletIoCRegistrationException(String.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have the same number of type parameters. Service: {0}, Type: {1}", this.serviceType.Name, implementationType.Name));
+                }
+                else if (this.serviceType.IsGenericTypeDefinition)
+                {
+                    throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic / non-generic type {0} to unbound generic service {1}", implementationType.Name, this.serviceType.Name));
                 }
             }
 
@@ -603,15 +648,52 @@ namespace Stylet
             {
                 get { return IntrospectionExtensions.GetTypeInfo(this.Type).GenericTypeParameters.Length; }
             }
+            public bool IsSingleton { get; private set; }
 
-            public UnboundGeneric(Type type, string key)
+            public UnboundGeneric(Type type, string key, bool isSingleton)
             {
                 this.Type = type;
                 this.Key = key;
             }
+
+            public IRegistration CreateRegistrationForType(Type boundType)
+            {
+                if (this.IsSingleton)
+                    return new SingletonRegistration(new TypeCreator(boundType, this.Key)) { WasAutoCreated = this.WasAutoCreated };
+                else
+                    return new TransientRegistration(new TypeCreator(boundType, this.Key)) { WasAutoCreated = this.WasAutoCreated };
+            }
         }
 
         #endregion
+
+    }
+
+    internal static class TypeExtensions
+    {
+        public static IEnumerable<Type> GetBaseTypesAndInterfaces(this Type type)
+        {
+            return type.GetInterfaces().Concat(type.GetBaseTypes());
+        }
+
+        public static IEnumerable<Type> GetBaseTypes(this Type type)
+        {
+            if (type == typeof(object))
+                yield break;
+            var baseType = type.BaseType ?? typeof(object);
+
+            while (baseType != null)
+            {
+                yield return baseType;
+                baseType = baseType.BaseType;
+            }
+        }
+
+        public static bool Implements(this Type implementationType, Type serviceType)
+        {
+            return serviceType.IsAssignableFrom(implementationType) ||
+                implementationType.GetBaseTypesAndInterfaces().Any(x => x == serviceType || (x.IsGenericType && x.GetGenericTypeDefinition() == serviceType));
+        }
     }
 
     public class StyletIoCException : Exception
@@ -630,12 +712,6 @@ namespace Stylet
     {
         public StyletIoCFindConstructorException(string message) : base(message) { }
         public StyletIoCFindConstructorException(string message, Exception innerException) : base(message, innerException) { }
-    }
-
-    public class StyletIocNotCompiledException : StyletIoCException
-    {
-        public StyletIocNotCompiledException(string message) : base(message) { }
-        public StyletIocNotCompiledException(string message, Exception innerException) : base(message, innerException) { }
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
