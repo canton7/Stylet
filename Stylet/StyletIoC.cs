@@ -140,12 +140,12 @@ namespace Stylet
         {
             if (!this.TryEnsureGetAllRegistrationCreatedFromElementType(type, null, key))
                 throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", type.Name));
-            return (List<object>)this.getAllRegistrations[type].Single(x => x.Key == key).GetGenerator(this)();
+            return (IEnumerable<object>)this.getAllRegistrations[type].Single(x => x.Key == key).GetGenerator(this)();
         }
 
         public IEnumerable<T> GetAll<T>(string key = null)
         {
-            return (List<T>)this.GetAll(typeof(T), key);
+            return this.GetAll(typeof(T), key).Cast<T>();
         }
 
         private bool CanResolve(Type type, string key)
