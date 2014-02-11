@@ -10,8 +10,11 @@ namespace Stylet
 {
     public interface IKernel
     {
-        IStyletIoCBindTo<TService> Bind<TService>();
-        IStyletIoCBindTo<TService> BindSingleton<TService>();
+        IStyletIoCBindTo Bind<TService>();
+        IStyletIoCBindTo Bind(Type serviceType);
+        IStyletIoCBindTo BindSingleton<TService>();
+        IStyletIoCBindTo BindSingleton(Type serviceType);
+
         void Compile();
         object Get(Type type, string key = null);
         T Get<T>(string key = null);
@@ -19,10 +22,11 @@ namespace Stylet
         IEnumerable<T> GetAll<T>(string key = null);
     }
 
-    public interface IStyletIoCBindTo<TService>
+    public interface IStyletIoCBindTo
     {
         void ToSelf(string key = null);
         void To<TImplementation>(string key = null) where TImplementation : class;
+        void To(Type implementationType, string key = null);
         void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory) where TImplementation : class;
         void ToFactory<TImplementation>(string key, Func<IKernel, TImplementation> factory) where TImplementation : class;
     }
@@ -43,13 +47,13 @@ namespace Stylet
                 this.AddRegistration(cls, new TransientRegistration(new TypeCreator(cls)) { WasAutoCreated = true });
         }
 
-        public IStyletIoCBindTo<TService> Bind<TService>()
+        public IStyletIoCBindTo Bind<TService>()
         {
             this.CheckCompilationStarted();
             return new BindTo<TService>(this, false);
         }
 
-        public IStyletIoCBindTo<TService> BindSingleton<TService>()
+        public IStyletIoCBindTo BindSingleton<TService>()
         {
             this.CheckCompilationStarted();
             return new BindTo<TService>(this, true);
@@ -211,20 +215,22 @@ namespace Stylet
 
         #region BindTo
 
-        private class BindTo<TService> : IStyletIoCBindTo<TService>
+        private class BindTo : IStyletIoCBindTo
         {
             private StyletIoC service;
+            private Type serviceType;
             private bool isSingleton;
 
-            public BindTo(StyletIoC service, bool isSingleton)
+            public BindTo(StyletIoC service, Type serviceType, bool isSingleton)
             {
                 this.service = service;
+                this.serviceType = serviceType;
                 this.isSingleton = isSingleton;
             }
 
             public void ToSelf(string key = null)
             {
-                Type implementationType = typeof(TService);
+                Type implementationType = this.serviceType;
                 this.EnsureType(implementationType);
                 this.Add<TService>(new TypeCreator(implementationType, key));
             }
@@ -250,16 +256,14 @@ namespace Stylet
 
             private void EnsureType(Type implementationType)
             {
-                Type serviceType = typeof(TService);
-                if (!serviceType.IsAssignableFrom(implementationType))
-                    throw new StyletIoCException(String.Format("Type {0} does not implement service {1}", implementationType.Name, serviceType.Name));
+                if (!this.serviceType.IsAssignableFrom(implementationType))
+                    throw new StyletIoCException(String.Format("Type {0} does not implement service {1}", implementationType.Name, this.serviceType.Name));
                 if (!implementationType.IsClass)
-                    throw new StyletIoCException(String.Format("Type {0} is not a class, and so can't be used to implemented service {1}", implementationType.Name, serviceType.Name));
+                    throw new StyletIoCException(String.Format("Type {0} is not a class, and so can't be used to implemented service {1}", implementationType.Name, this.serviceType.Name));
             }
 
             private void Add<TImplementation>(ICreator creator)
             {
-                Type serviceType = typeof(TService);
                 Type implementationType = typeof(TImplementation);
 
                 IRegistration registration;
@@ -268,7 +272,7 @@ namespace Stylet
                 else
                     registration = new TransientRegistration(creator);
 
-                service.AddRegistration(serviceType, registration);
+                service.AddRegistration(this.serviceType, registration);
             }
         }
 
