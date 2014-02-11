@@ -70,7 +70,14 @@ namespace Stylet
 
             foreach (var candidate in candidates)
             {
-                this.Bind(candidate.Base).To(candidate.Type);
+                try
+                {
+                    this.Bind(candidate.Base).To(candidate.Type);
+                }
+                catch (StyletIoCRegistrationException e)
+                {
+                    Debug.WriteLine(String.Format("Unable to auto-bind type {0}: {1}", cls.Name, e.Message), "StyletIoC");
+                }
             }
         }
 
