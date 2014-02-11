@@ -16,6 +16,16 @@ namespace StyletUnitTests
     {
     }
 
+    class TakesSimpleTest
+    {
+        public SimpleTest SimpleTest;
+
+        public TakesSimpleTest(SimpleTest simpleTest)
+        {
+            this.SimpleTest = simpleTest;
+        }
+    }
+
     [TestFixture]
     public class StyletIoCTests
     {
@@ -95,6 +105,18 @@ namespace StyletUnitTests
             Assert.That(obj1, Is.Not.Null);
             Assert.That(obj2, Is.Not.Null);
             Assert.That(obj1, Is.EqualTo(obj2));
+        }
+
+        [Test]
+        public void Temp()
+        {
+            var ioc = new StyletIoC();
+            ioc.BindSingleton<SimpleTest>().ToSelf();
+            ioc.Bind<TakesSimpleTest>().ToSelf();
+
+            var obj = ioc.Get<TakesSimpleTest>();
+
+            Assert.AreEqual(ioc.Get<SimpleTest>(), obj.SimpleTest);
         }
     }
 }

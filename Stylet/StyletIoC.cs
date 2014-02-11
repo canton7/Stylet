@@ -49,14 +49,24 @@ namespace Stylet
 
         public IStyletIoCBindTo Bind<TService>()
         {
+            return this.Bind(typeof(TService));
+        }
+
+        public IStyletIoCBindTo Bind(Type serviceType)
+        {
             this.CheckCompilationStarted();
-            return new BindTo<TService>(this, false);
+            return new BindTo(this, serviceType, false);
         }
 
         public IStyletIoCBindTo BindSingleton<TService>()
         {
+            return this.BindSingleton(typeof(TService));
+        }
+
+        public IStyletIoCBindTo BindSingleton(Type serviceType)
+        {
             this.CheckCompilationStarted();
-            return new BindTo<TService>(this, true);
+            return new BindTo(this, serviceType, true);
         }
 
         private void CheckCompilationStarted()
@@ -232,21 +242,25 @@ namespace Stylet
             {
                 Type implementationType = this.serviceType;
                 this.EnsureType(implementationType);
-                this.Add<TService>(new TypeCreator(implementationType, key));
+                this.Add(new TypeCreator(implementationType, key), implementationType);
             }
 
             public void To<TImplementation>(string key = null) where TImplementation : class
             {
-                Type implementationType = typeof(TImplementation);
+                this.To(typeof(TImplementation), key);
+            }
+
+            public void To(Type implementationType, string key = null)
+            {
                 this.EnsureType(implementationType);
-                this.Add<TImplementation>(new TypeCreator(implementationType, key));
+                this.Add(new TypeCreator(implementationType, key), implementationType);
             }
 
             public void ToFactory<TImplementation>(string key, Func<IKernel, TImplementation> factory) where TImplementation : class
             {
                 Type implementationType = typeof(TImplementation);
                 this.EnsureType(implementationType);
-                this.Add<TImplementation>(new FactoryCreator<TImplementation>(factory, key));
+                this.Add(new FactoryCreator<TImplementation>(factory, key), implementationType);
             }
 
             public void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory) where TImplementation : class
@@ -262,13 +276,11 @@ namespace Stylet
                     throw new StyletIoCException(String.Format("Type {0} is not a class, and so can't be used to implemented service {1}", implementationType.Name, this.serviceType.Name));
             }
 
-            private void Add<TImplementation>(ICreator creator)
+            private void Add(ICreator creator, Type implementationType)
             {
-                Type implementationType = typeof(TImplementation);
-
                 IRegistration registration;
                 if (this.isSingleton)
-                    registration = new SingletonRegistration<TImplementation>(creator);
+                    registration = new SingletonRegistration(creator);
                 else
                     registration = new TransientRegistration(creator);
 
@@ -324,10 +336,10 @@ namespace Stylet
             }
         }
 
-        private class SingletonRegistration<T> : RegistrationBase
+        private class SingletonRegistration : RegistrationBase
         {
             private bool instanceInstantiated;
-            private T instance;
+            private object instance;
             private Expression instanceExpression;
 
             public SingletonRegistration(ICreator creator)
@@ -340,7 +352,7 @@ namespace Stylet
                 if (this.instanceInstantiated)
                     return;
 
-                this.instance = Expression.Lambda<Func<T>>(this.creator.GetInstanceExpression(service)).Compile()();
+                this.instance = Expression.Lambda<Func<object>>(this.creator.GetInstanceExpression(service)).Compile()();
                 this.instanceInstantiated = true;
             }
 
@@ -361,6 +373,7 @@ namespace Stylet
 
                 this.EnsureInstantiated(service);
 
+                // This expression yields the actual type of instance, not 'object'
                 this.instanceExpression = Expression.Constant(this.instance);
                 return this.instanceExpression;
             }
