@@ -16,6 +16,8 @@ namespace Stylet
         IStyletIoCBindTo BindSingleton<TService>();
         IStyletIoCBindTo BindSingleton(Type serviceType);
 
+        void AutoBind(params Assembly[] assemblies);
+
         void Compile();
         object Get(Type type, string key = null);
         T Get<T>(string key = null);
@@ -30,6 +32,7 @@ namespace Stylet
         void To(Type implementationType, string key = null);
         void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory) where TImplementation : class;
         void ToFactory<TImplementation>(string key, Func<IKernel, TImplementation> factory) where TImplementation : class;
+        void ToAllImplementations(string key = null, params Assembly[] assembly);
     }
 
     public class StyletIoC : IKernel
@@ -38,41 +41,21 @@ namespace Stylet
 
         private Dictionary<Type, List<IRegistration>> registrations = new Dictionary<Type, List<IRegistration>>();
         private Dictionary<Type, List<IRegistration>> getAllRegistrations = new Dictionary<Type, List<IRegistration>>();
-        private Dictionary<Type, UnboundGeneric> unboundGenerics = new Dictionary<Type, UnboundGeneric>();
+        private Dictionary<Type, List<UnboundGeneric>> unboundGenerics = new Dictionary<Type, List<UnboundGeneric>>();
 
         private bool compilationStarted;
 
-        public void AutoBind(Assembly assembly = null)
+        public void AutoBind(params Assembly[] assemblies)
         {
-            assembly = assembly ?? Assembly.GetCallingAssembly();
-            var classes = assembly.GetTypes().Where(c => c.IsClass && !c.IsAbstract);
+            if (assemblies == null || assemblies.Length == 0)
+                assemblies = new[] { Assembly.GetCallingAssembly() };
+
+            var classes = assemblies.SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
             foreach (var cls in classes)
             {
                 try
                 {
                     this.Bind(cls).To(cls);
-                }
-                catch (StyletIoCRegistrationException e)
-                {
-                    Debug.WriteLine(String.Format("Unable to auto-bind type {0}: {1}", cls.Name, e.Message), "StyletIoC");
-                }
-            }
-        }
-
-        public void AutoBindImplementationsOfUnboundType(Type unboundType, Assembly assembly = null)
-        {
-            assembly = assembly ?? Assembly.GetCallingAssembly();
-
-            var candidates = from type in assembly.GetTypes()
-                             let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == unboundType)
-                             where baseType != null
-                             select new { Type = type, Base = baseType};
-
-            foreach (var candidate in candidates)
-            {
-                try
-                {
-                    this.Bind(candidate.Base).To(candidate.Type);
                 }
                 catch (StyletIoCRegistrationException e)
                 {
@@ -211,18 +194,21 @@ namespace Stylet
             if (!this.unboundGenerics.ContainsKey(unboundGenericType))
                 return;
 
-            var unboundGeneric = this.unboundGenerics[unboundGenericType];
-            if (unboundGeneric.Key != key)
-                return;
+            var unboundGenerics = this.unboundGenerics[unboundGenericType].Where(x => x.Key == key);
+            foreach (var unboundGeneric in unboundGenerics)
+            {
+                if (unboundGeneric == null)
+                    break;
 
-            Type newType = unboundGeneric.Type.MakeGenericType(type.GenericTypeArguments);
+                Type newType = unboundGeneric.Type.MakeGenericType(type.GenericTypeArguments);
 
-            if (!type.IsAssignableFrom(newType))
-                return;
+                if (!type.IsAssignableFrom(newType))
+                    break;
 
-            // Right! We've made a new generic type we can use
-            var registration = unboundGeneric.CreateRegistrationForType(newType);
-            this.AddRegistration(type, registration);
+                // Right! We've made a new generic type we can use
+                var registration = unboundGeneric.CreateRegistrationForType(newType);
+                this.AddRegistration(type, registration);
+            }
         }
 
         private Expression GetExpression(Type type, string key, bool searchGetAllTypes)
@@ -284,20 +270,34 @@ namespace Stylet
                 this.registrations[type] = new List<IRegistration>();
 
             // Is there an auto-registration for this type? If so, remove it
-            var autoRegistration = this.registrations[type].Where(x => x.WasAutoCreated && x.Type == registration.Type && x.Key == registration.Key).FirstOrDefault();
-            if (autoRegistration != null)
-                this.registrations[type].Remove(autoRegistration);
+            var existingRegistration = this.registrations[type].Where(x => x.Key == registration.Key && x.Type == registration.Type).FirstOrDefault();
+            if (existingRegistration != null)
+            {
+                if (existingRegistration.WasAutoCreated)
+                    this.registrations[type].Remove(existingRegistration);
+                else
+                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", type.Name));
+            }
 
             this.registrations[type].Add(registration);
         }
 
         private void AddUnboundGeneric(Type type, UnboundGeneric unboundGeneric)
         {
-            // Is there an auto-registration for this type? If so, remove it
-            if (this.unboundGenerics.ContainsKey(type) && this.unboundGenerics[type].Key == unboundGeneric.Key && this.unboundGenerics[type].WasAutoCreated)
-                this.unboundGenerics.Remove(type);
+            if (!this.unboundGenerics.ContainsKey(type))
+                this.unboundGenerics[type] = new List<UnboundGeneric>();
 
-            this.unboundGenerics.Add(type, unboundGeneric);
+            // Is there an auto-registration for this type? If so, remove it
+            var existingEntry = this.unboundGenerics[type].Where(x => x.Key == unboundGeneric.Key && x.Type == unboundGeneric.Type).FirstOrDefault();
+            if (existingEntry != null)
+            {
+                if (existingEntry.WasAutoCreated)
+                    this.unboundGenerics[type].Remove(existingEntry);
+                else
+                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", type.Name));
+            }
+
+            this.unboundGenerics[type].Add(unboundGeneric);
         }
 
         private void AddGetAllRegistration(Type type, IRegistration registration)
@@ -356,6 +356,29 @@ namespace Stylet
             public void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory) where TImplementation : class
             {
                 this.ToFactory<TImplementation>(null, factory);
+            }
+
+            public void ToAllImplementations(string key = null, params Assembly[] assemblies)
+            {
+                if (assemblies == null || assemblies.Length == 0)
+                    assemblies = new[] { Assembly.GetCallingAssembly() };
+
+                var candidates = from type in assemblies.SelectMany(x => x.GetTypes())
+                                 let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x == this.serviceType || x.IsGenericType && x.GetGenericTypeDefinition() == this.serviceType)
+                                 where baseType != null
+                                 select new { Type = type, Base = baseType.ContainsGenericParameters ? baseType.GetGenericTypeDefinition() : baseType };
+
+                foreach (var candidate in candidates)
+                {
+                    try
+                    {
+                        this.service.Bind(candidate.Base).To(candidate.Type, key);
+                    }
+                    catch (StyletIoCRegistrationException e)
+                    {
+                        Debug.WriteLine(String.Format("Unable to auto-bind type {0} to {1}: {2}", candidate.Base.Name, candidate.Type.Name, e.Message), "StyletIoC");
+                    }
+                }
             }
 
             private void EnsureType(Type implementationType)
