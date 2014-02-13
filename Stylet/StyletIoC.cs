@@ -183,10 +183,7 @@ namespace Stylet
 
         private void TryEnsureGenericRegistrationCreated(Type type, string key)
         {
-            if (this.registrations.ContainsKey(type) || !type.IsGenericType)
-                return;
-
-            if (type.GenericTypeArguments.Length == 0)
+            if (this.registrations.ContainsKey(type) || !type.IsGenericType || type.GenericTypeArguments.Length == 0)
                 return;
 
             Type unboundGenericType = type.GetGenericTypeDefinition();
@@ -200,7 +197,17 @@ namespace Stylet
                 if (unboundGeneric == null)
                     break;
 
-                Type newType = unboundGeneric.Type.MakeGenericType(type.GenericTypeArguments);
+                // Consider this scenario:
+                // interface IC<T, U> { } class C<T, U> : IC<U, T> { }
+                // Then they ask for an IC<int, bool>. We need to give them a C<bool, int>
+                // Search the ancestry of C for an IC (called implOfUnboundGenericType), then create a mapping which says that
+                // U is a bool and T is an int by comparing this against 'type' - the IC<T, U> that's registered as the service
+                // Then use this when making the type for C
+
+                var implOfUnboundGenericType = unboundGeneric.Type.GetBaseTypesAndInterfaces().Single(x => x.Name == unboundGenericType.Name);
+                var mapping = implOfUnboundGenericType.GenericTypeArguments.Zip(type.GenericTypeArguments, (n, t) => new { Type = t, Name = n });
+
+                Type newType = unboundGeneric.Type.MakeGenericType(unboundGeneric.Type.GetTypeInfo().GenericTypeParameters.Select(x => mapping.Single(t => t.Name.Name == x.Name).Type).ToArray());
 
                 if (!type.IsAssignableFrom(newType))
                     break;
