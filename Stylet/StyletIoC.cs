@@ -641,7 +641,7 @@ namespace Stylet
                         }
                         catch (StyletIoCRegistrationException e)
                         {
-                            throw new StyletIoCFindConstructorException(String.Format("{0} Required by paramter '{1}' of type {2}.", e.Message, x.Name, this.Type.Name), e);
+                            throw new StyletIoCRegistrationException(String.Format("{0} Required by paramter '{1}' of type {2}.", e.Message, x.Name, this.Type.Name), e);
                         }
                     }
                     return Expression.Constant(x.DefaultValue);
