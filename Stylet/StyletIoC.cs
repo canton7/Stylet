@@ -142,7 +142,7 @@ namespace Stylet
         {
             this.TryEnsureGenericRegistrationCreated(type, key);
 
-            if (this.registrations.ContainsKey(type))
+            if (this.registrations.ContainsKey(type) && this.registrations[type].Any(x => x.Key == key))
                 return true;
 
             // Is it a 'get all' request?
@@ -204,10 +204,18 @@ namespace Stylet
                 // U is a bool and T is an int by comparing this against 'type' - the IC<T, U> that's registered as the service
                 // Then use this when making the type for C
 
-                var implOfUnboundGenericType = unboundGeneric.Type.GetBaseTypesAndInterfaces().Single(x => x.Name == unboundGenericType.Name);
-                var mapping = implOfUnboundGenericType.GenericTypeArguments.Zip(type.GenericTypeArguments, (n, t) => new { Type = t, Name = n });
+                Type newType;
+                if (unboundGeneric.Type == unboundGenericType)
+                {
+                    newType = type;
+                }
+                else
+                {
+                    var implOfUnboundGenericType = unboundGeneric.Type.GetBaseTypesAndInterfaces().Single(x => x.Name == unboundGenericType.Name);
+                    var mapping = implOfUnboundGenericType.GenericTypeArguments.Zip(type.GenericTypeArguments, (n, t) => new { Type = t, Name = n });
 
-                Type newType = unboundGeneric.Type.MakeGenericType(unboundGeneric.Type.GetTypeInfo().GenericTypeParameters.Select(x => mapping.Single(t => t.Name.Name == x.Name).Type).ToArray());
+                    newType = unboundGeneric.Type.MakeGenericType(unboundGeneric.Type.GetTypeInfo().GenericTypeParameters.Select(x => mapping.Single(t => t.Name.Name == x.Name).Type).ToArray());
+                }
 
                 if (!type.IsAssignableFrom(newType))
                     break;
@@ -390,12 +398,10 @@ namespace Stylet
 
             private void EnsureType(Type implementationType)
             {
-                if (!implementationType.Implements(this.serviceType))
-                    throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Name, this.serviceType.Name));
-
                 if (!implementationType.IsClass || implementationType.IsAbstract)
                     throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.Name, this.serviceType.Name));
 
+                // Test this first, as it's a bit clearer than hitting 'type doesn't implement service'
                 if (implementationType.IsGenericTypeDefinition)
                 {
                     if (this.isSingleton)
@@ -412,6 +418,9 @@ namespace Stylet
                 {
                     throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic / non-generic type {0} to unbound generic service {1}", implementationType.Name, this.serviceType.Name));
                 }
+
+                if (!implementationType.Implements(this.serviceType))
+                    throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Name, this.serviceType.Name));
             }
 
             private void AddRegistration(ICreator creator, Type implementationType)
@@ -644,7 +653,8 @@ namespace Stylet
                             throw new StyletIoCRegistrationException(String.Format("{0} Required by paramter '{1}' of type {2}.", e.Message, x.Name, this.Type.Name), e);
                         }
                     }
-                    return Expression.Constant(x.DefaultValue);
+                    // For some reason we need this cast...
+                    return Expression.Convert(Expression.Constant(x.DefaultValue), x.ParameterType);
                 });
 
                 var creator = Expression.New(ctor, ctorParams);
@@ -669,7 +679,6 @@ namespace Stylet
                 var expr = (Expression<Func<T>>)(() => this.factory(service));
                 return Expression.Invoke(expr, null);
             }
-
         }
 
         #endregion
