@@ -200,7 +200,7 @@ namespace Stylet
 
         private void TryEnsureGenericRegistrationCreated(Type type, string key)
         {
-            if (this.registrations.ContainsKey(type) || !type.IsGenericType || type.GenericTypeArguments.Length == 0)
+            if (!type.IsGenericType || type.GenericTypeArguments.Length == 0 || this.registrations.ContainsKey(type))
                 return;
 
             Type unboundGenericType = type.GetGenericTypeDefinition();
@@ -248,13 +248,13 @@ namespace Stylet
             return this.GetRegistration(type, key, searchGetAllTypes).GetInstanceExpression(this);
         }
 
-        private IEnumerable<IRegistration> GetRegistrations(Type type, string key, bool searchGetAllTypes)
+        private List<IRegistration> GetRegistrations(Type type, string key, bool searchGetAllTypes)
         {
-            IEnumerable<IRegistration> registrations;
+            List<IRegistration> registrations;
 
             this.TryEnsureGenericRegistrationCreated(type, key);
 
-            if (!this.registrations.ContainsKey(type))
+            if (!this.registrations.TryGetValue(type, out registrations))
             {
                 if (searchGetAllTypes)
                 {
@@ -271,15 +271,19 @@ namespace Stylet
                     throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", type.Name));
                 }
             }
+
+            // Optimisation for the common case of 1 result
+            if (registrations.Count == 1)
+            {
+                if (registrations[0].Key != key)
+                    throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0} with key '{1}'.", type.Name, key));
+            }
             else
             {
-                registrations = this.registrations[type];
+                registrations = registrations.Where(x => x.Key == key).ToList();
+                if (registrations.Count == 0)
+                    throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0} with key '{1}'.", type.Name, key));
             }
-
-            registrations = registrations.Where(x => x.Key == key);
-
-            if (!registrations.Any())
-                throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0} with key '{1}'.", type.Name, key));
 
             return registrations;
         }
@@ -288,7 +292,7 @@ namespace Stylet
         {
             IRegistration registration;
 
-            var registrations = this.GetRegistrations(type, key, searchGetAllTypes).ToList();
+            var registrations = this.GetRegistrations(type, key, searchGetAllTypes);
             if (registrations.Count > 1)
                 throw new StyletIoCRegistrationException(String.Format("Multiple registrations found for service {0} with key '{1}'.", type.Name, key));
             registration = registrations[0];
