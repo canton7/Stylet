@@ -492,8 +492,8 @@ namespace Stylet
         {
             Type Type { get; }
             bool WasAutoCreated { get; set; }
-            Func<object> GetGenerator(StyletIoC service);
-            Expression GetInstanceExpression(StyletIoC service);
+            Func<object> GetGenerator(StyletIoC container);
+            Expression GetInstanceExpression(StyletIoC container);
         }
 
         private abstract class RegistrationBase : IRegistration
@@ -510,8 +510,8 @@ namespace Stylet
 
             protected Func<object> generator { get; set; }
 
-            public abstract Func<object> GetGenerator(StyletIoC service);
-            public abstract Expression GetInstanceExpression(StyletIoC service);
+            public abstract Func<object> GetGenerator(StyletIoC container);
+            public abstract Expression GetInstanceExpression(StyletIoC container);
         }
 
 
@@ -522,15 +522,15 @@ namespace Stylet
                 this.creator = creator;
             }
 
-            public override Expression GetInstanceExpression(StyletIoC service)
+            public override Expression GetInstanceExpression(StyletIoC container)
             {
-                return this.creator.GetInstanceExpression(service);
+                return this.creator.GetInstanceExpression(container);
             }
 
-            public override Func<object> GetGenerator(StyletIoC service)
+            public override Func<object> GetGenerator(StyletIoC container)
             {
                 if (this.generator == null)
-                    this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(service)).Compile();
+                    this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(container)).Compile();
                 return this.generator;
             }
         }
@@ -546,18 +546,18 @@ namespace Stylet
                 this.creator = creator;
             }
 
-            private void EnsureInstantiated(StyletIoC service)
+            private void EnsureInstantiated(StyletIoC container)
             {
                 if (this.instanceInstantiated)
                     return;
 
-                this.instance = Expression.Lambda<Func<object>>(this.creator.GetInstanceExpression(service)).Compile()();
+                this.instance = Expression.Lambda<Func<object>>(this.creator.GetInstanceExpression(container)).Compile()();
                 this.instanceInstantiated = true;
             }
 
-            public override Func<object> GetGenerator(StyletIoC service)
+            public override Func<object> GetGenerator(StyletIoC container)
             {
-                this.EnsureInstantiated(service);
+                this.EnsureInstantiated(container);
 
                 if (this.generator == null)
                     this.generator = () => this.instance;
@@ -565,12 +565,12 @@ namespace Stylet
                 return this.generator;
             }
 
-            public override Expression GetInstanceExpression(StyletIoC service)
+            public override Expression GetInstanceExpression(StyletIoC container)
             {
                 if (this.instanceExpression != null)
                     return this.instanceExpression;
 
-                this.EnsureInstantiated(service);
+                this.EnsureInstantiated(container);
 
                 // This expression yields the actual type of instance, not 'object'
                 this.instanceExpression = Expression.Constant(this.instance);
@@ -592,20 +592,20 @@ namespace Stylet
                 this.Type = type;
             }
 
-            public Func<object> GetGenerator(StyletIoC service)
+            public Func<object> GetGenerator(StyletIoC container)
             {
                 if (this.generator == null)
-                    this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(service)).Compile();
+                    this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression(container)).Compile();
                 return this.generator;
             }
 
-            public Expression GetInstanceExpression(StyletIoC service)
+            public Expression GetInstanceExpression(StyletIoC container)
             {
                 if (this.expression != null)
                     return this.expression;
 
                 var list = Expression.New(this.Type);
-                var init = Expression.ListInit(list, service.GetRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(service)));
+                var init = Expression.ListInit(list, container.GetRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(container)));
                 
                 this.expression = init;
                 return init;
@@ -619,14 +619,14 @@ namespace Stylet
         private interface ICreator : IHasKey
         {
             Type Type { get; }
-            Expression GetInstanceExpression(StyletIoC service);
+            Expression GetInstanceExpression(StyletIoC container);
         }
 
         private abstract class CreatorBase : ICreator
         {
             public string Key { get; set; }
             public virtual Type Type { get; protected set; }
-            public abstract Expression GetInstanceExpression(StyletIoC service);
+            public abstract Expression GetInstanceExpression(StyletIoC container);
         }
 
         private class TypeCreator : CreatorBase
@@ -649,7 +649,7 @@ namespace Stylet
                 return attribute == null ? null : attribute.Key;
             }
 
-            public override Expression GetInstanceExpression(StyletIoC service)
+            public override Expression GetInstanceExpression(StyletIoC container)
             {
                 if (this.creationExpression != null)
                     return this.creationExpression;
@@ -665,14 +665,14 @@ namespace Stylet
                 {
                     ctor = ctorsWithAttribute[0];
                     var key = ((InjectAttribute)ctorsWithAttribute[0].GetCustomAttribute(typeof(InjectAttribute), false)).Key;
-                    var cantResolve = ctor.GetParameters().Where(p => !service.CanResolve(p.ParameterType, key) && !p.HasDefaultValue).FirstOrDefault();
+                    var cantResolve = ctor.GetParameters().Where(p => !container.CanResolve(p.ParameterType, key) && !p.HasDefaultValue).FirstOrDefault();
                     if (cantResolve != null)
                         throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (which doesn't have a default value).", this.Type.Name, cantResolve.Name));
                 }
                 else
                 {
                     ctor = this.Type.GetConstructors()
-                        .Where(c => c.GetParameters().All(p => service.CanResolve(p.ParameterType, this.KeyForParameter(p)) || p.HasDefaultValue))
+                        .Where(c => c.GetParameters().All(p => container.CanResolve(p.ParameterType, this.KeyForParameter(p)) || p.HasDefaultValue))
                         .OrderByDescending(c => c.GetParameters().Count(p => !p.HasDefaultValue))
                         .FirstOrDefault();
 
@@ -688,11 +688,11 @@ namespace Stylet
                 var ctorParams = ctor.GetParameters().Select(x =>
                 {
                     var key = this.KeyForParameter(x);
-                    if (service.CanResolve(x.ParameterType, key))
+                    if (container.CanResolve(x.ParameterType, key))
                     {
                         try
                         {
-                            return service.GetExpression(x.ParameterType, key, true);
+                            return container.GetExpression(x.ParameterType, key, true);
                         }
                         catch (StyletIoCRegistrationException e)
                         {
@@ -719,9 +719,9 @@ namespace Stylet
                 this.factory = factory;
             }
 
-            public override Expression GetInstanceExpression(StyletIoC service)
+            public override Expression GetInstanceExpression(StyletIoC container)
             {
-                var expr = (Expression<Func<T>>)(() => this.factory(service));
+                var expr = (Expression<Func<T>>)(() => this.factory(container));
                 return Expression.Invoke(expr, null);
             }
         }
