@@ -23,8 +23,8 @@ namespace StyletUnitTests
         public void GetReturnsKeyedType()
         {
             var ioc = new StyletIoC();
-            ioc.Bind<IC>().To<C1>("key1");
-            ioc.Bind<IC>().To<C2>("key2");
+            ioc.Bind<IC>().To<C1>().WithKey("key1");
+            ioc.Bind<IC>().To<C2>().WithKey("key2");
 
             Assert.IsInstanceOf<C1>(ioc.Get<IC>("key1"));
             Assert.IsInstanceOf<C2>(ioc.Get<IC>("key2"));
@@ -34,8 +34,8 @@ namespace StyletUnitTests
         public void GetAllReturnsKeyedTypes()
         {
             var ioc = new StyletIoC();
-            ioc.Bind<IC>().To<C1>("key1");
-            ioc.Bind<IC>().To<C2>("key1");
+            ioc.Bind<IC>().To<C1>().WithKey("key1");
+            ioc.Bind<IC>().To<C2>().WithKey("key1");
             ioc.Bind<IC>().To<C3>();
 
             var results = ioc.GetAll<IC>("key1").ToList();
@@ -60,7 +60,7 @@ namespace StyletUnitTests
         {
             var ioc = new StyletIoC();
             ioc.Bind<IC>().To<C3>();
-            ioc.Bind<IC>().To<C4>("key2");
+            ioc.Bind<IC>().To<C4>().WithKey("key2");
 
             Assert.IsInstanceOf<C4>(ioc.Get<IC>("key2"));
         }

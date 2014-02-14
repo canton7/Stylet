@@ -116,7 +116,7 @@ namespace StyletUnitTests
         public void UsesConstructorParamKeys()
         {
             var ioc = new StyletIoC();
-            ioc.Bind<C1>().ToSelf("key1");
+            ioc.Bind<C1>().ToSelf().WithKey("key1");
             ioc.Bind<C4>().ToSelf();
 
             var c4 = ioc.Get<C4>();
