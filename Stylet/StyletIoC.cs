@@ -46,6 +46,7 @@ namespace Stylet
         private Dictionary<Type, List<IRegistration>> registrations = new Dictionary<Type, List<IRegistration>>();
         private Dictionary<Type, List<IRegistration>> getAllRegistrations = new Dictionary<Type, List<IRegistration>>();
         private Dictionary<Type, List<UnboundGeneric>> unboundGenerics = new Dictionary<Type, List<UnboundGeneric>>();
+        private object globalLock = new object();
 
         private bool compilationStarted;
 
@@ -99,21 +100,24 @@ namespace Stylet
         public void Compile()
         {
             this.compilationStarted = true;
-            foreach (var kvp in this.registrations)
+            lock (this.globalLock)
             {
-                foreach (var registration in kvp.Value)
+                foreach (var kvp in this.registrations)
                 {
-                    try
+                    foreach (var registration in kvp.Value)
                     {
-                        registration.GetGenerator(this);
-                    }
-                    catch (StyletIoCFindConstructorException)
-                    {
-                        // If we can't resolve an auto-created type, that's fine
-                        // Don't remove it from the list of types - that way they'll get a
-                        // decent error message if they actually try and resolve it
-                        if (!registration.WasAutoCreated)
-                            throw;
+                        try
+                        {
+                            registration.GetGenerator(this);
+                        }
+                        catch (StyletIoCFindConstructorException)
+                        {
+                            // If we can't resolve an auto-created type, that's fine
+                            // Don't remove it from the list of types - that way they'll get a
+                            // decent error message if they actually try and resolve it
+                            if (!registration.WasAutoCreated)
+                                throw;
+                        }
                     }
                 }
             }
@@ -121,20 +125,29 @@ namespace Stylet
 
         public object Get(Type type, string key = null)
         {
-            return this.GetRegistration(type, key, false).GetGenerator(this)();
+            Func<object> generator;
+            lock (this.globalLock)
+            {
+                generator =  this.GetRegistration(type, key, false).GetGenerator(this);
+            }
+            return generator();
         }
 
         public T Get<T>(string key = null)
         {
-
             return (T)this.Get(typeof(T), key);
         }
 
         public IEnumerable<object> GetAll(Type type, string key = null)
         {
-            if (!this.TryEnsureGetAllRegistrationCreatedFromElementType(type, null, key))
-                throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", type.Name));
-            return (IEnumerable<object>)this.getAllRegistrations[type].Single(x => x.Key == key).GetGenerator(this)();
+            Func<object> generator;
+            lock (this.globalLock)
+            {
+                if (!this.TryEnsureGetAllRegistrationCreatedFromElementType(type, null, key))
+                    throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", type.Name));
+                generator = this.getAllRegistrations[type].Single(x => x.Key == key).GetGenerator(this);
+            }
+            return (IEnumerable<object>)generator();
         }
 
         public IEnumerable<T> GetAll<T>(string key = null)
@@ -285,38 +298,44 @@ namespace Stylet
 
         private void AddRegistration(Type type, IRegistration registration)
         {
-            if (!this.registrations.ContainsKey(type))
-                this.registrations[type] = new List<IRegistration>();
-
-            // Is there an auto-registration for this type? If so, remove it
-            var existingRegistration = this.registrations[type].Where(x => x.Key == registration.Key && x.Type == registration.Type).FirstOrDefault();
-            if (existingRegistration != null)
+            lock (this.globalLock)
             {
-                if (existingRegistration.WasAutoCreated)
-                    this.registrations[type].Remove(existingRegistration);
-                else
-                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", type.Name));
-            }
+                if (!this.registrations.ContainsKey(type))
+                    this.registrations[type] = new List<IRegistration>();
 
-            this.registrations[type].Add(registration);
+                // Is there an auto-registration for this type? If so, remove it
+                var existingRegistration = this.registrations[type].Where(x => x.Key == registration.Key && x.Type == registration.Type).FirstOrDefault();
+                if (existingRegistration != null)
+                {
+                    if (existingRegistration.WasAutoCreated)
+                        this.registrations[type].Remove(existingRegistration);
+                    else
+                        throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", type.Name));
+                }
+
+                this.registrations[type].Add(registration);
+            }
         }
 
         private void AddUnboundGeneric(Type type, UnboundGeneric unboundGeneric)
         {
-            if (!this.unboundGenerics.ContainsKey(type))
-                this.unboundGenerics[type] = new List<UnboundGeneric>();
-
-            // Is there an auto-registration for this type? If so, remove it
-            var existingEntry = this.unboundGenerics[type].Where(x => x.Key == unboundGeneric.Key && x.Type == unboundGeneric.Type).FirstOrDefault();
-            if (existingEntry != null)
+            lock (this.globalLock)
             {
-                if (existingEntry.WasAutoCreated)
-                    this.unboundGenerics[type].Remove(existingEntry);
-                else
-                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", type.Name));
-            }
+                if (!this.unboundGenerics.ContainsKey(type))
+                    this.unboundGenerics[type] = new List<UnboundGeneric>();
 
-            this.unboundGenerics[type].Add(unboundGeneric);
+                // Is there an auto-registration for this type? If so, remove it
+                var existingEntry = this.unboundGenerics[type].Where(x => x.Key == unboundGeneric.Key && x.Type == unboundGeneric.Type).FirstOrDefault();
+                if (existingEntry != null)
+                {
+                    if (existingEntry.WasAutoCreated)
+                        this.unboundGenerics[type].Remove(existingEntry);
+                    else
+                        throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", type.Name));
+                }
+
+                this.unboundGenerics[type].Add(unboundGeneric);
+            }
         }
 
         private void AddGetAllRegistration(Type type, IRegistration registration)
