@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -43,9 +44,9 @@ namespace Stylet
     {
         #region Main Class
 
-        private Dictionary<Type, List<IRegistration>> registrations = new Dictionary<Type, List<IRegistration>>();
-        private Dictionary<Type, List<IRegistration>> getAllRegistrations = new Dictionary<Type, List<IRegistration>>();
-        private Dictionary<Type, List<UnboundGeneric>> unboundGenerics = new Dictionary<Type, List<UnboundGeneric>>();
+        private ConcurrentDictionary<Type, List<IRegistration>> registrations = new ConcurrentDictionary<Type, List<IRegistration>>();
+        private ConcurrentDictionary<Type, List<IRegistration>> getAllRegistrations = new ConcurrentDictionary<Type, List<IRegistration>>();
+        private ConcurrentDictionary<Type, List<UnboundGeneric>> unboundGenerics = new ConcurrentDictionary<Type, List<UnboundGeneric>>();
         private object globalLock = new object();
 
         private bool compilationStarted;
@@ -157,10 +158,14 @@ namespace Stylet
 
         private bool CanResolve(Type type, string key)
         {
-            this.TryEnsureGenericRegistrationCreated(type, key);
+            List<IRegistration> registrations;
 
-            if (this.registrations.ContainsKey(type) && this.registrations[type].Any(x => x.Key == key))
+            if ((this.registrations.TryGetValue(type, out registrations) ||
+                this.TryCreateGenericTypesForUnboundGeneric(type, key, out registrations)) &&
+                registrations.Any(x => x.Key == key))
+            {
                 return true;
+            }
 
             // Is it a 'get all' request?
             var elementType = this.TryEnsureGetAllRegistrationCreated(type, key);
@@ -176,8 +181,12 @@ namespace Stylet
 
         private bool TryEnsureGetAllRegistrationCreatedFromElementType(Type elementType, Type collectionTypeOrNull, string key)
         {
-            if (this.getAllRegistrations.ContainsKey(elementType) && this.getAllRegistrations[elementType].Any(x => x.Key == key))
+            List<IRegistration> registrations;
+            if (this.getAllRegistrations.TryGetValue(elementType, out registrations) &&
+                registrations.Any(x => x.Key == key))
+            {
                 return true;
+            }
 
             var listType = typeof(List<>).MakeGenericType(elementType);
             if (collectionTypeOrNull != null && !collectionTypeOrNull.IsAssignableFrom(listType))
@@ -198,21 +207,25 @@ namespace Stylet
             return this.TryEnsureGetAllRegistrationCreatedFromElementType(elementType, type, key) ? elementType : null;
         }
 
-        private void TryEnsureGenericRegistrationCreated(Type type, string key)
+        private bool TryCreateGenericTypesForUnboundGeneric(Type type, string key, out List<IRegistration> registrations)
         {
-            if (!type.IsGenericType || type.GenericTypeArguments.Length == 0 || this.registrations.ContainsKey(type))
-                return;
+            registrations = null;
+
+            if (!type.IsGenericType || type.GenericTypeArguments.Length == 0)
+                return false;
 
             Type unboundGenericType = type.GetGenericTypeDefinition();
+            
+            List<UnboundGeneric> unboundGenerics;
+            if (!this.unboundGenerics.TryGetValue(unboundGenericType, out unboundGenerics))
+                return false;
 
-            if (!this.unboundGenerics.ContainsKey(unboundGenericType))
-                return;
-
-            var unboundGenerics = this.unboundGenerics[unboundGenericType].Where(x => x.Key == key);
-            foreach (var unboundGeneric in unboundGenerics)
+            var unboundGenericsWithKey = unboundGenerics.Where(x => x.Key == key);
+            bool createdAny = false;
+            foreach (var unboundGeneric in unboundGenericsWithKey)
             {
                 if (unboundGeneric == null)
-                    break;
+                    continue;
 
                 // Consider this scenario:
                 // interface IC<T, U> { } class C<T, U> : IC<U, T> { }
@@ -235,12 +248,17 @@ namespace Stylet
                 }
 
                 if (!type.IsAssignableFrom(newType))
-                    break;
+                    continue;
 
                 // Right! We've made a new generic type we can use
                 var registration = unboundGeneric.CreateRegistrationForType(newType);
                 this.AddRegistration(type, registration);
+                createdAny = true;
             }
+            if (createdAny)
+                registrations = this.registrations[type];
+
+            return createdAny;
         }
 
         private Expression GetExpression(Type type, string key, bool searchGetAllTypes)
@@ -252,9 +270,10 @@ namespace Stylet
         {
             List<IRegistration> registrations;
 
-            this.TryEnsureGenericRegistrationCreated(type, key);
-
-            if (!this.registrations.TryGetValue(type, out registrations))
+            // Try to get registrations. If there are none, see if we can add some from unbound generics
+            // If we still fail, try searching the 'get all' types
+            if (!this.registrations.TryGetValue(type, out registrations) &&
+                !this.TryCreateGenericTypesForUnboundGeneric(type, key, out registrations))
             {
                 if (searchGetAllTypes)
                 {
@@ -344,6 +363,7 @@ namespace Stylet
 
         private void AddGetAllRegistration(Type type, IRegistration registration)
         {
+            var registrations = this.getAllRegistrations.GetOrAdd(type, x => new List<IRegistration>());
             if (!this.getAllRegistrations.ContainsKey(type))
                 this.getAllRegistrations[type] = new List<IRegistration>();
 
