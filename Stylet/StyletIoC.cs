@@ -44,10 +44,9 @@ namespace Stylet
     {
         #region Main Class
 
-        private ConcurrentDictionary<TypeKey, List<IRegistration>> registrations = new ConcurrentDictionary<TypeKey, List<IRegistration>>();
+        private ConcurrentDictionary<TypeKey, IRegistrationCollection> registrations = new ConcurrentDictionary<TypeKey, IRegistrationCollection>();
         private ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
         private ConcurrentDictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new ConcurrentDictionary<TypeKey, List<UnboundGeneric>>();
-        private object globalLock = new object();
 
         private bool compilationStarted;
 
@@ -101,24 +100,21 @@ namespace Stylet
         public void Compile()
         {
             this.compilationStarted = true;
-            lock (this.globalLock)
+            foreach (var kvp in this.registrations)
             {
-                foreach (var kvp in this.registrations)
+                foreach (var registration in kvp.Value.GetAll())
                 {
-                    foreach (var registration in kvp.Value)
+                    try
                     {
-                        try
-                        {
-                            registration.GetGenerator(this);
-                        }
-                        catch (StyletIoCFindConstructorException)
-                        {
-                            // If we can't resolve an auto-created type, that's fine
-                            // Don't remove it from the list of types - that way they'll get a
-                            // decent error message if they actually try and resolve it
-                            if (!registration.WasAutoCreated)
-                                throw;
-                        }
+                        registration.GetGenerator(this);
+                    }
+                    catch (StyletIoCFindConstructorException)
+                    {
+                        // If we can't resolve an auto-created type, that's fine
+                        // Don't remove it from the list of types - that way they'll get a
+                        // decent error message if they actually try and resolve it
+                        if (!registration.WasAutoCreated)
+                            throw;
                     }
                 }
             }
@@ -127,10 +123,7 @@ namespace Stylet
         public object Get(Type type, string key = null)
         {
             Func<object> generator;
-            lock (this.globalLock)
-            {
-                generator =  this.GetRegistration(new TypeKey(type, key), false).GetGenerator(this);
-            }
+            generator =  this.GetRegistrations(new TypeKey(type, key), false).GetSingle().GetGenerator(this);
             return generator();
         }
 
@@ -142,13 +135,10 @@ namespace Stylet
         public IEnumerable<object> GetAll(Type type, string key = null)
         {
             var typeKey = new TypeKey(type, key);
-            Func<object> generator;
-            lock (this.globalLock)
-            {
-                if (!this.TryEnsureGetAllRegistrationCreatedFromElementType(typeKey, null))
-                    throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", typeKey.Type.Name));
-                generator = this.getAllRegistrations[typeKey].GetGenerator(this);
-            }
+            IRegistration registration;
+            if (!this.TryEnsureGetAllRegistrationCreatedFromElementType(typeKey, null, out registration))
+                throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", typeKey.Type.Name));
+            var generator = registration.GetGenerator(this);
             return (IEnumerable<object>)generator();
         }
 
@@ -159,7 +149,7 @@ namespace Stylet
 
         private bool CanResolve(TypeKey typeKey)
         {
-            List<IRegistration> registrations;
+            IRegistrationCollection registrations;
 
             if (this.registrations.TryGetValue(typeKey, out registrations) ||
                 this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations))
@@ -168,46 +158,46 @@ namespace Stylet
             }
 
             // Is it a 'get all' request?
-            var elementType = this.TryEnsureGetAllRegistrationCreated(typeKey);
-            return elementType != null;
+            IRegistration registration;
+            return this.TryEnsureGetAllRegistrationCreated(typeKey, out registration);
         }
 
         private Type GetElementTypeFromCollectionType(TypeKey typeKey)
         {
             Type type = typeKey.Type;
+            // Elements are never removed from this.registrations, so we're safe to make this ContainsKey query
             if (!type.IsGenericType || type.GenericTypeArguments.Length != 1 || !this.registrations.ContainsKey(new TypeKey(type.GenericTypeArguments[0], typeKey.Key)))
                 return null;
             return type.GenericTypeArguments[0];
         }
 
-        private bool TryEnsureGetAllRegistrationCreatedFromElementType(TypeKey elementTypeKey, Type collectionTypeOrNull)
+        private bool TryEnsureGetAllRegistrationCreatedFromElementType(TypeKey elementTypeKey, Type collectionTypeOrNull, out IRegistration registration)
         {
-            IRegistration registration;
+            // TryGet first, as making the generic type is expensive
+            // If it isn't present, and can be made, GetOrAdd to try and add it, but return the now-existing registration if someone beat us to it
             if (this.getAllRegistrations.TryGetValue(elementTypeKey, out registration))
-            {
                 return true;
-            }
 
             var listType = typeof(List<>).MakeGenericType(elementTypeKey.Type);
             if (collectionTypeOrNull != null && !collectionTypeOrNull.IsAssignableFrom(listType))
                 return false;
 
-            registration = new GetAllRegistration(listType) { Key = elementTypeKey.Key };
-            this.AddGetAllRegistration(elementTypeKey, registration);
+            registration = this.getAllRegistrations.GetOrAdd(elementTypeKey, x => new GetAllRegistration(listType) { Key = elementTypeKey.Key });
             return true;
         }
 
         // Returns the type of element if it's valid
-        private Type TryEnsureGetAllRegistrationCreated(TypeKey typeKey)
+        private bool TryEnsureGetAllRegistrationCreated(TypeKey typeKey, out IRegistration registration)
         {
+            registration = null;
             var elementType = this.GetElementTypeFromCollectionType(typeKey);
             if (elementType == null)
-                return null;
+                return false;
 
-            return this.TryEnsureGetAllRegistrationCreatedFromElementType(new TypeKey(elementType, typeKey.Key), typeKey.Type) ? elementType : null;
+            return this.TryEnsureGetAllRegistrationCreatedFromElementType(new TypeKey(elementType, typeKey.Key), typeKey.Type, out registration);
         }
 
-        private bool TryCreateGenericTypesForUnboundGeneric(TypeKey typeKey, out List<IRegistration> registrations)
+        private bool TryCreateGenericTypesForUnboundGeneric(TypeKey typeKey, out IRegistrationCollection registrations)
         {
             registrations = null;
             var type = typeKey.Type;
@@ -221,54 +211,57 @@ namespace Stylet
             if (!this.unboundGenerics.TryGetValue(new TypeKey(unboundGenericType, typeKey.Key), out unboundGenerics))
                 return false;
 
-            bool createdAny = false;
-            foreach (var unboundGeneric in unboundGenerics)
+            // Need to lock this, as someone might modify the underying list by registering a new unbound generic
+            lock (unboundGenerics)
             {
-                if (unboundGeneric == null)
-                    continue;
-
-                // Consider this scenario:
-                // interface IC<T, U> { } class C<T, U> : IC<U, T> { }
-                // Then they ask for an IC<int, bool>. We need to give them a C<bool, int>
-                // Search the ancestry of C for an IC (called implOfUnboundGenericType), then create a mapping which says that
-                // U is a bool and T is an int by comparing this against 'type' - the IC<T, U> that's registered as the service
-                // Then use this when making the type for C
-
-                Type newType;
-                if (unboundGeneric.Type == unboundGenericType)
+                foreach (var unboundGeneric in unboundGenerics)
                 {
-                    newType = type;
+                    if (unboundGeneric == null)
+                        continue;
+
+                    // Consider this scenario:
+                    // interface IC<T, U> { } class C<T, U> : IC<U, T> { }
+                    // Then they ask for an IC<int, bool>. We need to give them a C<bool, int>
+                    // Search the ancestry of C for an IC (called implOfUnboundGenericType), then create a mapping which says that
+                    // U is a bool and T is an int by comparing this against 'type' - the IC<T, U> that's registered as the service
+                    // Then use this when making the type for C
+
+                    Type newType;
+                    if (unboundGeneric.Type == unboundGenericType)
+                    {
+                        newType = type;
+                    }
+                    else
+                    {
+                        var implOfUnboundGenericType = unboundGeneric.Type.GetBaseTypesAndInterfaces().Single(x => x.Name == unboundGenericType.Name);
+                        var mapping = implOfUnboundGenericType.GenericTypeArguments.Zip(type.GenericTypeArguments, (n, t) => new { Type = t, Name = n });
+
+                        newType = unboundGeneric.Type.MakeGenericType(unboundGeneric.Type.GetTypeInfo().GenericTypeParameters.Select(x => mapping.Single(t => t.Name.Name == x.Name).Type).ToArray());
+                    }
+
+                    if (!type.IsAssignableFrom(newType))
+                        continue;
+
+                    // Right! We've made a new generic type we can use
+                    var registration = unboundGeneric.CreateRegistrationForType(newType);
+
+                    // AddRegistration returns the IRegistrationCollection which was added/updated, so the one returned from the final
+                    // call to AddRegistration is the final IRegistrationCollection for this key
+                    registrations = this.AddRegistration(typeKey, registration);
                 }
-                else
-                {
-                    var implOfUnboundGenericType = unboundGeneric.Type.GetBaseTypesAndInterfaces().Single(x => x.Name == unboundGenericType.Name);
-                    var mapping = implOfUnboundGenericType.GenericTypeArguments.Zip(type.GenericTypeArguments, (n, t) => new { Type = t, Name = n });
-
-                    newType = unboundGeneric.Type.MakeGenericType(unboundGeneric.Type.GetTypeInfo().GenericTypeParameters.Select(x => mapping.Single(t => t.Name.Name == x.Name).Type).ToArray());
-                }
-
-                if (!type.IsAssignableFrom(newType))
-                    continue;
-
-                // Right! We've made a new generic type we can use
-                var registration = unboundGeneric.CreateRegistrationForType(newType);
-                this.AddRegistration(typeKey, registration);
-                createdAny = true;
             }
-            if (createdAny)
-                registrations = this.registrations[typeKey];
 
-            return createdAny;
+            return registrations != null;
         }
 
         private Expression GetExpression(TypeKey typeKey, bool searchGetAllTypes)
         {
-            return this.GetRegistration(typeKey, searchGetAllTypes).GetInstanceExpression(this);
+            return this.GetRegistrations(typeKey, searchGetAllTypes).GetSingle().GetInstanceExpression(this);
         }
 
-        private List<IRegistration> GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
+        private IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
         {
-            List<IRegistration> registrations;
+            IRegistrationCollection registrations;
 
             // Try to get registrations. If there are none, see if we can add some from unbound generics
             // If we still fail, try searching the 'get all' types
@@ -278,12 +271,12 @@ namespace Stylet
                 if (searchGetAllTypes)
                 {
                     // Couldn't find this type - is it a 'get all' collection type? (i.e. they've put IEnumerable<TypeWeCanResolve> in a ctor param)
-                    var collectionElementType = this.TryEnsureGetAllRegistrationCreated(typeKey);
-                    if (collectionElementType == null)
+                    IRegistration registration;
+                    if (!this.TryEnsureGetAllRegistrationCreated(typeKey, out registration))
                         throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.Name));
 
                     // Got this far? Good. There's actually a 'get all' collection type. Proceed with that
-                    registrations = new List<IRegistration>() { this.getAllRegistrations[new TypeKey(collectionElementType, typeKey.Key)] };
+                    registrations = new SingleRegistration(registration);
                 }
                 else
                 {
@@ -294,63 +287,30 @@ namespace Stylet
             return registrations;
         }
 
-        private IRegistration GetRegistration(TypeKey typeKey, bool searchGetAllTypes)
+        private IRegistrationCollection AddRegistration(TypeKey typeKey, IRegistration registration)
         {
-            IRegistration registration;
-
-            var registrations = this.GetRegistrations(typeKey, searchGetAllTypes);
-            if (registrations.Count > 1)
-                throw new StyletIoCRegistrationException(String.Format("Multiple registrations found for service {0} with key '{1}'.", typeKey.Type.Name, typeKey.Key));
-            registration = registrations[0];
-
-            return registration;
-        }
-
-        private void AddRegistration(TypeKey typeKey, IRegistration registration)
-        {
-            lock (this.globalLock)
-            {
-                if (!this.registrations.ContainsKey(typeKey))
-                    this.registrations[typeKey] = new List<IRegistration>();
-
-                // Is there an auto-registration for this type? If so, remove it
-                var existingRegistration = this.registrations[typeKey].Where(x => x.Type == registration.Type).FirstOrDefault();
-                if (existingRegistration != null)
-                {
-                    if (existingRegistration.WasAutoCreated)
-                        this.registrations[typeKey].Remove(existingRegistration);
-                    else
-                        throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Name));
-                }
-
-                this.registrations[typeKey].Add(registration);
-            }
+            return this.registrations.AddOrUpdate(typeKey, x => new SingleRegistration(registration), (x, c) => c.AddRegistration(registration));
         }
 
         private void AddUnboundGeneric(TypeKey typeKey, UnboundGeneric unboundGeneric)
         {
-            lock (this.globalLock)
+            // We're not worried about thread-safety across multiple calls to this function (as it's only called as part of setup, which we're
+            // not thread-safe about). However someone might be fetching something from this list while we're modifying it, which we need to avoid
+            var unboundGenerics = this.unboundGenerics.GetOrAdd(typeKey, x => new List<UnboundGeneric>());
+            lock (unboundGenerics)
             {
-                if (!this.unboundGenerics.ContainsKey(typeKey))
-                    this.unboundGenerics[typeKey] = new List<UnboundGeneric>();
-
                 // Is there an auto-registration for this type? If so, remove it
-                var existingEntry = this.unboundGenerics[typeKey].Where(x => x.Type == unboundGeneric.Type).FirstOrDefault();
+                var existingEntry = unboundGenerics.Where(x => x.Type == unboundGeneric.Type).FirstOrDefault();
                 if (existingEntry != null)
                 {
                     if (existingEntry.WasAutoCreated)
-                        this.unboundGenerics[typeKey].Remove(existingEntry);
+                        unboundGenerics.Remove(existingEntry);
                     else
                         throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Name));
                 }
 
-                this.unboundGenerics[typeKey].Add(unboundGeneric);
+                unboundGenerics.Add(unboundGeneric);
             }
-        }
-
-        private void AddGetAllRegistration(TypeKey typeKey, IRegistration registration)
-        {
-            var registrations = this.getAllRegistrations.TryAdd(typeKey, registration);
         }
 
         #endregion
@@ -463,7 +423,7 @@ namespace Stylet
                 else
                     registration = new TransientRegistration(creator);
 
-                service.AddRegistration(new TypeKey(this.serviceType, key), registration);;
+                service.AddRegistration(new TypeKey(this.serviceType, key), registration);
             }
         }
 
@@ -583,7 +543,7 @@ namespace Stylet
                     return this.expression;
 
                 var list = Expression.New(this.Type);
-                var init = Expression.ListInit(list, container.GetRegistrations(new TypeKey(this.Type.GenericTypeArguments[0], this.Key), false).Select(x => x.GetInstanceExpression(container)));
+                var init = Expression.ListInit(list, container.GetRegistrations(new TypeKey(this.Type.GenericTypeArguments[0], this.Key), false).GetAll().Select(x => x.GetInstanceExpression(container)));
                 
                 this.expression = init;
                 return init;
@@ -591,6 +551,79 @@ namespace Stylet
         }
 
         #endregion
+
+        private interface IRegistrationCollection
+        {
+            IRegistration GetSingle();
+            List<IRegistration> GetAll();
+            IRegistrationCollection AddRegistration(IRegistration registration);
+        }
+
+        private class SingleRegistration : IRegistrationCollection
+        {
+            private IRegistration registration;
+
+            public SingleRegistration(IRegistration registration)
+            {
+                this.registration = registration;
+            }
+
+            public IRegistration GetSingle()
+            {
+                return this.registration;
+            }
+
+            public List<IRegistration> GetAll()
+            {
+                return new List<IRegistration>() { this.registration };
+            }
+
+            public IRegistrationCollection AddRegistration(IRegistration registration)
+            {
+                return new RegistrationCollection(new List<IRegistration>() { this.registration, registration });
+            }
+        }
+
+        private class RegistrationCollection : IRegistrationCollection
+        {
+            private List<IRegistration> registrations;
+
+            public RegistrationCollection(List<IRegistration> registrations)
+            {
+                this.registrations = registrations;
+            }
+
+            public IRegistration GetSingle()
+            {
+                throw new StyletIoCRegistrationException("Multiple registrations found.");
+            }
+
+            public List<IRegistration> GetAll()
+            {
+                List<IRegistration> registrationsCopy;
+                lock (this.registrations) { registrationsCopy = registrations.ToList(); }
+                return registrationsCopy;
+            }
+
+            public IRegistrationCollection AddRegistration(IRegistration registration)
+            {
+                // Need to lock the list, as someone might be fetching from it while we do this
+                lock (this.registrations)
+                {
+                    // Is there an existing registration for this type?
+                    var existingRegistration = this.registrations.FirstOrDefault(x => x.Type == registration.Type);
+                    if (existingRegistration != null)
+                    {
+                        if (existingRegistration.WasAutoCreated)
+                            this.registrations.Remove(existingRegistration);
+                        else
+                            throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.Name));
+                    }
+                    this.registrations.Add(registration);
+                    return this;
+                }
+            }
+        }
 
         #region ICreator
 
