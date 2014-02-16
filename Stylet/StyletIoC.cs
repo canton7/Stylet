@@ -28,11 +28,11 @@ namespace Stylet
 
     public interface IStyletIoCBindTo
     {
-        IStyletIoCBindWithKey ToSelf();
-        IStyletIoCBindWithKey To<TImplementation>() where TImplementation : class;
-        IStyletIoCBindWithKey To(Type implementationType);
-        IStyletIoCBindWithKey ToFactory<TImplementation>(Func<IKernel, TImplementation> factory) where TImplementation : class;
-        IStyletIoCBindWithKey ToAllImplementations(params Assembly[] assembly);
+        void ToSelf(string key = null);
+        void To<TImplementation>(string key = null) where TImplementation : class;
+        void To(Type implementationType, string key = null);
+        void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory, string key = null) where TImplementation : class;
+        void ToAllImplementations(string key = null, params Assembly[] assembly);
     }
 
     public interface IStyletIoCBindWithKey
@@ -327,13 +327,6 @@ namespace Stylet
             }
         }
 
-        private void ChangeKeyOfRegistration(TypeKey typeKey, string newKey)
-        {
-            List<IRegistration> registrations;
-            this.registrations.TryRemove(typeKey, out registrations);
-            this.registrations.TryAdd(new TypeKey(typeKey.Type, newKey), registrations);
-        }
-
         private void AddUnboundGeneric(TypeKey typeKey, UnboundGeneric unboundGeneric)
         {
             lock (this.globalLock)
@@ -377,47 +370,42 @@ namespace Stylet
                 this.isSingleton = isSingleton;
             }
 
-            public IStyletIoCBindWithKey ToSelf()
+            public void ToSelf(string key = null)
             {
-                return this.To(this.serviceType);
+                this.To(this.serviceType, key);
             }
 
-            public IStyletIoCBindWithKey To<TImplementation>() where TImplementation : class
+            public void To<TImplementation>(string key = null) where TImplementation : class
             {
-                return this.To(typeof(TImplementation));
+                this.To(typeof(TImplementation), key);
             }
 
-            public IStyletIoCBindWithKey To(Type implementationType)
+            public void To(Type implementationType, string key = null)
             {
-                TypeKey typeKey;
                 this.EnsureType(implementationType);
                 if (this.serviceType.IsGenericTypeDefinition)
                 {
                     var unboundGeneric = new UnboundGeneric(implementationType, this.isSingleton);
-                    // TODO: Temporary - need key of some sort here
-                    typeKey = new TypeKey(serviceType, null);
-                    this.service.AddUnboundGeneric(typeKey, unboundGeneric);
+                    this.service.AddUnboundGeneric(new TypeKey(serviceType, key), unboundGeneric);
                 }
                 else
                 {
                     var creator = new TypeCreator(implementationType);
-                    typeKey = this.AddRegistration(creator, implementationType);
+                    this.AddRegistration(creator, implementationType, key ?? creator.AttributeKey);
                 }
-                return new BindToWithKey(this.service, typeKey);
             }
 
-            public IStyletIoCBindWithKey ToFactory<TImplementation>(Func<IKernel, TImplementation> factory) where TImplementation : class
+            public void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory, string key = null) where TImplementation : class
             {
                 Type implementationType = typeof(TImplementation);
                 this.EnsureType(implementationType);
                 if (this.serviceType.IsGenericTypeDefinition)
                     throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Name));
                 var creator = new FactoryCreator<TImplementation>(factory);
-                var typeKey = this.AddRegistration(creator, implementationType);
-                return new BindToWithKey(this.service, typeKey);
+                this.AddRegistration(creator, implementationType, key);
             }
 
-            public IStyletIoCBindWithKey ToAllImplementations(params Assembly[] assemblies)
+            public void ToAllImplementations(string key = null, params Assembly[] assemblies)
             {
                 if (assemblies == null || assemblies.Length == 0)
                     assemblies = new[] { Assembly.GetCallingAssembly() };
@@ -427,19 +415,17 @@ namespace Stylet
                                  where baseType != null
                                  select new { Type = type, Base = baseType.ContainsGenericParameters ? baseType.GetGenericTypeDefinition() : baseType };
 
-                IEnumerable<IStyletIoCBindWithKey> haveKeys = candidates.Select(candidate =>
+                foreach (var candidate in candidates)
                 {
                     try
                     {
-                        return this.service.Bind(candidate.Base).To(candidate.Type);
+                        this.service.Bind(candidate.Base).To(candidate.Type, key);
                     }
                     catch (StyletIoCRegistrationException e)
                     {
                         Debug.WriteLine(String.Format("Unable to auto-bind type {0} to {1}: {2}", candidate.Base.Name, candidate.Type.Name, e.Message), "StyletIoC");
-                        return null;
                     }
-                });
-                return new BindToWithKey(haveKeys.Where(x => x != null).ToArray());
+                }
             }
 
             private void EnsureType(Type implementationType)
@@ -469,7 +455,7 @@ namespace Stylet
                     throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Name, this.serviceType.Name));
             }
 
-            private TypeKey AddRegistration(ICreator creator, Type implementationType)
+            private void AddRegistration(ICreator creator, Type implementationType, string key)
             {
                 IRegistration registration;
                 if (this.isSingleton)
@@ -477,39 +463,7 @@ namespace Stylet
                 else
                     registration = new TransientRegistration(creator);
 
-                var typeKey = new TypeKey(this.serviceType, null);
-                service.AddRegistration(typeKey, registration);
-                return typeKey;
-            }
-        }
-
-        private class BindToWithKey : IStyletIoCBindWithKey
-        {
-            private StyletIoC container;
-            private bool hasTypeKey;
-            private TypeKey typeKey;
-            private IStyletIoCBindWithKey[] others;
-
-            public BindToWithKey(StyletIoC container, TypeKey typeKey)
-            {
-                this.container = container;
-                this.hasTypeKey = true;
-                this.typeKey = typeKey;
-                this.others = new IStyletIoCBindWithKey[0];
-            }
-
-            public BindToWithKey(params IStyletIoCBindWithKey[] others)
-            {
-                this.others = others;
-            }
-
-            public void WithKey(string key)
-            {
-                if (this.hasTypeKey)
-                    this.container.ChangeKeyOfRegistration(this.typeKey, key);
-
-                foreach (var other in this.others)
-                    other.WithKey(key);
+                service.AddRegistration(new TypeKey(this.serviceType, key), registration);;
             }
         }
 
@@ -648,13 +602,13 @@ namespace Stylet
 
         private abstract class CreatorBase : ICreator
         {
-            public string Key { get; set; }
             public virtual Type Type { get; protected set; }
             public abstract Expression GetInstanceExpression(StyletIoC container);
         }
 
         private class TypeCreator : CreatorBase
         {
+            public string AttributeKey { get; private set; }
             private Expression creationExpression;
 
             public TypeCreator(Type type)
@@ -664,7 +618,7 @@ namespace Stylet
                 // Use the key from InjectAttribute (if present), and let someone else override it if they want
                 var attribute = (InjectAttribute)type.GetCustomAttributes(typeof(InjectAttribute), false).FirstOrDefault();
                 if (attribute != null)
-                    this.Key = attribute.Key;
+                    this.AttributeKey = attribute.Key;
             }
 
             private string KeyForParameter(ParameterInfo parameter)
