@@ -735,15 +735,30 @@ namespace Stylet
 
         #endregion
 
-        private struct TypeKey
+        private class TypeKey
         {
             public readonly Type Type;
             public readonly string Key;
 
-            public TypeKey(Type type, string key) : this()
+            public TypeKey(Type type, string key)
             {
                 this.Type = type;
                 this.Key = key;
+            }
+
+            public override int GetHashCode()
+            {
+                if (this.Key == null)
+                    return this.Type.GetHashCode();
+                return this.Type.GetHashCode() ^ this.Key.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is TypeKey))
+                    return false;
+                var other = (TypeKey)obj;
+                return other.Type == this.Type && other.Key == this.Key;
             }
         }
 
