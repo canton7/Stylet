@@ -54,6 +54,7 @@ namespace Stylet
         // The list object is used for locking it
         private ConcurrentDictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new ConcurrentDictionary<TypeKey, List<UnboundGeneric>>();
 
+
         private ModuleBuilder factoryBuilder;
         private ConcurrentDictionary<Type, Type> factories = new ConcurrentDictionary<Type, Type>();
 
@@ -888,6 +889,56 @@ namespace Stylet
                     return new SingletonRegistration(new TypeCreator(boundType)) { WasAutoCreated = this.WasAutoCreated };
                 else
                     return new TransientRegistration(new TypeCreator(boundType)) { WasAutoCreated = this.WasAutoCreated };
+            }
+        }
+
+        #endregion
+
+        #region BuilderUpper stuff
+
+        private class BuilderUpper
+        {
+            private Type type;
+            private Action<object> implementor;
+
+            public BuilderUpper(Type type)
+            {
+                this.type = type;
+            }
+
+            public Expression GetExpression(StyletIoC container, ParameterExpression inputParameterExpression)
+            {
+                var expressions = this.type.GetFields().Select(x => this.ExpressionForMember(container, inputParameterExpression, x, x.FieldType))
+                    .Concat(this.type.GetProperties().Select(x => this.ExpressionForMember(container, inputParameterExpression, x, x.PropertyType)))
+                    .Where(x => x != null);
+
+                // Sadly, we can't cache this expression (I think), as it relies on the inputParameterExpression
+                // which is likely to change between calls
+                // This isn't so bad, so we'll (probably) only need to call this at most twice - once for building up the type on creation,
+                // and once for creating the implemtor (which is used in BuildUp())
+                return Expression.Block(expressions);
+            }
+
+            private Expression ExpressionForMember(StyletIoC container, ParameterExpression objExpression, MemberInfo member, Type memberType)
+            {
+                var attribute = member.GetCustomAttribute<InjectAttribute>(true);
+                if (attribute == null)
+                    return null;
+
+                var valueExpression = container.GetExpression(new TypeKey(memberType, attribute.Key), true);
+                var memberAccess = Expression.MakeMemberAccess(objExpression, member);
+                var memberValue = container.GetExpression(new TypeKey(memberType, attribute.Key), true);
+                return Expression.Assign(memberAccess, memberValue); 
+            }
+
+            public Action<object> GetImplementor(StyletIoC container)
+            {
+                if (this.implementor != null)
+                    return this.implementor;
+
+                var parameterExpression = Expression.Parameter(this.type, "inputParameter");
+                this.implementor = Expression.Lambda<Action<object>>(this.GetExpression(container, parameterExpression), parameterExpression).Compile();
+                return this.implementor;
             }
         }
 
