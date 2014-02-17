@@ -26,6 +26,7 @@ namespace Stylet
         T Get<T>(string key = null);
         IEnumerable<object> GetAll(Type type, string key = null);
         IEnumerable<T> GetAll<T>(string key = null);
+        void BuildUp(object item);
     }
 
     public interface IStyletIoCBindTo
@@ -53,6 +54,7 @@ namespace Stylet
         private ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
         // The list object is used for locking it
         private ConcurrentDictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new ConcurrentDictionary<TypeKey, List<UnboundGeneric>>();
+        private ConcurrentDictionary<Type, BuilderUpper> builderUppers = new ConcurrentDictionary<Type, BuilderUpper>();
 
 
         private ModuleBuilder factoryBuilder;
@@ -165,6 +167,13 @@ namespace Stylet
         {
             return this.GetAll(typeof(T), key).Cast<T>();
         }
+
+        public void BuildUp(object item)
+        {
+            var builderUpper = this.GetBuilderUpper(item.GetType());
+            builderUpper.GetImplementor(this)(item);
+        }
+
 
         private bool CanResolve(TypeKey typeKey)
         {
@@ -283,7 +292,6 @@ namespace Stylet
             IRegistrationCollection registrations;
 
             // Try to get registrations. If there are none, see if we can add some from unbound generics
-            // If we still fail, try searching the 'get all' types
             if (!this.registrations.TryGetValue(typeKey, out registrations) &&
                 !this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations))
             {
@@ -429,6 +437,11 @@ namespace Stylet
             }
             var actualType = this.factories.GetOrAdd(serviceType, constructedType);
             return actualType;
+        }
+
+        private BuilderUpper GetBuilderUpper(Type type)
+        {
+            return this.builderUppers.GetOrAdd(type, x => new BuilderUpper(type));
         }
 
         #endregion
@@ -906,20 +919,22 @@ namespace Stylet
                 this.type = type;
             }
 
-            public Expression GetExpression(StyletIoC container, ParameterExpression inputParameterExpression)
+            public Expression GetExpression(StyletIoC container, Expression inputParameterExpression)
             {
-                var expressions = this.type.GetFields().Select(x => this.ExpressionForMember(container, inputParameterExpression, x, x.FieldType))
-                    .Concat(this.type.GetProperties().Select(x => this.ExpressionForMember(container, inputParameterExpression, x, x.PropertyType)))
+                var expressions = this.type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(container, inputParameterExpression, x, x.FieldType))
+                    .Concat(this.type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(container, inputParameterExpression, x, x.PropertyType)))
                     .Where(x => x != null);
 
                 // Sadly, we can't cache this expression (I think), as it relies on the inputParameterExpression
                 // which is likely to change between calls
                 // This isn't so bad, so we'll (probably) only need to call this at most twice - once for building up the type on creation,
                 // and once for creating the implemtor (which is used in BuildUp())
+                if (!expressions.Any())
+                    return Expression.Empty();
                 return Expression.Block(expressions);
             }
 
-            private Expression ExpressionForMember(StyletIoC container, ParameterExpression objExpression, MemberInfo member, Type memberType)
+            private Expression ExpressionForMember(StyletIoC container, Expression objExpression, MemberInfo member, Type memberType)
             {
                 var attribute = member.GetCustomAttribute<InjectAttribute>(true);
                 if (attribute == null)
@@ -936,8 +951,9 @@ namespace Stylet
                 if (this.implementor != null)
                     return this.implementor;
 
-                var parameterExpression = Expression.Parameter(this.type, "inputParameter");
-                this.implementor = Expression.Lambda<Action<object>>(this.GetExpression(container, parameterExpression), parameterExpression).Compile();
+                var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
+                var typedParameterExpression = Expression.Convert(parameterExpression, this.type);
+                this.implementor = Expression.Lambda<Action<object>>(this.GetExpression(container, typedParameterExpression), parameterExpression).Compile();
                 return this.implementor;
             }
         }
@@ -1024,7 +1040,7 @@ namespace Stylet
         public StyletIoCCreateFactoryException(string message, Exception innerException) : base(message, innerException) { }
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     public sealed class InjectAttribute : Attribute
     {
         public InjectAttribute()
