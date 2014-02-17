@@ -853,9 +853,17 @@ namespace Stylet
                     return Expression.Convert(Expression.Constant(x.DefaultValue), x.ParameterType);
                 });
 
+                // TODO: Might want to optimise out the block if there's no builder upper - not sure of the performance impact
+
+                var instanceVar = Expression.Variable(this.Type, "instance");
                 var creator = Expression.New(ctor, ctorParams);
-                this.creationExpression = creator;
-                return creator;
+                var assignment = Expression.Assign(instanceVar, creator);
+
+                var buildUpExpression = container.GetBuilderUpper(this.Type).GetExpression(container, assignment);
+                var completeExpression = Expression.Block(new ParameterExpression[] { instanceVar }, assignment, buildUpExpression, instanceVar);
+
+                this.creationExpression = completeExpression;
+                return completeExpression;
             }
         }
 
