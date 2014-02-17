@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Stylet
@@ -122,8 +123,12 @@ namespace Stylet
 
         public object Get(Type type, string key = null)
         {
+            if (type == null)
+                throw new ArgumentNullException("type");
             Func<object> generator;
-            generator =  this.GetRegistrations(new TypeKey(type, key), false).GetSingle().GetGenerator(this);
+            var registrations = this.GetRegistrations(new TypeKey(type, key), false);
+            var registration = registrations.GetSingle();
+            generator = registration.GetGenerator(this);
             return generator();
         }
 
@@ -475,7 +480,6 @@ namespace Stylet
 
         private class SingletonRegistration : RegistrationBase
         {
-            private bool instanceInstantiated;
             private object instance;
             private Expression instanceExpression;
 
@@ -486,11 +490,11 @@ namespace Stylet
 
             private void EnsureInstantiated(StyletIoC container)
             {
-                if (this.instanceInstantiated)
+                if (this.instance != null)
                     return;
 
-                this.instance = Expression.Lambda<Func<object>>(this.creator.GetInstanceExpression(container)).Compile()();
-                this.instanceInstantiated = true;
+                // Ensure we don't end up creating two singletons, one used by each thread
+                Interlocked.CompareExchange(ref this.instance, Expression.Lambda<Func<object>>(this.creator.GetInstanceExpression(container)).Compile()(), null);
             }
 
             public override Func<object> GetGenerator(StyletIoC container)
@@ -748,7 +752,7 @@ namespace Stylet
             public Type Type { get; private set; }
             public int NumTypeParams
             {
-                get { return IntrospectionExtensions.GetTypeInfo(this.Type).GenericTypeParameters.Length; }
+                get { return this.Type.GetTypeInfo().GenericTypeParameters.Length; }
             }
             public bool IsSingleton { get; private set; }
 
