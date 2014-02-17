@@ -36,3 +36,4 @@ packages/
 installer/Output
 
 *.gjq
+*.tmp

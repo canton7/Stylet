@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,6 +34,7 @@ namespace Stylet
         void To<TImplementation>(string key = null) where TImplementation : class;
         void To(Type implementationType, string key = null);
         void ToFactory<TImplementation>(Func<IKernel, TImplementation> factory, string key = null) where TImplementation : class;
+        void ToAbstractFactory(string key = null);
         void ToAllImplementations(string key = null, params Assembly[] assembly);
     }
 
@@ -45,11 +47,22 @@ namespace Stylet
     {
         #region Main Class
 
+        public static readonly string FactoryAssemblyName = "StyletIoCFactory";
+
         private ConcurrentDictionary<TypeKey, IRegistrationCollection> registrations = new ConcurrentDictionary<TypeKey, IRegistrationCollection>();
         private ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
+        // The list object is used for locking it
         private ConcurrentDictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new ConcurrentDictionary<TypeKey, List<UnboundGeneric>>();
 
+        private ModuleBuilder factoryBuilder;
+        private ConcurrentDictionary<Type, Type> factories = new ConcurrentDictionary<Type, Type>();
+
         private bool compilationStarted;
+
+        public StyletIoC()
+        {
+            this.BindSingleton<IKernel>().ToFactory(c => this);
+        }
 
         public void AutoBind(params Assembly[] assemblies)
         {
@@ -318,6 +331,105 @@ namespace Stylet
             }
         }
 
+        private Type GetFactoryForType(Type serviceType)
+        {
+            if (!serviceType.IsInterface)
+                throw new StyletIoCCreateFactoryException(String.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.Name));
+
+            // Have we built it already?
+            Type factoryType;
+            if (this.factories.TryGetValue(serviceType, out factoryType))
+                return factoryType;
+
+            if (this.factoryBuilder == null)
+            {
+                var assemblyName = new AssemblyName(FactoryAssemblyName);
+                var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+                var moduleBuilder = assemblyBuilder.DefineDynamicModule("StyletIoCFactoryModule");
+                Interlocked.CompareExchange(ref this.factoryBuilder, moduleBuilder, null);
+            }
+
+            // If the service is 'ISomethingFactory', call out new class 'SomethingFactory'
+            var typeBuilder = this.factoryBuilder.DefineType(serviceType.Name.Substring(1), TypeAttributes.Public);
+            typeBuilder.AddInterfaceImplementation(serviceType);
+
+            // Define a field which holds a reference to this ioc container
+            var containerField = typeBuilder.DefineField("container", typeof(IKernel), FieldAttributes.Private);
+
+            // Add a constructor which takes one argument - the container - and sets the field
+            // public Name(IKernel container)
+            // {
+            //    this.container = container;
+            // }
+            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { typeof(IKernel) });
+            var ilGenerator = ctorBuilder.GetILGenerator();
+            // Load 'this' and the IOC container onto the stack
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+            ilGenerator.Emit(OpCodes.Ldarg_1);
+            // Store the IOC container in this.container
+            ilGenerator.Emit(OpCodes.Stfld, containerField);
+            ilGenerator.Emit(OpCodes.Ret);
+
+            // These are needed by all methods, so get them now
+            // IKernel.Get(Type, string)
+            var containerGetMethod = typeof(IKernel).GetMethod("Get", new Type[] { typeof(Type), typeof(string) });
+            // Type.GetTypeFromHandler(RuntimeTypeHandle)
+            var typeFromHandleMethod = typeof(Type).GetMethod("GetTypeFromHandle");
+
+            // Go through each method, emmitting an implementation for each
+            foreach (var methodInfo in serviceType.GetMethods())
+            {
+                var parameters = methodInfo.GetParameters();
+                if (!(parameters.Length == 0 || (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))))
+                    throw new StyletIoCCreateFactoryException("Can only implement methods with zero arguments, or a single string argument");
+
+                if (methodInfo.ReturnType == typeof(void))
+                    throw new StyletIoCCreateFactoryException("Can only implement methods which return something");
+
+                var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
+                var methodIlGenerator = methodBuilder.GetILGenerator();
+                // Load 'this' onto stack
+                // Stack: [this]
+                methodIlGenerator.Emit(OpCodes.Ldarg_0);
+                // Load value of 'container' field of 'this' onto stack
+                // Stack: [this.container]
+                methodIlGenerator.Emit(OpCodes.Ldfld, containerField);
+                // New local variable which represents type to load
+                LocalBuilder lb = methodIlGenerator.DeclareLocal(methodInfo.ReturnType);
+                // Load this onto the stack. This is a RuntimeTypeHandle
+                // Stack: [this.container, runtimeTypeHandleOfReturnType]
+                methodIlGenerator.Emit(OpCodes.Ldtoken, lb.LocalType);
+                // Invoke Type.GetTypeFromHandle with this
+                // This is equivalent to calling typeof(T)
+                // Stack: [this.container, typeof(returnType)]
+                methodIlGenerator.Emit(OpCodes.Call, typeFromHandleMethod);
+                // Load the given key (if it's a parameter), or null if it isn't, onto the stack
+                // Stack: [this.container, typeof(returnType), key]
+                if (parameters.Length == 0)
+                    methodIlGenerator.Emit(OpCodes.Ldnull); // Load null as the key
+                else
+                    methodIlGenerator.Emit(OpCodes.Ldarg_1); // Load the given string as the key
+                // Call container.Get(type, key)
+                // Stack: [returnedInstance]
+                methodIlGenerator.Emit(OpCodes.Callvirt, containerGetMethod);
+                methodIlGenerator.Emit(OpCodes.Ret);
+
+                typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
+            }
+
+            Type constructedType;
+            try
+            {
+                constructedType = typeBuilder.CreateType();
+            }
+            catch (TypeLoadException e)
+            {
+                throw new StyletIoCCreateFactoryException(String.Format("Unable to create factory type for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to your AssemblyInfo.cs", serviceType.Name), e);
+            }
+            var actualType = this.factories.GetOrAdd(serviceType, constructedType);
+            return actualType;
+        }
+
         #endregion
 
         #region BindTo
@@ -368,6 +480,12 @@ namespace Stylet
                     throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Name));
                 var creator = new FactoryCreator<TImplementation>(factory);
                 this.AddRegistration(creator, implementationType, key);
+            }
+
+            public void ToAbstractFactory(string key = null)
+            {
+                var factoryType = this.service.GetFactoryForType(this.serviceType);
+                this.To(factoryType, key);
             }
 
             public void ToAllImplementations(string key = null, params Assembly[] assemblies)
@@ -550,7 +668,7 @@ namespace Stylet
                 var init = Expression.ListInit(list, container.GetRegistrations(new TypeKey(this.Type.GenericTypeArguments[0], this.Key), false).GetAll().Select(x => x.GetInstanceExpression(container)));
                 
                 this.expression = init;
-                return init;
+                return this.expression;
             }
         }
 
@@ -660,7 +778,10 @@ namespace Stylet
 
             private string KeyForParameter(ParameterInfo parameter)
             {
-                var attribute = (InjectAttribute)parameter.GetCustomAttributes(typeof(InjectAttribute)).FirstOrDefault();
+                var attributes = parameter.GetCustomAttributes(typeof(InjectAttribute));
+                if (attributes == null)
+                    return null;
+                var attribute = (InjectAttribute)attributes.FirstOrDefault();
                 return attribute == null ? null : attribute.Key;
             }
 
@@ -844,6 +965,12 @@ namespace Stylet
     {
         public StyletIoCFindConstructorException(string message) : base(message) { }
         public StyletIoCFindConstructorException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+    public class StyletIoCCreateFactoryException : StyletIoCException
+    {
+        public StyletIoCCreateFactoryException(string message) : base(message) { }
+        public StyletIoCCreateFactoryException(string message, Exception innerException) : base(message, innerException) { }
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]

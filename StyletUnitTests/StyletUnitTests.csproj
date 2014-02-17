@@ -49,6 +49,7 @@
     <Compile Include="StyletIoCAutobindingTests.cs" />
     <Compile Include="StyletIoCBindingChecksTests.cs" />
     <Compile Include="StyletIoCConstructorInjectionTests.cs" />
+    <Compile Include="StyletIoCFactoryTests.cs" />
     <Compile Include="StyletIoCGetAllTests.cs" />
     <Compile Include="StyletIoCGetSingleKeyedTests.cs" />
     <Compile Include="StyletIoCGetSingleTests.cs" />
