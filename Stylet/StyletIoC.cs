@@ -857,23 +857,20 @@ namespace Stylet
                 var creator = Expression.New(ctor, ctorParams);
                 var assignment = Expression.Assign(instanceVar, creator);
 
-                var buildUpExpression = container.GetBuilderUpper(this.Type).GetExpression(container, assignment);
+                var buildUpExpression = container.GetBuilderUpper(this.Type).GetExpression(container, instanceVar);
 
-                Expression completeExpression;
-
-                // If there's no buildUp, avoid creating the block expression after all - it hurts runtime performance
-                if (buildUpExpression == Expression.Empty())
-                {
-                    completeExpression = creator;
-                }
-                else
-                {
-                    var blockItems = new List<Expression>() { assignment, buildUpExpression };
-                    if (typeof(IInjectionAware).IsAssignableFrom(this.Type))
-                        blockItems.Add(Expression.Call(assignment, typeof(IInjectionAware).GetMethod("ParametersInjected")));
-                    blockItems.Add(instanceVar); // Final appearance of instanceVar, as this sets the return value of the block
-                    completeExpression = Expression.Block(new[] { instanceVar }, blockItems);
-                }
+                // We always start with:
+                // var instance = new Class(.....)
+                // instance.Property1 = new ....
+                // instance.Property2 = new ....
+                var blockItems = new List<Expression>() { assignment, buildUpExpression };
+                // If it implements IInjectionAware, follow that up with:
+                // instance.ParametersInjected
+                if (typeof(IInjectionAware).IsAssignableFrom(this.Type))
+                    blockItems.Add(Expression.Call(instanceVar, typeof(IInjectionAware).GetMethod("ParametersInjected")));
+                // Final appearance of instanceVar, as this sets the return value of the block
+                blockItems.Add(instanceVar); 
+                var completeExpression = Expression.Block(new[] { instanceVar }, blockItems);
 
                 this.creationExpression = completeExpression;
                 return completeExpression;
@@ -974,7 +971,9 @@ namespace Stylet
 
                 var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
                 var typedParameterExpression = Expression.Convert(parameterExpression, this.type);
+                var expression = this.GetExpression(container, typedParameterExpression);
                 this.implementor = Expression.Lambda<Action<object>>(this.GetExpression(container, typedParameterExpression), parameterExpression).Compile();
+
                 return this.implementor;
             }
         }

@@ -53,7 +53,7 @@ namespace StyletUnitTests
             public C1 C1 = null;
         }
 
-        class Subject6
+        class Subject6 : IInjectionAware
         {
             [Inject]
             public C1 C1 = null;
