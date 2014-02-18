@@ -853,14 +853,27 @@ namespace Stylet
                     return Expression.Convert(Expression.Constant(x.DefaultValue), x.ParameterType);
                 });
 
-                // TODO: Might want to optimise out the block if there's no builder upper - not sure of the performance impact
-
                 var instanceVar = Expression.Variable(this.Type, "instance");
                 var creator = Expression.New(ctor, ctorParams);
                 var assignment = Expression.Assign(instanceVar, creator);
 
                 var buildUpExpression = container.GetBuilderUpper(this.Type).GetExpression(container, assignment);
-                var completeExpression = Expression.Block(new ParameterExpression[] { instanceVar }, assignment, buildUpExpression, instanceVar);
+
+                Expression completeExpression;
+
+                // If there's no buildUp, avoid creating the block expression after all - it hurts runtime performance
+                if (buildUpExpression == Expression.Empty())
+                {
+                    completeExpression = creator;
+                }
+                else
+                {
+                    var blockItems = new List<Expression>() { assignment, buildUpExpression };
+                    if (typeof(IInjectionAware).IsAssignableFrom(this.Type))
+                        blockItems.Add(Expression.Call(assignment, typeof(IInjectionAware).GetMethod("ParametersInjected")));
+                    blockItems.Add(instanceVar); // Final appearance of instanceVar, as this sets the return value of the block
+                    completeExpression = Expression.Block(new[] { instanceVar }, blockItems);
+                }
 
                 this.creationExpression = completeExpression;
                 return completeExpression;
@@ -1022,6 +1035,11 @@ namespace Stylet
             return serviceType.IsAssignableFrom(implementationType) ||
                 implementationType.GetBaseTypesAndInterfaces().Any(x => x == serviceType || (x.IsGenericType && x.GetGenericTypeDefinition() == serviceType));
         }
+    }
+
+    public interface IInjectionAware
+    {
+        void ParametersInjected();
     }
 
     public class StyletIoCException : Exception

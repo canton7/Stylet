@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace StyletUnitTests
 {
     [TestFixture]
-    public class StyletIoCBuildUpTests
+    public class StyletIoCParameterInjectionTests
     {
         class C1 { }
         interface I2 { }
@@ -17,16 +17,16 @@ namespace StyletUnitTests
 
         class Subject1
         {
-            public C1 Ignored;
+            public C1 Ignored = null;
 
             [Inject]
-            public C1 C1;
+            public C1 C1 = null;
         }
 
         class Subject2
         {
             [Inject]
-            private C1 c1;
+            private C1 c1 = null;
             public C1 GetC1() { return this.c1; }
         }
 
@@ -50,7 +50,16 @@ namespace StyletUnitTests
         class Subject5
         {
             [Inject("key")]
-            public C1 C1;
+            public C1 C1 = null;
+        }
+
+        class Subject6
+        {
+            [Inject]
+            public C1 C1 = null;
+
+            public bool ParametersInjectedCalledCorrectly;
+            public void ParametersInjected() { this.ParametersInjectedCalledCorrectly = this.C1 != null; }
         }
 
         [Test]
@@ -116,6 +125,30 @@ namespace StyletUnitTests
             var ioc = new StyletIoC();
             var subject = new Subject1();
             Assert.Throws<StyletIoCRegistrationException>(() => ioc.BuildUp(subject));
+        }
+
+        [Test]
+        public void BuildsUpParametersOfNewlyCreatedType()
+        {
+            var ioc = new StyletIoC();
+            ioc.Bind<C1>().ToSelf();
+            ioc.Bind<Subject1>().ToSelf();
+            var subject = ioc.Get<Subject1>();
+
+            Assert.IsInstanceOf<C1>(subject.C1);
+            Assert.IsNull(subject.Ignored);
+        }
+
+        [Test]
+        public void CallsParametersInjectedAfterInjectingParameters()
+        {
+            var ioc = new StyletIoC();
+            ioc.Bind<C1>().ToSelf();
+            ioc.Bind<Subject6>().ToSelf();
+            var subject = ioc.Get<Subject6>();
+
+            Assert.IsInstanceOf<C1>(subject.C1);
+            Assert.IsTrue(subject.ParametersInjectedCalledCorrectly);
         }
     }
 }
