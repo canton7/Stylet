@@ -14,52 +14,171 @@ namespace StyletIoC
 {
     public interface IContainer
     {
+        /// <summary>
+        /// Bind a service (e.g. an interface) to something in transient scope (i.e. a new instance is created each time it's needed)
+        /// </summary>
+        /// <typeparam name="TService">Service type to bind</typeparam>
+        /// <returns>Fluent interface, on which further methods can be called</returns>
         IStyletIoCBindTo Bind<TService>();
+
+        /// <summary>
+        /// Bind a service (e.g. an interface) to something in transient scope (i.e. a new instance is created each time it's needed)
+        /// </summary>
+        /// <param name="serviceType">Service type to bind</param>
+        /// <returns>Fluent interface, on which further methods can be called</returns>
         IStyletIoCBindTo Bind(Type serviceType);
+
+        /// <summary>
+        /// Bind a service (e.g. an inteface) to something in singleton scope (i.e. one instance is created, and that's used where needed)
+        /// </summary>
+        /// <typeparam name="TService">Service type to bind</typeparam>
+        /// <returns>Fluent interface, on which further methods can be called</returns>
         IStyletIoCBindTo BindSingleton<TService>();
+
+        /// <summary>
+        /// Bind a service (e.g. an inteface) to something in singleton scope (i.e. one instance is created, and that's used where needed)
+        /// </summary>
+        /// <param name="serviceType">Service type to bind</param>
+        /// <returns>Fluent interface, on which further methods can be called</returns>
         IStyletIoCBindTo BindSingleton(Type serviceType);
 
+        /// <summary>
+        /// Find all classes in the selected assembly(s) and bind it to itself (searches the current assembly if none are given)
+        /// </summary>
+        /// <param name="assemblies">Assembly(s) to search for types to self-bind (uses current assembly if none given)</param>
         void AutoBind(params Assembly[] assemblies);
 
+        /// <summary>
+        /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
+        /// </summary>
         void Compile();
+
+        /// <summary>
+        /// Fetch a single instance of the specified type
+        /// </summary>
+        /// <param name="type">Type of service to fetch an implementation for</param>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns>An instance of the requested service</returns>
         object Get(Type type, string key = null);
+
+        /// <summary>
+        /// Fetch a single instance of the specified type
+        /// </summary>
+        /// <typeparam name="T">Type of service to fetch an implementation for</typeparam>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns>An instance of the requested service</returns>
         T Get<T>(string key = null);
+
+        /// <summary>
+        /// Fetch instances of all types which implement the specified service
+        /// </summary>
+        /// <param name="type">Type of the service to fetch implementations for</param>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns>All implementations of the requested service, with the requested key</returns>
         IEnumerable<object> GetAll(Type type, string key = null);
+
+        /// <summary>
+        /// Fetch instances of all types which implement the specified service
+        /// </summary>
+        /// <typeparam name="T">Type of the service to fetch implementations for</typeparam>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns>All implementations of the requested service, with the requested key</returns>
         IEnumerable<T> GetAll<T>(string key = null);
+
+        /// <summary>
+        /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
+        /// </summary>
+        /// <param name="type">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</param>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns></returns>
         object GetTypeOrAll(Type type, string key = null);
+
+        /// <summary>
+        /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
+        /// </summary>
+        /// <typeparam name="T">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</typeparam>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns></returns>
         T GetTypeOrAll<T>(string key = null);
+
+        /// <summary>
+        /// For each property/field with the [Inject] attribute, sets it to an instance of that type
+        /// </summary>
+        /// <param name="item">Item to build up</param>
         void BuildUp(object item);
     }
 
+    /// <summary>
+    /// Lightweight, very fast IoC container
+    /// </summary>
     public class StyletIoCContainer : IContainer
     {
+        /// <summary>
+        /// Name of the assembly in which abstract factories are built. Use in [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to allow factories created by .ToAbstractFactory() to access internal types
+        /// </summary>
         public static readonly string FactoryAssemblyName = "StyletIoCFactory";
 
+        /// <summary>
+        /// Maps a [type, key] pair to a collection of registrations for that keypair. You can retrieve an instance of the type from the registration
+        /// </summary>
         private ConcurrentDictionary<TypeKey, IRegistrationCollection> registrations = new ConcurrentDictionary<TypeKey, IRegistrationCollection>();
+
+        /// <summary>
+        /// Maps a [type, key] pair, where 'type' is the T in IEnumerable{T}, to a registration which can create a List{T} implementing that IEnumerable.
+        /// This is separate from 'registrations' as some code paths - e.g. Get(), won't search it (while things like constructor/property injection will).
+        /// </summary>
         private ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
-        // The list object is used for locking it
+
+        /// <summary>
+        /// Maps a [type, key] pair, where 'type' is an unbound generic (something like IValidator{}) to something which, given a type, can create an IRegistration for that type.
+        /// So if they've bound an IValidator{} to a an IntValidator, StringValidator, etc, and request an IValidator{string}, one of the UnboundGenerics here can generatr a StringValidator.
+        /// Type-safety with the List is ensured by locking using the list as the lock object before modifying / iterating.
+        /// </summary>
         private ConcurrentDictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new ConcurrentDictionary<TypeKey, List<UnboundGeneric>>();
+
+        /// <summary>
+        /// Maps a type onto a BuilderUpper for that type, which can create an Expresson/Delegate to build up that type.
+        /// </summary>
         private ConcurrentDictionary<Type, BuilderUpper> builderUppers = new ConcurrentDictionary<Type, BuilderUpper>();
 
-
+        /// <summary>
+        /// Cached ModuleBuilder used for building factory implementations
+        /// </summary>
         private ModuleBuilder factoryBuilder;
+
+        /// <summary>
+        /// Cache of services registered with .ToAbstractFactory() to the factory which was generated for each.
+        /// </summary>
         private ConcurrentDictionary<Type, Type> factories = new ConcurrentDictionary<Type, Type>();
 
+        /// <summary>
+        /// True if we've started to compile anything, and therefore can't register any more bindings.
+        /// </summary>
         private bool compilationStarted;
 
         public StyletIoCContainer()
         {
+            // The generated factories need to be injected with an instance of 'this'
+            // It's also nice for things to get us injected
             this.BindSingleton<IContainer>().ToFactory(c => this);
+            this.BindSingleton<StyletIoCContainer>().ToFactory(c => this);
         }
 
+        /// <summary>
+        /// Find all classes in the selected assembly(s) and bind it to itself (searches the current assembly if none are given)
+        /// </summary>
+        /// <param name="assemblies">Assembly(s) to search for types to self-bind (uses current assembly if none given)</param>
         public void AutoBind(params Assembly[] assemblies)
         {
+            // If they haven't given any assemblies, use the assembly of the caller
             if (assemblies == null || assemblies.Length == 0)
                 assemblies = new[] { Assembly.GetCallingAssembly() };
 
+            // We self-bind concrete classes only
             var classes = assemblies.SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
             foreach (var cls in classes)
             {
+                // Don't care if binding fails - we're likely to hit a few of these
                 try
                 {
                     this.Bind(cls).To(cls);
@@ -71,34 +190,63 @@ namespace StyletIoC
             }
         }
 
+        /// <summary>
+        /// Bind a service (e.g. an interface) to something in transient scope (i.e. a new instance is created each time it's needed)
+        /// </summary>
+        /// <typeparam name="TService">Service type to bind</typeparam>
+        /// <returns>Fluent interface, on which further methods can be called</returns>
         public IStyletIoCBindTo Bind<TService>()
         {
             return this.Bind(typeof(TService));
         }
 
+        /// <summary>
+        /// Bind a service (e.g. an interface) to something in transient scope (i.e. a new instance is created each time it's needed)
+        /// </summary>
+        /// <param name="serviceType">Service type to bind</param>
+        /// <returns>Fluent interface, on which further methods can be called</returns>
         public IStyletIoCBindTo Bind(Type serviceType)
         {
             this.CheckCompilationStarted();
             return new StyletIoCBindTo(this, serviceType, false);
         }
 
+        /// <summary>
+        /// Bind a service (e.g. an inteface) to something in singleton scope (i.e. one instance is created, and that's used where needed)
+        /// </summary>
+        /// <typeparam name="TService">Service type to bind</typeparam>
+        /// <returns>Fluent interface, on which further methods can be called</returns>
         public IStyletIoCBindTo BindSingleton<TService>()
         {
             return this.BindSingleton(typeof(TService));
         }
 
+        /// <summary>
+        /// Bind a service (e.g. an inteface) to something in singleton scope (i.e. one instance is created, and that's used where needed)
+        /// </summary>
+        /// <param name="serviceType">Service type to bind</param>
+        /// <returns>Fluent interface, on which further methods can be called</returns>
         public IStyletIoCBindTo BindSingleton(Type serviceType)
         {
             this.CheckCompilationStarted();
             return new StyletIoCBindTo(this, serviceType, true);
         }
 
+        /// <summary>
+        /// Check if we've compiled anything, and throw if we have.
+        /// Since the exact things being injected into a constructed type are decided when it's compiled, changing the bindings
+        /// (and therefore changing which constructor could have been chosen, for example, or whether an error is raised) could be
+        /// very confusing.
+        /// </summary>
         private void CheckCompilationStarted()
         {
             if (this.compilationStarted)
                 throw new StyletIoCException("Once you've started to retrieve items from the container, or have called Compile(), you cannot register new services");
         }
 
+        /// <summary>
+        /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
+        /// </summary>
         public void Compile()
         {
             this.compilationStarted = true;
@@ -122,6 +270,12 @@ namespace StyletIoC
             }
         }
 
+        /// <summary>
+        /// Fetch a single instance of the specified type
+        /// </summary>
+        /// <param name="type">Type of service to fetch an implementation for</param>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns>An instance of the requested service</returns>
         public object Get(Type type, string key = null)
         {
             if (type == null)
@@ -130,13 +284,27 @@ namespace StyletIoC
             return generator();
         }
 
+        /// <summary>
+        /// Fetch a single instance of the specified type
+        /// </summary>
+        /// <typeparam name="T">Type of service to fetch an implementation for</typeparam>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns>An instance of the requested service</returns>
         public T Get<T>(string key = null)
         {
             return (T)this.Get(typeof(T), key);
         }
 
+        /// <summary>
+        /// Fetch instances of all types which implement the specified service
+        /// </summary>
+        /// <typeparam name="T">Type of the service to fetch implementations for</typeparam>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns>All implementations of the requested service, with the requested key</returns>
         public IEnumerable<object> GetAll(Type type, string key = null)
         {
+            if (type == null)
+                throw new ArgumentNullException("type");
             var typeKey = new TypeKey(type, key);
             IRegistration registration;
             if (!this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration))
@@ -145,11 +313,23 @@ namespace StyletIoC
             return (IEnumerable<object>)generator();
         }
 
+        /// <summary>
+        /// Fetch instances of all types which implement the specified service
+        /// </summary>
+        /// <typeparam name="T">Type of the service to fetch implementations for</typeparam>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns>All implementations of the requested service, with the requested key</returns>
         public IEnumerable<T> GetAll<T>(string key = null)
         {
             return this.GetAll(typeof(T), key).Cast<T>();
         }
 
+        /// <summary>
+        /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
+        /// </summary>
+        /// <param name="type">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</param>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns></returns>
         public object GetTypeOrAll(Type type, string key = null)
         {
             if (type == null)
@@ -158,18 +338,34 @@ namespace StyletIoC
             return generator();
         }
 
+        /// <summary>
+        /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
+        /// </summary>
+        /// <typeparam name="T">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</typeparam>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns></returns>
         public T GetTypeOrAll<T>(string key = null)
         {
             return (T)this.GetTypeOrAll(typeof(T), key);
         }
 
+        /// <summary>
+        /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
+        /// </summary>
+        /// <typeparam name="T">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</typeparam>
+        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
+        /// <returns></returns>
         public void BuildUp(object item)
         {
             var builderUpper = this.GetBuilderUpper(item.GetType());
             builderUpper.GetImplementor()(item);
         }
 
-
+        /// <summary>
+        /// Determine whether we can resolve a particular typeKey
+        /// </summary>
+        /// <param name="typeKey">TypeKey to see if we can resolve</param>
+        /// <returns>Whether the given TypeKey can be resolved</returns>
         internal bool CanResolve(TypeKey typeKey)
         {
             IRegistrationCollection registrations;
@@ -182,9 +378,14 @@ namespace StyletIoC
 
             // Is it a 'get all' request?
             IRegistration registration;
-            return this.TryEnsureGetAllRegistrationCreated(typeKey, out registration);
+            return this.TryRetrieveGetAllRegistration(typeKey, out registration);
         }
 
+        /// <summary>
+        /// Given a collection type (IEnumerable{T}, etc) extracts the T, or null if we couldn't, or if we can't resolve that [T, key]
+        /// </summary>
+        /// <param name="typeKey"></param>
+        /// <returns></returns>
         private Type GetElementTypeFromCollectionType(TypeKey typeKey)
         {
             Type type = typeKey.Type;
@@ -194,6 +395,14 @@ namespace StyletIoC
             return type.GenericTypeArguments[0];
         }
 
+        /// <summary>
+        /// Given an type, tries to create or fetch an IRegistration which can create an IEnumerable{T}. If collectionTypeOrNull is given, ensures that the generated
+        /// implementation of the IEnumerable{T} is compatible with that collection (e.g. if they've requested a List{T} in a constructor param, collectionTypeOrNull will be List{T}).
+        /// </summary>
+        /// <param name="elementTypeKey">Element type and key to create an IRegistration for</param>
+        /// <param name="collectionTypeOrNull">If given (not null), ensures that the generated implementation of the collection is compatible with this</param>
+        /// <param name="registration">Returned IRegistration, or null if the method returns false</param>
+        /// <returns>Whether such an IRegistration could be created or retrieved</returns>
         private bool TryRetrieveGetAllRegistrationFromElementType(TypeKey elementTypeKey, Type collectionTypeOrNull, out IRegistration registration)
         {
             // TryGet first, as making the generic type is expensive
@@ -209,8 +418,13 @@ namespace StyletIoC
             return true;
         }
 
-        // Returns the type of element if it's valid
-        private bool TryEnsureGetAllRegistrationCreated(TypeKey typeKey, out IRegistration registration)
+        /// <summary>
+        /// Wrapper around TryRetrieveGetAllRegistrationFromElementType, which also extracts the element type from the collection type
+        /// </summary>
+        /// <param name="typeKey">Type of the collection, and key associated with it</param>
+        /// <param name="registration">Returned IRegistration, or null if the method returns false</param>
+        /// <returns>Whether such an IRegistration could be created or retrieved</returns>
+        private bool TryRetrieveGetAllRegistration(TypeKey typeKey, out IRegistration registration)
         {
             registration = null;
             var elementType = this.GetElementTypeFromCollectionType(typeKey);
@@ -220,6 +434,13 @@ namespace StyletIoC
             return this.TryRetrieveGetAllRegistrationFromElementType(new TypeKey(elementType, typeKey.Key), typeKey.Type, out registration);
         }
 
+        /// <summary>
+        /// Given a generic type (e.g. IValidator{T}), tries to create a collection of IRegistrations which can implement it from the unbound generic registrations.
+        /// For example, if someone bound an IValidator{} to Validator{}, and this was called with Validator{T}, the IRegistrationCollection would contain a Validator{T}.
+        /// </summary>
+        /// <param name="typeKey"></param>
+        /// <param name="registrations"></param>
+        /// <returns></returns>
         private bool TryCreateGenericTypesForUnboundGeneric(TypeKey typeKey, out IRegistrationCollection registrations)
         {
             registrations = null;
@@ -294,7 +515,7 @@ namespace StyletIoC
                 {
                     // Couldn't find this type - is it a 'get all' collection type? (i.e. they've put IEnumerable<TypeWeCanResolve> in a ctor param)
                     IRegistration registration;
-                    if (!this.TryEnsureGetAllRegistrationCreated(typeKey, out registration))
+                    if (!this.TryRetrieveGetAllRegistration(typeKey, out registration))
                         throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.Name));
 
                     // Got this far? Good. There's actually a 'get all' collection type. Proceed with that
