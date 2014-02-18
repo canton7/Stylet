@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Stylet;
+using StyletIoC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +23,7 @@ namespace StyletUnitTests
         [Test]
         public void NongenericInterfaceToAllImplementations()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<I1>().ToAllImplementations();
 
             var result = ioc.GetAll<I1>().ToList();
@@ -35,7 +35,7 @@ namespace StyletUnitTests
         [Test]
         public void GenericInterfaceToAllImplementations()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind(typeof(I2<>)).ToAllImplementations();
             
             var result = ioc.GetAll<I2<int>>().ToList();
@@ -47,7 +47,7 @@ namespace StyletUnitTests
         [Test]
         public void IgnoresAllImplementsWhichIsNotPossible()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<I1>().ToAllImplementations();
 
             var result = ioc.GetAll<I1>().ToList();

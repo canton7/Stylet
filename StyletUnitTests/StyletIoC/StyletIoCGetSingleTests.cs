@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Stylet;
+using StyletIoC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +17,7 @@ namespace StyletUnitTests
         [Test]
         public void SelfTransientBindingResolvesGeneric()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C1>().ToSelf();
             var obj1 = ioc.Get<C1>();
             var obj2 = ioc.Get<C1>();
@@ -29,7 +29,7 @@ namespace StyletUnitTests
         [Test]
         public void SelfTransientBindingResolvesTyped()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind(typeof(C1)).ToSelf();
             var obj1 = ioc.Get(typeof(C1));
             var obj2 = ioc.Get(typeof(C1));
@@ -41,7 +41,7 @@ namespace StyletUnitTests
         [Test]
         public void SelfSingletonBindingResolvesGeneric()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.BindSingleton<C1>().ToSelf();
             var obj1 = ioc.Get<C1>();
             var obj2 = ioc.Get<C1>();
@@ -53,7 +53,7 @@ namespace StyletUnitTests
         [Test]
         public void SelfSingletonBindingResolvesTyped()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.BindSingleton(typeof(C1)).ToSelf();
             var obj1 = ioc.Get(typeof(C1));
             var obj2 = ioc.Get(typeof(C1));
@@ -65,7 +65,7 @@ namespace StyletUnitTests
         [Test]
         public void FactoryTransientBindingResolvesGeneric()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C1>().ToFactory(c => new C1());
             var obj1 = ioc.Get<C1>();
             var obj2 = ioc.Get<C1>();
@@ -77,7 +77,7 @@ namespace StyletUnitTests
         [Test]
         public void FactoryTransientBindingResolvesTyped()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind(typeof(C1)).ToFactory(c => new C1());
             var obj1 = ioc.Get(typeof(C1));
             var obj2 = ioc.Get(typeof(C1));
@@ -89,7 +89,7 @@ namespace StyletUnitTests
         [Test]
         public void FactorySingletonBindingResolvesGeneric()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.BindSingleton<C1>().ToFactory(c => new C1());
             var obj1 = ioc.Get<C1>();
             var obj2 = ioc.Get<C1>();
@@ -101,7 +101,7 @@ namespace StyletUnitTests
         [Test]
         public void FactorySingletonBindingResolvesTyped()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.BindSingleton(typeof(C1)).ToFactory(c => new C1());
             var obj1 = ioc.Get(typeof(C1));
             var obj2 = ioc.Get(typeof(C1));
@@ -113,7 +113,7 @@ namespace StyletUnitTests
         [Test]
         public void ImplementationTransientBindingResolvesGeneric()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<IC1>().To<C1>();
             var obj1 = ioc.Get<IC1>();
             var obj2 = ioc.Get<IC1>();
@@ -125,7 +125,7 @@ namespace StyletUnitTests
         [Test]
         public void ImplementationTransientBindingResolvesTyped()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind(typeof(IC1)).To(typeof(C1));
             var obj1 = ioc.Get(typeof(IC1));
             var obj2 = ioc.Get(typeof(IC1));
@@ -137,7 +137,7 @@ namespace StyletUnitTests
         [Test]
         public void ImplementationSingletonBindingResolvesGeneric()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.BindSingleton<IC1>().To<C1>();
             var obj1 = ioc.Get<IC1>();
             var obj2 = ioc.Get<IC1>();
@@ -149,7 +149,7 @@ namespace StyletUnitTests
         [Test]
         public void ImplementationSingletonBindingResolvesTyped()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.BindSingleton(typeof(IC1)).To(typeof(C1));
             var obj1 = ioc.Get(typeof(IC1));
             var obj2 = ioc.Get(typeof(IC1));

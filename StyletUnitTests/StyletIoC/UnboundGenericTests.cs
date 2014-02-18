@@ -1,12 +1,12 @@
 ﻿using NUnit.Framework;
-using Stylet;
+using StyletIoC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StyletUnitTests
+namespace StyletUnitTests.StyletIoC
 {
     [TestFixture]
     public class StyletIoCUnboundGenericTests
@@ -20,7 +20,7 @@ namespace StyletUnitTests
         [Test]
         public void ResolvesSingleGenericType()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind(typeof(C1<>)).ToSelf();
 
             Assert.DoesNotThrow(() => ioc.Get<C1<int>>());
@@ -29,7 +29,7 @@ namespace StyletUnitTests
         [Test]
         public void ResolvesGenericTypeFromInterface()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind(typeof(I1<>)).To(typeof(C1<>));
 
             var result = ioc.Get<I1<int>>();
@@ -39,7 +39,7 @@ namespace StyletUnitTests
         [Test]
         public void ResolvesGenericTypeWhenOrderOfTypeParamsChanged()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind(typeof(I2<,>)).To(typeof(C2<,>));
 
             var c2 = ioc.Get<I2<int, bool>>();

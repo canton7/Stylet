@@ -61,7 +61,13 @@
     <Compile Include="PropertyChangedBase.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="ScreenExtensions.cs" />
-    <Compile Include="StyletIoC.cs" />
+    <Compile Include="StyletIoC\BuilderUpper.cs" />
+    <Compile Include="StyletIoC\ICreator.cs" />
+    <Compile Include="StyletIoC\IRegistration.cs" />
+    <Compile Include="StyletIoC\IRegistrationCollection.cs" />
+    <Compile Include="StyletIoC\StyletIoCBindTo.cs" />
+    <Compile Include="StyletIoC\StyletIoCContainer.cs" />
+    <Compile Include="StyletIoC\UnboundGeneric.cs" />
     <Compile Include="View.cs" />
     <Compile Include="ViewLocator.cs" />
     <Compile Include="ViewModelBinder.cs" />

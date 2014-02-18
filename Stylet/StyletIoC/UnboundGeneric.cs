@@ -1,0 +1,36 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Reflection;
+
+namespace StyletIoC
+{
+    internal class UnboundGeneric
+    {
+        private StyletIoCContainer container;
+        public bool WasAutoCreated { get; set; }
+        public string Key { get; set; }
+        public Type Type { get; private set; }
+        public int NumTypeParams
+        {
+            get { return this.Type.GetTypeInfo().GenericTypeParameters.Length; }
+        }
+        public bool IsSingleton { get; private set; }
+
+        public UnboundGeneric(Type type, StyletIoCContainer container, bool isSingleton)
+        {
+            this.Type = type;
+            this.container = container;
+        }
+
+        public IRegistration CreateRegistrationForType(Type boundType)
+        {
+            if (this.IsSingleton)
+                return new SingletonRegistration(new TypeCreator(boundType, this.container)) { WasAutoCreated = this.WasAutoCreated };
+            else
+                return new TransientRegistration(new TypeCreator(boundType, this.container)) { WasAutoCreated = this.WasAutoCreated };
+        }
+    }
+}

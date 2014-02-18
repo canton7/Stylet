@@ -46,15 +46,15 @@
   <ItemGroup>
     <Compile Include="BindableCollectionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StyletIoCAutobindingTests.cs" />
-    <Compile Include="StyletIoCBindingChecksTests.cs" />
-    <Compile Include="StyletIoCParameterInjectionTests.cs" />
-    <Compile Include="StyletIoCConstructorInjectionTests.cs" />
-    <Compile Include="StyletIoCFactoryTests.cs" />
-    <Compile Include="StyletIoCGetAllTests.cs" />
-    <Compile Include="StyletIoCGetSingleKeyedTests.cs" />
-    <Compile Include="StyletIoCGetSingleTests.cs" />
-    <Compile Include="StyletIoCUnboundGenericTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCAutobindingTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCBindingChecksTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCParameterInjectionTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCConstructorInjectionTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCFactoryTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCGetAllTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCGetSingleKeyedTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCGetSingleTests.cs" />
+    <Compile Include="StyletIoC\UnboundGenericTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

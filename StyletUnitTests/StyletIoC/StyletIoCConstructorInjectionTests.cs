@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Stylet;
+using StyletIoC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -99,7 +99,7 @@ namespace StyletUnitTests
         [Test]
         public void RecursivelyPopulatesConstructorParams()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C1>().ToSelf();
             ioc.Bind<C2>().ToSelf();
             ioc.Bind<C3>().ToSelf();
@@ -115,7 +115,7 @@ namespace StyletUnitTests
         [Test]
         public void UsesConstructorParamKeys()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C1>().ToSelf("key1");
             ioc.Bind<C4>().ToSelf();
 
@@ -127,7 +127,7 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfConstructorParamKeyNotRegistered()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C4>().ToSelf();
             ioc.Bind<C1>().ToSelf();
 
@@ -137,7 +137,7 @@ namespace StyletUnitTests
         [Test]
         public void ChoosesCtorWithMostParamsWeCanFulfill()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C1>().ToSelf();
             ioc.Bind<C2>().ToSelf();
             ioc.Bind<C5>().ToSelf();
@@ -149,7 +149,7 @@ namespace StyletUnitTests
         [Test]
         public void ChoosesCtorWithAttribute()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C1>().ToSelf();
             ioc.Bind<C2>().ToSelf();
             ioc.Bind<C6>().ToSelf();
@@ -161,7 +161,7 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfMoreThanOneCtorWithAttribute()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C1>().ToSelf();
             ioc.Bind<C7>().ToSelf();
 
@@ -171,7 +171,7 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfNoCtorAvailable()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C5>().ToSelf();
 
             Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C5>());
@@ -180,7 +180,7 @@ namespace StyletUnitTests
         [Test]
         public void SingletonActuallySingleton()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.BindSingleton<C1>().ToSelf();
             ioc.Bind<C2>().ToSelf();
             ioc.Bind<C3>().ToSelf();
@@ -193,7 +193,7 @@ namespace StyletUnitTests
         [Test]
         public void IEnumerableHasAllInjected()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<C1>().To<C1>();
             ioc.Bind<I1>().To<C1>();
             ioc.Bind<I1>().To<C2>();

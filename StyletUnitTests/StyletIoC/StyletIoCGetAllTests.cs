@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Stylet;
+using StyletIoC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +25,7 @@ namespace StyletUnitTests
         [Test]
         public void ImplementationTransientBindingsResolveGeneric()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<IC1>().To<C11>();
             ioc.Bind<IC1>().To<C12>();
             ioc.Bind<IC1>().To<C13>();
@@ -46,7 +46,7 @@ namespace StyletUnitTests
         [Test]
         public void ImplementationTransientBindingsResolveTyped()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind(typeof(IC1)).To(typeof(C11));
             ioc.Bind(typeof(IC1)).To(typeof(C12));
             ioc.Bind(typeof(IC1)).To(typeof(C13));
@@ -66,7 +66,7 @@ namespace StyletUnitTests
         [Test]
         public void SingletonBindingsResolveGeneric()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.BindSingleton<IC1>().To<C11>();
             ioc.BindSingleton<IC1>().To<C12>();
             ioc.BindSingleton<IC1>().To<C13>();
@@ -86,7 +86,7 @@ namespace StyletUnitTests
         [Test]
         public void SingletonBindingsResolveTyped()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.BindSingleton(typeof(IC1)).To(typeof(C11));
             ioc.BindSingleton(typeof(IC1)).To(typeof(C12));
             ioc.BindSingleton(typeof(IC1)).To(typeof(C13));

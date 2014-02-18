@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Stylet;
+using StyletIoC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +22,7 @@ namespace StyletUnitTests
         [Test]
         public void GetReturnsKeyedType()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<IC>().To<C1>("key1");
             ioc.Bind<IC>().To<C2>("key2");
 
@@ -33,7 +33,7 @@ namespace StyletUnitTests
         [Test]
         public void GetAllReturnsKeyedTypes()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<IC>().To<C1>("key1");
             ioc.Bind<IC>().To<C2>("key1");
             ioc.Bind<IC>().To<C3>();
@@ -48,7 +48,7 @@ namespace StyletUnitTests
         [Test]
         public void AttributeIsUsed()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<IC>().To<C3>();
             ioc.Bind<IC>().To<C4>();
 
@@ -58,7 +58,7 @@ namespace StyletUnitTests
         [Test]
         public void GivenKeyOverridesAttribute()
         {
-            var ioc = new StyletIoC();
+            var ioc = new StyletIoCContainer();
             ioc.Bind<IC>().To<C3>();
             ioc.Bind<IC>().To<C4>("key2");
 
