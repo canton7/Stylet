@@ -65,7 +65,7 @@
     <Compile Include="StyletIoC\ICreator.cs" />
     <Compile Include="StyletIoC\IRegistration.cs" />
     <Compile Include="StyletIoC\IRegistrationCollection.cs" />
-    <Compile Include="StyletIoC\StyletIoCBindTo.cs" />
+    <Compile Include="StyletIoC\BindTo.cs" />
     <Compile Include="StyletIoC\StyletIoCContainer.cs" />
     <Compile Include="StyletIoC\UnboundGeneric.cs" />
     <Compile Include="View.cs" />

@@ -208,7 +208,7 @@ namespace StyletIoC
         public IStyletIoCBindTo Bind(Type serviceType)
         {
             this.CheckCompilationStarted();
-            return new StyletIoCBindTo(this, serviceType, false);
+            return new BindTo(this, serviceType, false);
         }
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace StyletIoC
         public IStyletIoCBindTo BindSingleton(Type serviceType)
         {
             this.CheckCompilationStarted();
-            return new StyletIoCBindTo(this, serviceType, true);
+            return new BindTo(this, serviceType, true);
         }
 
         /// <summary>
@@ -350,11 +350,9 @@ namespace StyletIoC
         }
 
         /// <summary>
-        /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
+        /// For each property/field with the [Inject] attribute, sets it to an instance of that type
         /// </summary>
-        /// <typeparam name="T">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</typeparam>
-        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
-        /// <returns></returns>
+        /// <param name="item">Item to build up</param>
         public void BuildUp(object item)
         {
             var builderUpper = this.GetBuilderUpper(item.GetType());
