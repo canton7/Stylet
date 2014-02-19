@@ -22,9 +22,10 @@ namespace StyletUnitTests
         [Test]
         public void GetReturnsKeyedType()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<IC>().To<C1>("key1");
-            ioc.Bind<IC>().To<C2>("key2");
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC>().To<C1>().WithKey("key1");
+            builder.Bind<IC>().To<C2>().WithKey("key2");
+            var ioc = builder.BuildContainer();
 
             Assert.IsInstanceOf<C1>(ioc.Get<IC>("key1"));
             Assert.IsInstanceOf<C2>(ioc.Get<IC>("key2"));
@@ -33,10 +34,11 @@ namespace StyletUnitTests
         [Test]
         public void GetAllReturnsKeyedTypes()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<IC>().To<C1>("key1");
-            ioc.Bind<IC>().To<C2>("key1");
-            ioc.Bind<IC>().To<C3>();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC>().To<C1>().WithKey("key1");
+            builder.Bind<IC>().To<C2>().WithKey("key1");
+            builder.Bind<IC>().To<C3>();
+            var ioc = builder.BuildContainer();
 
             var results = ioc.GetAll<IC>("key1").ToList();
 
@@ -48,9 +50,10 @@ namespace StyletUnitTests
         [Test]
         public void AttributeIsUsed()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<IC>().To<C3>();
-            ioc.Bind<IC>().To<C4>();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC>().To<C3>();
+            builder.Bind<IC>().To<C4>();
+            var ioc = builder.BuildContainer();
 
             Assert.IsInstanceOf<C4>(ioc.Get<IC>("key1"));
         }
@@ -58,9 +61,10 @@ namespace StyletUnitTests
         [Test]
         public void GivenKeyOverridesAttribute()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<IC>().To<C3>();
-            ioc.Bind<IC>().To<C4>("key2");
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC>().To<C3>();
+            builder.Bind<IC>().To<C4>().WithKey("key2");
+            var ioc = builder.BuildContainer();
 
             Assert.IsInstanceOf<C4>(ioc.Get<IC>("key2"));
         }

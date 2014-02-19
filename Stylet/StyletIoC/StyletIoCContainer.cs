@@ -15,40 +15,6 @@ namespace StyletIoC
     public interface IContainer
     {
         /// <summary>
-        /// Bind a service (e.g. an interface) to something in transient scope (i.e. a new instance is created each time it's needed)
-        /// </summary>
-        /// <typeparam name="TService">Service type to bind</typeparam>
-        /// <returns>Fluent interface, on which further methods can be called</returns>
-        IStyletIoCBindTo Bind<TService>();
-
-        /// <summary>
-        /// Bind a service (e.g. an interface) to something in transient scope (i.e. a new instance is created each time it's needed)
-        /// </summary>
-        /// <param name="serviceType">Service type to bind</param>
-        /// <returns>Fluent interface, on which further methods can be called</returns>
-        IStyletIoCBindTo Bind(Type serviceType);
-
-        /// <summary>
-        /// Bind a service (e.g. an inteface) to something in singleton scope (i.e. one instance is created, and that's used where needed)
-        /// </summary>
-        /// <typeparam name="TService">Service type to bind</typeparam>
-        /// <returns>Fluent interface, on which further methods can be called</returns>
-        IStyletIoCBindTo BindSingleton<TService>();
-
-        /// <summary>
-        /// Bind a service (e.g. an inteface) to something in singleton scope (i.e. one instance is created, and that's used where needed)
-        /// </summary>
-        /// <param name="serviceType">Service type to bind</param>
-        /// <returns>Fluent interface, on which further methods can be called</returns>
-        IStyletIoCBindTo BindSingleton(Type serviceType);
-
-        /// <summary>
-        /// Find all classes in the selected assembly(s) and bind it to itself (searches the current assembly if none are given)
-        /// </summary>
-        /// <param name="assemblies">Assembly(s) to search for types to self-bind (uses current assembly if none given)</param>
-        void AutoBind(params Assembly[] assemblies);
-
-        /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
         /// </summary>
         void Compile();
@@ -111,7 +77,7 @@ namespace StyletIoC
     /// <summary>
     /// Lightweight, very fast IoC container
     /// </summary>
-    public class StyletIoCContainer : IContainer
+    internal class StyletIoCContainer : IContainer
     {
         /// <summary>
         /// Name of the assembly in which abstract factories are built. Use in [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to allow factories created by .ToAbstractFactory() to access internal types
@@ -152,104 +118,10 @@ namespace StyletIoC
         private ConcurrentDictionary<Type, Type> factories = new ConcurrentDictionary<Type, Type>();
 
         /// <summary>
-        /// True if we've started to compile anything, and therefore can't register any more bindings.
-        /// </summary>
-        private bool compilationStarted;
-
-        public StyletIoCContainer()
-        {
-            // The generated factories need to be injected with an instance of 'this'
-            // It's also nice for things to get us injected
-            this.BindSingleton<IContainer>().ToFactory(c => this);
-            this.BindSingleton<StyletIoCContainer>().ToFactory(c => this);
-        }
-
-        /// <summary>
-        /// Find all classes in the selected assembly(s) and bind it to itself (searches the current assembly if none are given)
-        /// </summary>
-        /// <param name="assemblies">Assembly(s) to search for types to self-bind (uses current assembly if none given)</param>
-        public void AutoBind(params Assembly[] assemblies)
-        {
-            // If they haven't given any assemblies, use the assembly of the caller
-            if (assemblies == null || assemblies.Length == 0)
-                assemblies = new[] { Assembly.GetCallingAssembly() };
-
-            // We self-bind concrete classes only
-            var classes = assemblies.SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
-            foreach (var cls in classes)
-            {
-                // Don't care if binding fails - we're likely to hit a few of these
-                try
-                {
-                    this.Bind(cls).To(cls);
-                }
-                catch (StyletIoCRegistrationException e)
-                {
-                    Debug.WriteLine(String.Format("Unable to auto-bind type {0}: {1}", cls.Name, e.Message), "StyletIoC");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Bind a service (e.g. an interface) to something in transient scope (i.e. a new instance is created each time it's needed)
-        /// </summary>
-        /// <typeparam name="TService">Service type to bind</typeparam>
-        /// <returns>Fluent interface, on which further methods can be called</returns>
-        public IStyletIoCBindTo Bind<TService>()
-        {
-            return this.Bind(typeof(TService));
-        }
-
-        /// <summary>
-        /// Bind a service (e.g. an interface) to something in transient scope (i.e. a new instance is created each time it's needed)
-        /// </summary>
-        /// <param name="serviceType">Service type to bind</param>
-        /// <returns>Fluent interface, on which further methods can be called</returns>
-        public IStyletIoCBindTo Bind(Type serviceType)
-        {
-            this.CheckCompilationStarted();
-            return new BindTo(this, serviceType, false);
-        }
-
-        /// <summary>
-        /// Bind a service (e.g. an inteface) to something in singleton scope (i.e. one instance is created, and that's used where needed)
-        /// </summary>
-        /// <typeparam name="TService">Service type to bind</typeparam>
-        /// <returns>Fluent interface, on which further methods can be called</returns>
-        public IStyletIoCBindTo BindSingleton<TService>()
-        {
-            return this.BindSingleton(typeof(TService));
-        }
-
-        /// <summary>
-        /// Bind a service (e.g. an inteface) to something in singleton scope (i.e. one instance is created, and that's used where needed)
-        /// </summary>
-        /// <param name="serviceType">Service type to bind</param>
-        /// <returns>Fluent interface, on which further methods can be called</returns>
-        public IStyletIoCBindTo BindSingleton(Type serviceType)
-        {
-            this.CheckCompilationStarted();
-            return new BindTo(this, serviceType, true);
-        }
-
-        /// <summary>
-        /// Check if we've compiled anything, and throw if we have.
-        /// Since the exact things being injected into a constructed type are decided when it's compiled, changing the bindings
-        /// (and therefore changing which constructor could have been chosen, for example, or whether an error is raised) could be
-        /// very confusing.
-        /// </summary>
-        private void CheckCompilationStarted()
-        {
-            if (this.compilationStarted)
-                throw new StyletIoCException("Once you've started to retrieve items from the container, or have called Compile(), you cannot register new services");
-        }
-
-        /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
         /// </summary>
         public void Compile()
         {
-            this.compilationStarted = true;
             foreach (var kvp in this.registrations)
             {
                 foreach (var registration in kvp.Value.GetAll())

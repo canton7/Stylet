@@ -23,8 +23,9 @@ namespace StyletUnitTests
         [Test]
         public void NongenericInterfaceToAllImplementations()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<I1>().ToAllImplementations();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().ToAllImplementations();
+            var ioc = builder.BuildContainer();
 
             var result = ioc.GetAll<I1>().ToList();
             Assert.AreEqual(2, result.Count);
@@ -35,8 +36,9 @@ namespace StyletUnitTests
         [Test]
         public void GenericInterfaceToAllImplementations()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind(typeof(I2<>)).ToAllImplementations();
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(I2<>)).ToAllImplementations();
+            var ioc = builder.BuildContainer();
             
             var result = ioc.GetAll<I2<int>>().ToList();
             Assert.AreEqual(2, result.Count);
@@ -47,8 +49,9 @@ namespace StyletUnitTests
         [Test]
         public void IgnoresAllImplementsWhichIsNotPossible()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<I1>().ToAllImplementations();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().ToAllImplementations();
+            var ioc = builder.BuildContainer();
 
             var result = ioc.GetAll<I1>().ToList();
             Assert.AreEqual(2, result.Count);

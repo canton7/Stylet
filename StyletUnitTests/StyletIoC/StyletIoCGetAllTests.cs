@@ -25,11 +25,12 @@ namespace StyletUnitTests
         [Test]
         public void ImplementationTransientBindingsResolveGeneric()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<IC1>().To<C11>();
-            ioc.Bind<IC1>().To<C12>();
-            ioc.Bind<IC1>().To<C13>();
-            ioc.Bind<IC2>().To<C21>();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC1>().To<C11>();
+            builder.Bind<IC1>().To<C12>();
+            builder.Bind<IC1>().To<C13>();
+            builder.Bind<IC2>().To<C21>();
+            var ioc = builder.BuildContainer();
 
             var results1 = ioc.GetAll<IC1>().ToList();
             var results2 = ioc.GetAll<IC1>().ToList();
@@ -46,11 +47,12 @@ namespace StyletUnitTests
         [Test]
         public void ImplementationTransientBindingsResolveTyped()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind(typeof(IC1)).To(typeof(C11));
-            ioc.Bind(typeof(IC1)).To(typeof(C12));
-            ioc.Bind(typeof(IC1)).To(typeof(C13));
-            ioc.Bind(typeof(IC2)).To(typeof(C21));
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(IC1)).To(typeof(C11));
+            builder.Bind(typeof(IC1)).To(typeof(C12));
+            builder.Bind(typeof(IC1)).To(typeof(C13));
+            builder.Bind(typeof(IC2)).To(typeof(C21));
+            var ioc = builder.BuildContainer();
 
             var results1 = ioc.GetAll(typeof(IC1)).ToList();
             var results2 = ioc.GetAll(typeof(IC1)).ToList();
@@ -66,11 +68,12 @@ namespace StyletUnitTests
         [Test]
         public void SingletonBindingsResolveGeneric()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.BindSingleton<IC1>().To<C11>();
-            ioc.BindSingleton<IC1>().To<C12>();
-            ioc.BindSingleton<IC1>().To<C13>();
-            ioc.BindSingleton<IC2>().To<C21>();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC1>().To<C11>().InSingletonScope();
+            builder.Bind<IC1>().To<C12>().InSingletonScope();
+            builder.Bind<IC1>().To<C13>().InSingletonScope();
+            builder.Bind<IC2>().To<C21>().InSingletonScope();
+            var ioc = builder.BuildContainer();
 
             var results1 = ioc.GetAll<IC1>().ToList();
             var results2 = ioc.GetAll<IC1>().ToList();
@@ -86,11 +89,12 @@ namespace StyletUnitTests
         [Test]
         public void SingletonBindingsResolveTyped()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.BindSingleton(typeof(IC1)).To(typeof(C11));
-            ioc.BindSingleton(typeof(IC1)).To(typeof(C12));
-            ioc.BindSingleton(typeof(IC1)).To(typeof(C13));
-            ioc.BindSingleton(typeof(IC2)).To(typeof(C21));
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(IC1)).To(typeof(C11)).InSingletonScope();
+            builder.Bind(typeof(IC1)).To(typeof(C12)).InSingletonScope();
+            builder.Bind(typeof(IC1)).To(typeof(C13)).InSingletonScope();
+            builder.Bind(typeof(IC2)).To(typeof(C21)).InSingletonScope();
+            var ioc = builder.BuildContainer(); 
 
             var results1 = ioc.GetAll(typeof(IC1)).ToList();
             var results2 = ioc.GetAll(typeof(IC1)).ToList();

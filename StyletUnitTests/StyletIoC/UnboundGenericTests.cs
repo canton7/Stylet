@@ -20,8 +20,9 @@ namespace StyletUnitTests.StyletIoC
         [Test]
         public void ResolvesSingleGenericType()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind(typeof(C1<>)).ToSelf();
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(C1<>)).ToSelf();
+            var ioc = builder.BuildContainer();
 
             Assert.DoesNotThrow(() => ioc.Get<C1<int>>());
         }
@@ -29,8 +30,9 @@ namespace StyletUnitTests.StyletIoC
         [Test]
         public void ResolvesGenericTypeFromInterface()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind(typeof(I1<>)).To(typeof(C1<>));
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(I1<>)).To(typeof(C1<>));
+            var ioc = builder.BuildContainer();
 
             var result = ioc.Get<I1<int>>();
             Assert.IsInstanceOf<C1<int>>(result);
@@ -39,8 +41,9 @@ namespace StyletUnitTests.StyletIoC
         [Test]
         public void ResolvesGenericTypeWhenOrderOfTypeParamsChanged()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind(typeof(I2<,>)).To(typeof(C2<,>));
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(I2<,>)).To(typeof(C2<,>));
+            var ioc = builder.BuildContainer();
 
             var c2 = ioc.Get<I2<int, bool>>();
             Assert.IsInstanceOf<C2<bool, int>>(c2);

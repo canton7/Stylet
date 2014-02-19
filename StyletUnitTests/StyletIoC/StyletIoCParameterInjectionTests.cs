@@ -65,8 +65,10 @@ namespace StyletUnitTests
         [Test]
         public void BuildsUpPublicFields()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<C1>().ToSelf();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf();
+            var ioc = builder.BuildContainer();
+
             var subject = new Subject1();
             ioc.BuildUp(subject);
 
@@ -77,8 +79,10 @@ namespace StyletUnitTests
         [Test]
         public void BuildsUpPrivateFields()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<C1>().ToSelf();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf();
+            var ioc = builder.BuildContainer();
+
             var subject = new Subject2();
             ioc.BuildUp(subject);
 
@@ -88,8 +92,10 @@ namespace StyletUnitTests
         [Test]
         public void BuildsUpPublicProperties()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<C1>().ToSelf();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf();
+            var ioc = builder.BuildContainer();
+
             var subject = new Subject3();
             ioc.BuildUp(subject);
 
@@ -99,8 +105,10 @@ namespace StyletUnitTests
         [Test]
         public void BuildsUpPrivateProperties()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<C1>().ToSelf();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf();
+            var ioc = builder.BuildContainer();
+
             var subject = new Subject4();
             ioc.BuildUp(subject);
 
@@ -111,8 +119,10 @@ namespace StyletUnitTests
         [Test]
         public void RespectsKeys()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<C1>().ToSelf("key");
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf().WithKey("key");
+            var ioc = builder.BuildContainer();
+
             var subject = new Subject5();
             ioc.BuildUp(subject);
 
@@ -122,7 +132,9 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfCanNotResolve()
         {
-            var ioc = new StyletIoCContainer();
+            var builder = new StyletIoCBuilder();
+            var ioc = builder.BuildContainer();
+
             var subject = new Subject1();
             Assert.Throws<StyletIoCRegistrationException>(() => ioc.BuildUp(subject));
         }
@@ -130,9 +142,11 @@ namespace StyletUnitTests
         [Test]
         public void BuildsUpParametersOfNewlyCreatedType()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<C1>().ToSelf();
-            ioc.Bind<Subject1>().ToSelf();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf();
+            builder.Bind<Subject1>().ToSelf();
+            var ioc = builder.BuildContainer();
+
             var subject = ioc.Get<Subject1>();
 
             Assert.IsInstanceOf<C1>(subject.C1);
@@ -142,9 +156,11 @@ namespace StyletUnitTests
         [Test]
         public void CallsParametersInjectedAfterInjectingParameters()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<C1>().ToSelf();
-            ioc.Bind<Subject6>().ToSelf();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf();
+            builder.Bind<Subject6>().ToSelf();
+            var ioc = builder.BuildContainer();
+
             var subject = ioc.Get<Subject6>();
 
             Assert.IsInstanceOf<C1>(subject.C1);

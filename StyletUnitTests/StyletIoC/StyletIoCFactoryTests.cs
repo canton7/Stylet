@@ -47,11 +47,14 @@ namespace StyletUnitTests
         [Test]
         public void CreatesImplementationWithoutKey()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<I1>().To<C1>();
-            ioc.Bind<I1Factory>().ToAbstractFactory();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().To<C1>();
+            builder.Bind<I1Factory>().ToAbstractFactory();
+            var ioc = builder.BuildContainer();
 
             var factory = ioc.Get<I1Factory>();
+            Assert.IsNotNull(factory);
+
             var result = factory.GetI1();
             Assert.IsInstanceOf<C1>(result);
         }
@@ -59,11 +62,14 @@ namespace StyletUnitTests
         [Test]
         public void CreatesImplementationWithKey()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<I1>().To<C1>("key");
-            ioc.Bind<I1Factory2>().ToAbstractFactory();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().To<C1>().WithKey("key");
+            builder.Bind<I1Factory2>().ToAbstractFactory();
+            var ioc = builder.BuildContainer();
 
             var factory = ioc.Get<I1Factory2>();
+            Assert.IsNotNull(factory);
+
             var result = factory.GetI1("key");
             Assert.IsInstanceOf<C1>(result);
         }
@@ -71,12 +77,15 @@ namespace StyletUnitTests
         [Test]
         public void CreatesAllImplementations()
         {
-            var ioc = new StyletIoCContainer();
-            ioc.Bind<I1>().To<C1>();
-            ioc.Bind<I1>().To<C12>();
-            ioc.Bind<I1Factory3>().ToAbstractFactory();
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().To<C1>();
+            builder.Bind<I1>().To<C12>();
+            builder.Bind<I1Factory3>().ToAbstractFactory();
+            var ioc = builder.BuildContainer();
 
             var factory = ioc.Get<I1Factory3>();
+            Assert.IsNotNull(factory);
+
             var results = factory.GetAllI1s().ToList();
 
             Assert.AreEqual(2, results.Count);
@@ -87,29 +96,33 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfServiceTypeIsNotInterface()
         {
-            var ioc = new StyletIoCContainer();
-            Assert.Throws<StyletIoCCreateFactoryException>(() => ioc.Bind<C1>().ToAbstractFactory());
+            var builder = new StyletIoCBuilder();
+             builder.Bind<C1>().ToAbstractFactory();
+            Assert.Throws<StyletIoCCreateFactoryException>(() => builder.BuildContainer());
         }
 
         [Test]
         public void ThrowsIfInterfaceNotPublic()
         {
-            var ioc = new StyletIoCContainer();
-            Assert.Throws<StyletIoCCreateFactoryException>(() => ioc.Bind<IPrivateFactory>().ToAbstractFactory());
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IPrivateFactory>().ToAbstractFactory();
+            Assert.Throws<StyletIoCCreateFactoryException>(() => builder.BuildContainer());
         }
 
         [Test]
         public void ThrowsIfMethodHasArgumentOtherThanString()
         {
-            var ioc = new StyletIoCContainer();
-            Assert.Throws<StyletIoCCreateFactoryException>(() => ioc.Bind<IFactoryWithBadMethod>().ToAbstractFactory());
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IFactoryWithBadMethod>().ToAbstractFactory();
+            Assert.Throws<StyletIoCCreateFactoryException>(() => builder.BuildContainer());
         }
 
         [Test]
         public void ThrowsIfMethodReturningVoid()
         {
-            var ioc = new StyletIoCContainer();
-            Assert.Throws<StyletIoCCreateFactoryException>(() => ioc.Bind<IFactoryWithVoidMethod>().ToAbstractFactory());
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IFactoryWithVoidMethod>().ToAbstractFactory();
+            Assert.Throws<StyletIoCCreateFactoryException>(() => builder.BuildContainer());
         }
     }
 }
