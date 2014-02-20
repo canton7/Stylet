@@ -481,6 +481,8 @@ namespace StyletIoC
                 if (methodInfo.ReturnType == typeof(void))
                     throw new StyletIoCCreateFactoryException("Can only implement methods which return something");
 
+                var attribute = methodInfo.GetCustomAttribute<InjectAttribute>();
+
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
                 var methodIlGenerator = methodBuilder.GetILGenerator();
                 // Load 'this' onto stack
@@ -498,12 +500,19 @@ namespace StyletIoC
                 // This is equivalent to calling typeof(T)
                 // Stack: [this.container, typeof(returnType)]
                 methodIlGenerator.Emit(OpCodes.Call, typeFromHandleMethod);
-                // Load the given key (if it's a parameter), or null if it isn't, onto the stack
+                // Load the given key (if it's a parameter), or the key from the attribute if given, or null, onto the stack
                 // Stack: [this.container, typeof(returnType), key]
                 if (parameters.Length == 0)
-                    methodIlGenerator.Emit(OpCodes.Ldnull); // Load null as the key
+                {
+                    if (attribute == null)
+                        methodIlGenerator.Emit(OpCodes.Ldnull);
+                    else
+                        methodIlGenerator.Emit(OpCodes.Ldstr, attribute.Key); // Load null as the key
+                }
                 else
+                {
                     methodIlGenerator.Emit(OpCodes.Ldarg_1); // Load the given string as the key
+                }
                 // Call container.Get(type, key)
                 // Stack: [returnedInstance]
                 methodIlGenerator.Emit(OpCodes.Callvirt, containerGetMethod);
@@ -614,7 +623,7 @@ namespace StyletIoC
         public StyletIoCCreateFactoryException(string message, Exception innerException) : base(message, innerException) { }
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
     public sealed class InjectAttribute : Attribute
     {
         public InjectAttribute()

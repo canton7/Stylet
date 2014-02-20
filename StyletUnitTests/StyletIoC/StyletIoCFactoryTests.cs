@@ -30,6 +30,15 @@ namespace StyletUnitTests
             IEnumerable<I1> GetAllI1s();
         }
 
+        public interface IFactoryWithKeys
+        {
+            [Inject("Key")]
+            I1 GetI1WithoutKey();
+
+            [Inject("Key")]
+            I1 GetI1WithKey(string key);
+        }
+
         interface IPrivateFactory
         {
         }
@@ -91,6 +100,34 @@ namespace StyletUnitTests
             Assert.AreEqual(2, results.Count);
             Assert.IsInstanceOf<C1>(results[0]);
             Assert.IsInstanceOf<C12>(results[1]);
+        }
+
+        [Test]
+        public void UsesAttributeKeyIfKeyParameterNotGiven()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().To<C1>().WithKey("Key");
+            builder.Bind<I1>().To<C12>();
+            builder.Bind<IFactoryWithKeys>().ToAbstractFactory();
+            var ioc = builder.BuildContainer();
+
+            var factory = ioc.Get<IFactoryWithKeys>();
+            var result = factory.GetI1WithoutKey();
+            Assert.IsInstanceOf<C1>(result);
+        }
+
+        [Test]
+        public void UsesParameterKeyInPreferenceToAttributeKey()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().To<C1>().WithKey("Key2");
+            builder.Bind<I1>().To<C12>();
+            builder.Bind<IFactoryWithKeys>().ToAbstractFactory();
+            var ioc = builder.BuildContainer();
+
+            var factory = ioc.Get<IFactoryWithKeys>();
+            var result = factory.GetI1WithKey("Key2");
+            Assert.IsInstanceOf<C1>(result);
         }
 
         [Test]
