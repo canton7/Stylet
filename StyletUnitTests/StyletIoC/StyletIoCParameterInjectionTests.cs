@@ -175,16 +175,5 @@ namespace StyletUnitTests
             Assert.IsInstanceOf<C1>(subject.C1);
             Assert.IsTrue(subject.ParametersInjectedCalledCorrectly);
         }
-
-        [Test]
-        public void ChecksForCircularDependencies()
-        {
-            var builder = new StyletIoCBuilder();
-            builder.Bind<C3>().ToSelf();
-            builder.Bind<C4>().ToSelf();
-            var ioc = builder.BuildContainer();
-
-            ioc.Get<C3>();
-        }
     }
 }

@@ -80,7 +80,7 @@ namespace StyletIoC
                 }
             }
 
-            // TODO: Check for loops
+            // If we get circular dependencies, we'll just blow the stack. They're a pain to resolve.
 
             // If there parameter's got an InjectAttribute with a key, use that key to resolve
             var ctorParams = ctor.GetParameters().Select(x =>
