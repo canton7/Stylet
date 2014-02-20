@@ -131,6 +131,24 @@ namespace StyletIoC
                 throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Name, this.serviceType.Name));
         }
 
+        // Convenience...
+        protected void BindImplementationToService(StyletIoCContainer container, Type implementationType, Type serviceType = null)
+        {
+            serviceType = serviceType ?? this.serviceType;
+
+            if (this.serviceType.IsGenericTypeDefinition)
+            {
+                var unboundGeneric = new UnboundGeneric(implementationType, container, this.isSingleton);
+                container.AddUnboundGeneric(new TypeKey(serviceType, key), unboundGeneric);
+            }
+            else
+            {
+                var creator = new TypeCreator(implementationType, container);
+                IRegistration registration = this.isSingleton ? (IRegistration)new SingletonRegistration(creator) : (IRegistration)new TransientRegistration(creator);
+                container.AddRegistration(new TypeKey(this.serviceType, this.key ?? creator.AttributeKey), registration);
+            }
+        }
+
         void IWithKey.WithKey(string key)
         {
             this.key = key;
@@ -142,7 +160,6 @@ namespace StyletIoC
     internal class BuilderTypeBinding : BuilderBindingBase
     {
         private Type implementationType;
-        private ICreator creator;
 
         public BuilderTypeBinding(Type serviceType, Type implementationType) : base(serviceType)
         {
@@ -152,17 +169,7 @@ namespace StyletIoC
 
         public override void Build(StyletIoCContainer container)
         {
-            if (this.serviceType.IsGenericTypeDefinition)
-            {
-                var unboundGeneric = new UnboundGeneric(implementationType, container, this.isSingleton);
-                container.AddUnboundGeneric(new TypeKey(serviceType, key), unboundGeneric);
-            }
-            else
-            {
-                var creator = new TypeCreator(this.implementationType, container);
-                IRegistration registration = this.isSingleton ? (IRegistration)new SingletonRegistration(creator) : (IRegistration)new TransientRegistration(creator);
-                container.AddRegistration(new TypeKey(this.serviceType, this.key ?? creator.AttributeKey), registration);
-            }
+            this.BindImplementationToService(container, this.implementationType);
         }
     }
 
@@ -206,19 +213,8 @@ namespace StyletIoC
             {
                 try
                 {
-                    // TODO: Remove duplication
                     this.EnsureType(candidate.Type);
-                    if (this.serviceType.IsGenericTypeDefinition)
-                    {
-                        var unboundGeneric = new UnboundGeneric(candidate.Type, container, this.isSingleton);
-                        container.AddUnboundGeneric(new TypeKey(candidate.Base, key), unboundGeneric);
-                    }
-                    else
-                    {
-                        var creator = new TypeCreator(candidate.Type, container);
-                        IRegistration registration = this.isSingleton ? (IRegistration)new SingletonRegistration(creator) : (IRegistration)new TransientRegistration(creator);
-                        container.AddRegistration(new TypeKey(candidate.Base, this.key ?? creator.AttributeKey), registration);
-                    }
+                    this.BindImplementationToService(container, candidate.Type, candidate.Base);
                 }
                 catch (StyletIoCRegistrationException e)
                 {
