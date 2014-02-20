@@ -62,6 +62,15 @@ namespace StyletUnitTests
             public void ParametersInjected() { this.ParametersInjectedCalledCorrectly = this.C1 != null; }
         }
 
+        class C3
+        {
+            public C3(C4 c2) { }
+        }
+        class C4
+        {
+            public C4(C3 c3) { }
+        }
+
         [Test]
         public void BuildsUpPublicFields()
         {
@@ -165,6 +174,17 @@ namespace StyletUnitTests
 
             Assert.IsInstanceOf<C1>(subject.C1);
             Assert.IsTrue(subject.ParametersInjectedCalledCorrectly);
+        }
+
+        [Test]
+        public void ChecksForCircularDependencies()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C3>().ToSelf();
+            builder.Bind<C4>().ToSelf();
+            var ioc = builder.BuildContainer();
+
+            ioc.Get<C3>();
         }
     }
 }

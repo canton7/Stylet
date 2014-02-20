@@ -20,6 +20,9 @@ namespace StyletUnitTests
         class C21<T> : I2<T> { }
         class C22<T> : I2<T> { }
 
+        [Inject("Key")]
+        class C3 { }
+
         [Test]
         public void NongenericInterfaceToAllImplementations()
         {
@@ -57,6 +60,49 @@ namespace StyletUnitTests
             Assert.AreEqual(2, result.Count);
             Assert.IsNotInstanceOf<C13>(result[0]);
             Assert.IsNotInstanceOf<C13>(result[1]);
+        }
+
+        [Test]
+        public void AutobindingBindsConcreteTypes()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Autobind();
+            var ioc = builder.BuildContainer();
+
+            var result = ioc.Get<C11>();
+            Assert.IsInstanceOf<C11>(result);
+        }
+
+        [Test]
+        public void AutobindingBindsGenericTypes()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Autobind();
+            var ioc = builder.BuildContainer();
+
+            var result = ioc.Get<C21<int>>();
+            Assert.IsInstanceOf<C21<int>>(result);
+        }
+
+        [Test]
+        public void AutobindingDoesNotBindInterfaceTypes()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Autobind();
+            var ioc = builder.BuildContainer();
+
+            Assert.Throws<StyletIoCRegistrationException>(() => ioc.Get<I1>());
+        }
+
+        [Test]
+        public void AutobindingRespectsKeys()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Autobind();
+            var ioc = builder.BuildContainer();
+
+            var result = ioc.Get<C3>("Key");
+            Assert.IsInstanceOf<C3>(result);
         }
     }
 }

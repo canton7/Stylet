@@ -77,7 +77,8 @@ namespace StyletIoC
     /// <summary>
     /// Lightweight, very fast IoC container
     /// </summary>
-    internal class StyletIoCContainer : IContainer
+    // Needs to be public, or FactoryAssemblyName isn't visible
+    public class StyletIoCContainer : IContainer
     {
         /// <summary>
         /// Name of the assembly in which abstract factories are built. Use in [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to allow factories created by .ToAbstractFactory() to access internal types
@@ -91,7 +92,7 @@ namespace StyletIoC
 
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is the T in IEnumerable{T}, to a registration which can create a List{T} implementing that IEnumerable.
-        /// This is separate from 'registrations' as some code paths - e.g. Get(), won't search it (while things like constructor/property injection will).
+        /// This is separate from 'registrations' as some code paths - e.g. Get() - won't search it (while things like constructor/property injection will).
         /// </summary>
         private ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
 

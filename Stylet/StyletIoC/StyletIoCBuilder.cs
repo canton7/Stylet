@@ -8,28 +8,72 @@ using System.Threading.Tasks;
 
 namespace StyletIoC
 {
+    /// <summary>
+    /// Interface for selecting what to bind a service to.
+    /// Call StyletIoCBuilder.Bind(..) to get an instance of this
+    /// </summary>
+    public interface IBindTo
+    {
+        /// <summary>
+        /// Bind the specified service to itself - if you self-bind MyClass, and request an instance of MyClass, you'll get an instance of MyClass.
+        /// <returns></returns>
+        IInScopeOrWithKey ToSelf();
+
+        /// <summary>
+        /// Bind the specified service to another type which implements that service. E.g. builder.Bind{IMyClass}().To{MyClass}(), and request an IMyClass: you'll get a MyClass.
+        /// </summary>
+        /// <typeparam name="TImplementation">Type to bind the service to</typeparam>
+        IInScopeOrWithKey To<TImplementation>();
+
+        /// <summary>
+        /// Bind the specified service to another type which implements that service. E.g. builder.Bind{IMyClass}().To(typeof(MyClass)), and request an IMyClass: you'll get a MyClass.
+        /// </summary>
+        /// <param name="implementationType">Type to bind the service to</param>
+        IInScopeOrWithKey To(Type implementationType);
+
+        /// <summary>
+        /// Bind the specified service to a factory delegate, which will be called when an instance is required. E.g. ...ToFactory(c => new MyClass(c.Get{Dependency}(), "foo"))
+        /// </summary>
+        /// <typeparam name="TImplementation">Type returned by the factory delegate. Must implement the service</typeparam>
+        /// <param name="factory">Factory delegate to bind got</param>
+        IInScopeOrWithKey ToFactory<TImplementation>(Func<IContainer, TImplementation> factory);
+
+        /// <summary>
+        /// If the service is an interface with a number of methods which return other types, generate an implementation of that abstract factory and bind it to the interface.
+        /// </summary>
+        IWithKey ToAbstractFactory();
+
+        /// <summary>
+        /// Discover all implementations of the service in the specified assemblies / the current assembly, and bind those to the service
+        /// </summary>
+        /// <param name="assemblies">Assemblies to search. If empty / null, searches the current assembly</param>
+        IInScopeOrWithKey ToAllImplementations(params Assembly[] assemblies);
+    }
+
     public interface IInScopeOrWithKey : IInScope
     {
+        /// <summary>
+        /// Associate a key with this binding. Requests for the service will have to specify this key to retrieve the result of this binding
+        /// </summary>
+        /// <param name="key">Key to associate with this binding</param>
         IInScope WithKey(string key);
     }
     public interface IWithKey
     {
+        /// <summary>
+        /// Associate a key with this binding. Requests for the service will have to specify this key to retrieve the result of this binding
+        /// </summary>
+        /// <param name="key">Key to associate with this binding</param>
         void WithKey(string key);
     }
     public interface IInScope
     {
+        /// <summary>
+        /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
+        /// </summary>
         void InSingletonScope();
     }
 
-    public interface IBindTo
-    {
-        IInScopeOrWithKey ToSelf();
-        IInScopeOrWithKey To<TImplementation>();
-        IInScopeOrWithKey To(Type implementationType);
-        IInScopeOrWithKey ToFactory<TImplementation>(Func<IContainer, TImplementation> factory);
-        IWithKey ToAbstractFactory();
-        IInScopeOrWithKey ToAllImplementations(params Assembly[] assemblies);
-    }
     internal class BuilderBindTo : IBindTo
     {
         private Type serviceType;
@@ -237,10 +281,47 @@ namespace StyletIoC
         }
     }
 
-    public class StyletIoCBuilder
+    /// <summary>
+    /// This IStyletIoCBuilder is the only way to create an IContainer. Binding are registered using the builder, than an IContainer generated.
+    /// </summary>
+    public interface IStyletIoCBuilder
+    {
+        /// <summary>
+        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
+        /// </summary>
+        /// <typeparam name="TService">Service to bind</typeparam>
+        IBindTo Bind<TService>();
+
+        /// <summary>
+        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
+        /// </summary>
+        /// <param name="serviceType">Service to bind</param>
+        IBindTo Bind(Type serviceType);
+
+        /// <summary>
+        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
+        /// </summary>
+        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
+        void Autobind(params Assembly[] assemblies);
+
+        /// <summary>
+        /// Once all bindings have been set, build an IContainer from which instances can be fetches
+        /// </summary>
+        /// <returns>An IContainer, which should be used from now on</returns>
+        IContainer BuildContainer();
+    }
+
+    /// <summary>
+    /// This StyletIoCBuilder is the only way to create an IContainer. Binding are registered using the builder, than an IContainer generated.
+    /// </summary>
+    public class StyletIoCBuilder : IStyletIoCBuilder
     {
         private List<BuilderBindTo> bindings = new List<BuilderBindTo>();
 
+        /// <summary>
+        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
+        /// </summary>
+        /// <param name="serviceType">Service to bind</param>
         public IBindTo Bind(Type serviceType)
         {
             var builderBindTo = new BuilderBindTo(serviceType);
@@ -248,11 +329,19 @@ namespace StyletIoC
             return builderBindTo;
         }
 
+        /// <summary>
+        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
+        /// </summary>
+        /// <typeparam name="TService">Service to bind</typeparam>
         public IBindTo Bind<TService>()
         {
             return this.Bind(typeof(TService));
         }
 
+        /// <summary>
+        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
+        /// </summary>
+        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
         public void Autobind(params Assembly[] assemblies)
         {
             // If they haven't given any assemblies, use the assembly of the caller
@@ -275,6 +364,10 @@ namespace StyletIoC
             }
         }
 
+        /// <summary>
+        /// Once all bindings have been set, build an IContainer from which instances can be fetches
+        /// </summary>
+        /// <returns>An IContainer, which should be used from now on</returns>
         public IContainer BuildContainer()
         {
             var container = new StyletIoCContainer();

@@ -41,7 +41,6 @@ namespace StyletIoC
             if (attribute == null)
                 return null;
 
-            var valueExpression = this.container.GetExpression(new TypeKey(memberType, attribute.Key), true);
             var memberAccess = Expression.MakeMemberAccess(objExpression, member);
             var memberValue = this.container.GetExpression(new TypeKey(memberType, attribute.Key), true);
             return Expression.Assign(memberAccess, memberValue);
