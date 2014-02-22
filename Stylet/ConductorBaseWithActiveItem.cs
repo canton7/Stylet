@@ -27,12 +27,10 @@ namespace Stylet
             newItem = this.EnsureItem(newItem);
 
             if (this.IsActive)
-            {
                 ScreenExtensions.TryActivate(newItem);
 
-                this._activeItem = newItem;
-                this.NotifyOfPropertyChange(() => this.ActiveItem);
-            }
+            this._activeItem = newItem;
+            this.NotifyOfPropertyChange(() => this.ActiveItem);
         }
 
         protected override void OnActivate()

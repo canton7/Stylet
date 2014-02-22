@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Stylet
 {
     public interface IViewAware
     {
-        void AttachView(object view);
+        UIElement View { get; }
+        void AttachView(UIElement view);
     }
 
     public interface IActivate

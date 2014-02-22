@@ -9,7 +9,7 @@ namespace Stylet
 {
     public static class ViewModelBinder
     {
-        public static void Bind(DependencyObject view, object viewModel)
+        public static void Bind(UIElement view, object viewModel)
         {
             View.SetTarget(view, viewModel);
 

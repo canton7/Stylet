@@ -51,8 +51,17 @@ namespace Stylet
 
             if (e.NewValue != null)
             {
-                var view = ViewLocator.LocateForModel(e.NewValue);
-                ViewModelBinder.Bind(view, e.NewValue);
+                UIElement view;
+                var viewModelAsViewAware = e.NewValue as IViewAware;
+                if (viewModelAsViewAware != null && viewModelAsViewAware.View != null)
+                {
+                    view = viewModelAsViewAware.View;
+                }
+                else
+                {
+                    view = ViewLocator.LocateForModel(e.NewValue);
+                    ViewModelBinder.Bind(view, e.NewValue);
+                }
 
                 SetContentProperty(targetLocation, view);
             }

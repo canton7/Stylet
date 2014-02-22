@@ -13,7 +13,7 @@ namespace Stylet
         public virtual void TryClose(bool? dialogResult = null)
         {
             // TODO: Check for parent conductor
-            var viewWindow = this.view as Window;
+            var viewWindow = this.View as Window;
             if (viewWindow != null)
             {
                 if (dialogResult != null)
@@ -22,7 +22,7 @@ namespace Stylet
                 return;
             }
 
-            var viewPopover = this.view as Popup;
+            var viewPopover = this.View as Popup;
             if (viewPopover != null)
             {
                 viewPopover.IsOpen = false;
@@ -98,7 +98,7 @@ namespace Stylet
                 handler(this, new DeactivationEventArgs() { WasClosed = close });
 
             if (close)
-                this.view = null;
+                this.View = null;
         }
 
         protected virtual void OnDeactivate(bool close) { }
@@ -107,14 +107,14 @@ namespace Stylet
 
         #region IViewAware
 
-        private object view;
+        public UIElement View { get; private set; }
 
-        void IViewAware.AttachView(object view)
+        void IViewAware.AttachView(UIElement view)
         {
-            if (this.view != null)
+            if (this.View != null)
                 throw new Exception(String.Format("Tried to attach View {0} to ViewModel {1}, but it already has a view attached", view.GetType().Name, this.GetType().Name));
 
-            this.view = view;
+            this.View = view;
 
             var viewAsFrameworkElement = view as FrameworkElement;
             if (viewAsFrameworkElement != null)

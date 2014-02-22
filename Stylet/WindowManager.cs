@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -49,6 +50,8 @@ namespace Stylet
                     view.Owner = owner;
             }
 
+            new WindowConductor(view, viewModel);
+
             return view;
         }
 
@@ -59,6 +62,76 @@ namespace Stylet
 
             var active = Application.Current.Windows.OfType<Window>().Where(x => x.IsActive).FirstOrDefault() ?? Application.Current.MainWindow;
             return active == window ? null : active;
+        }
+
+        class WindowConductor
+        {
+            private readonly Window window;
+            private readonly object viewModel;
+
+            public WindowConductor(Window window, object viewModel)
+            {
+                this.window = window;
+                this.viewModel = viewModel;
+
+                var viewModelAsActivate = viewModel as IActivate;
+                if (viewModelAsActivate != null)
+                    viewModelAsActivate.Activate();
+
+                var viewModelAsDeactivate = viewModel as IDeactivate;
+                if (viewModelAsDeactivate != null)
+                {
+                    window.Closed += this.Closed;
+                    viewModelAsDeactivate.Deactivated += this.Deactivated;
+                }
+
+                if (viewModel is IGuardClose)
+                    window.Closing += this.Closing;
+            }
+
+            private void Closed(object sender, EventArgs e)
+            {
+                var viewModelAsDeactivate = (IDeactivate)this.viewModel;
+
+                this.window.Closed -= this.Closed;
+                this.window.Closing -= this.Closing; // Not sure this is required
+                viewModelAsDeactivate.Deactivated -= this.Deactivated;
+
+                viewModelAsDeactivate.Deactivate(true);
+            }
+
+            private void Deactivated(object sender, DeactivationEventArgs e)
+            {
+                if (!e.WasClosed)
+                    return;
+
+                this.window.Closed -= this.Closed;
+                this.window.Closing -= this.Closing;
+                ((IDeactivate)this.window).Deactivated -= this.Deactivated;
+                this.window.Close();
+            }
+
+            private async void Closing(object sender, CancelEventArgs e)
+            {
+                if (e.Cancel)
+                    return;
+
+                // See if the task completed synchronously
+                var task = ((IGuardClose)this.viewModel).CanCloseAsync();
+                if (task.IsCompleted)
+                {
+                    e.Cancel = !task.Result;
+                }
+                else
+                {
+                    e.Cancel = true;
+                    if (await task)
+                    {
+                        this.window.Closing -= this.Closing;
+                        this.window.Close();
+                    }
+                }
+            }
         }
     }
 }
