@@ -15,7 +15,7 @@ namespace Stylet
     {
         bool IsActive { get; }
         void Activate();
-        event EventHandler<EventArgs> Activated;
+        event EventHandler<ActivationEventArgs> Activated;
     }
 
     public interface IDeactivate
@@ -49,6 +49,9 @@ namespace Stylet
     }
 
 
+    public class ActivationEventArgs : EventArgs
+    {
+    }
 
     public class DeactivationEventArgs : EventArgs
     {

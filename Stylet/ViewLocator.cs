@@ -15,7 +15,8 @@ namespace Stylet
         {
             var modelName = model.GetType().FullName;
             var viewName = Regex.Replace(modelName, @"ViewModel", "View");
-            var viewType = Assembly.GetEntryAssembly().GetType(viewName);
+            // TODO: This might need some more thinking
+            var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
 
             if (viewType == null)
                 throw new Exception(String.Format("Unable to find a View with type {0}", viewName));

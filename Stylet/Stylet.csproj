@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="ActionCommand.cs" />
     <Compile Include="ActionExtension.cs" />
+    <Compile Include="AssemblySource.cs" />
     <Compile Include="BindableCollection.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="Conductor.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="Execute.cs" />
     <Compile Include="IConductor.cs" />
     <Compile Include="IoC.cs" />
+    <Compile Include="IoCBootstrapper.cs" />
     <Compile Include="IScreen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyChangedBase.cs" />

@@ -49,7 +49,7 @@ namespace Stylet
 
         #region IActivate
 
-        public event EventHandler<EventArgs> Activated;
+        public event EventHandler<ActivationEventArgs> Activated;
 
         private bool _isActive;
         public bool IsActive
@@ -73,7 +73,7 @@ namespace Stylet
 
             var handler = this.Activated;
             if (handler != null)
-                handler(this, EventArgs.Empty);
+                handler(this, new ActivationEventArgs());
         }
 
         protected virtual void OnActivate() { }

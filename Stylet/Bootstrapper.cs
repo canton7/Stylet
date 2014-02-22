@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace Stylet
             this.Start();
         }
 
-        public void Start()
+        protected virtual void Start()
         {
             this.Application = Application.Current;
             Execute.SynchronizationContext = SynchronizationContext.Current;
@@ -31,6 +32,9 @@ namespace Stylet
             {
                 IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
             };
+
+            AssemblySource.Assemblies.Clear();
+            AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
 
             IoC.GetInstance = this.GetInstance;
             IoC.GetAllInstances = this.GetAllInstances;
@@ -49,6 +53,11 @@ namespace Stylet
         }
 
         protected virtual void BuildUp(object instance) { }
+
+        protected IEnumerable<Assembly> SelectAssemblies()
+        {
+            return new[] { Assembly.GetEntryAssembly() };
+        }
 
         protected virtual void OnStartup(object sender, StartupEventArgs e) { }
         protected virtual void OnExit(object sender, EventArgs e) { }

@@ -11,10 +11,10 @@ namespace Stylet
     public class EventCommand
     {
         private FrameworkElement subject;
-        private object targetProperty;
+        private EventInfo targetProperty;
         private string methodName;
 
-        public EventCommand(FrameworkElement subject, object targetProperty, string methodName)
+        public EventCommand(FrameworkElement subject, EventInfo targetProperty, string methodName)
         {
             this.subject = subject;
             this.targetProperty = targetProperty;
@@ -25,17 +25,10 @@ namespace Stylet
         {
             Delegate del = null;
 
-            var eventInfo = this.targetProperty as EventInfo;
             var methodInfo = this.GetType().GetMethod("InvokeCommand", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            Type parameterType = null;
-            if (eventInfo != null)
-                parameterType = eventInfo.EventHandlerType;
-
-            if (parameterType != null)
-            {
-                del = Delegate.CreateDelegate(parameterType, this, methodInfo);
-            }
+            var parameterType = this.targetProperty.EventHandlerType;
+            del = Delegate.CreateDelegate(parameterType, this, methodInfo);
 
             return del;
         }

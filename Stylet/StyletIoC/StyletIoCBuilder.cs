@@ -305,6 +305,12 @@ namespace StyletIoC
         void Autobind(params Assembly[] assemblies);
 
         /// <summary>
+        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
+        /// </summary>
+        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
+        void Autobind(IEnumerable<Assembly> assemblies);
+
+        /// <summary>
         /// Once all bindings have been set, build an IContainer from which instances can be fetches
         /// </summary>
         /// <returns>An IContainer, which should be used from now on</returns>
@@ -342,10 +348,10 @@ namespace StyletIoC
         /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
         /// </summary>
         /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
-        public void Autobind(params Assembly[] assemblies)
+        public void Autobind(IEnumerable<Assembly> assemblies)
         {
             // If they haven't given any assemblies, use the assembly of the caller
-            if (assemblies == null || assemblies.Length == 0)
+            if (assemblies == null || !assemblies.Any())
                 assemblies = new[] { Assembly.GetCallingAssembly() };
 
             // We self-bind concrete classes only
@@ -362,6 +368,15 @@ namespace StyletIoC
                     Debug.WriteLine(String.Format("Unable to auto-bind type {0}: {1}", cls.Name, e.Message), "StyletIoC");
                 }
             }
+        }
+
+        /// <summary>
+        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
+        /// </summary>
+        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
+        public void Autobind(params Assembly[] assemblies)
+        {
+            this.Autobind(assemblies);
         }
 
         /// <summary>

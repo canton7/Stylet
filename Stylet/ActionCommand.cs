@@ -26,10 +26,7 @@ namespace Stylet
 
             this.UpdateGuardHandler();
 
-            DependencyPropertyDescriptor.FromProperty(View.TargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) =>
-                {
-                    this.UpdateGuardHandler();
-                });
+            DependencyPropertyDescriptor.FromProperty(View.TargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateGuardHandler());
         }
 
         private string GuardName

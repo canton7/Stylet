@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,16 +22,21 @@ namespace Stylet
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
             var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
-            if (valueService.TargetProperty is ICommand)
+
+            var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
+            if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
                 return new ActionCommand((FrameworkElement)valueService.TargetObject, this.Method);
             }
-            else
+
+            var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
+            if (propertyAsEventInfo != null)
             {
-                var ec = new EventCommand((FrameworkElement)valueService.TargetObject, valueService.TargetProperty, this.Method);
+                var ec = new EventCommand((FrameworkElement)valueService.TargetObject, propertyAsEventInfo, this.Method);
                 return ec.GetDelegate();
             }
-
+                
+            throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
         }
     }
 }
