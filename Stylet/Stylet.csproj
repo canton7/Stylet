@@ -71,8 +71,7 @@
     <Compile Include="StyletIoC\StyletIoCContainer.cs" />
     <Compile Include="StyletIoC\UnboundGeneric.cs" />
     <Compile Include="View.cs" />
-    <Compile Include="ViewLocator.cs" />
-    <Compile Include="ViewModelBinder.cs" />
+    <Compile Include="ViewManager.cs" />
     <Compile Include="WindowManager.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -26,6 +26,7 @@ namespace Stylet
         {
             builder.Autobind(AssemblySource.Assemblies);
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope();
+            builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope();
         }
 
         protected override object GetInstance(Type service, string key = null)

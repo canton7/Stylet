@@ -30,11 +30,13 @@ namespace Stylet
 
         private Window CreateWindow(object viewModel, bool isDialog)
         {
-            var view = ViewLocator.LocateForModel(viewModel) as Window;
+            var viewManager = IoC.Get<IViewManager>();
+
+            var view = viewManager.LocateViewForModel(viewModel) as Window;
             if (view == null)
                 throw new Exception(String.Format("Tried to show {0} as a window, but it isn't a Window", view.GetType().Name));
 
-            ViewModelBinder.Bind(view, viewModel);
+            viewManager.BindViewToModel(view, viewModel);
 
             var haveDisplayName = viewModel as IHaveDisplayName;
             if (haveDisplayName != null)

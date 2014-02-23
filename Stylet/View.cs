@@ -41,37 +41,10 @@ namespace Stylet
 
         // Using a DependencyProperty as the backing store for Model.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ModelProperty =
-            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(null, OnModelChanged));
+            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(null, (d, e) => IoC.Get<IViewManager>().OnModelChanged(d, e) ));
 
-        
-        private static void OnModelChanged(DependencyObject targetLocation, DependencyPropertyChangedEventArgs e)
-        {
-            if (e.OldValue == e.NewValue)
-                return;
 
-            if (e.NewValue != null)
-            {
-                UIElement view;
-                var viewModelAsViewAware = e.NewValue as IViewAware;
-                if (viewModelAsViewAware != null && viewModelAsViewAware.View != null)
-                {
-                    view = viewModelAsViewAware.View;
-                }
-                else
-                {
-                    view = ViewLocator.LocateForModel(e.NewValue);
-                    ViewModelBinder.Bind(view, e.NewValue);
-                }
-
-                SetContentProperty(targetLocation, view);
-            }
-            else
-            {
-                SetContentProperty(targetLocation, null);
-            }
-        }
-
-        private static void SetContentProperty(DependencyObject targetLocation, UIElement view)
+        public static void SetContentProperty(DependencyObject targetLocation, UIElement view)
         {
             var type = targetLocation.GetType();
             var contentProperty = Attribute.GetCustomAttributes(type, true).OfType<ContentPropertyAttribute>().FirstOrDefault() ?? DefaultContentProperty;
