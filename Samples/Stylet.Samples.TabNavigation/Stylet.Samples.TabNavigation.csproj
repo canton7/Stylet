@@ -57,9 +57,6 @@
     </ApplicationDefinition>
     <Compile Include="Page1ViewModel.cs" />
     <Compile Include="Page2ViewModel.cs" />
-    <Compile Include="ShellView.xaml.cs">
-      <DependentUpon>ShellView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ShellViewModel.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Page Include="Page1View.xaml">

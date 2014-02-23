@@ -4,12 +4,6 @@
         xmlns:s="http://github.com/canton7/Stylet"
         Title="ShellView" Height="300" Width="300">
     <Grid>
-        <TabControl ItemsSource="{Binding Items}" SelectedItem="{Binding ActiveItem}" DisplayMemberPath="DisplayName">
-            <TabControl.ContentTemplate>
-                <DataTemplate>
-                    <ContentControl s:View.Model="{Binding}" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" IsTabStop="False" />
-                </DataTemplate>
-            </TabControl.ContentTemplate>
-        </TabControl>
+        <TabControl Style="{StaticResource StyletConductorTabControl}"/>
     </Grid>
 </Window>

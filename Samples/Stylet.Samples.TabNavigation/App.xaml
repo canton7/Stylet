@@ -5,9 +5,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary>
-                    <local:Bootstrapper x:Key="bootstrapper"/>            
-                </ResourceDictionary>
+                <local:Bootstrapper/>        
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

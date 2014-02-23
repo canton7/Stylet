@@ -10,12 +10,30 @@ using System.Windows.Threading;
 
 namespace Stylet
 {
-    public class Bootstrapper<TRootViewModel>
+    // We pretend to be a ResourceDictionary so the user can do:
+    // <Application.Resources><ResourceDictionary>
+    //     <ResourceDictionary.MergedDictionaries>
+    //         <local:Bootstrapper/>        
+    //     </ResourceDictionary.MergedDictionaries>
+    //  </ResourceDictionary></Application.Resources>
+    // rather than:
+    // <Application.Resources><ResourceDictionary>
+    //     <ResourceDictionary.MergedDictionaries>
+    //         <ResourceDictionary>
+    //             <local:Bootstrapper x:Key="bootstrapper"/>        
+    //         </ResourceDictionary>
+    //     </ResourceDictionary.MergedDictionaries>
+    //  </ResourceDictionary></Application.Resources>
+    // And also so that we can load the Stylet resources
+    public class Bootstrapper<TRootViewModel> : ResourceDictionary
     {
         protected Application Application { get; private set; }
 
         public Bootstrapper()
         {
+            var rc = new ResourceDictionary() { Source = new Uri("/Stylet;component/StyletResourceDictionary.xaml", UriKind.Relative) };
+            this.MergedDictionaries.Add(rc);
+
             this.Start();
         }
 

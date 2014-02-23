@@ -13,11 +13,5 @@ namespace Stylet.Samples.TabNavigation
             this.ActivateItem(page1);
             this.Items.Add(page2);
         }
-
-        public override async Task<bool> CanCloseAsync()
-        {
-            await Task.Delay(1000);
-            return true;
-        }
     }
 }
