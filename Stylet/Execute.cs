@@ -13,7 +13,8 @@ namespace Stylet
 
         public static void OnUIThread(Action action)
         {
-            if (SynchronizationContext != null)
+            // If we're already on the given SynchronizationContext, or it hasn't been set, run synchronously
+            if (SynchronizationContext != null && SynchronizationContext != SynchronizationContext.Current)
                 SynchronizationContext.Post(_ => action(), null);
             else
                 action();
@@ -21,7 +22,8 @@ namespace Stylet
 
         public static Task OnUIThreadAsync(Action action)
         {
-            if (SynchronizationContext != null)
+            // If we're already on the given SynchronizationContext, or it hasn't been set, run synchronously
+            if (SynchronizationContext != null && SynchronizationContext != SynchronizationContext.Current)
             {
                 var tcs = new TaskCompletionSource<object>();
                 SynchronizationContext.Post(_ =>
