@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Stylet.Samples.Hello
 {
-    class HelloBootstrapper : IoCBootstrapper<ShellViewModel>
+    class HelloBootstrapper : Bootstrapper<ShellViewModel>
     {
     }
 }

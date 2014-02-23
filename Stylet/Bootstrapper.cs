@@ -1,84 +1,47 @@
-﻿using System;
+﻿using StyletIoC;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace Stylet
 {
-    // We pretend to be a ResourceDictionary so the user can do:
-    // <Application.Resources><ResourceDictionary>
-    //     <ResourceDictionary.MergedDictionaries>
-    //         <local:Bootstrapper/>        
-    //     </ResourceDictionary.MergedDictionaries>
-    //  </ResourceDictionary></Application.Resources>
-    // rather than:
-    // <Application.Resources><ResourceDictionary>
-    //     <ResourceDictionary.MergedDictionaries>
-    //         <ResourceDictionary>
-    //             <local:Bootstrapper x:Key="bootstrapper"/>        
-    //         </ResourceDictionary>
-    //     </ResourceDictionary.MergedDictionaries>
-    //  </ResourceDictionary></Application.Resources>
-    // And also so that we can load the Stylet resources
-    public class Bootstrapper<TRootViewModel> : ResourceDictionary
+    public class Bootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel>
     {
-        protected Application Application { get; private set; }
+        protected IContainer container;
 
-        public Bootstrapper()
+        protected override void Start()
         {
-            var rc = new ResourceDictionary() { Source = new Uri("/Stylet;component/StyletResourceDictionary.xaml", UriKind.Relative) };
-            this.MergedDictionaries.Add(rc);
+            base.Start();
 
-            this.Start();
+            var builder = new StyletIoCBuilder();
+            this.ConfigureIoC(builder);
+            this.container = builder.BuildContainer();
         }
 
-        protected virtual void Start()
+        protected virtual void ConfigureIoC(IStyletIoCBuilder builder)
         {
-            this.Application = Application.Current;
-            Execute.SynchronizationContext = SynchronizationContext.Current;
-
-            this.Application.Startup += OnStartup;
-            this.Application.Exit += OnExit;
-            this.Application.DispatcherUnhandledException += OnUnhandledExecption;
-
-            this.Application.Startup += (o, e) =>
-            {
-                IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
-            };
-
-            AssemblySource.Assemblies.Clear();
-            AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
-
-            IoC.GetInstance = this.GetInstance;
-            IoC.GetAllInstances = this.GetAllInstances;
-            IoC.BuildUp = this.BuildUp;
+            builder.Autobind(AssemblySource.Assemblies);
+            builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope();
+            builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope();
         }
 
-        protected virtual object GetInstance(Type service, string key = null)
+        protected override object GetInstance(Type service, string key = null)
         {
-            if (service == typeof(IWindowManager)) service = typeof(WindowManager);
-            return Activator.CreateInstance(service);
+            return this.container.Get(service, key);
         }
 
-        protected virtual IEnumerable<object> GetAllInstances(Type service)
+        protected override IEnumerable<object> GetAllInstances(Type service)
         {
-            return new[] { Activator.CreateInstance(service) };
+            return this.container.GetAll(service);
         }
 
-        protected virtual void BuildUp(object instance) { }
-
-        protected IEnumerable<Assembly> SelectAssemblies()
+        protected override void BuildUp(object instance)
         {
-            return new[] { Assembly.GetEntryAssembly() };
+            this.container.BuildUp(instance);
         }
-
-        protected virtual void OnStartup(object sender, StartupEventArgs e) { }
-        protected virtual void OnExit(object sender, EventArgs e) { }
-        protected virtual void OnUnhandledExecption(object sender, DispatcherUnhandledExceptionEventArgs e) { }
     }
 }

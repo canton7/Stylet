@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace Stylet.Samples.TabNavigation
 {
-    class Bootstrapper : IoCBootstrapper<ShellViewModel>
+    class Bootstrapper : Bootstrapper<ShellViewModel>
     {
     }
 }
