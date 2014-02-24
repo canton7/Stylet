@@ -88,25 +88,25 @@ namespace StyletIoC
         /// <summary>
         /// Maps a [type, key] pair to a collection of registrations for that keypair. You can retrieve an instance of the type from the registration
         /// </summary>
-        private ConcurrentDictionary<TypeKey, IRegistrationCollection> registrations = new ConcurrentDictionary<TypeKey, IRegistrationCollection>();
+        private readonly ConcurrentDictionary<TypeKey, IRegistrationCollection> registrations = new ConcurrentDictionary<TypeKey, IRegistrationCollection>();
 
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is the T in IEnumerable{T}, to a registration which can create a List{T} implementing that IEnumerable.
         /// This is separate from 'registrations' as some code paths - e.g. Get() - won't search it (while things like constructor/property injection will).
         /// </summary>
-        private ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
+        private readonly ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
 
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is an unbound generic (something like IValidator{}) to something which, given a type, can create an IRegistration for that type.
         /// So if they've bound an IValidator{} to a an IntValidator, StringValidator, etc, and request an IValidator{string}, one of the UnboundGenerics here can generatr a StringValidator.
         /// Type-safety with the List is ensured by locking using the list as the lock object before modifying / iterating.
         /// </summary>
-        private ConcurrentDictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new ConcurrentDictionary<TypeKey, List<UnboundGeneric>>();
+        private readonly ConcurrentDictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new ConcurrentDictionary<TypeKey, List<UnboundGeneric>>();
 
         /// <summary>
         /// Maps a type onto a BuilderUpper for that type, which can create an Expresson/Delegate to build up that type.
         /// </summary>
-        private ConcurrentDictionary<Type, BuilderUpper> builderUppers = new ConcurrentDictionary<Type, BuilderUpper>();
+        private readonly ConcurrentDictionary<Type, BuilderUpper> builderUppers = new ConcurrentDictionary<Type, BuilderUpper>();
 
         /// <summary>
         /// Cached ModuleBuilder used for building factory implementations
@@ -116,7 +116,7 @@ namespace StyletIoC
         /// <summary>
         /// Cache of services registered with .ToAbstractFactory() to the factory which was generated for each.
         /// </summary>
-        private ConcurrentDictionary<Type, Type> factories = new ConcurrentDictionary<Type, Type>();
+        private readonly ConcurrentDictionary<Type, Type> factories = new ConcurrentDictionary<Type, Type>();
 
         /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency

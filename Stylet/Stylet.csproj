@@ -53,6 +53,7 @@
     <Compile Include="ConductorBase.cs" />
     <Compile Include="ConductorBaseWithActiveItem.cs" />
     <Compile Include="ConductorOneActive.cs" />
+    <Compile Include="EventAggregator.cs" />
     <Compile Include="EventCommand.cs" />
     <Compile Include="Execute.cs" />
     <Compile Include="IConductor.cs" />
