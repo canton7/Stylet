@@ -25,7 +25,9 @@ namespace Stylet
         protected virtual void ConfigureIoC(IStyletIoCBuilder builder)
         {
             builder.Autobind(AssemblySource.Assemblies);
+
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope();
+            builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope();
             builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope();
         }
 

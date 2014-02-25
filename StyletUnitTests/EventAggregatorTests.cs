@@ -28,6 +28,11 @@ namespace StyletUnitTests
             public void Handle(M1 message) { this.ReceivedM1 = message; }
         }
 
+        public class C3 : IHandle<M1>
+        {
+            public void Handle(M1 message) { throw new Exception("Should not be called. Ever"); }
+        }
+
         [Test]
         public void SubscribesAndDeliversExactMessage()
         {
@@ -53,6 +58,34 @@ namespace StyletUnitTests
 
             Assert.AreEqual(message, target.ReceivedM1);
             Assert.AreEqual(message, target.ReceivedM2);
+        }
+
+        [Test]
+        public void UnsubscribeUnsubscribes()
+        {
+            var ea = new EventAggregator();
+            var target = new C1();
+            ea.Subscribe(target);
+            ea.Unsubscribe(target);
+
+            var message = new M1();
+            ea.Publish(message);
+
+            Assert.IsNull(target.ReceivedMessage);
+        }
+
+        [Test]
+        public void TargetReferenceIsWeak()
+        {
+            var ea = new EventAggregator();
+            var target = new C3();
+            ea.Subscribe(target);
+
+            // Ugly, but it's the only way to test a WeakReference...
+            target = null;
+            GC.Collect();
+
+            Assert.DoesNotThrow(() => ea.Publish(new M1()));
         }
     }
 }
