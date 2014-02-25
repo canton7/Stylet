@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.Hello", "Sty
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.TabNavigation", "Stylet.Samples.TabNavigation\Stylet.Samples.TabNavigation.csproj", "{9A4E2DAD-AE68-4A82-8FA8-407DB74D6FBE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.MasterDetail", "Stylet.Samples.MasterDetail\Stylet.Samples.MasterDetail.csproj", "{A281DFF2-125E-4412-8927-0F09EEFC5AD1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{9A4E2DAD-AE68-4A82-8FA8-407DB74D6FBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A4E2DAD-AE68-4A82-8FA8-407DB74D6FBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A4E2DAD-AE68-4A82-8FA8-407DB74D6FBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A281DFF2-125E-4412-8927-0F09EEFC5AD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A281DFF2-125E-4412-8927-0F09EEFC5AD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A281DFF2-125E-4412-8927-0F09EEFC5AD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A281DFF2-125E-4412-8927-0F09EEFC5AD1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -23,6 +23,10 @@ namespace Stylet
         {
             var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
 
+            // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
+            if (!(valueService.TargetObject is FrameworkElement))
+                return this;
+
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
