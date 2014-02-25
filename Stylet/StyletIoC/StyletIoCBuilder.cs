@@ -376,7 +376,10 @@ namespace StyletIoC
         /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
         public void Autobind(params Assembly[] assemblies)
         {
-            this.Autobind(assemblies);
+            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
+            if (assemblies == null || assemblies.Length == 0)
+                assemblies = new[] { Assembly.GetCallingAssembly() };
+            this.Autobind(assemblies.AsEnumerable());
         }
 
         /// <summary>
