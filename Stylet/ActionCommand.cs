@@ -18,7 +18,7 @@ namespace Stylet
         private FrameworkElement subject;
         private string methodName;
         private Func<bool> guardPropertyGetter;
-        private Func<object> methodInvoker;
+        private MethodInfo targetMethodInfo;
 
         private object target;
 
@@ -28,7 +28,6 @@ namespace Stylet
             this.methodName = methodName;
 
             this.UpdateGuardHandler();
-
 
             DependencyPropertyDescriptor.FromProperty(View.TargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateGuardHandler());
         }
@@ -41,18 +40,24 @@ namespace Stylet
         private void UpdateGuardHandler()
         {
             var newTarget = View.GetTarget(this.subject);
-
+            MethodInfo targetMethodInfo = null;
+            
             this.guardPropertyGetter = null;
             if (newTarget != null)
             {
-                var guardPropertyInfo = newTarget.GetType().GetProperty(this.GuardName);
+                var newTargetType = newTarget.GetType();
+
+                var guardPropertyInfo = newTargetType.GetProperty(this.GuardName);
                 if (guardPropertyInfo != null && guardPropertyInfo.PropertyType == typeof(bool))
                 {
                     var param = Expressions.Expression.Parameter(typeof(bool), "returnValue");
                     var propertyAccess = Expressions.Expression.Property(param, guardPropertyInfo);
                     this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess, param).Compile();
                 }
-                    
+
+                targetMethodInfo = newTargetType.GetMethod(this.methodName);
+                if (targetMethodInfo == null)
+                    throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.methodName, this.target.GetType().Name));
             }
 
             var oldTarget = this.target as INotifyPropertyChanged;
@@ -65,38 +70,9 @@ namespace Stylet
             if (this.guardPropertyGetter != null && inpc != null)
                 inpc.PropertyChanged += this.PropertyChangedHandler;
 
+            this.targetMethodInfo = targetMethodInfo;
+
             this.UpdateCanExecute();
-        }
-
-        private void UpdateMethodInvoker()
-        {
-            if (this.target == null)
-                throw new ArgumentException("Target not set");
-
-            var methodInfo = this.target.GetType().GetMethod(this.methodName);
-            if (methodInfo == null)
-                throw new Exception(String.Format("Unable to find method {0} on {1}", this.methodName, this.target.GetType().Name));
-            
-            var target = Expressions.Expression.Constant(this.target);
-            var param = Expressions.Expression.Parameter(typeof(object), "parameter");
-            Expressions.Expression call;
-            
-            var methodParameters = methodInfo.GetParameters();
-            if (methodParameters.Length == 0)
-            {
-                call = Expressions.Expression.Call(target, methodInfo);
-            }
-            else if (methodParameters.Length == 1)
-            {
-                var convertedParam = Expressions.Expression.Convert(param, methodParameters[0].ParameterType);
-                call = Expressions.Expression.Call(target, methodInfo, convertedParam);
-            }
-            else
-            {
-                throw new Exception(String.Format("Method {0} must accept either 0 or 1 arguments", this.methodName));
-            }
-
-            this.methodInvoker = Expressions.Expression.Lambda<Func<object>>(call, param).Compile();
         }
 
         private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
@@ -116,6 +92,9 @@ namespace Stylet
 
         public bool CanExecute(object parameter)
         {
+            if (this.target == null)
+                return false;
+
             if (this.guardPropertyGetter == null)
                 return true;
 
@@ -126,18 +105,12 @@ namespace Stylet
 
         public void Execute(object parameter)
         {
+            // This is not going to be called very often, so don't bother to generate a delegate, in the way that we do for the method guard
             if (this.target == null)
                 throw new ArgumentException("Target not set");
 
-            var methodInfo = this.target.GetType().GetMethod(this.methodName);
-            if (methodInfo == null)
-                throw new Exception(String.Format("Unable to find method {0} on {1}", this.methodName, this.target.GetType().Name));
-
-            if (methodInfo != null)
-            {
-                var parameters = methodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
-                methodInfo.Invoke(this.target, parameters);
-            }
+            var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
+            this.targetMethodInfo.Invoke(this.target, parameters);
         }
     }
 }
