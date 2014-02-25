@@ -9,13 +9,16 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
+using Expressions = System.Linq.Expressions;
+
 namespace Stylet
 {
     public class ActionCommand : ICommand
     {
         private FrameworkElement subject;
         private string methodName;
-        private PropertyInfo guardPropertyInfo;
+        private Func<bool> guardPropertyGetter;
+        private Func<object> methodInvoker;
 
         private object target;
 
@@ -25,6 +28,7 @@ namespace Stylet
             this.methodName = methodName;
 
             this.UpdateGuardHandler();
+
 
             DependencyPropertyDescriptor.FromProperty(View.TargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateGuardHandler());
         }
@@ -37,12 +41,18 @@ namespace Stylet
         private void UpdateGuardHandler()
         {
             var newTarget = View.GetTarget(this.subject);
-            this.guardPropertyInfo = null;
+
+            this.guardPropertyGetter = null;
             if (newTarget != null)
             {
                 var guardPropertyInfo = newTarget.GetType().GetProperty(this.GuardName);
                 if (guardPropertyInfo != null && guardPropertyInfo.PropertyType == typeof(bool))
-                    this.guardPropertyInfo = guardPropertyInfo;
+                {
+                    var param = Expressions.Expression.Parameter(typeof(bool), "returnValue");
+                    var propertyAccess = Expressions.Expression.Property(param, guardPropertyInfo);
+                    this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess, param).Compile();
+                }
+                    
             }
 
             var oldTarget = this.target as INotifyPropertyChanged;
@@ -52,10 +62,41 @@ namespace Stylet
             this.target = newTarget;
 
             var inpc = newTarget as INotifyPropertyChanged;
-            if (this.guardPropertyInfo != null && inpc != null)
+            if (this.guardPropertyGetter != null && inpc != null)
                 inpc.PropertyChanged += this.PropertyChangedHandler;
 
             this.UpdateCanExecute();
+        }
+
+        private void UpdateMethodInvoker()
+        {
+            if (this.target == null)
+                throw new ArgumentException("Target not set");
+
+            var methodInfo = this.target.GetType().GetMethod(this.methodName);
+            if (methodInfo == null)
+                throw new Exception(String.Format("Unable to find method {0} on {1}", this.methodName, this.target.GetType().Name));
+            
+            var target = Expressions.Expression.Constant(this.target);
+            var param = Expressions.Expression.Parameter(typeof(object), "parameter");
+            Expressions.Expression call;
+            
+            var methodParameters = methodInfo.GetParameters();
+            if (methodParameters.Length == 0)
+            {
+                call = Expressions.Expression.Call(target, methodInfo);
+            }
+            else if (methodParameters.Length == 1)
+            {
+                var convertedParam = Expressions.Expression.Convert(param, methodParameters[0].ParameterType);
+                call = Expressions.Expression.Call(target, methodInfo, convertedParam);
+            }
+            else
+            {
+                throw new Exception(String.Format("Method {0} must accept either 0 or 1 arguments", this.methodName));
+            }
+
+            this.methodInvoker = Expressions.Expression.Lambda<Func<object>>(call, param).Compile();
         }
 
         private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
@@ -75,10 +116,10 @@ namespace Stylet
 
         public bool CanExecute(object parameter)
         {
-            if (this.guardPropertyInfo == null)
+            if (this.guardPropertyGetter == null)
                 return true;
 
-            return (bool)this.guardPropertyInfo.GetValue(this.target);
+            return this.guardPropertyGetter();
         }
 
         public event EventHandler CanExecuteChanged;
@@ -86,7 +127,7 @@ namespace Stylet
         public void Execute(object parameter)
         {
             if (this.target == null)
-                throw new Exception("Target not set");
+                throw new ArgumentException("Target not set");
 
             var methodInfo = this.target.GetType().GetMethod(this.methodName);
             if (methodInfo == null)
