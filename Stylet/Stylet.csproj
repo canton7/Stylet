@@ -56,12 +56,14 @@
     <Compile Include="EventAggregator.cs" />
     <Compile Include="EventCommand.cs" />
     <Compile Include="Execute.cs" />
+    <Compile Include="ExpressionExtensions.cs" />
     <Compile Include="IConductor.cs" />
     <Compile Include="IoC.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="IScreen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyChangedBase.cs" />
+    <Compile Include="PropertyChangedExtensions.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="ScreenExtensions.cs" />
     <Compile Include="StyletIoC\BuilderUpper.cs" />

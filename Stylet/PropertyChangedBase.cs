@@ -20,12 +20,7 @@ namespace Stylet
 
         protected void NotifyOfPropertyChange<TProperty>(Expression<Func<TProperty>> property)
         {
-            string propertyName;
-            if (property.Body is UnaryExpression)
-                propertyName = ((MemberExpression)((UnaryExpression)property.Body).Operand).Member.Name;
-            else
-                propertyName = ((MemberExpression)property.Body).Member.Name;
-            this.NotifyOfPropertyChange(propertyName);
+            this.NotifyOfPropertyChange(property.NameForProperty());
         }
 
         protected virtual void NotifyOfPropertyChange([CallerMemberName] string propertyName = "")
