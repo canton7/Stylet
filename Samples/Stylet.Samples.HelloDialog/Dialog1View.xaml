@@ -1,8 +1,17 @@
 ﻿<Window x:Class="Stylet.Samples.HelloDialog.Dialog1View"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Dialog1View" Height="300" Width="300">
-    <Grid>
+        xmlns:s="http://github.com/canton7/Stylet"
+        Title="Dialog1View" Height="145" Width="300">
+    <DockPanel LastChildFill="False" Margin="10">
+        <DockPanel DockPanel.Dock="Top">
+            <Label DockPanel.Dock="Left">What is your name?</Label>
+            <TextBox Text="{Binding Name}" HorizontalAlignment="Stretch"/>
+        </DockPanel>
         
-    </Grid>
+        <Grid DockPanel.Dock="Bottom">
+            <Button HorizontalAlignment="Left" Width="100" IsDefault="True" Command="{s:Action Close}">Save</Button>
+            <Button HorizontalAlignment="Right" Width="100" IsCancel="True">Cancel</Button>
+        </Grid>
+    </DockPanel>
 </Window>

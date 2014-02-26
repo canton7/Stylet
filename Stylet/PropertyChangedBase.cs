@@ -39,5 +39,14 @@ namespace Stylet
                 }
             });
         }
+
+        protected virtual void SetAndNotify<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
+        {
+            if (Comparer<T>.Default.Compare(field, value) != 0)
+            {
+                field = value;
+                this.NotifyOfPropertyChange(propertyName);
+            }
+        }
     }
 }
