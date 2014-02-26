@@ -32,29 +32,30 @@ namespace Stylet
         {
             var viewManager = IoC.Get<IViewManager>();
 
-            var view = viewManager.LocateViewForModel(viewModel) as Window;
-            if (view == null)
+            var view = viewManager.LocateViewForModel(viewModel);
+            var window = view as Window;
+            if (window == null)
                 throw new Exception(String.Format("Tried to show {0} as a window, but it isn't a Window", view.GetType().Name));
 
-            viewManager.BindViewToModel(view, viewModel);
+            viewManager.BindViewToModel(window, viewModel);
 
             var haveDisplayName = viewModel as IHaveDisplayName;
             if (haveDisplayName != null)
             {
                 var binding = new Binding("DisplayName") { Mode = BindingMode.TwoWay };
-                view.SetBinding(Window.TitleProperty, binding);
+                window.SetBinding(Window.TitleProperty, binding);
             }
 
             if (isDialog)
             {
-                var owner = this.InferOwnerOf(view);
+                var owner = this.InferOwnerOf(window);
                 if (owner != null)
-                    view.Owner = owner;
+                    window.Owner = owner;
             }
 
-            new WindowConductor(view, viewModel);
+            new WindowConductor(window, viewModel);
 
-            return view;
+            return window;
         }
 
         private Window InferOwnerOf(Window window)
