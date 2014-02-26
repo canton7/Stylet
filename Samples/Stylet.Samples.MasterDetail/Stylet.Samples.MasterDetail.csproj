@@ -55,9 +55,6 @@
     </ApplicationDefinition>
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="EmployeeModel.cs" />
-    <Compile Include="ShellView.xaml.cs">
-      <DependentUpon>ShellView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ShellViewModel.cs" />
     <Page Include="ShellView.xaml">
       <SubType>Designer</SubType>

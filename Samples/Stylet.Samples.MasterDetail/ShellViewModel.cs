@@ -28,9 +28,17 @@ namespace Stylet.Samples.MasterDetail
             this.Employees = new BindableCollection<EmployeeModel>();
 
             this.Employees.Add(new EmployeeModel() { Name = "Fred" });
+            this.Employees.Add(new EmployeeModel() { Name = "Bob" });
+
+            this.SelectedEmployee = this.Employees.FirstOrDefault();
         }
 
-        public void RemoveItem(EmployeeModel item)
+        public void AddEmployee()
+        {
+            this.Employees.Add(new EmployeeModel() { Name = "Unnamed" });
+        }
+
+        public void RemoveEmployee(EmployeeModel item)
         {
             this.Employees.Remove(item);
         }
