@@ -10,10 +10,20 @@ using System.Windows.Markup;
 
 namespace Stylet
 {
+    /// <summary>
+    /// MarkupExtension used for binding Commands and Events to methods on the View.ActionTarget
+    /// </summary>
     public class ActionExtension : MarkupExtension
     {
+        /// <summary>
+        /// Name of the method to call
+        /// </summary>
         public string Method { get; set; }
 
+        /// <summary>
+        /// Create a new ActionExtension
+        /// </summary>
+        /// <param name="method">Name of the method to call</param>
         public ActionExtension(string method)
         {
             this.Method = method;
@@ -23,6 +33,7 @@ namespace Stylet
         {
             var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
 
+            // Seems this is the case when we're in a template. We'll get called again properly in a second.
             // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
             if (!(valueService.TargetObject is FrameworkElement))
                 return this;

@@ -25,8 +25,16 @@ namespace Stylet
     //     </ResourceDictionary.MergedDictionaries>
     //  </ResourceDictionary></Application.Resources>
     // And also so that we can load the Stylet resources
+
+    /// <summary>
+    /// Bootstrapper to be extended by applications which don't want to use StyletIoC as the IoC container.
+    /// </summary>
+    /// <typeparam name="TRootViewModel">Type of the root ViewModel. This will be instantiated and displayed</typeparam>
     public abstract class BootstrapperBase<TRootViewModel> : ResourceDictionary
     {
+        /// <summary>
+        /// Reference to the current application
+        /// </summary>
         protected Application Application { get; private set; }
 
         public BootstrapperBase()
@@ -37,23 +45,32 @@ namespace Stylet
             this.Start();
         }
 
+        /// <summary>
+        /// Called from the constructor, this does everything necessary to start the application
+        /// </summary>
         protected virtual void Start()
         {
             this.Application = Application.Current;
+
+            // Use the current SynchronizationContext for the Execute helper
             Execute.SynchronizationContext = SynchronizationContext.Current;
 
+            // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
             this.Application.Startup += OnStartup;
             this.Application.Exit += OnExit;
             this.Application.DispatcherUnhandledException += OnUnhandledExecption;
 
+            // The magic which actually displays
             this.Application.Startup += (o, e) =>
             {
                 IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
             };
 
+            // Add the current assembly to the assemblies list - this will be needed by the IViewManager
             AssemblySource.Assemblies.Clear();
             AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
-
+             
+            // Stitch the IoC shell to us
             IoC.GetInstance = this.GetInstance;
             IoC.GetAllInstances = this.GetAllInstances;
             IoC.BuildUp = this.BuildUp;
