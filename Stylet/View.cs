@@ -13,21 +13,18 @@ namespace Stylet
     {
         static readonly ContentPropertyAttribute DefaultContentProperty = new ContentPropertyAttribute("Content");
 
-        public static object GetTarget(DependencyObject obj)
+        public static object GetActionTarget(DependencyObject obj)
         {
-            return (object)obj.GetValue(TargetProperty);
+            return (object)obj.GetValue(ActionTargetProperty);
         }
 
-        public static void SetTarget(DependencyObject obj, object value)
+        public static void SetActionTarget(DependencyObject obj, object value)
         {
-            obj.SetValue(TargetProperty, value);
+            obj.SetValue(ActionTargetProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for Target.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty TargetProperty =
-            DependencyProperty.RegisterAttached("Target", typeof(object), typeof(View), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
-
-
+        public static readonly DependencyProperty ActionTargetProperty =
+            DependencyProperty.RegisterAttached("ActionTarget", typeof(object), typeof(View), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
 
         public static object GetModel(DependencyObject obj)
         {
@@ -39,7 +36,6 @@ namespace Stylet
             obj.SetValue(ModelProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for Model.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ModelProperty =
             DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(null, (d, e) => IoC.Get<IViewManager>().OnModelChanged(d, e) ));
 

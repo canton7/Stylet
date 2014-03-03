@@ -29,7 +29,7 @@ namespace Stylet
 
             this.UpdateGuardHandler();
 
-            DependencyPropertyDescriptor.FromProperty(View.TargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateGuardHandler());
+            DependencyPropertyDescriptor.FromProperty(View.ActionTargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateGuardHandler());
         }
 
         private string GuardName
@@ -39,7 +39,7 @@ namespace Stylet
 
         private void UpdateGuardHandler()
         {
-            var newTarget = View.GetTarget(this.subject);
+            var newTarget = View.GetActionTarget(this.subject);
             MethodInfo targetMethodInfo = null;
             
             this.guardPropertyGetter = null;

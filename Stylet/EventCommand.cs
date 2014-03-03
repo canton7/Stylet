@@ -35,7 +35,7 @@ namespace Stylet
 
         private void InvokeCommand(object sender, RoutedEventArgs e)
         {
-            var target = View.GetTarget(this.subject);
+            var target = View.GetActionTarget(this.subject);
             if (target == null)
                 throw new Exception("Target not set");
 

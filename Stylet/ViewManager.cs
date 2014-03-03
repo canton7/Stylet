@@ -71,7 +71,7 @@ namespace Stylet
 
         public virtual void BindViewToModel(UIElement view, object viewModel)
         {
-            View.SetTarget(view, viewModel);
+            View.SetActionTarget(view, viewModel);
 
             var viewAsFrameworkElement = view as FrameworkElement;
             if (viewAsFrameworkElement != null)
