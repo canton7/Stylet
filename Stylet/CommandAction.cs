@@ -13,23 +13,52 @@ using Expressions = System.Linq.Expressions;
 
 namespace Stylet
 {
-    public class ActionCommand : ICommand
+    /// <summary>
+    /// ICommand returned by ActionExtension for binding buttons, etc, to methods on a ViewModel.
+    /// If the method has a parameter, CommandParameter is passed
+    /// </summary>
+    /// <remarks>
+    /// Watches the current View.ActionTarget, and looks for a method with the given name, calling it when the ICommand is called.
+    /// If a bool property with name Get(methodName) exists, it will be observed and used to enable/disable the ICommand.
+    /// </remarks>
+    public class CommandAction : ICommand
     {
+        /// <summary>
+        /// View to grab the View.ActionTarget from
+        /// </summary>
         private FrameworkElement subject;
+
+        /// <summary>
+        /// Method name. E.g. if someone's gone Buttom Command="{s:Action MyMethod}", this is MyMethod.
+        /// </summary>
         private string methodName;
+
+        /// <summary>
+        /// Generated accessor to grab the value of the guard property, or null if there is none
+        /// </summary>
         private Func<bool> guardPropertyGetter;
+
+        /// <summary>
+        /// MethodInfo for the method to call. This has to exist, or we throw a wobbly
+        /// </summary>
         private MethodInfo targetMethodInfo;
 
         private object target;
 
-        public ActionCommand(FrameworkElement subject, string methodName)
+        /// <summary>
+        /// Create a new ActionCommand 
+        /// </summary>
+        /// <param name="subject">View to grab the View.ActionTarget from</param>
+        /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
+        public CommandAction(FrameworkElement subject, string methodName)
         {
             this.subject = subject;
             this.methodName = methodName;
 
-            this.UpdateGuardHandler();
+            this.UpdateGuardAndMethod();
 
-            DependencyPropertyDescriptor.FromProperty(View.ActionTargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateGuardHandler());
+            // Observe the View.ActionTarget for changes, and re-bind the guard property and MethodInfo if it changes
+            DependencyPropertyDescriptor.FromProperty(View.ActionTargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateGuardAndMethod());
         }
 
         private string GuardName
@@ -37,7 +66,7 @@ namespace Stylet
             get { return "Can" + this.methodName; }
         }
 
-        private void UpdateGuardHandler()
+        private void UpdateGuardAndMethod()
         {
             var newTarget = View.GetActionTarget(this.subject);
             MethodInfo targetMethodInfo = null;
@@ -50,9 +79,9 @@ namespace Stylet
                 var guardPropertyInfo = newTargetType.GetProperty(this.GuardName);
                 if (guardPropertyInfo != null && guardPropertyInfo.PropertyType == typeof(bool))
                 {
-                    var param = Expressions.Expression.Parameter(typeof(bool), "returnValue");
-                    var propertyAccess = Expressions.Expression.Property(param, guardPropertyInfo);
-                    this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess, param).Compile();
+                    var targetExpression = Expressions.Expression.Constant(newTarget);
+                    var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
+                    this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
                 }
 
                 targetMethodInfo = newTargetType.GetMethod(this.methodName);

@@ -30,13 +30,13 @@ namespace Stylet
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
-                return new ActionCommand((FrameworkElement)valueService.TargetObject, this.Method);
+                return new CommandAction((FrameworkElement)valueService.TargetObject, this.Method);
             }
 
             var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
             if (propertyAsEventInfo != null)
             {
-                var ec = new EventCommand((FrameworkElement)valueService.TargetObject, propertyAsEventInfo, this.Method);
+                var ec = new EventAction((FrameworkElement)valueService.TargetObject, propertyAsEventInfo, this.Method);
                 return ec.GetDelegate();
             }
                 

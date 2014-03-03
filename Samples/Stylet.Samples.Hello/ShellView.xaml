@@ -4,7 +4,7 @@
         xmlns:s="http://github.com/canton7/Stylet"
         Height="300" Width="300">
     <StackPanel>
-        <TextBox Text="{Binding Name}"/>
+        <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
         <Button Command="{s:Action SayHello}">Say Hello</Button>
     </StackPanel>
 </Window>
