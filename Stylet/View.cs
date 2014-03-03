@@ -11,7 +11,13 @@ namespace Stylet
 {
     public class View : DependencyObject
     {
-        static readonly ContentPropertyAttribute DefaultContentProperty = new ContentPropertyAttribute("Content");
+        private static readonly ContentPropertyAttribute defaultContentProperty = new ContentPropertyAttribute("Content");
+        private static IViewManager viewManager;
+
+        static View()
+        {
+            viewManager = IoC.Get<IViewManager>();
+        }
 
         public static object GetActionTarget(DependencyObject obj)
         {
@@ -37,13 +43,13 @@ namespace Stylet
         }
 
         public static readonly DependencyProperty ModelProperty =
-            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(null, (d, e) => IoC.Get<IViewManager>().OnModelChanged(d, e) ));
+            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(null, (d, e) => viewManager.OnModelChanged(d, e) ));
 
 
         public static void SetContentProperty(DependencyObject targetLocation, UIElement view)
         {
             var type = targetLocation.GetType();
-            var contentProperty = Attribute.GetCustomAttributes(type, true).OfType<ContentPropertyAttribute>().FirstOrDefault() ?? DefaultContentProperty;
+            var contentProperty = Attribute.GetCustomAttributes(type, true).OfType<ContentPropertyAttribute>().FirstOrDefault() ?? defaultContentProperty;
 
             type.GetProperty(contentProperty.Name).SetValue(targetLocation, view, null);
         }
