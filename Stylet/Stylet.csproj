@@ -43,18 +43,18 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionCommand.cs" />
     <Compile Include="ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />
     <Compile Include="BindableCollection.cs" />
     <Compile Include="BootstrapperBase.cs" />
+    <Compile Include="CommandAction.cs" />
     <Compile Include="Conductor.cs" />
     <Compile Include="ConductorAllActive.cs" />
     <Compile Include="ConductorBase.cs" />
     <Compile Include="ConductorBaseWithActiveItem.cs" />
     <Compile Include="ConductorOneActive.cs" />
+    <Compile Include="EventAction.cs" />
     <Compile Include="EventAggregator.cs" />
-    <Compile Include="EventCommand.cs" />
     <Compile Include="Execute.cs" />
     <Compile Include="ExpressionExtensions.cs" />
     <Compile Include="IConductor.cs" />
