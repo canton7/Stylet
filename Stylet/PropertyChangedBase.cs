@@ -25,14 +25,11 @@ namespace Stylet
 
         protected virtual void NotifyOfPropertyChange([CallerMemberName] string propertyName = "")
         {
-            Execute.OnUIThread(() =>
+            var handler = this.PropertyChanged;
+            if (handler != null)
             {
-                var handler = this.PropertyChanged;
-                if (handler != null)
-                {
-                    handler(this, new PropertyChangedEventArgs(propertyName));
-                }
-            });
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         protected virtual void SetAndNotify<T>(ref T field, T value, [CallerMemberName] string propertyName = "")

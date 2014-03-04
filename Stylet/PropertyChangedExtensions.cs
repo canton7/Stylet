@@ -77,78 +77,63 @@ namespace Stylet
             }
         }
 
-        public static IPropertyChangedBinding BindWeak<TMember>(this object binder, Expression<Func<TMember>> targetSelector, Action<TMember> handler)
+        public static IPropertyChangedBinding BindWeak<TBindTo, TMember>(this TBindTo target, object binder, Expression<Func<TBindTo, TMember>> targetSelector, Action<TMember> handler) where TBindTo : class, INotifyPropertyChanged
         {
-            return BindInternal(binder, targetSelector, handler, true);
-        }
+            var propertyName = targetSelector.NameForProperty();
+            var propertyAccess = targetSelector.Compile();
+            var weakTarget = new WeakReference<TBindTo>(target);
 
-        public static IPropertyChangedBinding Bind<TMember>(this object binder, Expression<Func<TMember>> targetSelector, Action<TMember> handler)
-        {
-            return BindInternal(binder, targetSelector, handler, false);
-        }
-
-        private static IPropertyChangedBinding BindInternal<TMember>(object binder, Expression<Func<TMember>> targetSelector, Action<TMember> handler, bool weak)
-        {
-            var memberSelector = targetSelector.Body as MemberExpression;
-            if (memberSelector == null)
-                throw new ArgumentException("Must be in the form () => someInstance.SomeProperty", "targetSelector");
-
-            var propertyName = memberSelector.Member.Name;
-            var targetExpression = memberSelector.Expression as MemberExpression;
-            if (targetExpression == null)
-                throw new ArgumentException("Must be in the form () => someInstance.SomeProperty", "targetSelector");
-
-            var target = Expression.Lambda<Func<object>>(targetExpression).Compile()();
-            var inpc = target as INotifyPropertyChanged;
-            if (inpc == null)
-                throw new ArgumentException("The someInstance in () => someInstance.SomeProperty must be an INotifyPropertyChanged", "targetSelector");
-
-            var propertyAccess = Expression.Lambda<Func<TMember>>(memberSelector).Compile();
-
-            IPropertyChangedBinding listener;
-
-            if (weak)
+            EventHandler<PropertyChangedEventArgs> ourHandler = (o, e) =>
             {
-                EventHandler<PropertyChangedEventArgs> ourHandler = (o, e) =>
+                TBindTo strongTarget;
+                if (weakTarget.TryGetTarget(out strongTarget))
+                    handler(propertyAccess(strongTarget));
+            };
+
+            WeakPropertyChangedBinding weakListener = new WeakPropertyChangedBinding(binder, target, propertyName, ourHandler);
+
+            // Right, we have target, propertyName, binder.
+            // Now we have to keep the handler we're about to build (which has a reference to the handler we were passed) alive as long as
+            // binder's alive (the handler that was passed to us might refer to a method on a compiler-generated class, which we've got
+            // the only reference to, so we've got to keep that alive).
+            lock (eventMappingLock)
+            {
+                List<WeakPropertyChangedBinding> listeners;
+                if (!eventMapping.TryGetValue(binder, out listeners))
                 {
-                    handler(propertyAccess());
-                };
-
-                WeakPropertyChangedBinding weakListener = new WeakPropertyChangedBinding(binder, inpc, propertyName, ourHandler);
-                listener = weakListener;
-
-                // Right, we have target, propertyName, binder.
-                // Now we have to keep the handler we're about to build (which has a reference to the handler we were passed) alive as long as
-                // binder's alive (the handler that was passed to us might refer to a method on a compiler-generated class, which we've got
-                // the only reference to, so we've got to keep that alive).
-                lock (eventMappingLock)
-                {
-                    List<WeakPropertyChangedBinding> listeners;
-                    if (!eventMapping.TryGetValue(binder, out listeners))
-                    {
-                        listeners = new List<WeakPropertyChangedBinding>();
-                        eventMapping.Add(binder, listeners);
-                    }
-
-                    listeners.Add(weakListener);
+                    listeners = new List<WeakPropertyChangedBinding>();
+                    eventMapping.Add(binder, listeners);
                 }
 
-                PropertyChangedEventManager.AddHandler(inpc, ourHandler, propertyName);
+                listeners.Add(weakListener);
             }
-            else
+
+            PropertyChangedEventManager.AddHandler(target, ourHandler, propertyName);
+
+            return weakListener;
+        }
+
+        public static IPropertyChangedBinding Bind<TBindTo, TMember>(this TBindTo target, Expression<Func<TBindTo, TMember>> targetSelector, Action<TMember> handler) where TBindTo : class, INotifyPropertyChanged
+        {
+            var propertyName = targetSelector.NameForProperty();
+            var propertyAccess = targetSelector.Compile();
+            // Make sure we don't capture target strongly, otherwise we'll retain it when we shouldn't
+            // If it does get released, we're released from the delegate list
+            var weakTarget = new WeakReference<TBindTo>(target);
+
+            PropertyChangedEventHandler ourHandler = (o, e) =>
             {
-                PropertyChangedEventHandler ourHandler = (o, e) =>
+                if (e.PropertyName == propertyName || e.PropertyName == String.Empty)
                 {
-                    if (e.PropertyName == propertyName || e.PropertyName == String.Empty)
-                    {
-                        handler(propertyAccess());
-                    }
-                };
+                    TBindTo strongTarget;
+                    if (weakTarget.TryGetTarget(out strongTarget))
+                        handler(propertyAccess(strongTarget));
+                }
+            };
 
-                inpc.PropertyChanged += ourHandler;
+            target.PropertyChanged += ourHandler;
 
-                listener = new StrongPropertyChangedBinding(inpc, ourHandler);
-            }
+            var listener = new StrongPropertyChangedBinding(target, ourHandler);
 
             return listener;
         }
