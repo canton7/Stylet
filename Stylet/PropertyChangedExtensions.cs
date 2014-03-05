@@ -31,6 +31,7 @@ namespace Stylet
                 this.binder = new WeakReference(binder);
                 this.inpc = new WeakReference<INotifyPropertyChanged>(inpc);
                 this.propertyName = propertyName;
+                // We need to keep this strongly, in case its target is a compiler-generated class instance
                 this.handler = handler;
             }
 

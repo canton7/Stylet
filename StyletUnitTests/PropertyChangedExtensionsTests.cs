@@ -169,12 +169,28 @@ namespace StyletUnitTests
             var weakBinding = new WeakReference<BindingClass>(binding);
 
             var notifying = new NotifyingClass();
-            // Retain binder, in case that affects anything
-            var binder = binding.BindWeak(notifying);
+            binding.BindWeak(notifying);
 
             binding = null;
             GC.Collect();
             Assert.IsFalse(weakBinding.TryGetTarget(out binding));
+        }
+
+        [Test]
+        public void WeakBindingRetainsClassIfIPropertyChangedBindingRetained()
+        {
+            var binding = new BindingClass();
+
+            // Means of determining whether the class has been disposed
+            var weakBinding = new WeakReference<BindingClass>(binding);
+
+            var notifying = new NotifyingClass();
+            // Retain this
+            var binder = binding.BindWeak(notifying);
+
+            binding = null;
+            GC.Collect();
+            Assert.IsTrue(weakBinding.TryGetTarget(out binding));
         }
 
         [Test]
@@ -190,6 +206,18 @@ namespace StyletUnitTests
             notifying = null;
             GC.Collect();
             Assert.IsFalse(weakNotifying.TryGetTarget(out notifying));
+        }
+
+        [Test]
+        public void WeakBindingUnbinds()
+        {
+            string newVal = null;
+            var c1 = new NotifyingClass();
+            var binding = c1.BindWeak(this, x => x.Bar, x => newVal = x);
+            binding.Unbind();
+            c1.Bar = "bar";
+
+            Assert.AreEqual(null, newVal);
         }
     }
 }
