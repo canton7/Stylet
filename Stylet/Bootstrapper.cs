@@ -28,7 +28,14 @@ namespace Stylet
             base.Start();
 
             var builder = new StyletIoCBuilder();
+
+            // Mark these as auto-bindings, so the user can replace them if they want
+            builder.Bind(typeof(IWindowManager), true).To<WindowManager>().InSingletonScope();
+            builder.Bind(typeof(IEventAggregator), true).To<EventAggregator>().InSingletonScope();
+            builder.Bind(typeof(IViewManager), true).To<ViewManager>().InSingletonScope();
+
             this.ConfigureIoC(builder);
+
             this.container = builder.BuildContainer();
         }
 
@@ -36,16 +43,12 @@ namespace Stylet
         /// Override to add your own types to the IoC container.
         /// </summary>
         /// <remarks>
-        /// Don't call the base method if you want to set up your own bindings for IWindowManager, IEventAggregator, IViewManager
+        /// Don't call the base method if you don't want to auto-self-bind all concrete types
         /// </remarks>
         /// <param name="builder"></param>
         protected virtual void ConfigureIoC(IStyletIoCBuilder builder)
         {
             builder.Autobind(AssemblySource.Assemblies);
-
-            builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope();
-            builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope();
-            builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope();
         }
 
         /// <summary>

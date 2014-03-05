@@ -34,7 +34,12 @@ namespace StyletIoC
 
         public IRegistrationCollection AddRegistration(IRegistration registration)
         {
-            return new RegistrationCollection(new List<IRegistration>() { this.registration, registration });
+            // If we were auto-created, and the newcomer is not, replace us with them
+            // This allows an explicit binding to replace an auto-created one
+            if (this.registration.WasAutoCreated && !registration.WasAutoCreated)
+                return new SingleRegistration(registration);
+            else
+                return new RegistrationCollection(new List<IRegistration>() { this.registration, registration });
         }
     }
 

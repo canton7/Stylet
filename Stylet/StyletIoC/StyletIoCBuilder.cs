@@ -78,10 +78,12 @@ namespace StyletIoC
     {
         private Type serviceType;
         private BuilderBindingBase builderBinding;
+        private bool wasAutoCreated;
 
-        public BuilderBindTo(Type serviceType)
+        public BuilderBindTo(Type serviceType, bool wasAutoCreated)
         {
             this.serviceType = serviceType;
+            this.wasAutoCreated = wasAutoCreated;
         }
 
         public IInScopeOrWithKey ToSelf()
@@ -96,19 +98,19 @@ namespace StyletIoC
 
         public IInScopeOrWithKey To(Type implementationType)
         {
-            this.builderBinding = new BuilderTypeBinding(this.serviceType, implementationType);
+            this.builderBinding = new BuilderTypeBinding(this.serviceType, implementationType) { WasAutoCreated = this.wasAutoCreated };
             return this.builderBinding;
         }
 
         public IInScopeOrWithKey ToFactory<TImplementation>(Func<IContainer, TImplementation> factory)
         {
-            this.builderBinding = new BuilderFactoryBinding<TImplementation>(this.serviceType, factory);
+            this.builderBinding = new BuilderFactoryBinding<TImplementation>(this.serviceType, factory) { WasAutoCreated = this.wasAutoCreated };
             return this.builderBinding;
         }
 
         public IWithKey ToAbstractFactory()
         {
-            this.builderBinding = new AbstractFactoryBinding(this.serviceType);
+            this.builderBinding = new AbstractFactoryBinding(this.serviceType) { WasAutoCreated = this.wasAutoCreated };
             return this.builderBinding;
         }
 
@@ -116,7 +118,7 @@ namespace StyletIoC
         {
             if (assemblies == null || assemblies.Length == 0)
                 assemblies = new[] { Assembly.GetCallingAssembly() };
-            this.builderBinding = new BuilderToAllImplementationsBinding(this.serviceType, assemblies);
+            this.builderBinding = new BuilderToAllImplementationsBinding(this.serviceType, assemblies) { WasAutoCreated = true };
             return this.builderBinding;
         }
 
@@ -128,6 +130,8 @@ namespace StyletIoC
 
     internal abstract class BuilderBindingBase : IInScopeOrWithKey, IWithKey
     {
+        public bool WasAutoCreated { get; set; }
+
         protected Type serviceType;
         protected bool isSingleton;
         protected string key;
@@ -189,6 +193,8 @@ namespace StyletIoC
             {
                 var creator = new TypeCreator(implementationType, container);
                 IRegistration registration = this.isSingleton ? (IRegistration)new SingletonRegistration(creator) : (IRegistration)new TransientRegistration(creator);
+                registration.WasAutoCreated = this.WasAutoCreated;
+
                 container.AddRegistration(new TypeKey(this.serviceType, this.key ?? creator.AttributeKey), registration);
             }
         }
@@ -233,6 +239,8 @@ namespace StyletIoC
         {
             var creator = new FactoryCreator<TImplementation>(this.factory, container);
             IRegistration registration = this.isSingleton ? (IRegistration)new SingletonRegistration(creator) : (IRegistration)new TransientRegistration(creator);
+            registration.WasAutoCreated = this.WasAutoCreated;
+
             container.AddRegistration(new TypeKey(this.serviceType, this.key), registration);
         }
     }
@@ -277,6 +285,8 @@ namespace StyletIoC
             var factoryType = container.GetFactoryForType(this.serviceType);
             var creator = new TypeCreator(factoryType, container);
             var registration = new SingletonRegistration(creator);
+            registration.WasAutoCreated = this.WasAutoCreated;
+
             container.AddRegistration(new TypeKey(this.serviceType, this.key), registration);
         }
     }
@@ -330,7 +340,12 @@ namespace StyletIoC
         /// <param name="serviceType">Service to bind</param>
         public IBindTo Bind(Type serviceType)
         {
-            var builderBindTo = new BuilderBindTo(serviceType);
+            return this.Bind(serviceType, false);
+        }
+
+        internal IBindTo Bind(Type serviceType, bool isAutoBinding)
+        {
+            var builderBindTo = new BuilderBindTo(serviceType, isAutoBinding);
             this.bindings.Add(builderBindTo);
             return builderBindTo;
         }
@@ -361,7 +376,7 @@ namespace StyletIoC
                 // Don't care if binding fails - we're likely to hit a few of these
                 try
                 {
-                    this.Bind(cls).To(cls);
+                    this.Bind(cls, true).To(cls);
                 }
                 catch (StyletIoCRegistrationException e)
                 {

@@ -104,5 +104,18 @@ namespace StyletUnitTests
             var result = ioc.Get<C3>("Key");
             Assert.IsInstanceOf<C3>(result);
         }
+
+        [Test]
+        public void AutobindingBindingsCanBeReplaced()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Autobind();
+            builder.Bind<C11>().ToSelf().InSingletonScope();
+            var ioc = builder.BuildContainer();
+
+            var result1 = ioc.Get<C11>();
+            var result2 = ioc.Get<C11>();
+            Assert.AreEqual(result2, result1);
+        }
     }
 }
