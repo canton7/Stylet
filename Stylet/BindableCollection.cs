@@ -26,10 +26,7 @@ namespace Stylet
         protected void NotifyOfPropertyChange([CallerMemberName] string propertyName = "")
         {
             if (this.isNotifying)
-                Execute.OnUIThread(() =>
-                {
-                    this.OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
-                });
+                this.OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
         }
 
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -46,50 +43,43 @@ namespace Stylet
 
         public virtual void AddRange(IEnumerable<T> items)
         {
-            Execute.OnUIThread(() =>
+           var previousNotificationSetting = this.isNotifying;
+            this.isNotifying = false;
+            var index = Count;
+            foreach (var item in items)
             {
-                var previousNotificationSetting = this.isNotifying;
-                this.isNotifying = false;
-                var index = Count;
-                foreach (var item in items)
-                {
-                    this.InsertItem(index, item);
-                    index++;
-                }
-                this.isNotifying = previousNotificationSetting;
-                this.Refresh();
-            });
+                this.InsertItem(index, item);
+                index++;
+            }
+            this.isNotifying = previousNotificationSetting;
+            this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+            this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+            this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items.ToList()));
         }
 
         public virtual void RemoveRange(IEnumerable<T> items)
         {
-            Execute.OnUIThread(() =>
+            var previousNotificationSetting = this.isNotifying;
+            this.isNotifying = false;
+            foreach (var item in items)
             {
-                var previousNotificationSetting = this.isNotifying;
-                this.isNotifying = false;
-                foreach (var item in items)
+                var index = IndexOf(item);
+                if (index >= 0)
                 {
-                    var index = IndexOf(item);
-                    if (index >= 0)
-                    {
-                        this.RemoveItem(index);
-                    }
+                    this.RemoveItem(index);
                 }
-                this.isNotifying = previousNotificationSetting;
-                this.Refresh();
-            });
+            }
+            this.isNotifying = previousNotificationSetting;
+            this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+            this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+            this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, items.ToList()));
         }
 
         public void Refresh()
         {
-            Execute.OnUIThread(() =>
-            {
-                OnPropertyChanged(new PropertyChangedEventArgs("Count"));
-                OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-            });
+            this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+            this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+            this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
-
-
     }
 }
