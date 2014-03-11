@@ -79,6 +79,7 @@ namespace StyletUnitTests
         {
             var ea = new EventAggregator();
             var target = new C3();
+            var weaktarget = new WeakReference(target);
             ea.Subscribe(target);
 
             // Ugly, but it's the only way to test a WeakReference...
@@ -86,6 +87,7 @@ namespace StyletUnitTests
             GC.Collect();
 
             Assert.DoesNotThrow(() => ea.Publish(new M1()));
+            Assert.IsNull(weaktarget.Target);
         }
     }
 }
