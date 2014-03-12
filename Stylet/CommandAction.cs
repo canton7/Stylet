@@ -26,12 +26,12 @@ namespace Stylet
         /// <summary>
         /// View to grab the View.ActionTarget from
         /// </summary>
-        private FrameworkElement subject;
+        public FrameworkElement Subject { get; private set; }
 
         /// <summary>
         /// Method name. E.g. if someone's gone Buttom Command="{s:Action MyMethod}", this is MyMethod.
         /// </summary>
-        private string methodName;
+        public string MethodName { get; private set; }
 
         /// <summary>
         /// Generated accessor to grab the value of the guard property, or null if there is none
@@ -52,23 +52,23 @@ namespace Stylet
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
         public CommandAction(FrameworkElement subject, string methodName)
         {
-            this.subject = subject;
-            this.methodName = methodName;
+            this.Subject = subject;
+            this.MethodName = methodName;
 
             this.UpdateGuardAndMethod();
 
             // Observe the View.ActionTarget for changes, and re-bind the guard property and MethodInfo if it changes
-            DependencyPropertyDescriptor.FromProperty(View.ActionTargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateGuardAndMethod());
+            DependencyPropertyDescriptor.FromProperty(View.ActionTargetProperty, typeof(View)).AddValueChanged(this.Subject, (o, e) => this.UpdateGuardAndMethod());
         }
 
         private string GuardName
         {
-            get { return "Can" + this.methodName; }
+            get { return "Can" + this.MethodName; }
         }
 
         private void UpdateGuardAndMethod()
         {
-            var newTarget = View.GetActionTarget(this.subject);
+            var newTarget = View.GetActionTarget(this.Subject);
             MethodInfo targetMethodInfo = null;
             
             this.guardPropertyGetter = null;
@@ -84,9 +84,9 @@ namespace Stylet
                     this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
                 }
 
-                targetMethodInfo = newTargetType.GetMethod(this.methodName);
+                targetMethodInfo = newTargetType.GetMethod(this.MethodName);
                 if (targetMethodInfo == null)
-                    throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.methodName, newTargetType.Name));
+                    throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
             }
 
             var oldTarget = this.target as INotifyPropertyChanged;
