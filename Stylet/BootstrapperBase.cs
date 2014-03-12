@@ -39,7 +39,7 @@ namespace Stylet
 
         public BootstrapperBase()
         {
-            var rc = new ResourceDictionary() { Source = new Uri("/Stylet;component/StyletResourceDictionary.xaml", UriKind.Relative) };
+            var rc = new ResourceDictionary() { Source = new Uri("pack://application:,,,/Stylet;component/StyletResourceDictionary.xaml", UriKind.Absolute) };
             this.MergedDictionaries.Add(rc);
 
             this.Start();

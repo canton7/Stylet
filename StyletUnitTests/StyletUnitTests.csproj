@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="ActionExtensionTests.cs" />
     <Compile Include="BindableCollectionTests.cs" />
+    <Compile Include="BootstrapperBaseTests.cs" />
     <Compile Include="EventAggregatorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyChangedExtensionsTests.cs" />
