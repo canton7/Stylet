@@ -23,6 +23,8 @@ namespace Stylet
         protected virtual void ChangeActiveItem(T newItem, bool closePrevious)
         {
             ScreenExtensions.TryDeactivate(this.ActiveItem, closePrevious);
+            if (closePrevious)
+                this.CleanUpAfterClose(this.ActiveItem);
 
             newItem = this.EnsureItem(newItem);
 

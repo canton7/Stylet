@@ -22,6 +22,13 @@ namespace Stylet
             return newItem;
         }
 
+        protected virtual void CleanUpAfterClose(T item)
+        {
+            var itemAsChild = item as IChild;
+            if (itemAsChild != null && itemAsChild.Parent == this)
+                itemAsChild.Parent = null;
+        }
+
         protected virtual async Task<bool> CanAllItemsCloseAsync(IEnumerable<T> toClose)
         {
             var results = await Task.WhenAll(toClose.Select(x => this.CanCloseItem(x)));

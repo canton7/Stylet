@@ -26,8 +26,15 @@ namespace Stylet
             if (item == null || !item.Equals(this.ActiveItem))
                 return;
 
-            if (await this.CanCloseItem(item))
-                this.ChangeActiveItem(default(T), close);
+            if (close)
+            {
+                if (await this.CanCloseItem(item))
+                    this.ChangeActiveItem(default(T), close);
+            }
+            else
+            {
+                ScreenExtensions.TryDeactivate(this.ActiveItem, false);
+            }
         }
 
         public override Task<bool> CanCloseAsync()
