@@ -17,7 +17,8 @@ namespace StyletIoC
         /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
         /// </summary>
-        void Compile();
+        /// <param name="throwOnError">If true, throw if we fail to compile a type</param>
+        void Compile(bool throwOnError = true);
 
         /// <summary>
         /// Fetch a single instance of the specified type
@@ -121,7 +122,7 @@ namespace StyletIoC
         /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
         /// </summary>
-        public void Compile()
+        public void Compile(bool throwOnError = true)
         {
             foreach (var kvp in this.registrations)
             {
@@ -133,10 +134,8 @@ namespace StyletIoC
                     }
                     catch (StyletIoCFindConstructorException)
                     {
-                        // If we can't resolve an auto-created type, that's fine
-                        // Don't remove it from the list of types - that way they'll get a
-                        // decent error message if they actually try and resolve it
-                        if (!registration.WasAutoCreated)
+                        // If they've asked us to be quiet, we will
+                        if (throwOnError)
                             throw;
                     }
                 }
@@ -414,14 +413,8 @@ namespace StyletIoC
             lock (unboundGenerics)
             {
                 // Is there an auto-registration for this type? If so, remove it
-                var existingEntry = unboundGenerics.Where(x => x.Type == unboundGeneric.Type).FirstOrDefault();
-                if (existingEntry != null)
-                {
-                    if (existingEntry.WasAutoCreated)
-                        unboundGenerics.Remove(existingEntry);
-                    else
-                        throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Name));
-                }
+                if (unboundGenerics.Any(x => x.Type == unboundGeneric.Type))
+                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Name));
 
                 unboundGenerics.Add(unboundGeneric);
             }

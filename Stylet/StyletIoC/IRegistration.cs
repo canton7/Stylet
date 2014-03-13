@@ -11,7 +11,6 @@ namespace StyletIoC
     internal interface IRegistration
     {
         Type Type { get; }
-        bool WasAutoCreated { get; set; }
         Func<object> GetGenerator();
         Expression GetInstanceExpression();
     }
@@ -21,7 +20,6 @@ namespace StyletIoC
         protected ICreator creator;
 
         public Type Type { get { return this.creator.Type; } }
-        public bool WasAutoCreated { get; set; }
 
         protected Func<object> generator { get; set; }
 
@@ -97,7 +95,6 @@ namespace StyletIoC
 
         public string Key { get; set; }
         public Type Type { get; private set; }
-        public bool WasAutoCreated { get; set; }
 
         private Expression expression;
         private Func<object> generator;

@@ -10,7 +10,6 @@ namespace StyletIoC
     internal class UnboundGeneric
     {
         private StyletIoCContainer container;
-        public bool WasAutoCreated { get; set; }
         public string Key { get; set; }
         public Type Type { get; private set; }
         public int NumTypeParams
@@ -28,9 +27,9 @@ namespace StyletIoC
         public IRegistration CreateRegistrationForType(Type boundType)
         {
             if (this.IsSingleton)
-                return new SingletonRegistration(new TypeCreator(boundType, this.container)) { WasAutoCreated = this.WasAutoCreated };
+                return new SingletonRegistration(new TypeCreator(boundType, this.container));
             else
-                return new TransientRegistration(new TypeCreator(boundType, this.container)) { WasAutoCreated = this.WasAutoCreated };
+                return new TransientRegistration(new TypeCreator(boundType, this.container));
         }
     }
 }

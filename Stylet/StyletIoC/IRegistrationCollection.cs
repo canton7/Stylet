@@ -34,12 +34,7 @@ namespace StyletIoC
 
         public IRegistrationCollection AddRegistration(IRegistration registration)
         {
-            // If we were auto-created, and the newcomer is not, replace us with them
-            // This allows an explicit binding to replace an auto-created one
-            if (this.registration.WasAutoCreated && !registration.WasAutoCreated)
-                return new SingleRegistration(registration);
-            else
-                return new RegistrationCollection(new List<IRegistration>() { this.registration, registration });
+            return new RegistrationCollection(new List<IRegistration>() { this.registration, registration });
         }
     }
 
@@ -70,14 +65,8 @@ namespace StyletIoC
             lock (this.registrations)
             {
                 // Is there an existing registration for this type?
-                var existingRegistration = this.registrations.FirstOrDefault(x => x.Type == registration.Type);
-                if (existingRegistration != null)
-                {
-                    if (existingRegistration.WasAutoCreated)
-                        this.registrations.Remove(existingRegistration);
-                    else
-                        throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.Name));
-                }
+                if (this.registrations.Any(x => x.Type == registration.Type))
+                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.Name));
                 this.registrations.Add(registration);
                 return this;
             }

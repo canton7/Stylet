@@ -30,9 +30,9 @@ namespace Stylet
             var builder = new StyletIoCBuilder();
 
             // Mark these as auto-bindings, so the user can replace them if they want
-            builder.Bind(typeof(IWindowManager), true).To<WindowManager>().InSingletonScope();
-            builder.Bind(typeof(IEventAggregator), true).To<EventAggregator>().InSingletonScope();
-            builder.Bind(typeof(IViewManager), true).To<ViewManager>().InSingletonScope();
+            builder.BindWeak(typeof(IWindowManager)).To<WindowManager>().InSingletonScope();
+            builder.BindWeak(typeof(IEventAggregator)).To<EventAggregator>().InSingletonScope();
+            builder.BindWeak(typeof(IViewManager)).To<ViewManager>().InSingletonScope();
 
             this.ConfigureIoC(builder);
 
