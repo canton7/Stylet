@@ -47,12 +47,14 @@
     <Compile Include="AssemblySource.cs" />
     <Compile Include="BindableCollection.cs" />
     <Compile Include="BootstrapperBase.cs" />
+    <Compile Include="Xaml\BoolToVisibilityConverter.cs" />
     <Compile Include="Xaml\CommandAction.cs" />
     <Compile Include="Conductor.cs" />
     <Compile Include="ConductorAllActive.cs" />
     <Compile Include="ConductorBase.cs" />
     <Compile Include="ConductorBaseWithActiveItem.cs" />
     <Compile Include="ConductorOneActive.cs" />
+    <Compile Include="Xaml\DebugConverter.cs" />
     <Compile Include="Xaml\EventAction.cs" />
     <Compile Include="EventAggregator.cs" />
     <Compile Include="Execute.cs" />
