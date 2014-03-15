@@ -6,8 +6,16 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Conductor with a single active item, and no other items
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public partial class Conductor<T> : ConductorBaseWithActiveItem<T> where T : class
     {
+        /// <summary>
+        /// Activate the given item, discarding the previous ActiveItem
+        /// </summary>
+        /// <param name="item"></param>
         public override async void ActivateItem(T item)
         {
             if (item != null && item.Equals(this.ActiveItem))
@@ -21,6 +29,11 @@ namespace Stylet
             }
         }
 
+        /// <summary>
+        /// Deactive the given item, optionally closing it as well
+        /// </summary>
+        /// <param name="item">Item to deactivate</param>
+        /// <param name="close">True to also close the item</param>
         public override async void DeactivateItem(T item, bool close)
         {
             if (item == null || !item.Equals(this.ActiveItem))

@@ -12,6 +12,9 @@ namespace Stylet
     {
         public partial class Collections
         {
+            /// <summary>
+            /// Conductor with many items, only one of which is active
+            /// </summary>
             public class OneActive : ConductorBaseWithActiveItem<T>
             {
                 private BindableCollection<T> items = new BindableCollection<T>();
@@ -59,6 +62,10 @@ namespace Stylet
                     return this.items;
                 }
 
+                /// <summary>
+                /// Activate the given item and set it as the ActiveItem, deactivating the previous ActiveItem
+                /// </summary>
+                /// <param name="item">Item to deactivate</param>
                 public override void ActivateItem(T item)
                 {
                     if (item != null && item.Equals(this.ActiveItem))
@@ -72,6 +79,11 @@ namespace Stylet
                     }
                 }
 
+                /// <summary>
+                /// Deactive the given item, and choose another item to set as the ActiveItem, optionally closing this item
+                /// </summary>
+                /// <param name="item">Item to deactivate</param>
+                /// <param name="close">True to close the item as well</param>
                 public override async void DeactivateItem(T item, bool close)
                 {
                     if (item == null)

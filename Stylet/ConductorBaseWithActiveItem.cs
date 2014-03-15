@@ -6,20 +6,34 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Base class for all conductors which had a single active item
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class ConductorBaseWithActiveItem<T> : ConductorBase<T> where T : class
     {
         private T _activeItem;
+
+        /// <summary>
+        /// Item which is currently active
+        /// </summary>
         public T ActiveItem
         {
             get { return this._activeItem; }
             set { this.ActivateItem(value); }
         }
 
+        /// <summary>
+        /// From IParent, fetch all items
+        /// </summary>
         public override IEnumerable<T> GetChildren()
         {
             return new[] { ActiveItem };
         }
 
+        /// <summary>
+        /// Switch the active item to the given item
+        /// </summary>
         protected virtual void ChangeActiveItem(T newItem, bool closePrevious)
         {
             ScreenExtensions.TryDeactivate(this.ActiveItem, closePrevious);
@@ -35,14 +49,30 @@ namespace Stylet
             this.NotifyOfPropertyChange(() => this.ActiveItem);
         }
 
+        /// <summary>
+        /// When we're activated, also activate the ActiveItem
+        /// </summary>
         protected override void OnActivate()
         {
             ScreenExtensions.TryActivate(this.ActiveItem);
         }
 
+        /// <summary>
+        /// When we're deactivate, also deactivate the ActiveItem
+        /// </summary>
         protected override void OnDeactivate(bool close)
         {
             ScreenExtensions.TryDeactivate(this.ActiveItem, close);
+        }
+
+        /// <summary>
+        /// After an item's been closed, clean it up a bit
+        /// </summary>
+        protected virtual void CleanUpAfterClose(T item)
+        {
+            var itemAsChild = item as IChild;
+            if (itemAsChild != null && itemAsChild.Parent == this)
+                itemAsChild.Parent = null;
         }
     }
 

@@ -6,13 +6,30 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Base class for all conductors
+    /// </summary>
+    /// <typeparam name="T">Type of item to be conducted</typeparam>
     public abstract class ConductorBase<T> : Screen, IConductor<T>, IParent<T> where T : class
     {
         public abstract IEnumerable<T> GetChildren();
+
+        /// <summary>
+        /// Activate the given item
+        /// </summary>
+        /// <param name="item">Item to activate</param>
         public abstract void ActivateItem(T item);
+
+        /// <summary>
+        /// Deactivate the given item, and optionally close it as well
+        /// </summary>
+        /// <param name="item">Item to deactivate</param>
+        /// <param name="close">True to also close the item</param>
         public abstract void DeactivateItem(T item, bool close);
 
-        // Ensure an item is ready to be activated
+        /// <summary>
+        /// Ensure an item is ready to be activated
+        /// </summary>
         protected virtual T EnsureItem(T newItem)
         {
             var newItemAsChild = newItem as IChild;
@@ -22,19 +39,20 @@ namespace Stylet
             return newItem;
         }
 
-        protected virtual void CleanUpAfterClose(T item)
-        {
-            var itemAsChild = item as IChild;
-            if (itemAsChild != null && itemAsChild.Parent == this)
-                itemAsChild.Parent = null;
-        }
-
+        /// <summary>
+        /// Utility method to determine if all of the give items can close
+        /// </summary>
         protected virtual async Task<bool> CanAllItemsCloseAsync(IEnumerable<T> toClose)
         {
             var results = await Task.WhenAll(toClose.Select(x => this.CanCloseItem(x)));
             return results.All(x => x);
         }
 
+        /// <summary>
+        /// Determine if the given item can be closed
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         protected virtual Task<bool> CanCloseItem(T item)
         {
             var itemAsGuardClose = item as IGuardClose;

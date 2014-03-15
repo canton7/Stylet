@@ -12,6 +12,9 @@ namespace Stylet
     {
         public partial class Collections
         {
+            /// <summary>
+            /// Conductor which has many items, all of which active at the same time
+            /// </summary>
             public class AllActive : ConductorBase<T>
             {
                 private BindableCollection<T> items = new BindableCollection<T>();
@@ -78,6 +81,10 @@ namespace Stylet
                     return this.CanAllItemsCloseAsync(this.items);
                 }
 
+                /// <summary>
+                /// Activate the given item, and add it to the Items collection
+                /// </summary>
+                /// <param name="item">Item to activate</param>
                 public override void ActivateItem(T item)
                 {
                     if (item == null)
@@ -89,6 +96,11 @@ namespace Stylet
                         ScreenExtensions.TryActivate(item);
                 }
 
+                /// <summary>
+                /// Deactive the given item, optionally closing it as well, and remove from the Items collection
+                /// </summary>
+                /// <param name="item">Item to deactivate</param>
+                /// <param name="close">True to close the item as well</param>
                 public override async void DeactivateItem(T item, bool close)
                 {
                     if (item == null)

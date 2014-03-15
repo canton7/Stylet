@@ -13,14 +13,18 @@ namespace Stylet
         void AttachView(UIElement view);
     }
 
-    public interface IActivate
+    public interface IHasActivationState
     {
         bool IsActive { get; }
+    }
+
+    public interface IActivate : IHasActivationState
+    {
         void Activate();
         event EventHandler<ActivationEventArgs> Activated;
     }
 
-    public interface IDeactivate
+    public interface IDeactivate : IHasActivationState
     {
         void Deactivate(bool close);
         event EventHandler<DeactivationEventArgs> Deactivated;
