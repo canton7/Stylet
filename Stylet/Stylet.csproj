@@ -43,17 +43,17 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionExtension.cs" />
+    <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />
     <Compile Include="BindableCollection.cs" />
     <Compile Include="BootstrapperBase.cs" />
-    <Compile Include="CommandAction.cs" />
+    <Compile Include="Xaml\CommandAction.cs" />
     <Compile Include="Conductor.cs" />
     <Compile Include="ConductorAllActive.cs" />
     <Compile Include="ConductorBase.cs" />
     <Compile Include="ConductorBaseWithActiveItem.cs" />
     <Compile Include="ConductorOneActive.cs" />
-    <Compile Include="EventAction.cs" />
+    <Compile Include="Xaml\EventAction.cs" />
     <Compile Include="EventAggregator.cs" />
     <Compile Include="Execute.cs" />
     <Compile Include="ExpressionExtensions.cs" />
@@ -78,7 +78,7 @@
     <Compile Include="WindowManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="StyletResourceDictionary.xaml">
+    <Page Include="Xaml\StyletResourceDictionary.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

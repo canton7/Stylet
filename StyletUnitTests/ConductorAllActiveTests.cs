@@ -131,7 +131,7 @@ namespace StyletUnitTests
             this.conductor.ActivateItem(screen.Object);
             this.conductor.DeactivateItem(screen.Object, false);
             screen.Verify(x => x.Deactivate(false));
-            Assert.That(this.conductor.Items, Is.EquivalentTo(new[] { screen.Object }))
+            Assert.That(this.conductor.Items, Is.EquivalentTo(new[] { screen.Object }));
         }
 
         [Test]
