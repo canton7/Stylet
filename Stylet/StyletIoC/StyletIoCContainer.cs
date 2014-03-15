@@ -115,11 +115,6 @@ namespace StyletIoC
         private ModuleBuilder factoryBuilder;
 
         /// <summary>
-        /// Cache of services registered with .ToAbstractFactory() to the factory which was generated for each.
-        /// </summary>
-        private readonly ConcurrentDictionary<Type, Type> factories = new ConcurrentDictionary<Type, Type>();
-
-        /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
         /// </summary>
         public void Compile(bool throwOnError = true)
@@ -420,22 +415,22 @@ namespace StyletIoC
             }
         }
 
+        /// <summary>
+        /// </summary>
+        /// <remarks>Not thread-safe, as it's only ever called from the builder</remarks>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
         internal Type GetFactoryForType(Type serviceType)
         {
             if (!serviceType.IsInterface)
                 throw new StyletIoCCreateFactoryException(String.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.Name));
-
-            // Have we built it already?
-            Type factoryType;
-            if (this.factories.TryGetValue(serviceType, out factoryType))
-                return factoryType;
 
             if (this.factoryBuilder == null)
             {
                 var assemblyName = new AssemblyName(FactoryAssemblyName);
                 var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
                 var moduleBuilder = assemblyBuilder.DefineDynamicModule("StyletIoCFactoryModule");
-                Interlocked.CompareExchange(ref this.factoryBuilder, moduleBuilder, null);
+                this.factoryBuilder = moduleBuilder;
             }
 
             // If the service is 'ISomethingFactory', call out new class 'SomethingFactory'
@@ -524,8 +519,8 @@ namespace StyletIoC
             {
                 throw new StyletIoCCreateFactoryException(String.Format("Unable to create factory type for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to your AssemblyInfo.cs", serviceType.Name), e);
             }
-            var actualType = this.factories.GetOrAdd(serviceType, constructedType);
-            return actualType;
+
+            return constructedType;
         }
 
         internal BuilderUpper GetBuilderUpper(Type type)
