@@ -10,27 +10,11 @@ using System.Windows.Threading;
 
 namespace Stylet
 {
-    // We pretend to be a ResourceDictionary so the user can do:
-    // <Application.Resources><ResourceDictionary>
-    //     <ResourceDictionary.MergedDictionaries>
-    //         <local:Bootstrapper/>        
-    //     </ResourceDictionary.MergedDictionaries>
-    //  </ResourceDictionary></Application.Resources>
-    // rather than:
-    // <Application.Resources><ResourceDictionary>
-    //     <ResourceDictionary.MergedDictionaries>
-    //         <ResourceDictionary>
-    //             <local:Bootstrapper x:Key="bootstrapper"/>        
-    //         </ResourceDictionary>
-    //     </ResourceDictionary.MergedDictionaries>
-    //  </ResourceDictionary></Application.Resources>
-    // And also so that we can load the Stylet resources
-
     /// <summary>
     /// Bootstrapper to be extended by applications which don't want to use StyletIoC as the IoC container.
     /// </summary>
     /// <typeparam name="TRootViewModel">Type of the root ViewModel. This will be instantiated and displayed</typeparam>
-    public abstract class BootstrapperBase<TRootViewModel> : ResourceDictionary
+    public abstract class BootstrapperBase<TRootViewModel>
     {
         /// <summary>
         /// Reference to the current application
@@ -39,9 +23,6 @@ namespace Stylet
 
         public BootstrapperBase()
         {
-            var rc = new ResourceDictionary() { Source = new Uri("pack://application:,,,/Stylet;component/Xaml/StyletResourceDictionary.xaml", UriKind.Absolute) };
-            this.MergedDictionaries.Add(rc);
-
             this.Start();
         }
 
@@ -69,11 +50,19 @@ namespace Stylet
             // Add the current assembly to the assemblies list - this will be needed by the IViewManager
             AssemblySource.Assemblies.Clear();
             AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
+
+            this.ConfigureResources();
              
             // Stitch the IoC shell to us
             IoC.GetInstance = this.GetInstance;
             IoC.GetAllInstances = this.GetAllInstances;
             IoC.BuildUp = this.BuildUp;
+        }
+
+        protected virtual void ConfigureResources()
+        {
+            var rc = new ResourceDictionary() { Source = new Uri("pack://application:,,,/Stylet;component/Xaml/StyletResourceDictionary.xaml", UriKind.Absolute) };
+            Application.Resources.MergedDictionaries.Add(rc);
         }
 
         protected abstract object GetInstance(Type service, string key = null);
