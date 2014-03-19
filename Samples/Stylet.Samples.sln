@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.MasterDetail
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.HelloDialog", "Stylet.Samples.HelloDialog\Stylet.Samples.HelloDialog.csproj", "{F6DD6F38-40A3-4EC1-B342-0C2BCCF0DD44}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.OverridingViewManager", "Stylet.Samples.OverridingViewManager\Stylet.Samples.OverridingViewManager.csproj", "{2F7D7EF3-730A-45E3-93CA-7C5031250246}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{F6DD6F38-40A3-4EC1-B342-0C2BCCF0DD44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6DD6F38-40A3-4EC1-B342-0C2BCCF0DD44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6DD6F38-40A3-4EC1-B342-0C2BCCF0DD44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F7D7EF3-730A-45E3-93CA-7C5031250246}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F7D7EF3-730A-45E3-93CA-7C5031250246}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F7D7EF3-730A-45E3-93CA-7C5031250246}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F7D7EF3-730A-45E3-93CA-7C5031250246}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
