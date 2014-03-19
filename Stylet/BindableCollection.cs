@@ -14,7 +14,7 @@ namespace Stylet
     /// Represents a collection which is observasble
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IObservableCollection<T> : IList<T>, INotifyPropertyChanged, INotifyCollectionChanged
+    public interface IObservableCollection<T> : IList<T>, INotifyPropertyChanged, INotifyCollectionChanged, INotifyPropertyChangedDispatcher
     {
         /// <summary>
         /// Add a range of items
@@ -35,6 +35,16 @@ namespace Stylet
     /// <typeparam name="T"></typeparam>
     public class BindableCollection<T> : ObservableCollection<T>, IObservableCollection<T>
     {
+        private Action<Action> _propertyChangedDispatcher = Execute.DefaultPropertyChangedDispatcher;
+        /// <summary>
+        /// Dispatcher to use when firing events. Defaults to Execute.DefaultPropertyChangedDispatcher
+        /// </summary>
+        public Action<Action> PropertyChangedDispatcher
+        {
+            get { return this._propertyChangedDispatcher; }
+            set { this._propertyChangedDispatcher = value; }
+        }
+
         /// <summary>
         ///  We have to disable notifications when adding individual elements in the AddRange and RemoveRange implementations
         /// </summary>
@@ -46,13 +56,13 @@ namespace Stylet
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             if (this.isNotifying)
-                base.OnPropertyChanged(e);
+                this.PropertyChangedDispatcher(() => base.OnPropertyChanged(e));
         }
 
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
             if (this.isNotifying)
-                base.OnCollectionChanged(e);
+                this.PropertyChangedDispatcher(() => base.OnCollectionChanged(e));
         }
 
         /// <summary>

@@ -43,6 +43,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="INotifyPropertyChangedDispatcher.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />
     <Compile Include="BindableCollection.cs" />

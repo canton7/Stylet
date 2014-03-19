@@ -9,8 +9,15 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
-    public class PropertyChangedBase : INotifyPropertyChanged
+    public class PropertyChangedBase : INotifyPropertyChanged, INotifyPropertyChangedDispatcher
     {
+        private Action<Action> _propertyChangedDispatcher = Execute.DefaultPropertyChangedDispatcher;
+        public Action<Action> PropertyChangedDispatcher
+        {
+            get { return this._propertyChangedDispatcher; }
+            set { this._propertyChangedDispatcher = value; }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void Refresh()
@@ -28,7 +35,7 @@ namespace Stylet
             var handler = this.PropertyChanged;
             if (handler != null)
             {
-                handler(this, new PropertyChangedEventArgs(propertyName));
+                this.PropertyChangedDispatcher(() => handler(this, new PropertyChangedEventArgs(propertyName)));
             }
         }
 

@@ -15,6 +15,8 @@ namespace Stylet
         public static SynchronizationContext SynchronizationContext;
         private static bool? inDesignMode;
 
+        public static Action<Action> DefaultPropertyChangedDispatcher = a => a();
+
         public static void OnUIThread(Action action)
         {
             // If we're already on the given SynchronizationContext, or it hasn't been set, run synchronously
