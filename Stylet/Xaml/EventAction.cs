@@ -86,8 +86,11 @@ namespace Stylet
 
         private void InvokeCommand(object sender, RoutedEventArgs e)
         {
+            if (this.target == null)
+                return;
+
             var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new object[] { e } : null;
-            this.targetMethodInfo.Invoke(target, parameters);
+            this.targetMethodInfo.Invoke(this.target, parameters);
         }
     }
 }
