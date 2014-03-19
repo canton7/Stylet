@@ -87,6 +87,10 @@ namespace Stylet
                 targetMethodInfo = newTargetType.GetMethod(this.MethodName);
                 if (targetMethodInfo == null)
                     throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
+
+                var methodParameters = targetMethodInfo.GetParameters();
+                if (methodParameters.Length > 1)
+                    throw new ArgumentException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
             }
 
             var oldTarget = this.target as INotifyPropertyChanged;

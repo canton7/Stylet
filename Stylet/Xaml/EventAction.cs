@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -29,6 +30,13 @@ namespace Stylet
         private string methodName;
 
         /// <summary>
+        /// MethodInfo for the method to call. This has to exist, or we throw a wobbly
+        /// </summary>
+        private MethodInfo targetMethodInfo;
+
+        private object target;
+
+        /// <summary>
         /// Create a new EventAction
         /// </summary>
         /// <param name="subject">View whose View.ActionTarget we watch</param>
@@ -39,6 +47,30 @@ namespace Stylet
             this.subject = subject;
             this.targetProperty = targetProperty;
             this.methodName = methodName;
+
+            // Observe the View.ActionTarget for changes, and re-bind the guard property and MethodInfo if it changes
+            DependencyPropertyDescriptor.FromProperty(View.ActionTargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateMethod());
+        }
+
+        private void UpdateMethod()
+        {
+            var newTarget = View.GetActionTarget(this.subject);
+            MethodInfo targetMethodInfo = null;
+
+            if (newTarget != null)
+            {
+                var newTargetType = newTarget.GetType();
+                targetMethodInfo = newTargetType.GetMethod(this.methodName);
+                if (targetMethodInfo == null)
+                    throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.methodName, newTargetType.Name));
+
+                var methodParameters = targetMethodInfo.GetParameters();
+                if (methodParameters.Length > 1 || (methodParameters.Length == 1 && !typeof(RoutedEventArgs).IsAssignableFrom(methodParameters[0].ParameterType)))
+                    throw new ArgumentException(String.Format("Method {0} on {1} must have zero parameters, or a single parameter accepting a RoutedEventArgs", this.methodName, newTargetType.Name));
+            }
+
+            this.target = newTarget;
+            this.targetMethodInfo = targetMethodInfo;
         }
 
         /// <summary>
@@ -54,16 +86,8 @@ namespace Stylet
 
         private void InvokeCommand(object sender, RoutedEventArgs e)
         {
-            var target = View.GetActionTarget(this.subject);
-            if (target == null)
-                return;
-
-            var methodInfo = target.GetType().GetMethod(this.methodName);
-            if (methodInfo == null)
-                throw new Exception(String.Format("Unable to find method {0} on {1}", this.methodName, target.GetType().Name));
-
-            var parameters = methodInfo.GetParameters().Length == 1 ? new object[] { e } : null;
-            methodInfo.Invoke(target, parameters);
+            var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new object[] { e } : null;
+            this.targetMethodInfo.Invoke(target, parameters);
         }
     }
 }
