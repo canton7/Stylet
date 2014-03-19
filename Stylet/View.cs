@@ -16,7 +16,9 @@ namespace Stylet
 
         static View()
         {
-            viewManager = IoC.Get<IViewManager>();
+            // Don't complain that IoC is not initialized if we're in design mode
+            if (!Execute.InDesignMode)
+                viewManager = IoC.Get<IViewManager>();
         }
 
         public static object GetActionTarget(DependencyObject obj)
