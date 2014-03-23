@@ -17,20 +17,46 @@ namespace StyletIoC
     internal abstract class CreatorBase : ICreator
     {
         public virtual Type Type { get; protected set; }
-
+        protected StyletIoCContainer container;
         public abstract Expression GetInstanceExpression();
+
+        public CreatorBase(StyletIoCContainer container)
+        {
+            this.container = container;
+        }
+
+        // Common utility method
+        protected Expression CompleteExpressionFromCreator(Expression creator)
+        {
+            var instanceVar = Expression.Variable(this.Type, "instance");
+            var assignment = Expression.Assign(instanceVar, creator);
+
+            var buildUpExpression = this.container.GetBuilderUpper(this.Type).GetExpression(instanceVar);
+
+            // We always start with:
+            // var instance = new Class(.....)
+            // instance.Property1 = new ....
+            // instance.Property2 = new ....
+            var blockItems = new List<Expression>() { assignment, buildUpExpression };
+            // If it implements IInjectionAware, follow that up with:
+            // instance.ParametersInjected
+            if (typeof(IInjectionAware).IsAssignableFrom(this.Type))
+                blockItems.Add(Expression.Call(instanceVar, typeof(IInjectionAware).GetMethod("ParametersInjected")));
+            // Final appearance of instanceVar, as this sets the return value of the block
+            blockItems.Add(instanceVar);
+            var completeExpression = Expression.Block(new[] { instanceVar }, blockItems);
+            return completeExpression;
+        }
     }
 
     internal class TypeCreator : CreatorBase
     {
-        private StyletIoCContainer container;
         public string AttributeKey { get; private set; }
         private Expression creationExpression;
 
-        public TypeCreator(Type type, StyletIoCContainer container)
+        public TypeCreator(Type type, StyletIoCContainer container) : base(container)
         {
             this.Type = type;
-            this.container = container;
 
             // Use the key from InjectAttribute (if present), and let someone else override it if they want
             var attribute = (InjectAttribute)type.GetCustomAttributes(typeof(InjectAttribute), false).FirstOrDefault();
@@ -101,24 +127,9 @@ namespace StyletIoC
                 return Expression.Convert(Expression.Constant(x.DefaultValue), x.ParameterType);
             });
 
-            var instanceVar = Expression.Variable(this.Type, "instance");
             var creator = Expression.New(ctor, ctorParams);
-            var assignment = Expression.Assign(instanceVar, creator);
 
-            var buildUpExpression = this.container.GetBuilderUpper(this.Type).GetExpression(instanceVar);
-
-            // We always start with:
-            // var instance = new Class(.....)
-            // instance.Property1 = new ....
-            // instance.Property2 = new ....
-            var blockItems = new List<Expression>() { assignment, buildUpExpression };
-            // If it implements IInjectionAware, follow that up with:
-            // instance.ParametersInjected
-            if (typeof(IInjectionAware).IsAssignableFrom(this.Type))
-                blockItems.Add(Expression.Call(instanceVar, typeof(IInjectionAware).GetMethod("ParametersInjected")));
-            // Final appearance of instanceVar, as this sets the return value of the block
-            blockItems.Add(instanceVar);
-            var completeExpression = Expression.Block(new[] { instanceVar }, blockItems);
+            var completeExpression = this.CompleteExpressionFromCreator(creator);
 
             this.creationExpression = completeExpression;
             return completeExpression;
@@ -128,20 +139,27 @@ namespace StyletIoC
     internal class FactoryCreator<T> : CreatorBase
     {
         private Func<StyletIoCContainer, T> factory;
-        private StyletIoCContainer container;
+        private Expression instanceExpression;
 
         public override Type Type { get { return typeof(T); } }
 
-        public FactoryCreator(Func<StyletIoCContainer, T> factory, StyletIoCContainer container)
+        public FactoryCreator(Func<StyletIoCContainer, T> factory, StyletIoCContainer container) : base(container)
         {
             this.factory = factory;
-            this.container = container;
         }
 
         public override Expression GetInstanceExpression()
         {
+            if (this.instanceExpression != null)
+                return this.instanceExpression;
+
             var expr = (Expression<Func<T>>)(() => this.factory(this.container));
-            return Expression.Invoke(expr, null);
+            var invoked = Expression.Invoke(expr, null);
+
+            var completeExpression = this.CompleteExpressionFromCreator(invoked);
+
+            this.instanceExpression = completeExpression;
+            return completeExpression;
         }
     }
 }

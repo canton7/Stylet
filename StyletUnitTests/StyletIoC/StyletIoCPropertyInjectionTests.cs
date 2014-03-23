@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace StyletUnitTests
 {
     [TestFixture]
-    public class StyletIoCParameterInjectionTests
+    public class StyletIoCPropertyInjectionTests
     {
         class C1 { }
         interface I2 { }
@@ -174,6 +174,19 @@ namespace StyletUnitTests
 
             Assert.IsInstanceOf<C1>(subject.C1);
             Assert.IsTrue(subject.ParametersInjectedCalledCorrectly);
+        }
+
+        [Test]
+        public void FactoryCreatorBuildsUp()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf();
+            builder.Bind<Subject1>().ToFactory(c => new Subject1());
+            var ioc = builder.BuildContainer();
+
+            var subject = ioc.Get<Subject1>();
+
+            Assert.IsInstanceOf<C1>(subject.C1);
         }
     }
 }
