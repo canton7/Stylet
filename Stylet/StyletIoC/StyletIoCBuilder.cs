@@ -186,7 +186,7 @@ namespace StyletIoC
             if (this.serviceType.IsGenericTypeDefinition)
             {
                 var unboundGeneric = new UnboundGeneric(implementationType, container, this.isSingleton);
-                container.AddUnboundGeneric(new TypeKey(serviceType, Key), unboundGeneric);
+                container.AddUnboundGeneric(new TypeKey(serviceType, this.Key), unboundGeneric);
             }
             else
             {

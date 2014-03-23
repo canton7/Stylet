@@ -529,7 +529,7 @@ namespace StyletIoC
         }
     }
 
-    internal class TypeKey
+    internal class TypeKey : IEquatable<TypeKey>
     {
         public readonly Type Type;
         public readonly string Key;
@@ -551,8 +551,12 @@ namespace StyletIoC
         {
             if (!(obj is TypeKey))
                 return false;
-            var other = (TypeKey)obj;
-            return other.Type == this.Type && other.Key == this.Key;
+            return this.Equals((TypeKey)obj);
+        }
+
+        public bool Equals(TypeKey other)
+        {
+            return this.Type == other.Type && this.Key == other.Key;
         }
     }
 
