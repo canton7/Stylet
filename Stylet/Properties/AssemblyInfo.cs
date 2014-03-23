@@ -9,9 +9,9 @@ using System.Windows.Markup;
 [assembly: AssemblyTitle("Stylet")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Sagentia")]
+[assembly: AssemblyCompany("Antony Male")]
 [assembly: AssemblyProduct("Stylet")]
-[assembly: AssemblyCopyright("Copyright © Sagentia 2014")]
+[assembly: AssemblyCopyright("Copyright © Antony Male 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
