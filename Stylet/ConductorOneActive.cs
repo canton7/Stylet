@@ -142,6 +142,8 @@ namespace Stylet
                     {
                         foreach (var item in this.items.OfType<IDeactivate>())
                             item.Deactivate(true);
+
+                        this.items.Clear();
                     }
                     else
                     {

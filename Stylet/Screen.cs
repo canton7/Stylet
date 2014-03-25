@@ -86,7 +86,7 @@ namespace Stylet
 
         void IDeactivate.Deactivate(bool close)
         {
-            if (!this.IsActive)
+            if (!this.IsActive && !close)
                 return;
 
             this.IsActive = false;

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
-    public class PropertyChangedBase : INotifyPropertyChanged, INotifyPropertyChangedDispatcher
+    public abstract class PropertyChangedBase : INotifyPropertyChanged, INotifyPropertyChangedDispatcher
     {
         private Action<Action> _propertyChangedDispatcher = Execute.DefaultPropertyChangedDispatcher;
         /// <summary>
