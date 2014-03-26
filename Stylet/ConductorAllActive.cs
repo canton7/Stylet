@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Stylet.SlightlyInternal;
 
 namespace Stylet
 {
@@ -30,31 +31,23 @@ namespace Stylet
                         switch (e.Action)
                         {
                             case NotifyCollectionChangedAction.Add:
-                                this.SetParent(e.NewItems, this);
+                                this.SetParent(e.NewItems, true);
                                 break;
 
                             case NotifyCollectionChangedAction.Remove:
-                                this.SetParent(e.OldItems, null);
+                                this.SetParent(e.OldItems, false);
                                 break;
 
                             case NotifyCollectionChangedAction.Replace:
-                                this.SetParent(e.NewItems, this);
-                                this.SetParent(e.OldItems, null);
+                                this.SetParent(e.NewItems, true);
+                                this.SetParent(e.OldItems, false);
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
-                                this.SetParent(this.items, this);
+                                this.SetParent(this.items, true);
                                 break;
                         }
                     };
-                }
-
-                private void SetParent(IEnumerable items, object parent)
-                {
-                    foreach (var child in items.OfType<IChild>())
-                    {
-                        child.Parent = parent;
-                    }
                 }
 
                 protected override void OnActivate()
@@ -76,6 +69,9 @@ namespace Stylet
                 protected override void OnClose()
                 {
                     // We've already been deactivated by this point    
+                    foreach (var item in this.items)
+                        this.CloseAndCleanUp(item);
+                    
                     items.Clear();
                 }
 
@@ -103,7 +99,7 @@ namespace Stylet
                 /// Deactive the given item
                 /// </summary>
                 /// <param name="item">Item to deactivate</param>
-                public override async void DeactivateItem(T item)
+                public override void DeactivateItem(T item)
                 {
                     ScreenExtensions.TryDeactivate(item);
                 }
@@ -115,7 +111,7 @@ namespace Stylet
 
                     if (await this.CanCloseItem(item))
                     {
-                        ScreenExtensions.TryClose(item);
+                        this.CloseAndCleanUp(item);
                         this.items.Remove(item);
                     }
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Stylet.SlightlyInternal;
 
 namespace Stylet
 {
@@ -38,10 +39,7 @@ namespace Stylet
         {
             ScreenExtensions.TryDeactivate(this.ActiveItem);
             if (closePrevious)
-            {
-                ScreenExtensions.TryClose(this.ActiveItem);
-                this.CleanUpAfterClose(this.ActiveItem);
-            }
+                this.CloseAndCleanUp(this.ActiveItem);
 
             newItem = this.EnsureItem(newItem);
 
@@ -73,17 +71,7 @@ namespace Stylet
         /// </summary>
         protected override void OnClose()
         {
-            ScreenExtensions.TryClose(this.ActiveItem);
-        }
-
-        /// <summary>
-        /// After an item's been closed, clean it up a bit
-        /// </summary>
-        protected virtual void CleanUpAfterClose(T item)
-        {
-            var itemAsChild = item as IChild;
-            if (itemAsChild != null && itemAsChild.Parent == this)
-                itemAsChild.Parent = null;
+            this.CloseAndCleanUp(this.ActiveItem);
         }
     }
 

@@ -23,7 +23,7 @@ namespace Stylet
                 if (this.IsActive)
                     ScreenExtensions.TryActivate(item);
             }
-            else if (await this.CanCloseItem(this.ActiveItem))
+            else if (await this.CanCloseItem(this.ActiveItem)) // This is null-safe
             {
                 this.ChangeActiveItem(item, true);
             }
@@ -35,10 +35,8 @@ namespace Stylet
         /// <param name="item">Item to deactivate</param>
         public override void DeactivateItem(T item)
         {
-            if (item == null || !item.Equals(this.ActiveItem))
-                return;
-
-            ScreenExtensions.TryDeactivate(this.ActiveItem);
+            if (item != null && item.Equals(this.ActiveItem))
+                ScreenExtensions.TryDeactivate(this.ActiveItem);
         }
 
         /// <summary>
@@ -51,9 +49,7 @@ namespace Stylet
                 return;
 
             if (await this.CanCloseItem(item))
-            {
                  this.ChangeActiveItem(default(T), true);
-            }
                 
         }
 
