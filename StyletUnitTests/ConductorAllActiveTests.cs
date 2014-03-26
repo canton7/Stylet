@@ -110,6 +110,7 @@ namespace StyletUnitTests
         public void RemovingItemRemovesParent()
         {
             var screen = new Mock<IScreen>();
+            screen.SetupGet(x => x.Parent).Returns(this.conductor);
             this.conductor.Items.Add(screen.Object);
             this.conductor.Items.Remove(screen.Object);
             screen.VerifySet(x => x.Parent = null);

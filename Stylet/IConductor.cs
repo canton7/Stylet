@@ -17,7 +17,7 @@ namespace Stylet
         T ActiveItem { get; set; }
     }
 
-    public interface IConductor<T> : IParent<T>
+    public interface IConductor<in T>
     {
         void ActivateItem(T item);
 

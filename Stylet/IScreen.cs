@@ -40,11 +40,6 @@ namespace Stylet
         object Parent { get; set; }
     }
 
-    public interface IDialogClose
-    {
-        void TryClose();
-    }
-
     public interface IClose
     {
         void Close();
@@ -56,7 +51,7 @@ namespace Stylet
         Task<bool> CanCloseAsync();
     }
 
-    public interface IScreen : IViewAware, IHaveDisplayName, IActivate, IDeactivate, IChild, IDialogClose, IClose, IGuardClose
+    public interface IScreen : IViewAware, IHaveDisplayName, IActivate, IDeactivate, IChild, IClose, IGuardClose
     {
     }
 

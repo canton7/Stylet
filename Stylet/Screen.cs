@@ -10,39 +10,13 @@ namespace Stylet
 {
     public class Screen : PropertyChangedBase, IScreen
     {
-        public virtual void TryClose(bool? dialogResult = null)
-        {
-            // TODO: Check for parent conductor
-            var viewWindow = this.View as Window;
-            if (viewWindow != null)
-            {
-                if (dialogResult != null)
-                    viewWindow.DialogResult = dialogResult;
-                viewWindow.Close();
-                return;
-            }
-
-            var viewPopover = this.View as Popup;
-            if (viewPopover != null)
-            {
-                viewPopover.IsOpen = false;
-                return;
-            }
-
-            throw new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a parent, or its view must be a Window", this.GetType().Name));
-        }
-
         #region IHaveDisplayName
 
         private string _displayName;
         public string DisplayName
         {
             get { return this._displayName; }
-            set
-            {
-                this._displayName = value;
-                this.NotifyOfPropertyChange();
-            }
+            set { SetAndNotify(ref this._displayName, value); }
         }
 
         #endregion
@@ -55,11 +29,7 @@ namespace Stylet
         public bool IsActive
         {
             get { return this._isActive; }
-            set
-            {
-                this._isActive = value;
-                this.NotifyOfPropertyChange();
-            }
+            set { SetAndNotify(ref this._isActive, value); }
         }
 
         void IActivate.Activate()
@@ -164,15 +134,6 @@ namespace Stylet
 
         #endregion
 
-        #region IDialogClose
-
-        public void TryClose()
-        {
-            this.TryClose(null);
-        }
-
-        #endregion
-
         #region IGuardClose
 
         public virtual Task<bool> CanCloseAsync()
@@ -181,5 +142,27 @@ namespace Stylet
         }
 
         #endregion
+
+        public virtual void TryClose(bool? dialogResult = null)
+        {
+            // Conductor is contravariant, so it's always an IConductor<Screen>, even if they created a Conductor<IScreen> or Conductor<object>
+            var conductor = this.Parent as IConductor<Screen>;
+            if (conductor != null)
+            {
+                conductor.CloseItem(this);
+                return;
+            }
+
+            var viewWindow = this.View as Window;
+            if (viewWindow != null)
+            {
+                if (dialogResult != null)
+                    viewWindow.DialogResult = dialogResult;
+                viewWindow.Close();
+                return;
+            }
+
+            throw new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent, or its view must be a Window", this.GetType().Name));
+        }
     }
 }
