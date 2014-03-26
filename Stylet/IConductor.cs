@@ -21,6 +21,8 @@ namespace Stylet
     {
         void ActivateItem(T item);
 
-        void DeactivateItem(T item, bool close);
+        void DeactivateItem(T item);
+
+        void CloseItem(T item);
     }
 }

@@ -26,7 +26,7 @@ namespace Stylet
 
     public interface IDeactivate : IHasActivationState
     {
-        void Deactivate(bool close);
+        void Deactivate();
         event EventHandler<DeactivationEventArgs> Deactivated;
     }
 
@@ -40,17 +40,23 @@ namespace Stylet
         object Parent { get; set; }
     }
 
-    public interface IClose
+    public interface IDialogClose
     {
         void TryClose();
     }
 
-    public interface IGuardClose : IClose
+    public interface IClose
+    {
+        void Close();
+        event EventHandler<CloseEventArgs> Closed;
+    }
+
+    public interface IGuardClose
     {
         Task<bool> CanCloseAsync();
     }
 
-    public interface IScreen : IViewAware, IHaveDisplayName, IActivate, IDeactivate, IChild, IGuardClose
+    public interface IScreen : IViewAware, IHaveDisplayName, IActivate, IDeactivate, IChild, IDialogClose, IClose, IGuardClose
     {
     }
 
@@ -61,6 +67,9 @@ namespace Stylet
 
     public class DeactivationEventArgs : EventArgs
     {
-        public bool WasClosed;
+    }
+
+    public class CloseEventArgs : EventArgs
+    {
     }
 }

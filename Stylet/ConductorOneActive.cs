@@ -80,28 +80,22 @@ namespace Stylet
                 }
 
                 /// <summary>
-                /// Deactive the given item, and choose another item to set as the ActiveItem, optionally closing this item
+                /// Deactive the given item, and choose another item to set as the ActiveItem
                 /// </summary>
                 /// <param name="item">Item to deactivate</param>
-                /// <param name="close">True to close the item as well</param>
-                public override async void DeactivateItem(T item, bool close)
+                public override async void DeactivateItem(T item)
+                {
+                    ScreenExtensions.TryDeactivate(item);
+                }
+
+                public override async void CloseItem(T item)
                 {
                     if (item == null)
                         return;
 
-                    if (close)
-                    {
-                        if (await this.CanCloseItem(item))
-                            this.CloseItem(item);
-                    }
-                    else
-                    {
-                        ScreenExtensions.TryDeactivate(item, false);
-                    }
-                }
+                    if (!await this.CanCloseItem(item))
+                        return;
 
-                private void CloseItem(T item)
-                {
                     if (item.Equals(this.ActiveItem))
                     {
                         var index = this.items.IndexOf(item);
@@ -110,7 +104,7 @@ namespace Stylet
                     }
                     else
                     {
-                        ScreenExtensions.TryDeactivate(item, true);
+                        ScreenExtensions.TryClose(item);
                     }
 
                     this.items.Remove(item);
@@ -136,19 +130,12 @@ namespace Stylet
                     return this.CanAllItemsCloseAsync(this.items);
                 }
 
-                protected override void OnDeactivate(bool close)
+                protected override void OnClose()
                 {
-                    if (close)
-                    {
-                        foreach (var item in this.items.OfType<IDeactivate>())
-                            item.Deactivate(true);
-
-                        this.items.Clear();
-                    }
-                    else
-                    {
-                        base.OnDeactivate(false);
-                    }
+                    // We've already been deactivated by this point
+                    foreach (var item in this.items.OfType<IClose>())
+                        item.Close();
+                    this.items.Clear();
                 }
 
                 protected override T EnsureItem(T newItem)

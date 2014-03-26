@@ -30,24 +30,31 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Deactive the given item, optionally closing it as well
+        /// Deactive the given item
         /// </summary>
         /// <param name="item">Item to deactivate</param>
-        /// <param name="close">True to also close the item</param>
-        public override async void DeactivateItem(T item, bool close)
+        public override void DeactivateItem(T item)
         {
             if (item == null || !item.Equals(this.ActiveItem))
                 return;
 
-            if (close)
+            ScreenExtensions.TryDeactivate(this.ActiveItem);
+        }
+
+        /// <summary>
+        /// Close the given item
+        /// </summary>
+        /// <param name="item">Item to close</param>
+        public override async void CloseItem(T item)
+        {
+            if (item == null || !item.Equals(this.ActiveItem))
+                return;
+
+            if (await this.CanCloseItem(item))
             {
-                if (await this.CanCloseItem(item))
-                    this.ChangeActiveItem(default(T), close);
+                 this.ChangeActiveItem(default(T), true);
             }
-            else
-            {
-                ScreenExtensions.TryDeactivate(this.ActiveItem, false);
-            }
+                
         }
 
         public override Task<bool> CanCloseAsync()

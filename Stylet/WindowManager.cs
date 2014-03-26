@@ -81,36 +81,33 @@ namespace Stylet
                 if (viewModelAsActivate != null)
                     viewModelAsActivate.Activate();
 
-                var viewModelAsDeactivate = viewModel as IDeactivate;
-                if (viewModelAsDeactivate != null)
+                var viewModelAsClose = viewModel as IClose;
+                if (viewModelAsClose != null)
                 {
-                    window.Closed += this.Closed;
-                    viewModelAsDeactivate.Deactivated += this.Deactivated;
+                    window.Closed += this.WindowClosed;
+                    viewModelAsClose.Closed += this.ViewModelClosed;
                 }
 
                 if (viewModel is IGuardClose)
                     window.Closing += this.Closing;
             }
 
-            private void Closed(object sender, EventArgs e)
+            private void WindowClosed(object sender, EventArgs e)
             {
-                var viewModelAsDeactivate = (IDeactivate)this.viewModel;
+                var viewModelAsClose = (IClose)this.viewModel;
 
-                this.window.Closed -= this.Closed;
+                this.window.Closed -= this.WindowClosed;
                 this.window.Closing -= this.Closing; // Not sure this is required
-                viewModelAsDeactivate.Deactivated -= this.Deactivated;
+                viewModelAsClose.Closed -= this.ViewModelClosed;
 
-                viewModelAsDeactivate.Deactivate(true);
+                viewModelAsClose.Close();
             }
 
-            private void Deactivated(object sender, DeactivationEventArgs e)
+            private void ViewModelClosed(object sender, CloseEventArgs e)
             {
-                if (!e.WasClosed)
-                    return;
-
-                this.window.Closed -= this.Closed;
+                this.window.Closed -= this.WindowClosed;
                 this.window.Closing -= this.Closing;
-                ((IDeactivate)this.window).Deactivated -= this.Deactivated;
+                ((IClose)this.viewModel).Closed -= this.ViewModelClosed;
                 this.window.Close();
             }
 

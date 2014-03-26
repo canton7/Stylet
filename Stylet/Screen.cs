@@ -84,24 +84,43 @@ namespace Stylet
 
         public event EventHandler<DeactivationEventArgs> Deactivated;
 
-        void IDeactivate.Deactivate(bool close)
+        void IDeactivate.Deactivate()
         {
-            if (!this.IsActive && !close)
+            if (!this.IsActive)
                 return;
 
             this.IsActive = false;
 
-            this.OnDeactivate(close);
+            this.OnDeactivate();
 
             var handler = this.Deactivated;
             if (handler != null)
-                handler(this, new DeactivationEventArgs() { WasClosed = close });
-
-            if (close)
-                this.View = null;
+                handler(this, new DeactivationEventArgs());
         }
 
-        protected virtual void OnDeactivate(bool close) { }
+        protected virtual void OnDeactivate() { }
+
+        #endregion
+
+        #region IClose
+
+        public event EventHandler<CloseEventArgs> Closed;
+
+        void IClose.Close()
+        {
+            // This will early-exit if it's already deactive
+            ((IDeactivate)this).Deactivate();
+
+            this.View = null;
+
+            this.OnClose();
+
+            var handler = this.Closed;
+            if (handler != null)
+                handler(this, new CloseEventArgs());
+        }
+
+        protected virtual void OnClose() { }
 
         #endregion
 
@@ -145,16 +164,20 @@ namespace Stylet
 
         #endregion
 
+        #region IDialogClose
+
+        public void TryClose()
+        {
+            this.TryClose(null);
+        }
+
+        #endregion
+
         #region IGuardClose
 
         public virtual Task<bool> CanCloseAsync()
         {
             return Task.FromResult(true);
-        }
-
-        public void TryClose()
-        {
-            this.TryClose(null);
         }
 
         #endregion

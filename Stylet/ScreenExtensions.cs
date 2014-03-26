@@ -16,11 +16,18 @@ namespace Stylet
                 screenAsActivate.Activate();
         }
 
-        public static void TryDeactivate(object screen, bool close)
+        public static void TryDeactivate(object screen)
         {
             var screenAsDeactivate = screen as IDeactivate;
             if (screenAsDeactivate != null)
-                screenAsDeactivate.Deactivate(close);
+                screenAsDeactivate.Deactivate();
+        }
+
+        public static void TryClose(object screen)
+        {
+            var screenAsClose = screen as IClose;
+            if (screenAsClose != null)
+                screenAsClose.Close();
         }
 
         public static void ActivateWith(this IActivate child, IActivate parent)
@@ -30,15 +37,21 @@ namespace Stylet
 
         public static void DeactivateWith(this IDeactivate child, IDeactivate parent)
         {
-            WeakEventManager<IDeactivate, DeactivationEventArgs>.AddHandler(parent, "Deactivated", (o, e) => child.Deactivate(e.WasClosed));
+            WeakEventManager<IDeactivate, DeactivationEventArgs>.AddHandler(parent, "Deactivated", (o, e) => child.Deactivate());
+        }
+
+        public static void CloseWith(this IClose child, IClose parent)
+        {
+            WeakEventManager<IClose, CloseEventArgs>.AddHandler(parent, "Closed", (o, e) => child.Close());
         }
 
         public static void ConductWith<TChild, TParent>(this TChild child, TParent parent)
-            where TChild : IActivate, IDeactivate
-            where TParent : IActivate, IDeactivate
+            where TChild : IActivate, IDeactivate, IClose
+            where TParent : IActivate, IDeactivate, IClose
         {
             child.ActivateWith(parent);
             child.DeactivateWith(parent);
+            child.CloseWith(parent);
         }
     }
 }

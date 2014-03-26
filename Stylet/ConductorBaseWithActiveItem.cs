@@ -36,9 +36,12 @@ namespace Stylet
         /// </summary>
         protected virtual void ChangeActiveItem(T newItem, bool closePrevious)
         {
-            ScreenExtensions.TryDeactivate(this.ActiveItem, closePrevious);
+            ScreenExtensions.TryDeactivate(this.ActiveItem);
             if (closePrevious)
+            {
+                ScreenExtensions.TryClose(this.ActiveItem);
                 this.CleanUpAfterClose(this.ActiveItem);
+            }
 
             newItem = this.EnsureItem(newItem);
 
@@ -58,11 +61,19 @@ namespace Stylet
         }
 
         /// <summary>
-        /// When we're deactivate, also deactivate the ActiveItem
+        /// When we're deactivated, also deactivate the ActiveItem
         /// </summary>
-        protected override void OnDeactivate(bool close)
+        protected override void OnDeactivate()
         {
-            ScreenExtensions.TryDeactivate(this.ActiveItem, close);
+            ScreenExtensions.TryDeactivate(this.ActiveItem);
+        }
+
+        /// <summary>
+        /// When we're closed, also close the ActiveItem
+        /// </summary>
+        protected override void OnClose()
+        {
+            ScreenExtensions.TryClose(this.ActiveItem);
         }
 
         /// <summary>

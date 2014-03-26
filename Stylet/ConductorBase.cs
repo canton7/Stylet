@@ -21,11 +21,16 @@ namespace Stylet
         public abstract void ActivateItem(T item);
 
         /// <summary>
-        /// Deactivate the given item, and optionally close it as well
+        /// Deactivate the given item
         /// </summary>
         /// <param name="item">Item to deactivate</param>
-        /// <param name="close">True to also close the item</param>
-        public abstract void DeactivateItem(T item, bool close);
+        public abstract void DeactivateItem(T item);
+
+        /// <summary>
+        /// Deactivate the given item
+        /// </summary>
+        /// <param name="item">Item to deactivate</param>
+        public abstract void CloseItem(T item);
 
         /// <summary>
         /// Ensure an item is ready to be activated

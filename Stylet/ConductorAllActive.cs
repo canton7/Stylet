@@ -65,15 +65,18 @@ namespace Stylet
                     }
                 }
 
-                protected override void OnDeactivate(bool close)
+                protected override void OnDeactivate()
                 {
                     foreach (var item in this.items.OfType<IDeactivate>())
                     {
-                        item.Deactivate(close);
+                        item.Deactivate();
                     }
+                }
 
-                    if (close)
-                        items.Clear();
+                protected override void OnClose()
+                {
+                    // We've already been deactivated by this point    
+                    items.Clear();
                 }
 
                 public override Task<bool> CanCloseAsync()
@@ -97,26 +100,23 @@ namespace Stylet
                 }
 
                 /// <summary>
-                /// Deactive the given item, optionally closing it as well, and remove from the Items collection
+                /// Deactive the given item
                 /// </summary>
                 /// <param name="item">Item to deactivate</param>
-                /// <param name="close">True to close the item as well</param>
-                public override async void DeactivateItem(T item, bool close)
+                public override async void DeactivateItem(T item)
+                {
+                    ScreenExtensions.TryDeactivate(item);
+                }
+
+                public async override void CloseItem(T item)
                 {
                     if (item == null)
                         return;
 
-                    if (close)
+                    if (await this.CanCloseItem(item))
                     {
-                        if (await this.CanCloseItem(item))
-                        {
-                            ScreenExtensions.TryDeactivate(item, true);
-                            this.items.Remove(item);
-                        }
-                    }
-                    else
-                    {
-                        ScreenExtensions.TryDeactivate(item, false);
+                        ScreenExtensions.TryClose(item);
+                        this.items.Remove(item);
                     }
                 }
 

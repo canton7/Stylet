@@ -48,7 +48,7 @@ namespace StyletUnitTests
             this.conductor.ActivateItem(screen1.Object);
             this.conductor.ActivateItem(screen2.Object);
 
-            screen1.Verify(x => x.Deactivate(false));
+            screen1.Verify(x => x.Deactivate());
             screen2.Verify(x => x.Activate());
 
             Assert.AreEqual(screen2.Object, this.conductor.ActiveItem);
@@ -68,7 +68,7 @@ namespace StyletUnitTests
 
             screen2.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
 
-            this.conductor.DeactivateItem(screen2.Object, true);
+            this.conductor.CloseItem(screen2.Object);
             Assert.AreEqual(screen1.Object, this.conductor.ActiveItem);
             Assert.AreEqual(new[] { screen1.Object, screen3.Object }, this.conductor.Items);
         }
@@ -86,7 +86,7 @@ namespace StyletUnitTests
 
             screen3.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
 
-            this.conductor.DeactivateItem(screen3.Object, true);
+            this.conductor.CloseItem(screen3.Object);
             Assert.AreEqual(screen2.Object, this.conductor.ActiveItem);
             Assert.AreEqual(new[] { screen1.Object, screen2.Object }, this.conductor.Items);
         }
@@ -114,8 +114,8 @@ namespace StyletUnitTests
             var screen = new Mock<IScreen>();
             ((IActivate)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
-            ((IDeactivate)this.conductor).Deactivate(false);
-            screen.Verify(x => x.Deactivate(false));
+            ((IDeactivate)this.conductor).Deactivate();
+            screen.Verify(x => x.Deactivate());
         }
 
         [Test]
@@ -124,8 +124,8 @@ namespace StyletUnitTests
             var screen = new Mock<IScreen>();
             ((IActivate)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
-            ((IDeactivate)this.conductor).Deactivate(true);
-            screen.Verify(x => x.Deactivate(true));
+            ((IClose)this.conductor).Close();
+            screen.Verify(x => x.Close());
             Assert.AreEqual(0, this.conductor.Items.Count);
         }
 
@@ -186,8 +186,8 @@ namespace StyletUnitTests
         {
             var screen = new Mock<IScreen>();
             this.conductor.ActivateItem(screen.Object);
-            this.conductor.DeactivateItem(screen.Object, false);
-            screen.Verify(x => x.Deactivate(false));
+            this.conductor.DeactivateItem(screen.Object);
+            screen.Verify(x => x.Deactivate());
             Assert.That(this.conductor.Items, Is.EquivalentTo(new[] { screen.Object }));
         }
 
@@ -196,8 +196,8 @@ namespace StyletUnitTests
         {
             var screen = new Mock<IScreen>();
             this.conductor.ActivateItem(screen.Object);
-            this.conductor.DeactivateItem(screen.Object, true);
-            screen.Verify(x => x.Deactivate(true), Times.Never);
+            this.conductor.CloseItem(screen.Object);
+            screen.Verify(x => x.Close(), Times.Never);
             Assert.That(this.conductor.Items, Is.EquivalentTo(new[] { screen.Object }));
         }
 
@@ -207,8 +207,8 @@ namespace StyletUnitTests
             var screen = new Mock<IScreen>();
             screen.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
             this.conductor.ActivateItem(screen.Object);
-            this.conductor.DeactivateItem(screen.Object, true);
-            screen.Verify(x => x.Deactivate(true));
+            this.conductor.CloseItem(screen.Object);
+            screen.Verify(x => x.Close());
             Assert.AreEqual(0, this.conductor.Items.Count);
         }
     }
