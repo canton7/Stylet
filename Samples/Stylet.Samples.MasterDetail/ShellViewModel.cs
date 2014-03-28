@@ -14,11 +14,7 @@ namespace Stylet.Samples.MasterDetail
         public EmployeeModel SelectedEmployee
         {
             get { return this._selectedEmployee; }
-            set
-            {
-                this._selectedEmployee = value;
-                this.NotifyOfPropertyChange();
-            }
+            set { SetAndNotify(ref this._selectedEmployee, value) ;}
         }
 
         public ShellViewModel()
