@@ -67,7 +67,7 @@ namespace Stylet
             return active == window ? null : active;
         }
 
-        class WindowConductor
+        class WindowConductor : IChildDelegate
         {
             private readonly Window window;
             private readonly object viewModel;
@@ -77,41 +77,52 @@ namespace Stylet
                 this.window = window;
                 this.viewModel = viewModel;
 
-                var viewModelAsActivate = viewModel as IActivate;
-                if (viewModelAsActivate != null)
-                    viewModelAsActivate.Activate();
+                // They won't be able to request a close unless they implement IChild anyway...
+                var viewModelAsChild = this.viewModel as IChild;
+                if (viewModelAsChild != null)
+                    viewModelAsChild.Parent = this;
 
-                var viewModelAsClose = viewModel as IClose;
+                ScreenExtensions.TryActivate(this.viewModel);
+
+                var viewModelAsClose = this.viewModel as IClose;
                 if (viewModelAsClose != null)
-                {
                     window.Closed += this.WindowClosed;
-                    viewModelAsClose.Closed += this.ViewModelClosed;
-                }
 
-                if (viewModel is IGuardClose)
-                    window.Closing += this.Closing;
+                if (this.viewModel is IGuardClose)
+                    window.Closing += this.WindowClosing;
+
+                if (this.viewModel is IActivate || this.viewModel is IDeactivate)
+                    window.StateChanged += WindowStateChanged;
+            }
+
+            void WindowStateChanged(object sender, EventArgs e)
+            {
+                switch (this.window.WindowState)
+                {
+                    case WindowState.Maximized:
+                    case WindowState.Normal:
+                        ScreenExtensions.TryActivate(this.viewModel);
+                        break;
+
+                    case WindowState.Minimized:
+                        ScreenExtensions.TryDeactivate(this.viewModel);
+                        break;
+                }
             }
 
             private void WindowClosed(object sender, EventArgs e)
             {
-                var viewModelAsClose = (IClose)this.viewModel;
-
+                this.window.StateChanged -= this.WindowStateChanged;
                 this.window.Closed -= this.WindowClosed;
-                this.window.Closing -= this.Closing; // Not sure this is required
-                viewModelAsClose.Closed -= this.ViewModelClosed;
+                this.window.Closing -= this.WindowClosing; // Not sure this is required
 
-                viewModelAsClose.Close();
+                ScreenExtensions.TryClose(this.viewModel);
             }
 
-            private void ViewModelClosed(object sender, CloseEventArgs e)
-            {
-                this.window.Closed -= this.WindowClosed;
-                this.window.Closing -= this.Closing;
-                ((IClose)this.viewModel).Closed -= this.ViewModelClosed;
-                this.window.Close();
-            }
-
-            private async void Closing(object sender, CancelEventArgs e)
+            /// <summary>
+            /// Closing event from the window
+            /// </summary>
+            private async void WindowClosing(object sender, CancelEventArgs e)
             {
                 if (e.Cancel)
                     return;
@@ -127,10 +138,36 @@ namespace Stylet
                     e.Cancel = true;
                     if (await task)
                     {
-                        this.window.Closing -= this.Closing;
+                        this.window.Closing -= this.WindowClosing;
+                        this.window.StateChanged -= this.WindowStateChanged;
+                        ScreenExtensions.TryClose(this.viewModel);
                         this.window.Close();
                     }
                 }
+            }
+
+            /// <summary>
+            /// Close was requested by the child
+            /// </summary>
+            async void IChildDelegate.CloseItem(object item, bool? dialogResult)
+            {
+                if (item != this.viewModel)
+                    return;
+
+                var guardClose = this.viewModel as IGuardClose;
+                if (guardClose != null && !await guardClose.CanCloseAsync())
+                    return;
+
+                if (dialogResult != null)
+                    this.window.DialogResult = dialogResult;
+
+                this.window.StateChanged -= this.WindowStateChanged;
+                this.window.Closed -= this.WindowClosed;
+                this.window.Closing -= this.WindowClosing;
+
+                ScreenExtensions.TryClose(this.viewModel);
+
+                this.window.Close();
             }
         }
     }

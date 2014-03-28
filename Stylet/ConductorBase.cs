@@ -10,7 +10,7 @@ namespace Stylet
     /// Base class for all conductors
     /// </summary>
     /// <typeparam name="T">Type of item to be conducted</typeparam>
-    public abstract class ConductorBase<T> : Screen, IConductor<T>, IParent<T> where T : class
+    public abstract class ConductorBase<T> : Screen, IConductor<T>, IParent<T>, IChildDelegate where T : class
     {
         public abstract IEnumerable<T> GetChildren();
 
@@ -65,6 +65,13 @@ namespace Stylet
                 return itemAsGuardClose.CanCloseAsync();
             else
                 return Task.FromResult(true);
+        }
+
+        void IChildDelegate.CloseItem(object item, bool? dialogResult)
+        {
+            T typedItem = item as T;
+            if (typedItem != null)
+                this.CloseItem(typedItem);
         }
     }
 }

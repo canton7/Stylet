@@ -17,7 +17,12 @@ namespace Stylet
         T ActiveItem { get; set; }
     }
 
-    public interface IConductor<in T>
+    public interface IChildDelegate
+    {
+        void CloseItem(object item, bool? dialogResult = null);
+    }
+
+    public interface IConductor<T>
     {
         void ActivateItem(T item);
 

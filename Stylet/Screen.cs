@@ -125,11 +125,7 @@ namespace Stylet
         public object Parent
         {
             get { return this._parent; }
-            set
-            {
-                this._parent = value;
-                this.NotifyOfPropertyChange();
-            }
+            set { SetAndNotify(ref this._parent, value); }
         }
 
         #endregion
@@ -145,24 +141,11 @@ namespace Stylet
 
         public virtual void TryClose(bool? dialogResult = null)
         {
-            // Conductor is contravariant, so it's always an IConductor<Screen>, even if they created a Conductor<IScreen> or Conductor<object>
-            var conductor = this.Parent as IConductor<Screen>;
+            var conductor = this.Parent as IChildDelegate;
             if (conductor != null)
-            {
                 conductor.CloseItem(this);
-                return;
-            }
-
-            var viewWindow = this.View as Window;
-            if (viewWindow != null)
-            {
-                if (dialogResult != null)
-                    viewWindow.DialogResult = dialogResult;
-                viewWindow.Close();
-                return;
-            }
-
-            throw new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent, or its view must be a Window", this.GetType().Name));
+            else
+                throw new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent (note that windows and dialogs automatically have such a parent)", this.GetType().Name));
         }
     }
 }
