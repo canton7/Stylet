@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet", "..\Stylet\Stylet.csproj", "{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}"
 EndProject
@@ -16,6 +16,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.OverridingViewManager", "Stylet.Samples.OverridingViewManager\Stylet.Samples.OverridingViewManager.csproj", "{2F7D7EF3-730A-45E3-93CA-7C5031250246}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.RedditBrowser", "Stylet.Samples.RedditBrowser\Stylet.Samples.RedditBrowser.csproj", "{72B1C6E4-1293-47DD-BEFD-FA2E782BDBDA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C3BAC068-E2C0-4470-9F2E-A1711299BFAE}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -13,6 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -67,33 +69,19 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Events\OpenSubredditEvent.cs" />
-    <Compile Include="Pages\PostCommentsView.xaml.cs">
-      <DependentUpon>PostCommentsView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\PostCommentsViewModel.cs" />
-    <Compile Include="Pages\PostsView.xaml.cs">
-      <DependentUpon>PostsView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\PostsViewModel.cs" />
-    <Compile Include="Pages\ShellView.xaml.cs">
-      <DependentUpon>ShellView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\ShellViewModel.cs" />
-    <Compile Include="Pages\SubredditView.xaml.cs">
-      <DependentUpon>SubredditView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\SubredditViewModel.cs" />
     <Compile Include="RedditApi\CommentCollection.cs" />
     <Compile Include="RedditApi\Contracts\CommentsResponse.cs" />
     <Compile Include="RedditApi\Contracts\PostsResponse.cs" />
     <Compile Include="RedditApi\PostCollection.cs" />
     <Compile Include="RedditApi\RedditClient.cs" />
+    <Compile Include="UserControls\StretchingTreeView.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bootstrapper.cs" />
-    <Compile Include="Pages\TaskbarView.xaml.cs">
-      <DependentUpon>TaskbarView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\TaskbarViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -161,6 +149,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Fody.1.22.1\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.22.1\build\Fody.targets'))" />
   </Target>
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -5,13 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:redditapi="clr-namespace:Stylet.Samples.RedditBrowser.RedditApi"
              xmlns:s="http://github.com/canton7/Stylet"
+             xmlns:uc="clr-namespace:Stylet.Samples.RedditBrowser.UserControls"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel>
         <Button DockPanel.Dock="Top" HorizontalAlignment="Left" Command="{s:Action GoBack}">Back</Button>
-        <s:StretchingTreeView ItemsSource="{Binding CommentCollection.Comments}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <s:StretchingTreeView.Resources>
-                <Style TargetType="s:StretchingTreeViewItem">
+        <uc:StretchingTreeView ItemsSource="{Binding CommentCollection.Comments}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <uc:StretchingTreeView.Resources>
+                <Style TargetType="uc:StretchingTreeViewItem">
                     <Setter Property="ToggleButtonVerticalAlignment" Value="Top"/>
                 </Style>
                 <HierarchicalDataTemplate DataType="{x:Type redditapi:Comment}" ItemsSource="{Binding Replies}">
@@ -20,7 +21,7 @@
                         <TextBlock Text="{Binding Body}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </HierarchicalDataTemplate>
-            </s:StretchingTreeView.Resources>
-        </s:StretchingTreeView>
+            </uc:StretchingTreeView.Resources>
+        </uc:StretchingTreeView>
     </DockPanel>
 </UserControl>

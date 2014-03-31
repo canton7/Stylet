@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
-namespace Stylet
+namespace Stylet.Samples.RedditBrowser.UserControls
 {
     // http://blogs.msdn.com/b/jpricket/archive/2008/08/05/wpf-a-stretching-treeview.aspx
     public class StretchingTreeView : TreeView

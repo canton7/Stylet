@@ -81,7 +81,6 @@
     <Compile Include="View.cs" />
     <Compile Include="ViewManager.cs" />
     <Compile Include="WindowManager.cs" />
-    <Compile Include="StretchingTreeView.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Xaml\StyletResourceDictionary.xaml">
