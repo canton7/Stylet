@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="Stylet.Samples.RedditBrowser.Pages.PostsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:s="http://github.com/canton7/Stylet"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <DockPanel>
+        <Button DockPanel.Dock="Top" HorizontalAlignment="Left" Command="{s:Action Close}">Close</Button>
+        
+        <Grid DockPanel.Dock="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Command="{s:Action Prev}" HorizontalAlignment="Left">Prev</Button>
+            <Button Grid.Column="1" Command="{s:Action OpenSelected}" HorizontalAlignment="Center">Open Link</Button>
+            <Button Grid.Column="2" Command="{s:Action OpenSelectedComments}" HorizontalAlignment="Center">Open Comments</Button>
+            <Button Grid.Column="3" Command="{s:Action Next}" HorizontalAlignment="Right">Next</Button>
+        </Grid>
+
+        <ListBox ItemsSource="{Binding PostCollection.Posts}" SelectedItem="{Binding SelectedPost}" MouseDoubleClick="{s:Action OpenSelected}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <DockPanel>
+                        <TextBlock Text="{Binding Title}"/>
+                    </DockPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

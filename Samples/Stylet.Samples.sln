@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.HelloDialog"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.OverridingViewManager", "Stylet.Samples.OverridingViewManager\Stylet.Samples.OverridingViewManager.csproj", "{2F7D7EF3-730A-45E3-93CA-7C5031250246}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.RedditBrowser", "Stylet.Samples.RedditBrowser\Stylet.Samples.RedditBrowser.csproj", "{72B1C6E4-1293-47DD-BEFD-FA2E782BDBDA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{2F7D7EF3-730A-45E3-93CA-7C5031250246}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F7D7EF3-730A-45E3-93CA-7C5031250246}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F7D7EF3-730A-45E3-93CA-7C5031250246}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72B1C6E4-1293-47DD-BEFD-FA2E782BDBDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72B1C6E4-1293-47DD-BEFD-FA2E782BDBDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72B1C6E4-1293-47DD-BEFD-FA2E782BDBDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72B1C6E4-1293-47DD-BEFD-FA2E782BDBDA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
