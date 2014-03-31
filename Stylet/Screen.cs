@@ -25,6 +25,8 @@ namespace Stylet
 
         public event EventHandler<ActivationEventArgs> Activated;
 
+        private bool hasBeenActivatedEver;
+
         private bool _isActive;
         public bool IsActive
         {
@@ -39,6 +41,10 @@ namespace Stylet
 
             this.IsActive = true;
 
+            if (!this.hasBeenActivatedEver)
+                this.OnInitialActivate();
+            this.hasBeenActivatedEver = true;
+
             this.OnActivate();
 
             var handler = this.Activated;
@@ -46,6 +52,7 @@ namespace Stylet
                 handler(this, new ActivationEventArgs());
         }
 
+        protected virtual void OnInitialActivate() { }
         protected virtual void OnActivate() { }
 
         #endregion

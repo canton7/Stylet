@@ -65,7 +65,7 @@ namespace Stylet
                     throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.methodName, newTargetType.Name));
 
                 var methodParameters = targetMethodInfo.GetParameters();
-                if (methodParameters.Length > 1 || (methodParameters.Length == 1 && !typeof(RoutedEventArgs).IsAssignableFrom(methodParameters[0].ParameterType)))
+                if (methodParameters.Length > 1 || (methodParameters.Length == 1 && !methodParameters[0].ParameterType.IsAssignableFrom(typeof(RoutedEventArgs))))
                     throw new ArgumentException(String.Format("Method {0} on {1} must have zero parameters, or a single parameter accepting a RoutedEventArgs", this.methodName, newTargetType.Name));
             }
 

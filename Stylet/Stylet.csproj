@@ -43,6 +43,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConductorNavigating.cs" />
     <Compile Include="SlightlyInternal\ConductorUtilities.cs" />
     <Compile Include="INotifyPropertyChangedDispatcher.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
@@ -80,6 +81,7 @@
     <Compile Include="View.cs" />
     <Compile Include="ViewManager.cs" />
     <Compile Include="WindowManager.cs" />
+    <Compile Include="StretchingTreeView.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Xaml\StyletResourceDictionary.xaml">
