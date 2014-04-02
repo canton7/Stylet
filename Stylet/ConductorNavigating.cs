@@ -43,6 +43,13 @@ namespace Stylet
                     this.CloseItem(this.ActiveItem);
                 }
 
+                public void Clear()
+                {
+                    foreach (var item in this.history)
+                        this.CloseAndCleanUp(item);
+                    this.history.Clear();
+                }
+
                 public override async void CloseItem(T item)
                 {
                     if (item == null || !await this.CanCloseItem(item))
@@ -60,6 +67,7 @@ namespace Stylet
                     }
                     else if (this.history.Contains(item))
                     {
+                        this.CloseAndCleanUp(item);
                         this.history.Remove(item);
                     }
                 }
