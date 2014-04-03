@@ -197,5 +197,41 @@ namespace StyletUnitTests
             ((IViewAware)this.screen).AttachView(view);
             Assert.Throws<Exception>(() => ((IViewAware)this.screen).AttachView(view));
         }
+
+        [Test]
+        public void SettingParentRaisesPropertyChange()
+        {
+            var parent = new object();
+            string changedProperty = null;
+            this.screen.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
+            this.screen.Parent = parent;
+
+            Assert.AreEqual(parent, this.screen.Parent);
+            Assert.AreEqual("Parent", changedProperty);
+        }
+
+        [Test]
+        public void CanCloseAsyncReturnsCompletedTrueTask()
+        {
+            var task = this.screen.CanCloseAsync();
+            Assert.IsTrue(task.IsCompleted);
+            Assert.IsTrue(task.Result);
+        }
+
+        [Test]
+        public void TryCloseThrowsIfParentIsNotIChildDelegate()
+        {
+            this.screen.Parent = new object();
+            Assert.Throws<InvalidOperationException>(() => this.screen.TryClose());
+        }
+
+        [Test]
+        public void TryCloseCallsParentCloseItemPassingDialogResult()
+        {
+            var parent = new Mock<IChildDelegate>();
+            screen.Parent = parent.Object;
+            this.screen.TryClose(true);
+            parent.Verify(x => x.CloseItem(this.screen, true));
+        }
     }
 }

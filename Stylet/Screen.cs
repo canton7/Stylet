@@ -150,7 +150,7 @@ namespace Stylet
         {
             var conductor = this.Parent as IChildDelegate;
             if (conductor != null)
-                conductor.CloseItem(this);
+                conductor.CloseItem(this, dialogResult);
             else
                 throw new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent (note that windows and dialogs automatically have such a parent)", this.GetType().Name));
         }
