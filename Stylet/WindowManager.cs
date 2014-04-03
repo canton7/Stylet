@@ -35,7 +35,7 @@ namespace Stylet
             var view = viewManager.LocateViewForModel(viewModel);
             var window = view as Window;
             if (window == null)
-                throw new Exception(String.Format("Tried to show {0} as a window, but it isn't a Window", view.GetType().Name));
+                throw new Exception(String.Format("Tried to show {0} as a window, but it isn't a Window", view == null ? "(null)" : view.GetType().Name));
 
             viewManager.BindViewToModel(window, viewModel);
 
