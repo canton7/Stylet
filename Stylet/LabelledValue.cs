@@ -19,12 +19,12 @@ namespace Stylet
 
         public bool Equals(LabelledValue<T> other)
         {
-            return this.Label == other.Label && EqualityComparer<T>.Default.Equals(this.Value, other.Value);
+            return other == null ? false : this.Label == other.Label && EqualityComparer<T>.Default.Equals(this.Value, other.Value);
         }
 
         public override bool Equals(object obj)
         {
-            return (obj is LabelledValue<T>) ? this.Equals((LabelledValue<T>)obj) : false;
+            return this.Equals(obj as LabelledValue<T>);
         }
 
         public override int GetHashCode()
