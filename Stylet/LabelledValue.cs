@@ -29,7 +29,7 @@ namespace Stylet
 
         public override int GetHashCode()
         {
-            return this.Label.GetHashCode() ^ this.Value.GetHashCode();
+            return new { this.Label, this.Value }.GetHashCode();
         }
 
         public override string ToString()
