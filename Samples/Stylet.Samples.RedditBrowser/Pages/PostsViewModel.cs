@@ -26,7 +26,15 @@ namespace Stylet.Samples.RedditBrowser.Pages
 
         protected override async void OnInitialActivate()
         {
-            this.PostCollection = await this.client.GetPostsAsync(this.Subreddit, this.SortMode);
+            // Really un-advanced - just close
+            try
+            {
+                this.PostCollection = await this.client.GetPostsAsync(this.Subreddit, this.SortMode);
+            }
+            catch (Exception)
+            {
+                this.TryClose();
+            }
         }
 
         public void Close()

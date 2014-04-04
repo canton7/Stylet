@@ -1,0 +1,12 @@
+﻿<Window x:Class="StyletIntegrationTests.WindowLifecycle.WindowView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WindowView" Height="300" Width="300">
+    <DockPanel Margin="10">
+        <TextBlock DockPanel.Dock="Top" TextWrapping="WrapWithOverflow">Check that the log contains an 'Initial Activate', an 'Activated', and a 'View Loaded' line.</TextBlock>
+        <TextBlock DockPanel.Dock="Top" TextWrapping="WrapWithOverflow">Minimize/maximize the window. Check the log contains a 'Deactivated' and an 'Activated' line.</TextBlock>
+        <TextBlock DockPanel.Dock="Top" TextWrapping="WrapWithOverflow">Close the window. Check that a dialog appears saying 'Closed'.</TextBlock>
+        
+        <ListView ItemsSource="{Binding Log}"/>
+    </DockPanel>
+</Window>

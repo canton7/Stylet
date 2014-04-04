@@ -1,0 +1,11 @@
+﻿<Window x:Class="StyletIntegrationTests.WindowGuardClose.WindowView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:s="http://github.com/canton7/Stylet"
+        Title="WindowView" Height="300" Width="300">
+    <DockPanel Margin="10">
+        <TextBlock DockPanel.Dock="Top" TextWrapping="WrapWithOverflow">Leave the checkbox unchecked, then close the window using the red X at the top. It should not close.</TextBlock>
+        <TextBlock DockPanel.Dock="Top" TextWrapping="WrapWithOverflow">Check the checkbox, then close the window again. It should close after 3 seconds.</TextBlock>
+        <CheckBox DockPanel.Dock="Top" IsChecked="{Binding AllowClose}" Margin="0,10,0,0">Allow Close</CheckBox>
+    </DockPanel>
+</Window>

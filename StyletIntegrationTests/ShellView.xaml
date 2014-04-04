@@ -1,0 +1,27 @@
+﻿<Window x:Class="StyletIntegrationTests.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:s="http://github.com/canton7/Stylet"
+        Title="ShellView" Height="500" Width="500">
+    <DockPanel LastChildFill="False">
+        <GroupBox DockPanel.Dock="Top" Header="ShowDialog and DialogResult" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{s:Action ShowDialogAndDialogResult}">Show Dialog</Button>
+                <TextBlock Margin="50,0,0,0">Result: </TextBlock>
+                <TextBlock Margin="10,0,0,0" Text="{Binding ShowDialogAndDialogResultDialogResult}"/>
+            </StackPanel>
+        </GroupBox>
+        
+        <GroupBox DockPanel.Dock="Top" Header="Window DisplayName Bound" Padding="10">
+            <Button Command="{s:Action ShowWindowsDisplayNameBound}">Show Window</Button>
+        </GroupBox>
+        
+        <GroupBox DockPanel.Dock="Top" Header="Window Guard Close" Padding="10">
+            <Button Command="{s:Action ShowWindowGuardClose}">Show Window</Button>
+        </GroupBox>
+        
+        <GroupBox DockPanel.Dock="Top" Header="Window Lifecycle" Padding="10">
+            <Button Command="{s:Action ShowWindowLifecycle}">Show Window</Button>
+        </GroupBox>
+    </DockPanel>
+</Window>
