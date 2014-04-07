@@ -7,8 +7,15 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Useful extension methods on Expressions
+    /// </summary>
     public static class ExpressionExtensions
     {
+        /// <summary>
+        /// Given a MemberExpression (or MemberExpression wrapped in a UnaryExpression), get the name of the property
+        /// </summary>
+        /// <returns>Name of the property referenced by the expression</returns>
         public static string NameForProperty<TDelegate>(this Expression<TDelegate> propertyExpression)
         {
             Expression body;

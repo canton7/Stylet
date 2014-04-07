@@ -65,17 +65,51 @@ namespace Stylet
             Application.Resources.MergedDictionaries.Add(rc);
         }
 
+        /// <summary>
+        /// Override this to fetch an implementation of a service from your IoC container. Used by IoC.Get.
+        /// </summary>
+        /// <param name="service">Service type to fetch an implementation of</param>
+        /// <param name="key">String key passed to IoC.Get</param>
+        /// <returns>An instance implementing the service</returns>
         protected abstract object GetInstance(Type service, string key = null);
+
+        /// <summary>
+        /// Override this to fetch all implementations of a service from your IoC container. Used by IoC.GetAll.
+        /// </summary>
+        /// <param name="service">Service type to fetch all implementations for</param>
+        /// <returns>All instances implementing the service</returns>
         protected abstract IEnumerable<object> GetAllInstances(Type service);
+
+        /// <summary>
+        /// Override this to build up an instance using your IoC container. Used by IoC.BuildUp
+        /// </summary>
+        /// <param name="instance">Instance to build up</param>
         protected abstract void BuildUp(object instance);
 
+        /// <summary>
+        /// Initial contents of AssemblySource.Assemblies, defaults to the entry assembly
+        /// </summary>
+        /// <returns></returns>
         protected IEnumerable<Assembly> SelectAssemblies()
         {
             return new[] { Assembly.GetEntryAssembly() };
         }
 
+        /// <summary>
+        /// Hook called on application startup
+        /// </summary>
         protected virtual void OnStartup(object sender, StartupEventArgs e) { }
+
+        /// <summary>
+        /// Hook called on application exit
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected virtual void OnExit(object sender, EventArgs e) { }
+
+        /// <summary>
+        /// Hook called on an unhandled exception
+        /// </summary>
         protected virtual void OnUnhandledExecption(object sender, DispatcherUnhandledExceptionEventArgs e) { }
     }
 }

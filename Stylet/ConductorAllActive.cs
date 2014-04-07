@@ -75,6 +75,9 @@ namespace Stylet
                     items.Clear();
                 }
 
+                /// <summary>
+                /// Determine if the conductor can close. Returns true if and when all items can close
+                /// </summary>
                 public override Task<bool> CanCloseAsync()
                 {
                     return this.CanAllItemsCloseAsync(this.items);
@@ -104,6 +107,10 @@ namespace Stylet
                     ScreenExtensions.TryDeactivate(item);
                 }
 
+                /// <summary>
+                /// Close a particular item, removing it from the Items collection
+                /// </summary>
+                /// <param name="item">Item to close</param>
                 public async override void CloseItem(T item)
                 {
                     if (item == null)
@@ -116,6 +123,9 @@ namespace Stylet
                     }
                 }
 
+                /// <summary>
+                /// Returns all children of this parent
+                /// </summary>
                 public override IEnumerable<T> GetChildren()
                 {
                     return this.items;

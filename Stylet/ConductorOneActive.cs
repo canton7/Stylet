@@ -115,6 +115,10 @@ namespace Stylet
                     }
                 }
 
+                /// <summary>
+                /// Returns true if and when all children can close
+                /// </summary>
+                /// <returns></returns>
                 public override Task<bool> CanCloseAsync()
                 {
                     return this.CanAllItemsCloseAsync(this.items);

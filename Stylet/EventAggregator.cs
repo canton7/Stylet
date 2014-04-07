@@ -8,22 +8,56 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Marker for types which we might be interested in
+    /// </summary>
     public interface IHandle
     {
     }
 
+    /// <summary>
+    /// Implement this to handle a particular message type
+    /// </summary>
+    /// <typeparam name="TMessageType">Message type to handle. Can be a base class of the messsage type(s) to handle</typeparam>
     public interface IHandle<TMessageType> : IHandle
     {
         void Handle(TMessageType message);
     }
 
+    /// <summary>
+    /// Centralised, weakly-binding publish/subscribe event manager
+    /// </summary>
     public interface IEventAggregator
     {
+        /// <summary>
+        /// Register an instance as wanting to receive events. Implement IHandle{T} for each event type you want to receive.
+        /// </summary>
+        /// <param name="handler">Instance that will be registered with the EventAggregator</param>
         void Subscribe(IHandle handler);
+
+        /// <summary>
+        /// Unregister as wanting to receive events. The instance will no longer receive events after this is called.
+        /// </summary>
+        /// <param name="handler">Instance to unregister</param>
         void Unsubscribe(IHandle handler);
 
+        /// <summary>
+        /// Publish an event to all subscribers, using the specified dispatcher
+        /// </summary>
+        /// <param name="message">Event to publish</param>
+        /// <param name="dispatcher">Dispatcher to use to call each subscriber's handle method(s)</param>
         void PublishWithDispatcher(object message, Action<Action> dispatcher);
+
+        /// <summary>
+        /// Publish an event to all subscribers, calling the handle methods on the UI thread
+        /// </summary>
+        /// <param name="message">Event to publish</param>
         void PublishOnUIThread(object message);
+
+        /// <summary>
+        /// Publish an event to all subscribers, calling the handle methods synchronously on the current thread
+        /// </summary>
+        /// <param name="message">Event to publish</param>
         void Publish(object message);
     }
 

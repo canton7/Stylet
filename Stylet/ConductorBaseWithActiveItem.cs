@@ -11,7 +11,7 @@ namespace Stylet
     /// Base class for all conductors which had a single active item
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class ConductorBaseWithActiveItem<T> : ConductorBase<T> where T : class
+    public abstract class ConductorBaseWithActiveItem<T> : ConductorBase<T>, IHaveActiveItem<T> where T : class
     {
         private T _activeItem;
 

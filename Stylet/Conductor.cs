@@ -53,6 +53,9 @@ namespace Stylet
                 
         }
 
+        /// <summary>
+        /// Determine if this conductor can close. Depends on whether the ActiveItem can close
+        /// </summary>
         public override Task<bool> CanCloseAsync()
         {
             return this.CanCloseItem(this.ActiveItem);
