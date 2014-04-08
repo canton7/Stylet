@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,6 +35,7 @@ namespace Stylet
             set { SetAndNotify(ref this._isActive, value); }
         }
 
+        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IActivate.Activate()
         {
             if (this.IsActive)
@@ -61,6 +63,7 @@ namespace Stylet
 
         public event EventHandler<DeactivationEventArgs> Deactivated;
 
+        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Scope = "member", Target = "Stylet.Screen.#Stylet.IDeactivate.Deactivate()", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IDeactivate.Deactivate()
         {
             if (!this.IsActive)
@@ -83,6 +86,7 @@ namespace Stylet
 
         public event EventHandler<CloseEventArgs> Closed;
 
+        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IClose.Close()
         {
             // This will early-exit if it's already deactive
@@ -105,6 +109,7 @@ namespace Stylet
 
         public UIElement View { get; private set; }
 
+        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IViewAware.AttachView(UIElement view)
         {
             if (this.View != null)

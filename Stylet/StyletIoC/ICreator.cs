@@ -49,7 +49,8 @@ namespace StyletIoC
         }
     }
 
-    internal class TypeCreator : CreatorBase
+    // Sealed so Code Analysis doesn't moan about us setting the virtual Type property
+    internal sealed class TypeCreator : CreatorBase
     {
         public string AttributeKey { get; private set; }
         private Expression creationExpression;
@@ -136,7 +137,8 @@ namespace StyletIoC
         }
     }
 
-    internal class FactoryCreator<T> : CreatorBase
+    // Sealed for consistency with TypeCreator
+    internal sealed class FactoryCreator<T> : CreatorBase
     {
         private Func<StyletIoCContainer, T> factory;
         private Expression instanceExpression;

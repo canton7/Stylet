@@ -21,6 +21,7 @@ namespace Stylet
         /// </summary>
         protected Application Application { get; private set; }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "Start must be overridable. It doesn't depend on the type having been constructed")]
         public BootstrapperBase()
         {
             this.Start();

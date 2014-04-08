@@ -35,7 +35,7 @@ namespace Stylet
         /// Raise a PropertyChanged notification from the property in the given expression, e.g. NotifyOfPropertyChange(() => this.Property)
         /// </summary
         /// <param name="property">Expression describing the property to raise a PropertyChanged notification for</param>
-        protected void NotifyOfPropertyChange<TProperty>(Expression<Func<TProperty>> property)
+        protected virtual void NotifyOfPropertyChange<TProperty>(Expression<Func<TProperty>> property)
         {
             this.OnPropertyChanged(property.NameForProperty());
         }

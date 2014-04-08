@@ -175,7 +175,7 @@ namespace StyletIoC
             var typeKey = new TypeKey(type, key);
             IRegistration registration;
             if (!this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration))
-                throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", typeKey.Type.Name));
+                throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", typeKey.Type.Name, typeKey.Key));
             var generator = registration.GetGenerator();
             return (IEnumerable<object>)generator();
         }
