@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Base class for things which can raise PropertyChanged events
+    /// </summary>
     public abstract class PropertyChangedBase : INotifyPropertyChanged, INotifyPropertyChangedDispatcher
     {
         private Action<Action> _propertyChangedDispatcher = Execute.DefaultPropertyChangedDispatcher;
@@ -21,6 +24,9 @@ namespace Stylet
             set { this._propertyChangedDispatcher = value; }
         }
 
+        /// <summary>
+        /// Occurs when a property value changes
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>

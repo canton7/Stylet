@@ -6,9 +6,20 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Key-value pair useful for attaching labels to objects and displaying them in the view
+    /// </summary>
+    /// <typeparam name="T">Type of the value</typeparam>
     public class LabelledValue<T> : IEquatable<LabelledValue<T>>
     {
+        /// <summary>
+        /// Label associated with this item. This is displayed in your View
+        /// </summary>
         public string Label { get; set; }
+
+        /// <summary>
+        /// Value associated with this item. This is used by your ViewModel
+        /// </summary>
         public T Value { get; set; }
 
         public LabelledValue(string label, T value)
@@ -38,8 +49,14 @@ namespace Stylet
         }
     }
 
+    /// <summary>
+    /// Convenience class for constructing LabellelValue{T}'s
+    /// </summary>
     public static class LabelledValue
     {
+        /// <summary>
+        /// Construct a new LabelledValue{T}, using method type inference
+        /// </summary>
         public static LabelledValue<T> Create<T>(string label, T value)
         {
             return new LabelledValue<T>(label, value);

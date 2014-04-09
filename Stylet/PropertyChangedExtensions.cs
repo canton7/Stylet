@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    /// <summary>
+    /// A binding to a PropertyChanged event, which can be used to unbind the binding
+    /// </summary>
     public interface IPropertyChangedBinding
     {
         void Unbind();
@@ -16,10 +19,13 @@ namespace Stylet
 
     public static class PropertyChangedExtensions
     {
+        /// <summary>
+        /// Mapping of thing doing the binding -> bindings. Makes sure we retain the bindings (and any compiler-generated classes) for as long as the thing which cares about the notifications exists
+        /// </summary>
         private static ConditionalWeakTable<object, List<WeakPropertyChangedBinding>> eventMapping = new ConditionalWeakTable<object, List<WeakPropertyChangedBinding>>();
         private static object eventMappingLock = new object();
 
-        public class WeakPropertyChangedBinding : IPropertyChangedBinding
+        internal class WeakPropertyChangedBinding : IPropertyChangedBinding
         {
             private readonly string propertyName;
             private readonly EventHandler<PropertyChangedEventArgs> handler;
@@ -57,7 +63,7 @@ namespace Stylet
             }
         }
 
-        public class StrongPropertyChangedBinding : IPropertyChangedBinding
+        internal class StrongPropertyChangedBinding : IPropertyChangedBinding
         {
             private WeakReference<INotifyPropertyChanged> inpc;
             private PropertyChangedEventHandler handler;
@@ -78,6 +84,15 @@ namespace Stylet
             }
         }
 
+        /// <summary>
+        /// Weakly bind to PropertyChanged events for a particular property on a particular object. This won't retain the object registered to receive PropertyChange notifications
+        /// </summary>
+        /// <example>someObject.Bind(this, x => x.PropertyNameToBindTo, newValue => /* do something with the new value */)</example>
+        /// <param name="target">Object raising the PropertyChanged event you're interested in</param>
+        /// <param name="binder">Object on which the handler is defined. This is needed because you might use an anonymous delegate as the handler, which might cause a compiler-generated class to be set as the handler's Target, and that needs to be retained for as this parameter</param>
+        /// <param name="targetSelector">MemberExpression selecting the property to observe for changes (e.g x => x.PropertyName)</param>
+        /// <param name="handler">Handler called whenever that property changed</param>
+        /// <returns>Something which can be used to undo the binding. You can discard it if you want</returns>
         public static IPropertyChangedBinding BindWeak<TBindTo, TMember>(this TBindTo target, object binder, Expression<Func<TBindTo, TMember>> targetSelector, Action<TMember> handler) where TBindTo : class, INotifyPropertyChanged
         {
             var propertyName = targetSelector.NameForProperty();
@@ -114,6 +129,14 @@ namespace Stylet
             return weakListener;
         }
 
+        /// <summary>
+        /// Strongly bind to PropertyChanged events for a particular property on a particular object
+        /// </summary>
+        /// <example>someObject.Bind(x => x.PropertyNameToBindTo, newValue => /* do something with the new value */)</example>
+        /// <param name="target">Object raising the PropertyChanged event you're interested in</param>
+        /// <param name="targetSelector">MemberExpression selecting the property to observe for changes (e.g x => x.PropertyName)</param>
+        /// <param name="handler">Handler called whenever that property changed</param>
+        /// <returns>Something which can be used to undo the binding. You can discard it if you want</returns>
         public static IPropertyChangedBinding Bind<TBindTo, TMember>(this TBindTo target, Expression<Func<TBindTo, TMember>> targetSelector, Action<TMember> handler) where TBindTo : class, INotifyPropertyChanged
         {
             var propertyName = targetSelector.NameForProperty();
