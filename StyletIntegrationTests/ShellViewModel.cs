@@ -49,5 +49,11 @@ namespace StyletIntegrationTests
             var window = new WindowLifecycle.WindowViewModel();
             this.windowManager.ShowWindow(window);
         }
+
+        public void ShowActions()
+        {
+            var window = new Actions.ActionsViewModel();
+            this.windowManager.ShowDialog(window);
+        }
     }
 }

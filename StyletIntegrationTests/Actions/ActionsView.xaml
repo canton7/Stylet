@@ -1,0 +1,30 @@
+﻿<Window x:Class="StyletIntegrationTests.Actions.ActionsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:s="http://github.com/canton7/Stylet"
+        Title="ActionsView" Height="300" Width="300">
+    <DockPanel LastChildFill="False">
+        <GroupBox DockPanel.Dock="Top" Header="CommandAction" Padding="10">
+            <StackPanel>
+                <TextBlock TextWrapping="WrapWithOverflow">Verify that the checkbox enables/disables the button, and that clicking the button shows a message box, containing the parameter in the textbox.</TextBlock>
+                
+                <DockPanel>
+                    <Button DockPanel.Dock="Left" Command="{s:Action CommandButton}" CommandParameter="{Binding ElementName=Parameter, Path=Text}">Button</Button>
+                    <CheckBox DockPanel.Dock="Left" IsChecked="{Binding CheckboxIsChecked}" Margin="10,0,0,0">Enabled</CheckBox>
+                    <TextBox DockPanel.Dock="Left" x:Name="Parameter" Margin="10,0,0,0">Parameter</TextBox>
+                </DockPanel>
+            </StackPanel>
+        </GroupBox>
+        
+        <GroupBox DockPanel.Dock="Top" Header="EventAction">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap">Verify that both buttons show message boxes.</TextBlock>
+                
+                <DockPanel LastChildFill="False">
+                    <Button DockPanel.Dock="Left" Click="{s:Action EventButtonNoArgs}">Button 1</Button>
+                    <Button DockPanel.Dock="Left" Click="{s:Action EventButtonWithArgs}">Button 2</Button>
+                </DockPanel>
+            </StackPanel>
+        </GroupBox>
+    </DockPanel>
+</Window>

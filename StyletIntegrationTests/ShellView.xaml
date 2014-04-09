@@ -23,5 +23,9 @@
         <GroupBox DockPanel.Dock="Top" Header="Window Lifecycle" Padding="10">
             <Button Command="{s:Action ShowWindowLifecycle}">Show Window</Button>
         </GroupBox>
+        
+        <GroupBox DockPanel.Dock="Top" Header="Actions" Padding="10">
+            <Button Command="{s:Action ShowActions}">Show Window</Button>
+        </GroupBox>
     </DockPanel>
 </Window>
