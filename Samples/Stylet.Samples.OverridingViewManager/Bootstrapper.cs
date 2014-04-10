@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StyletIoC;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +9,11 @@ namespace Stylet.Samples.OverridingViewManager
 {
     public class Bootstrapper : Bootstrapper<ShellViewModel>
     {
-        protected override void ConfigureIoC(StyletIoC.IStyletIoCBuilder builder)
+        protected override void ConfigureIoC(IStyletIoCBuilder builder)
         {
             base.ConfigureIoC(builder);
 
-            builder.Bind<IViewManager>().To<CustomViewManager>();
+            builder.Bind<IViewManager>().To<CustomViewManager>().InSingletonScope();
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Stylet
     public interface IConductor<T>
     {
         /// <summary>
-        /// Active the given item
+        /// Activate the given item
         /// </summary>
         /// <param name="item">Item to activate</param>
         void ActivateItem(T item);

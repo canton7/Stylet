@@ -63,18 +63,24 @@ namespace Stylet
             }
         }
 
-        public virtual UIElement CreateViewForModel(object model)
+        public virtual Type LocalViewForModel(Type modelType)
         {
-            var modelName = model.GetType().FullName;
-            var viewName = Regex.Replace(modelName, @"ViewModel", "View");
+            var viewName = Regex.Replace(modelType.FullName, @"ViewModel", "View");
             // TODO: This might need some more thinking
             var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
 
             if (viewType == null)
                 throw new Exception(String.Format("Unable to find a View with type {0}", viewName));
 
+            return viewType;
+        }
+
+        public virtual UIElement CreateViewForModel(object model)
+        {
+            var viewType = this.LocalViewForModel(model.GetType());
+
             if (viewType.IsInterface || viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
-                throw new Exception(String.Format("Found type for view : {0}, but it wasn't a class derived from UIElement", viewType.Name));
+                throw new Exception(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name));
 
             var view = (UIElement)IoC.GetInstance(viewType, null);
 
