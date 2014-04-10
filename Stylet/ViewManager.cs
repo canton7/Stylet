@@ -10,10 +10,27 @@ using System.Windows;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Responsible for managing views. Locates the correct view, instantiates it, attaches it to its ViewModel correctly, and handles the View.Model attached property
+    /// </summary>
     public interface IViewManager
     {
+        /// <summary>
+        /// Called by the View.Model attached property when the ViewModel its bound to changes
         void OnModelChanged(DependencyObject targetLocation, DependencyPropertyChangedEventArgs e);
-        UIElement LocateViewForModel(object model);
+
+        /// <summary>
+        /// Given an instance of a ViewModel, locate the correct view for it, and instantiate it
+        /// </summary>
+        /// <param name="model">ViewModel to locate the view for</param>
+        /// <returns>An instance of the correct view</returns>
+        UIElement CreateViewForModel(object model);
+
+        /// <summary>
+        /// Given an instance of a ViewModel and an instance of its View, bind the two together
+        /// </summary>
+        /// <param name="view">View to bind to the ViewModel</param>
+        /// <param name="viewModel">ViewModel to bind the View to</param>
         void BindViewToModel(UIElement view, object viewModel);
     }
 
@@ -34,7 +51,7 @@ namespace Stylet
                 }
                 else
                 {
-                    view = this.LocateViewForModel(e.NewValue);
+                    view = this.CreateViewForModel(e.NewValue);
                     this.BindViewToModel(view, e.NewValue);
                 }
 
@@ -46,7 +63,7 @@ namespace Stylet
             }
         }
 
-        public virtual UIElement LocateViewForModel(object model)
+        public virtual UIElement CreateViewForModel(object model)
         {
             var modelName = model.GetType().FullName;
             var viewName = Regex.Replace(modelName, @"ViewModel", "View");

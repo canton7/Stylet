@@ -29,7 +29,7 @@ namespace StyletUnitTests
         public void ShowWindowAsksViewManagerForView()
         {
             var model = new object();
-            this.viewManager.Setup(x => x.LocateViewForModel(model)).Verifiable();
+            this.viewManager.Setup(x => x.CreateViewForModel(model)).Verifiable();
             // Don't care if this throws - that's OK
             try { this.windowManager.ShowWindow(model);  }
             catch (Exception) { }
@@ -40,7 +40,7 @@ namespace StyletUnitTests
         public void ShowWindowThrowsIfViewIsntAWindow()
         {
             var model = new object();
-            this.viewManager.Setup(x => x.LocateViewForModel(model)).Returns(new UIElement());
+            this.viewManager.Setup(x => x.CreateViewForModel(model)).Returns(new UIElement());
             Assert.Throws<Exception>(() => this.windowManager.ShowWindow(model));
         }
     }

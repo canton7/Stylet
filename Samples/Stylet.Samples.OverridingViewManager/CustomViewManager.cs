@@ -38,7 +38,7 @@ namespace Stylet.Samples.OverridingViewManager
             this.viewModelToViewMapping = mappings.ToDictionary(x => x.ViewModel, x => x.View);
         }
 
-        public override UIElement LocateViewForModel(object model)
+        public override UIElement CreateViewForModel(object model)
         {
             Type viewType;
             if (!this.viewModelToViewMapping.TryGetValue(model.GetType(), out viewType))

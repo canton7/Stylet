@@ -32,7 +32,7 @@ namespace Stylet
         {
             var viewManager = IoC.Get<IViewManager>();
 
-            var view = viewManager.LocateViewForModel(viewModel);
+            var view = viewManager.CreateViewForModel(viewModel);
             var window = view as Window;
             if (window == null)
                 throw new Exception(String.Format("Tried to show {0} as a window, but it isn't a Window", view == null ? "(null)" : view.GetType().Name));
