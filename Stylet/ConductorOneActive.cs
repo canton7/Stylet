@@ -35,19 +35,30 @@ namespace Stylet
                                 break;
 
                             case NotifyCollectionChangedAction.Remove:
-                                this.SetParent(e.OldItems, false);
+                                this.CloseAndCleanUp(e.OldItems);
+                                this.ActiveItemMayHaveBeenRemovedFromItems();
                                 break;
 
                             case NotifyCollectionChangedAction.Replace:
                                 this.SetParent(e.NewItems, true);
-                                this.SetParent(e.OldItems, false);
+                                this.CloseAndCleanUp(e.OldItems);
+                                this.ActiveItemMayHaveBeenRemovedFromItems();
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
                                 this.SetParent(this.items, true);
+                                this.ActiveItemMayHaveBeenRemovedFromItems();
                                 break;
                         }
                     };
+                }
+
+                protected virtual void ActiveItemMayHaveBeenRemovedFromItems()
+                {
+                    if (this.items.Contains(this.ActiveItem))
+                        return;
+
+                    this.ChangeActiveItem(this.items.FirstOrDefault(), true);
                 }
 
                 public override IEnumerable<T> GetChildren()

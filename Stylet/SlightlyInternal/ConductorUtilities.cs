@@ -32,5 +32,15 @@ namespace Stylet.SlightlyInternal
             if (itemAsChild != null && itemAsChild.Parent == parent)
                 itemAsChild.Parent = null;
         }
+        
+        public static void CloseAndCleanUp<T>(this IConductor<T> parent, IEnumerable items)
+        {
+            foreach (var item in items.OfType<IClose>())
+            {
+                item.Close();
+            }
+
+            parent.SetParent(items, false);
+        }
     }
 }
