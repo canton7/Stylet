@@ -78,7 +78,18 @@ namespace Stylet
                 /// <param name="item">Item to deactivate</param>
                 public override void DeactivateItem(T item)
                 {
-                    ScreenExtensions.TryDeactivate(item);
+                    if (item == null)
+                        return;
+
+                    if (item.Equals(this.ActiveItem))
+                    {
+                        var nextItem = this.DetermineNextItemToActivate(this.items, this.items.IndexOf(item));
+                        this.ChangeActiveItem(null, false);
+                    }
+                    else
+                    {
+                        ScreenExtensions.TryDeactivate(item);
+                    }
                 }
 
                 public override async void CloseItem(T item)
@@ -88,8 +99,7 @@ namespace Stylet
 
                     if (item.Equals(this.ActiveItem))
                     {
-                        var index = this.items.IndexOf(item);
-                        var nextItem = this.DetermineNextItemToActivate(this.items, index);
+                        var nextItem = this.DetermineNextItemToActivate(this.items, this.items.IndexOf(item));
                         this.ChangeActiveItem(nextItem, true);
                     }
                     else
@@ -102,9 +112,12 @@ namespace Stylet
 
                 protected virtual T DetermineNextItemToActivate(IList<T> list, int indexOfItemBeingRemoved)
                 {
+                    // indexOfItemBeingRemoved *can* be -1 - if the item being removed doesn't exist in the list
                     if (list.Count > 1)
                     {
-                        if (indexOfItemBeingRemoved == 0)
+                        if (indexOfItemBeingRemoved < 0)
+                            return list[0];
+                        else if (indexOfItemBeingRemoved == 0)
                             return list[1];
                         else
                             return list[indexOfItemBeingRemoved - 1];
