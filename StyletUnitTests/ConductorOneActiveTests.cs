@@ -164,13 +164,43 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void RemovingItemRemovesParent()
+        public void AddingItemDoesNotChangeActiveItem()
+        {
+            var screen1 = new Mock<IScreen>();
+            var screen2 = new Mock<IScreen>();
+            this.conductor.ActivateItem(screen1.Object);
+            this.conductor.Items.Add(screen2.Object);
+
+            Assert.AreEqual(this.conductor.ActiveItem, screen1.Object);
+            screen2.Verify(x => x.Activate(), Times.Never);
+            screen1.Verify(x => x.Deactivate(), Times.Never);
+        }
+
+        [Test]
+        public void RemovingItemClosesAndRemovesParent()
         {
             var screen = new Mock<IScreen>();
             screen.SetupGet(x => x.Parent).Returns(this.conductor);
             this.conductor.Items.Add(screen.Object);
             this.conductor.Items.Remove(screen.Object);
             screen.VerifySet(x => x.Parent = null);
+            screen.Verify(x => x.Close());
+        }
+
+        [Test]
+        public void RemovingActiveItemActivatesAnotherItem()
+        {
+            ((IActivate)this.conductor).Activate();
+            var screen1 = new Mock<IScreen>();
+            var screen2 = new Mock<IScreen>();
+            this.conductor.ActivateItem(screen1.Object);
+            this.conductor.Items.Add(screen2.Object);
+
+            this.conductor.Items.Remove(screen1.Object);
+
+            Assert.AreEqual(this.conductor.ActiveItem, screen2.Object);
+            screen2.Verify(x => x.Activate());
+            screen1.Verify(x => x.Close());
         }
 
         [Test]

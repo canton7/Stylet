@@ -31,23 +31,35 @@ namespace Stylet
                         switch (e.Action)
                         {
                             case NotifyCollectionChangedAction.Add:
-                                this.SetParent(e.NewItems, true);
+                                this.ActivateAndSetParent(e.NewItems);
                                 break;
 
                             case NotifyCollectionChangedAction.Remove:
-                                this.SetParent(e.OldItems, false);
+                                this.CloseAndCleanUp(e.OldItems);
                                 break;
 
                             case NotifyCollectionChangedAction.Replace:
-                                this.SetParent(e.NewItems, true);
-                                this.SetParent(e.OldItems, false);
+                                this.ActivateAndSetParent(e.NewItems);
+                                this.CloseAndCleanUp(e.OldItems);
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
-                                this.SetParent(this.items, true);
+                                this.ActivateAndSetParent(this.items);
                                 break;
                         }
                     };
+                }
+
+                protected virtual void ActivateAndSetParent(IEnumerable items)
+                {
+                    this.SetParent(items, true);
+                    if (this.IsActive)
+                    {
+                        foreach (var item in items.OfType<IActivate>())
+                        {
+                            item.Activate();
+                        }
+                    }
                 }
 
                 protected override void OnActivate()

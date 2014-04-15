@@ -99,21 +99,24 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void AddingItemSetsParent()
+        public void AddingItemActivatesAndSetsParent()
         {
+            ((IActivate)this.conductor).Activate();
             var screen = new Mock<IScreen>();
             this.conductor.Items.Add(screen.Object);
             screen.VerifySet(x => x.Parent = this.conductor);
+            screen.Verify(x => x.Activate());
         }
 
         [Test]
-        public void RemovingItemRemovesParent()
+        public void RemovingItemClosesAndRemovesParent()
         {
             var screen = new Mock<IScreen>();
             screen.SetupGet(x => x.Parent).Returns(this.conductor);
             this.conductor.Items.Add(screen.Object);
             this.conductor.Items.Remove(screen.Object);
             screen.VerifySet(x => x.Parent = null);
+            screen.Verify(x => x.Close());
         }
 
         [Test]
