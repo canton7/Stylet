@@ -53,7 +53,7 @@ namespace Stylet.Xaml
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (!(value is Visibility))
-                return false;
+                return null;
 
             var vis = (Visibility)value;
 
