@@ -10,22 +10,32 @@ namespace Stylet
     /// Key-value pair useful for attaching labels to objects and displaying them in the view
     /// </summary>
     /// <typeparam name="T">Type of the value</typeparam>
-    public class LabelledValue<T> : IEquatable<LabelledValue<T>>
+    public class LabelledValue<T> : PropertyChangedBase, IEquatable<LabelledValue<T>>
     {
+        private string _label;
         /// <summary>
         /// Label associated with this item. This is displayed in your View
         /// </summary>
-        public string Label { get; set; }
+        public string Label
+        {
+            get { return this._label; }
+            set { SetAndNotify(ref this._label, value); }
+        }
 
+        private T _value;
         /// <summary>
         /// Value associated with this item. This is used by your ViewModel
         /// </summary>
-        public T Value { get; set; }
+        public T Value
+        {
+            get { return this._value; }
+            set { SetAndNotify(ref this._value, value); }
+        }
 
         public LabelledValue(string label, T value)
         {
-            this.Label = label;
-            this.Value = value;
+            this._label = label;
+            this._value = value;
         }
 
         public bool Equals(LabelledValue<T> other)
