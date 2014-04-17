@@ -11,12 +11,27 @@ using System.Windows.Controls.Primitives;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Implementation of IScreen. Useful as a base class for your ViewModels
+    /// </summary>
     public class Screen : PropertyChangedBase, IScreen
     {
         #region WeakEventManager
 
         private Lazy<IWeakEventManager> lazyWeakEventManager = new Lazy<IWeakEventManager>(() => new WeakEventManager(), true);
+        /// <summary>
+        /// WeakEventManager owned by this screen (lazy)
+        /// </summary>
         protected IWeakEventManager weakEventManager { get { return this.lazyWeakEventManager.Value; } }
+
+        /// <summary>
+        /// Proxy around this.weakEventManager.BindWeak. Binds to an INotifyPropertyChanged source, in a way which doesn't cause us to be retained
+        /// </summary>
+        /// <example>this.BindWeak(objectToBindTo, x => x.PropertyToBindTo, newValue => handlerForNewValue)</example>
+        /// <param name="source">Object to observe for PropertyChanged events</param>
+        /// <param name="selector">Expression for selecting the property to observe, e.g. x => x.PropertyName</param>
+        /// <param name="handler">Handler to be called when that property changes</param>
+        /// <returns>A resource which can be used to undo the binding</returns>
         protected IPropertyChangedBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
             where TSource : class, INotifyPropertyChanged
         {
@@ -43,6 +58,9 @@ namespace Stylet
         private bool hasBeenActivatedEver;
 
         private bool _isActive;
+        /// <summary>
+        /// True if this Screen is currently active
+        /// </summary>
         public bool IsActive
         {
             get { return this._isActive; }
@@ -68,7 +86,14 @@ namespace Stylet
                 handler(this, new ActivationEventArgs());
         }
 
+        /// <summary>
+        /// Called the very first time this Screen is activated, and never again
+        /// </summary>
         protected virtual void OnInitialActivate() { }
+
+        /// <summary>
+        /// Called every time this screen is activated
+        /// </summary>
         protected virtual void OnActivate() { }
 
         #endregion
@@ -92,6 +117,9 @@ namespace Stylet
                 handler(this, new DeactivationEventArgs());
         }
 
+        /// <summary>
+        /// Called every time this screen is deactivated
+        /// </summary>
         protected virtual void OnDeactivate() { }
 
         #endregion
@@ -115,6 +143,9 @@ namespace Stylet
                 handler(this, new CloseEventArgs());
         }
 
+        /// <summary>
+        /// Called when this screen is closed
+        /// </summary>
         protected virtual void OnClose() { }
 
         #endregion
@@ -141,6 +172,9 @@ namespace Stylet
             }
         }
 
+        /// <summary>
+        /// Called when the view attaches to the Screen loads
+        /// </summary>
         protected virtual void OnViewLoaded() { }
 
         #endregion
@@ -148,6 +182,9 @@ namespace Stylet
         #region IChild
 
         private object _parent;
+        /// <summary>
+        /// Parent conductor of this screen. Used to TryClose to request a closure
+        /// </summary>
         public object Parent
         {
             get { return this._parent; }
@@ -158,6 +195,10 @@ namespace Stylet
 
         #region IGuardClose
 
+        /// <summary>
+        /// Called when a conductor wants to know whether this screen can close.
+        /// </summary>
+        /// <returns>A task returning true (can close) or false (can't close)</returns>
         public virtual Task<bool> CanCloseAsync()
         {
             return Task.FromResult(true);
@@ -165,6 +206,10 @@ namespace Stylet
 
         #endregion
 
+        /// <summary>
+        /// Request that the conductor responsible for this screen close it
+        /// </summary>
+        /// <param name="dialogResult"></param>
         public virtual void TryClose(bool? dialogResult = null)
         {
             var conductor = this.Parent as IChildDelegate;
