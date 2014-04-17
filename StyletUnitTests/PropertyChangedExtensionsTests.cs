@@ -36,6 +36,7 @@ namespace StyletUnitTests
         class BindingClass
         {
             public string LastFoo;
+            private WeakEventManager weakEventManager = new WeakEventManager();
 
             public IPropertyChangedBinding BindStrong(NotifyingClass notifying)
             {
@@ -45,7 +46,7 @@ namespace StyletUnitTests
 
             public IPropertyChangedBinding BindWeak(NotifyingClass notifying)
             {
-                return notifying.BindWeak(this, x => x.Foo, x => this.LastFoo = x);
+                return this.weakEventManager.BindWeak(notifying, x => x.Foo, x => this.LastFoo = x);
             }
         }
 
@@ -129,9 +130,10 @@ namespace StyletUnitTests
         [Test]
         public void WeakBindingBinds()
         {
+            var manager = new WeakEventManager();
             string newVal = null;
             var c1 = new NotifyingClass();
-            c1.BindWeak(this, x => x.Foo, x => newVal = x);
+            manager.BindWeak(c1, x => x.Foo, x => newVal = x);
             c1.Foo = "bar";
 
             Assert.AreEqual("bar", newVal);
@@ -140,9 +142,10 @@ namespace StyletUnitTests
         [Test]
         public void WeakBindingIgnoresOtherProperties()
         {
+            var manager = new WeakEventManager();
             string newVal = null;
             var c1 = new NotifyingClass();
-            c1.BindWeak(this, x => x.Bar, x => newVal = x);
+            manager.BindWeak(c1, x => x.Bar, x => newVal = x);
             c1.Foo = "bar";
 
             Assert.AreEqual(null, newVal);
@@ -151,10 +154,11 @@ namespace StyletUnitTests
         [Test]
         public void WeakBindingListensToEmptyString()
         {
+            var manager = new WeakEventManager();
             string newVal = null;
             var c1 = new NotifyingClass();
             c1.Bar = "bar";
-            c1.BindWeak(this, x => x.Bar, x => newVal = x);
+            manager.BindWeak(c1, x => x.Bar, x => newVal = x);
             c1.NotifyAll();
 
             Assert.AreEqual("bar", newVal);
@@ -211,9 +215,10 @@ namespace StyletUnitTests
         [Test]
         public void WeakBindingUnbinds()
         {
+            var manager = new WeakEventManager();
             string newVal = null;
             var c1 = new NotifyingClass();
-            var binding = c1.BindWeak(this, x => x.Bar, x => newVal = x);
+            var binding = manager.BindWeak(c1, x => x.Bar, x => newVal = x);
             binding.Unbind();
             c1.Bar = "bar";
 

@@ -11,6 +11,9 @@ namespace Stylet
 {
     public class Screen : PropertyChangedBase, IScreen
     {
+        private Lazy<IWeakEventManager> lazyWeakEventManager = new Lazy<IWeakEventManager>(() => new WeakEventManager(), true);
+        protected IWeakEventManager weakEventManager { get { return this.lazyWeakEventManager.Value; } }
+
         #region IHaveDisplayName
 
         private string _displayName;
