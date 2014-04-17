@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-// Hidden away slightly, but not too well...
-namespace Stylet.SlightlyInternal
+namespace Stylet
 {
-    public static class ConductorExtensions
+    // Don't name ConductorExtensions, otherwise it's too obvious when someone types 'Conductor'
+    public static class StyletConductorExtensions
     {
         public static void SetParent<T>(this IConductor<T> parent, IEnumerable items, bool setOrClear)
         {
