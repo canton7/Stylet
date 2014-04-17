@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,8 +13,17 @@ namespace Stylet
 {
     public class Screen : PropertyChangedBase, IScreen
     {
+        #region WeakEventManager
+
         private Lazy<IWeakEventManager> lazyWeakEventManager = new Lazy<IWeakEventManager>(() => new WeakEventManager(), true);
         protected IWeakEventManager weakEventManager { get { return this.lazyWeakEventManager.Value; } }
+        protected IPropertyChangedBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
+            where TSource : class, INotifyPropertyChanged
+        {
+            return this.weakEventManager.BindWeak(source, selector, handler);
+        }
+
+        #endregion
 
         #region IHaveDisplayName
 
