@@ -46,8 +46,8 @@
     <Compile Include="ConductorNavigating.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LabelledValue.cs" />
-    <Compile Include="SlightlyInternal\ConductorUtilities.cs" />
     <Compile Include="INotifyPropertyChangedDispatcher.cs" />
+    <Compile Include="StyletConductorExtensions.cs" />
     <Compile Include="WeakEventManager.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />

@@ -7,7 +7,7 @@ using System.Windows.Markup;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Stylet")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("This is the description")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Antony Male")]
 [assembly: AssemblyProduct("Stylet")]
