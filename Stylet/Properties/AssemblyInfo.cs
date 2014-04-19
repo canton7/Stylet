@@ -7,7 +7,7 @@ using System.Windows.Markup;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Stylet")]
-[assembly: AssemblyDescription("This is the description")]
+[assembly: AssemblyDescription("A very lightweight but powerful ViewModel-First MVVM framework for WPF, inspired by Caliburn.Micro. Comes with its own IoC container.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Antony Male")]
 [assembly: AssemblyProduct("Stylet")]
@@ -35,5 +35,5 @@ using System.Windows.Markup;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+//[assembly: AssemblyVersion("1.0.0.0")]
+//[assembly: AssemblyFileVersion("1.0.0.0")]

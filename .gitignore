@@ -31,6 +31,7 @@ obj/
 
 #NuGet
 packages/
+*.nupkg
 
 #Installer
 installer/Output
