@@ -29,27 +29,31 @@ namespace Stylet
 
             var builder = new StyletIoCBuilder();
 
-            // Mark these as auto-bindings, so the user can replace them if they want
-            builder.BindWeak(typeof(IWindowManager)).To<WindowManager>().InSingletonScope();
-            builder.BindWeak(typeof(IEventAggregator)).To<EventAggregator>().InSingletonScope();
-            builder.BindWeak(typeof(IViewManager)).To<ViewManager>().InSingletonScope();
-
+            this.DefaultConfigureIoC(builder);
             this.ConfigureIoC(builder);
 
             this.container = builder.BuildContainer();
         }
 
         /// <summary>
-        /// Override to add your own types to the IoC container.
+        /// Carries out default configuration of StyletIoC. Override if you don't want to do this
         /// </summary>
-        /// <remarks>
-        /// Don't call the base method if you don't want to auto-self-bind all concrete types
-        /// </remarks>
-        /// <param name="builder"></param>
-        protected virtual void ConfigureIoC(IStyletIoCBuilder builder)
+        /// <param name="builder">StyletIoC builder to use to configure the container</param>
+        protected virtual void DefaultConfigureIoC(StyletIoCBuilder builder)
         {
+            // Mark these as auto-bindings, so the user can replace them if they want
+            builder.BindWeak(typeof(IWindowManager)).To<WindowManager>().InSingletonScope();
+            builder.BindWeak(typeof(IEventAggregator)).To<EventAggregator>().InSingletonScope();
+            builder.BindWeak(typeof(IViewManager)).To<ViewManager>().InSingletonScope();
+
             builder.Autobind(AssemblySource.Assemblies);
         }
+
+        /// <summary>
+        /// Override to add your own types to the IoC container.
+        /// </summary>
+        /// <param name="builder">StyletIoC builder to use to configure the container</param>
+        protected virtual void ConfigureIoC(IStyletIoCBuilder builder) { }
 
         /// <summary>
         /// Override which uses StyletIoC as the implementation for IoC.Get
