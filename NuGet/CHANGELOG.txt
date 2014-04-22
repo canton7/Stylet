@@ -1,6 +1,11 @@
 Stylet Changelog
 ================
 
+v0.9.2
+------
+
+ - Remove debugging from install.ps1 which shouldn't have been there.
+
 v0.9.1
 ------
 
