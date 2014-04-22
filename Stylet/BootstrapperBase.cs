@@ -53,6 +53,7 @@ namespace Stylet
             AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
 
             this.ConfigureResources();
+            this.Configure();
              
             // Stitch the IoC shell to us
             IoC.GetInstance = this.GetInstance;
@@ -65,6 +66,11 @@ namespace Stylet
             var rc = new ResourceDictionary() { Source = new Uri("pack://application:,,,/Stylet;component/Xaml/StyletResourceDictionary.xaml", UriKind.Absolute) };
             Application.Resources.MergedDictionaries.Add(rc);
         }
+
+        /// <summary>
+        /// Override to configure your IoC container, and anything else
+        /// </summary>
+        protected virtual void Configure() { }
 
         /// <summary>
         /// Override this to fetch an implementation of a service from your IoC container. Used by IoC.Get.
