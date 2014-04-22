@@ -34,9 +34,6 @@ namespace Stylet
         {
             this.Application = Application.Current;
 
-            // Use the current SynchronizationContext for the Execute helper
-            Execute.SynchronizationContext = SynchronizationContext.Current;
-
             // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
             this.Application.Startup += OnStartup;
             this.Application.Exit += OnExit;
@@ -45,6 +42,9 @@ namespace Stylet
             // The magic which actually displays
             this.Application.Startup += (o, e) =>
             {
+                // Use the current SynchronizationContext for the Execute helper
+                Execute.SynchronizationContext = SynchronizationContext.Current;
+
                 IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
             };
 
