@@ -1,0 +1,10 @@
+﻿<Window x:Class="Stylet.Samples.Hello.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:s="http://github.com/canton7/Stylet"
+        Height="300" Width="300">
+    <StackPanel>
+        <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+        <Button Command="{s:Action SayHello}">Say Hello</Button>
+    </StackPanel>
+</Window>

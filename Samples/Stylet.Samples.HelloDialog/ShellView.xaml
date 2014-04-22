@@ -1,0 +1,13 @@
+﻿<Window x:Class="Stylet.Samples.HelloDialog.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:s="http://github.com/canton7/Stylet"
+        Title="ShellView" Height="300" Width="300">
+    <DockPanel LastChildFill="False" Margin="10">
+        <DockPanel DockPanel.Dock="Top">
+            <Button DockPanel.Dock="Right" Command="{s:Action ShowDialog}">Show Dialog</Button>
+            <TextBlock DockPanel.Dock="Left" Text="{Binding NameString}"/>
+            
+        </DockPanel>
+    </DockPanel>
+</Window>
