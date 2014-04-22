@@ -15,7 +15,7 @@ namespace Stylet
         public static SynchronizationContext SynchronizationContext;
         private static bool? inDesignMode;
 
-        public static Action<Action> DefaultPropertyChangedDispatcher = a => a();
+        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.OnUIThread;
 
         public static void OnUIThread(Action action)
         {

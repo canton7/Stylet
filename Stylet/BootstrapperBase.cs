@@ -21,10 +21,26 @@ namespace Stylet
         /// </summary>
         protected Application Application { get; private set; }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "Start must be overridable. It doesn't depend on the type having been constructed")]
         public BootstrapperBase()
         {
-            this.Start();
+            // Add the current assembly to the assemblies list - this will be needed by the IViewManager
+            AssemblySource.Assemblies.Clear();
+            AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
+
+            // Stitch the IoC shell to us
+            IoC.GetInstance = this.GetInstance;
+            IoC.GetAllInstances = this.GetAllInstances;
+            IoC.BuildUp = this.BuildUp;
+
+            this.Application = Application.Current;
+
+            // Call this before calling our Start method
+            this.Application.Startup += this.OnStartup;
+            this.Application.Startup += (o, e) => this.Start();
+
+            // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
+            this.Application.Exit += OnExit;
+            this.Application.DispatcherUnhandledException += OnUnhandledExecption;
         }
 
         /// <summary>
@@ -32,32 +48,13 @@ namespace Stylet
         /// </summary>
         protected virtual void Start()
         {
-            this.Application = Application.Current;
-
             // Use the current SynchronizationContext for the Execute helper
             Execute.SynchronizationContext = SynchronizationContext.Current;
 
-            // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
-            this.Application.Startup += OnStartup;
-            this.Application.Exit += OnExit;
-            this.Application.DispatcherUnhandledException += OnUnhandledExecption;
-
-            // The magic which actually displays
-            this.Application.Startup += (o, e) =>
-            {
-                IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
-            };
-
-            // Add the current assembly to the assemblies list - this will be needed by the IViewManager
-            AssemblySource.Assemblies.Clear();
-            AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
-
             this.ConfigureResources();
-             
-            // Stitch the IoC shell to us
-            IoC.GetInstance = this.GetInstance;
-            IoC.GetAllInstances = this.GetAllInstances;
-            IoC.BuildUp = this.BuildUp;
+            this.Configure();
+
+            IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
         }
 
         protected virtual void ConfigureResources()
@@ -65,6 +62,11 @@ namespace Stylet
             var rc = new ResourceDictionary() { Source = new Uri("pack://application:,,,/Stylet;component/Xaml/StyletResourceDictionary.xaml", UriKind.Absolute) };
             Application.Resources.MergedDictionaries.Add(rc);
         }
+
+        /// <summary>
+        /// Override to configure your IoC container, and anything else
+        /// </summary>
+        protected virtual void Configure() { }
 
         /// <summary>
         /// Override this to fetch an implementation of a service from your IoC container. Used by IoC.Get.
