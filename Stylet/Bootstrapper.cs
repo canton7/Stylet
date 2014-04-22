@@ -25,14 +25,14 @@ namespace Stylet
         /// </summary>
         protected override void Start()
         {
-            base.Start();
-
             var builder = new StyletIoCBuilder();
 
             this.DefaultConfigureIoC(builder);
             this.ConfigureIoC(builder);
 
             this.container = builder.BuildContainer();
+
+            base.Start();
         }
 
         /// <summary>
