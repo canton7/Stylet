@@ -66,8 +66,7 @@ namespace StyletUnitTests
 
             Assert.AreEqual(1, changedEvents.Count);
             var changedEvent = changedEvents[0];
-            Assert.AreEqual(NotifyCollectionChangedAction.Add, changedEvent.Action);
-            Assert.AreEqual(elementsToAdd, changedEvent.NewItems);
+            Assert.AreEqual(NotifyCollectionChangedAction.Reset, changedEvent.Action);
         }
 
         [Test]
@@ -97,8 +96,7 @@ namespace StyletUnitTests
 
             Assert.AreEqual(1, changedEvents.Count);
             var changedEvent = changedEvents[0];
-            Assert.AreEqual(NotifyCollectionChangedAction.Add, changedEvent.Action);
-            Assert.AreEqual(itemsToRemove, changedEvent.NewItems);
+            Assert.AreEqual(NotifyCollectionChangedAction.Reset, changedEvent.Action);
         }
 
         [Test]
