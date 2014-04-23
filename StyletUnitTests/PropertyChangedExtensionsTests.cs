@@ -38,13 +38,13 @@ namespace StyletUnitTests
             public string LastFoo;
             private WeakEventManager weakEventManager = new WeakEventManager();
 
-            public IPropertyChangedBinding BindStrong(NotifyingClass notifying)
+            public IEventBinding BindStrong(NotifyingClass notifying)
             {
                 // Must make sure the compiler doesn't generate an inner class for this, otherwise we're not testing the right thing
                 return notifying.Bind(x => x.Foo, x => this.LastFoo = x);
             }
 
-            public IPropertyChangedBinding BindWeak(NotifyingClass notifying)
+            public IEventBinding BindWeak(NotifyingClass notifying)
             {
                 return this.weakEventManager.BindWeak(notifying, x => x.Foo, x => this.LastFoo = x);
             }
