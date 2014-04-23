@@ -23,7 +23,7 @@ using System.Windows.Markup;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("a557a739-6b61-44d2-a431-889bc11aac9e")]
 
-[assembly: XmlnsDefinition("http://github.com/canton7/Stylet", "Stylet")]
+[assembly: XmlnsDefinition("https://github.com/canton7/Stylet", "Stylet")]
 
 // Version information for an assembly consists of the following four values:
 //

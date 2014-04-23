@@ -1,7 +1,7 @@
 ﻿<Window x:Class="StyletIntegrationTests.ShellView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:s="http://github.com/canton7/Stylet"
+        xmlns:s="https://github.com/canton7/Stylet"
         Title="ShellView" Height="500" Width="500">
     <DockPanel LastChildFill="False">
         <GroupBox DockPanel.Dock="Top" Header="ShowDialog and DialogResult" Padding="10">
