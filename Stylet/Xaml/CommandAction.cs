@@ -26,7 +26,7 @@ namespace Stylet
         /// <summary>
         /// View to grab the View.ActionTarget from
         /// </summary>
-        public FrameworkElement Subject { get; private set; }
+        public DependencyObject Subject { get; private set; }
 
         /// <summary>
         /// Method name. E.g. if someone's gone Buttom Command="{s:Action MyMethod}", this is MyMethod.
@@ -53,7 +53,7 @@ namespace Stylet
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
-        public CommandAction(FrameworkElement subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+        public CommandAction(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
         {
             this.Subject = subject;
             this.MethodName = methodName;

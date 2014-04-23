@@ -30,12 +30,12 @@ namespace Stylet
         /// <summary>
         /// Behaviour if the View.ActionTarget is nulil
         /// </summary>
-        public ActionUnavailableBehaviour NullTarget { get; set; }
+        public ActionUnavailableBehaviour? NullTarget { get; set; }
 
         /// <summary>
         /// Behaviour if the action itself isn't found on the View.ActionTarget
         /// </summary>
-        public ActionUnavailableBehaviour ActionNotFound { get; set; }
+        public ActionUnavailableBehaviour? ActionNotFound { get; set; }
 
         /// <summary>
         /// Create a new ActionExtension
@@ -44,8 +44,6 @@ namespace Stylet
         public ActionExtension(string method)
         {
             this.Method = method;
-            this.NullTarget = ActionUnavailableBehaviour.Disable;
-            this.ActionNotFound = ActionUnavailableBehaviour.Throw;
         }
 
         public override object ProvideValue(IServiceProvider serviceProvider)
@@ -54,19 +52,19 @@ namespace Stylet
 
             // Seems this is the case when we're in a template. We'll get called again properly in a second.
             // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
-            if (!(valueService.TargetObject is FrameworkElement))
+            if (!(valueService.TargetObject is DependencyObject))
                 return this;
 
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
-                return new CommandAction((FrameworkElement)valueService.TargetObject, this.Method, this.NullTarget, this.ActionNotFound);
+                return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, this.NullTarget.GetValueOrDefault(ActionUnavailableBehaviour.Disable), this.ActionNotFound.GetValueOrDefault(ActionUnavailableBehaviour.Throw));
             }
 
             var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
             if (propertyAsEventInfo != null)
             {
-                var ec = new EventAction((FrameworkElement)valueService.TargetObject, propertyAsEventInfo, this.Method, this.NullTarget, this.ActionNotFound);
+                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo, this.Method, this.NullTarget.GetValueOrDefault(ActionUnavailableBehaviour.Throw), this.ActionNotFound.GetValueOrDefault(ActionUnavailableBehaviour.Throw));
                 return ec.GetDelegate();
             }
                 

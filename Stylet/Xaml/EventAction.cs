@@ -17,7 +17,7 @@ namespace Stylet
         /// <summary>
         /// View whose View.ActionTarget we watch
         /// </summary>
-        private FrameworkElement subject;
+        private DependencyObject subject;
 
         /// <summary>
         /// Property on the WPF element we're returning a delegate for
@@ -45,7 +45,7 @@ namespace Stylet
         /// <param name="subject">View whose View.ActionTarget we watch</param>
         /// <param name="targetProperty">Property on the WPF element we're returning a delegate for</param>
         /// <param name="methodName">The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired</param>
-        public EventAction(FrameworkElement subject, EventInfo targetProperty, string methodName, ActionUnavailableBehaviour nullTargetBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+        public EventAction(DependencyObject subject, EventInfo targetProperty, string methodName, ActionUnavailableBehaviour nullTargetBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
         {
             if (nullTargetBehaviour == ActionUnavailableBehaviour.Disable)
                 throw new ArgumentException("Setting NullTarget = Disable is unsupported when used on an Event");
