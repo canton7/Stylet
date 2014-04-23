@@ -45,15 +45,20 @@ namespace Stylet
 
         private object target;
 
+        private ActionUnavailableBehaviour targetNullBehaviour;
+        private ActionUnavailableBehaviour actionNonExistentBehaviour;
+
         /// <summary>
         /// Create a new ActionCommand 
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
-        public CommandAction(FrameworkElement subject, string methodName)
+        public CommandAction(FrameworkElement subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
         {
             this.Subject = subject;
             this.MethodName = methodName;
+            this.targetNullBehaviour = targetNullBehaviour;
+            this.actionNonExistentBehaviour = actionNonExistentBehaviour;
 
             this.UpdateGuardAndMethod();
 
@@ -72,7 +77,13 @@ namespace Stylet
             MethodInfo targetMethodInfo = null;
             
             this.guardPropertyGetter = null;
-            if (newTarget != null)
+            if (newTarget == null)
+            {
+                // If it's Enable or Disable we don't do anything - CanExecute will handle this
+                if (this.targetNullBehaviour == ActionUnavailableBehaviour.Throw)
+                    throw new Exception(String.Format("Method {0} has a target set which is null", this.MethodName));
+            }
+            else
             {
                 var newTargetType = newTarget.GetType();
 
@@ -86,11 +97,16 @@ namespace Stylet
 
                 targetMethodInfo = newTargetType.GetMethod(this.MethodName);
                 if (targetMethodInfo == null)
-                    throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
-
-                var methodParameters = targetMethodInfo.GetParameters();
-                if (methodParameters.Length > 1)
-                    throw new ArgumentException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
+                {
+                    if (this.actionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
+                        throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
+                }
+                else
+                {
+                    var methodParameters = targetMethodInfo.GetParameters();
+                    if (methodParameters.Length > 1)
+                        throw new ArgumentException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
+                }
             }
 
             var oldTarget = this.target as INotifyPropertyChanged;
@@ -125,8 +141,20 @@ namespace Stylet
 
         public bool CanExecute(object parameter)
         {
-            if (this.target == null)
+            // It's enabled only if both the targetNull and actionNonExistent tests pass
+
+            // Throw is handled when the target is set
+            if (this.target == null && this.targetNullBehaviour == ActionUnavailableBehaviour.Disable)
                 return false;
+
+            // Throw is handled when the target is set
+            if (this.targetMethodInfo == null)
+            {
+                if (this.actionNonExistentBehaviour == ActionUnavailableBehaviour.Disable)
+                    return false;
+                else
+                    return true;
+            }
 
             if (this.guardPropertyGetter == null)
                 return true;
@@ -138,10 +166,11 @@ namespace Stylet
 
         public void Execute(object parameter)
         {
-            // This is not going to be called very often, so don't bother to generate a delegate, in the way that we do for the method guard
-            if (this.target == null)
-                throw new ArgumentException("Target not set");
+            // Any throwing would have been handled prior to this
+            if (this.target == null || this.targetMethodInfo == null)
+                return;
 
+            // This is not going to be called very often, so don't bother to generate a delegate, in the way that we do for the method guard
             var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
             this.targetMethodInfo.Invoke(this.target, parameters);
         }

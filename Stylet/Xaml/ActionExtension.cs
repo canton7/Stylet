@@ -10,6 +10,13 @@ using System.Windows.Markup;
 
 namespace Stylet
 {
+    public enum ActionUnavailableBehaviour
+    {
+        Enable,
+        Disable,
+        Throw
+    };
+
     /// <summary>
     /// MarkupExtension used for binding Commands and Events to methods on the View.ActionTarget
     /// </summary>
@@ -21,12 +28,24 @@ namespace Stylet
         public string Method { get; set; }
 
         /// <summary>
+        /// Behaviour if the View.ActionTarget is nulil
+        /// </summary>
+        public ActionUnavailableBehaviour NullTarget { get; set; }
+
+        /// <summary>
+        /// Behaviour if the action itself isn't found on the View.ActionTarget
+        /// </summary>
+        public ActionUnavailableBehaviour ActionNotFound { get; set; }
+
+        /// <summary>
         /// Create a new ActionExtension
         /// </summary>
         /// <param name="method">Name of the method to call</param>
         public ActionExtension(string method)
         {
             this.Method = method;
+            this.NullTarget = ActionUnavailableBehaviour.Disable;
+            this.ActionNotFound = ActionUnavailableBehaviour.Throw;
         }
 
         public override object ProvideValue(IServiceProvider serviceProvider)
@@ -41,13 +60,13 @@ namespace Stylet
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
-                return new CommandAction((FrameworkElement)valueService.TargetObject, this.Method);
+                return new CommandAction((FrameworkElement)valueService.TargetObject, this.Method, this.NullTarget, this.ActionNotFound);
             }
 
             var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
             if (propertyAsEventInfo != null)
             {
-                var ec = new EventAction((FrameworkElement)valueService.TargetObject, propertyAsEventInfo, this.Method);
+                var ec = new EventAction((FrameworkElement)valueService.TargetObject, propertyAsEventInfo, this.Method, this.NullTarget, this.ActionNotFound);
                 return ec.GetDelegate();
             }
                 
