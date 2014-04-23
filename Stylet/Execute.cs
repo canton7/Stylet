@@ -17,13 +17,39 @@ namespace Stylet
 
         public static Action<Action> DefaultPropertyChangedDispatcher = Execute.OnUIThread;
 
-        public static void OnUIThread(Action action)
+        public static void BeginOnUIThread(Action action)
         {
             // If we're already on the given SynchronizationContext, or it hasn't been set, run synchronously
             if (SynchronizationContext != null && SynchronizationContext != SynchronizationContext.Current)
                 SynchronizationContext.Post(_ => action(), null);
             else
                 action();
+        }
+
+        public static void OnUIThread(Action action)
+        {
+            Exception exception = null;
+            if (SynchronizationContext != null && SynchronizationContext != SynchronizationContext.Current)
+            {
+                SynchronizationContext.Send(_ =>
+                {
+                    try
+                    {
+                        action();
+                    }
+                    catch (Exception e)
+                    {
+                        exception = e;
+                    }
+                }, null);
+
+                if (exception != null)
+                    throw new System.Reflection.TargetInvocationException("An error occurred while dispatching a call to the UI Thread", exception);
+            }
+            else
+            {
+                action();
+            }
         }
 
         public static Task OnUIThreadAsync(Action action)
