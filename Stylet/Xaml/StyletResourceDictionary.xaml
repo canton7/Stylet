@@ -13,4 +13,15 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <Style x:Key="StyletConductorItemsControl" TargetType="ItemsControl">
+        <Setter Property="ItemsSource" Value="{Binding Items}"/>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <ContentControl s:View.Model="{Binding}" VerticalContentAlignment="Stretch" HorizontalAlignment="Stretch" IsTabStop="False"/>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>
