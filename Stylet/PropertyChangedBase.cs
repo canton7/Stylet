@@ -18,6 +18,7 @@ namespace Stylet
         /// <summary>
         /// Dispatcher to use to dispatch PropertyChanged events. Defaults to Execute.DefaultPropertyChangedDispatcher
         /// </summary>
+        [System.Xml.Serialization.XmlIgnore]
         public virtual Action<Action> PropertyChangedDispatcher
         {
             get { return this._propertyChangedDispatcher; }
