@@ -85,22 +85,6 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void StrongBindingRetainsBindingClass()
-        {
-            var binding = new BindingClass();
-
-            // Means of determining whether the class has been disposed
-            var weakBinding = new WeakReference<BindingClass>(binding);
-
-            var notifying = new NotifyingClass();
-            binding.BindStrong(notifying);
-
-            binding = null;
-            GC.Collect();
-            Assert.IsTrue(weakBinding.TryGetTarget(out binding));
-        }
-
-        [Test]
         public void StrongBindingDoesNotRetainNotifier()
         {
             var binding = new BindingClass();
@@ -178,23 +162,6 @@ namespace StyletUnitTests
             binding = null;
             GC.Collect();
             Assert.IsFalse(weakBinding.TryGetTarget(out binding));
-        }
-
-        [Test]
-        public void WeakBindingRetainsClassIfIPropertyChangedBindingRetained()
-        {
-            var binding = new BindingClass();
-
-            // Means of determining whether the class has been disposed
-            var weakBinding = new WeakReference<BindingClass>(binding);
-
-            var notifying = new NotifyingClass();
-            // Retain this
-            var binder = binding.BindWeak(notifying);
-
-            binding = null;
-            GC.Collect();
-            Assert.IsTrue(weakBinding.TryGetTarget(out binding));
         }
 
         [Test]
