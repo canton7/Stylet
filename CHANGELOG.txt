@@ -1,6 +1,14 @@
 Stylet Changelog
 ================
 
+v0.9.4
+------
+
+ - Fix BindableCollection issues
+ - ActionExtension has configurable behaviour if target/action are null/not found
+ - ActionExtension works with things like Hyperlinks
+ - Misc tweaks and fixes
+
 v0.9.3
 ------
 

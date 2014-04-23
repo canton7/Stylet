@@ -38,13 +38,13 @@ namespace StyletUnitTests
             public string LastFoo;
             private WeakEventManager weakEventManager = new WeakEventManager();
 
-            public IPropertyChangedBinding BindStrong(NotifyingClass notifying)
+            public IEventBinding BindStrong(NotifyingClass notifying)
             {
                 // Must make sure the compiler doesn't generate an inner class for this, otherwise we're not testing the right thing
                 return notifying.Bind(x => x.Foo, x => this.LastFoo = x);
             }
 
-            public IPropertyChangedBinding BindWeak(NotifyingClass notifying)
+            public IEventBinding BindWeak(NotifyingClass notifying)
             {
                 return this.weakEventManager.BindWeak(notifying, x => x.Foo, x => this.LastFoo = x);
             }
@@ -82,22 +82,6 @@ namespace StyletUnitTests
             c1.NotifyAll();
 
             Assert.AreEqual("bar", newVal);
-        }
-
-        [Test]
-        public void StrongBindingRetainsBindingClass()
-        {
-            var binding = new BindingClass();
-
-            // Means of determining whether the class has been disposed
-            var weakBinding = new WeakReference<BindingClass>(binding);
-
-            var notifying = new NotifyingClass();
-            binding.BindStrong(notifying);
-
-            binding = null;
-            GC.Collect();
-            Assert.IsTrue(weakBinding.TryGetTarget(out binding));
         }
 
         [Test]
@@ -178,23 +162,6 @@ namespace StyletUnitTests
             binding = null;
             GC.Collect();
             Assert.IsFalse(weakBinding.TryGetTarget(out binding));
-        }
-
-        [Test]
-        public void WeakBindingRetainsClassIfIPropertyChangedBindingRetained()
-        {
-            var binding = new BindingClass();
-
-            // Means of determining whether the class has been disposed
-            var weakBinding = new WeakReference<BindingClass>(binding);
-
-            var notifying = new NotifyingClass();
-            // Retain this
-            var binder = binding.BindWeak(notifying);
-
-            binding = null;
-            GC.Collect();
-            Assert.IsTrue(weakBinding.TryGetTarget(out binding));
         }
 
         [Test]

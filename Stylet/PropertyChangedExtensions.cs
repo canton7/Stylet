@@ -12,14 +12,14 @@ namespace Stylet
     /// <summary>
     /// A binding to a PropertyChanged event, which can be used to unbind the binding
     /// </summary>
-    public interface IPropertyChangedBinding
+    public interface IEventBinding
     {
         void Unbind();
     }
 
     public static class PropertyChangedExtensions
     {
-        internal class StrongPropertyChangedBinding : IPropertyChangedBinding
+        internal class StrongPropertyChangedBinding : IEventBinding
         {
             private WeakReference<INotifyPropertyChanged> inpc;
             private PropertyChangedEventHandler handler;
@@ -48,7 +48,7 @@ namespace Stylet
         /// <param name="targetSelector">MemberExpression selecting the property to observe for changes (e.g x => x.PropertyName)</param>
         /// <param name="handler">Handler called whenever that property changed</param>
         /// <returns>Something which can be used to undo the binding. You can discard it if you want</returns>
-        public static IPropertyChangedBinding Bind<TBindTo, TMember>(this TBindTo target, Expression<Func<TBindTo, TMember>> targetSelector, Action<TMember> handler) where TBindTo : class, INotifyPropertyChanged
+        public static IEventBinding Bind<TBindTo, TMember>(this TBindTo target, Expression<Func<TBindTo, TMember>> targetSelector, Action<TMember> handler) where TBindTo : class, INotifyPropertyChanged
         {
             var propertyName = targetSelector.NameForProperty();
             var propertyAccess = targetSelector.Compile();

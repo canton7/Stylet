@@ -10,20 +10,20 @@ namespace Stylet
 {
     public interface IWeakEventManager
     {
-        IPropertyChangedBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
+        IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
             where TSource : class, INotifyPropertyChanged;
     }
 
-    internal class WeakPropertyBinding<TSource, TProperty> : IPropertyChangedBinding where TSource : class, INotifyPropertyChanged
+    internal class WeakPropertyBinding<TSource, TProperty> : IEventBinding where TSource : class, INotifyPropertyChanged
     {
         // Make sure we don't end up retaining the source
         private readonly WeakReference<TSource> source;
         private readonly string propertyName;
         private readonly Func<TSource, TProperty> valueSelector;
         private readonly Action<TProperty> handler;
-        private readonly Action<IPropertyChangedBinding> remover;
+        private readonly Action<IEventBinding> remover;
 
-        public WeakPropertyBinding(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler, Action<IPropertyChangedBinding> remover)
+        public WeakPropertyBinding(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler, Action<IEventBinding> remover)
         {
             this.source = new WeakReference<TSource>(source);
             this.propertyName = selector.NameForProperty();
@@ -55,9 +55,9 @@ namespace Stylet
     public class WeakEventManager : IWeakEventManager
     {
         private object bindingsLock = new object();
-        private List<IPropertyChangedBinding> bindings = new List<IPropertyChangedBinding>();
+        private List<IEventBinding> bindings = new List<IEventBinding>();
 
-        public IPropertyChangedBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
+        public IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
             where TSource : class, INotifyPropertyChanged
         {
             // So, the handler's target might point to the class that owns us, or it might point to a compiler-generated class
@@ -82,7 +82,7 @@ namespace Stylet
             return binding;
         }
 
-        internal void Remove(IPropertyChangedBinding binding)
+        internal void Remove(IEventBinding binding)
         {
             lock (this.bindingsLock)
             {

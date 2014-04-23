@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:redditapi="clr-namespace:Stylet.Samples.RedditBrowser.RedditApi"
-             xmlns:s="http://github.com/canton7/Stylet"
+             xmlns:s="https://github.com/canton7/Stylet"
              xmlns:uc="clr-namespace:Stylet.Samples.RedditBrowser.UserControls"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">

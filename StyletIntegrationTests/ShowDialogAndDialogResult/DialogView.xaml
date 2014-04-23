@@ -1,7 +1,7 @@
 ﻿<Window x:Class="StyletIntegrationTests.ShowDialogAndDialogResult.DialogView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:s="http://github.com/canton7/Stylet"
+        xmlns:s="https://github.com/canton7/Stylet"
         Title="DialogView" Height="200" Width="300">
     <DockPanel Margin="20" LastChildFill="False">
         <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap">Choose the desired DialogResult, then close the dialog.</TextBlock>
