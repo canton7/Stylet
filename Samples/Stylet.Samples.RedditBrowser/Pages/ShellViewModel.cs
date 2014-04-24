@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Stylet.Samples.RedditBrowser.Pages
 {
-    public class ShellViewModel : Conductor<IScreen>.Collections.OneActive, IHandle<OpenSubredditEvent>
+    public class ShellViewModel : Conductor<IScreen>.Collection.OneActive, IHandle<OpenSubredditEvent>
     {
         private ISubredditViewModelFactory subredditViewModelFactory;
 

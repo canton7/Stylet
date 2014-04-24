@@ -12,12 +12,12 @@ namespace StyletUnitTests
     [TestFixture]
     public class ConductorOneActiveTests
     {
-        private Conductor<IScreen>.Collections.OneActive conductor;
+        private Conductor<IScreen>.Collection.OneActive conductor;
 
         [SetUp]
         public void SetUp()
         {
-            this.conductor = new Conductor<IScreen>.Collections.OneActive();
+            this.conductor = new Conductor<IScreen>.Collection.OneActive();
         }
 
         [Test]

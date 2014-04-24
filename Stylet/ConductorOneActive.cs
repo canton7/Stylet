@@ -10,7 +10,7 @@ namespace Stylet
 {
     public partial class Conductor<T>
     {
-        public partial class Collections
+        public partial class Collection
         {
             /// <summary>
             /// Conductor with many items, only one of which is active
