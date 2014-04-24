@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Stylet.Samples.TabNavigation
 {
-    class ShellViewModel : Conductor<IScreen>.Collections.OneActive
+    class ShellViewModel : Conductor<IScreen>.Collection.OneActive
     {
         public ShellViewModel(Page1ViewModel page1, Page2ViewModel page2)
         {

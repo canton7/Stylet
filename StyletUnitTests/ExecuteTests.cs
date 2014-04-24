@@ -13,23 +13,21 @@ namespace StyletUnitTests
     [TestFixture]
     public class ExecuteTests
     {
-        [Test]
-        public void OnUIThreadExecutesSynchronouslyIfNoSynchronizationContext()
+        [TestFixtureSetUp]
+        public void SetUpFixture()
         {
-            Execute.SynchronizationContext = null;
-            bool blockWasRun = false;
-            Execute.OnUIThread(() => blockWasRun = true);
-            Assert.IsTrue(blockWasRun);
+            // Dont want this being previously set by anything and messing us around
+            Execute.TestExecuteSynchronously = false;
         }
 
         [Test]
-        public void OnUIThreadExecutesAsynchronouslyIfSynchronizationContextIsNotNull()
+        public void OnUIThreadExecutesUsingSynchronizationContext()
         {
             var sync = new Mock<SynchronizationContext>();
             Execute.SynchronizationContext = sync.Object;
 
             SendOrPostCallback passedAction = null;
-            sync.Setup(x => x.Post(It.IsAny<SendOrPostCallback>(), null)).Callback((SendOrPostCallback a, object o) => passedAction = a);
+            sync.Setup(x => x.Send(It.IsAny<SendOrPostCallback>(), null)).Callback((SendOrPostCallback a, object o) => passedAction = a);
 
             bool actionCalled = false;
             Execute.OnUIThread(() => actionCalled = true);
@@ -40,12 +38,20 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public async Task OnUIThreadAsyncExecutesSynchronouslyIfNoSynchronizationContext()
+        public void BeginOnUIThreadExecutesUsingSynchronizationContext()
         {
-            Execute.SynchronizationContext = null;
-            bool blockWasRun = false;
-            await Execute.OnUIThreadAsync(() => blockWasRun = true);
-            Assert.IsTrue(blockWasRun);
+            var sync = new Mock<SynchronizationContext>();
+            Execute.SynchronizationContext = sync.Object;
+
+            SendOrPostCallback passedAction = null;
+            sync.Setup(x => x.Post(It.IsAny<SendOrPostCallback>(), null)).Callback((SendOrPostCallback a, object o) => passedAction = a);
+
+            bool actionCalled = false;
+            Execute.BeginOnUIThread(() => actionCalled = true);
+
+            Assert.IsFalse(actionCalled);
+            passedAction(null);
+            Assert.IsTrue(actionCalled);
         }
 
         [Test]

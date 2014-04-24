@@ -12,12 +12,12 @@ namespace StyletUnitTests
     [TestFixture]
     public class ConductorNavigatingTests
     {
-        private Conductor<IScreen>.Collections.Navigation conductor;
+        private Conductor<IScreen>.StackNavigation conductor;
 
         [SetUp]
         public void SetUp()
         {
-            this.conductor = new Conductor<IScreen>.Collections.Navigation();
+            this.conductor = new Conductor<IScreen>.StackNavigation();
         }
 
         [Test]

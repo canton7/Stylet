@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Stylet.Samples.RedditBrowser.Pages
 {
-    public class SubredditViewModel : Conductor<IScreen>.Collections.Navigation
+    public class SubredditViewModel : Conductor<IScreen>.StackNavigation
     {
         private IPostCommentsViewModelFactory postCommentsViewModelFactory;
 
