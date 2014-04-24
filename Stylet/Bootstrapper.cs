@@ -21,18 +21,18 @@ namespace Stylet
         protected IContainer container;
 
         /// <summary>
-        /// Called from the constructor, this does everything necessary to start the application, including set up StyletIoC
+        /// Overridden from BootstrapperBase, this sets up the IoC container
         /// </summary>
-        protected override void Start()
+        protected override void Configure()
         {
+            base.Configure();
+
             var builder = new StyletIoCBuilder();
 
             this.DefaultConfigureIoC(builder);
             this.ConfigureIoC(builder);
 
             this.container = builder.BuildContainer();
-
-            base.Start();
         }
 
         /// <summary>

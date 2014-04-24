@@ -23,10 +23,6 @@ namespace Stylet
 
         public BootstrapperBase()
         {
-            // Add the current assembly to the assemblies list - this will be needed by the IViewManager
-            AssemblySource.Assemblies.Clear();
-            AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
-
             // Stitch the IoC shell to us
             IoC.GetInstance = this.GetInstance;
             IoC.GetAllInstances = this.GetAllInstances;
@@ -50,6 +46,11 @@ namespace Stylet
         {
             // Use the current SynchronizationContext for the Execute helper
             Execute.SynchronizationContext = SynchronizationContext.Current;
+
+            // Add the current assembly to the assemblies list - this will be needed by the IViewManager
+            // However it must be done *after* the SynchronizationContext has been set, or we'll try to raise a PropertyChanged notification and fail
+            AssemblySource.Assemblies.Clear();
+            AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
 
             this.ConfigureResources();
             this.Configure();
