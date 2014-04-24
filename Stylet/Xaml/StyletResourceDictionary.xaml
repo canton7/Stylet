@@ -19,7 +19,7 @@
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <ContentControl s:View.Model="{Binding}" VerticalContentAlignment="Stretch" HorizontalAlignment="Stretch" IsTabStop="False"/>
+                    <ContentControl s:View.Model="{Binding}" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" IsTabStop="False"/>
                 </DataTemplate>
             </Setter.Value>
         </Setter>
