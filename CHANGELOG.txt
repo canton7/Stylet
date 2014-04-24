@@ -1,6 +1,13 @@
 Stylet Changelog
 ================
 
+v0.9.5
+------
+
+ - Add StyletConductorItemsControl style, for using an ItemsControl with a Conductor<T>.Collection.AllActive
+ - Make Execute.OnUIThread synchronous, and add BeginOnUIThread (asynchronous)
+ - Rename conductors. It's now Conductor<T>.Collection.xxx not Conductor<T>.Collections.xxx
+
 v0.9.4
 ------
 
