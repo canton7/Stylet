@@ -64,7 +64,7 @@ namespace Stylet
             var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
             if (propertyAsEventInfo != null)
             {
-                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo, this.Method, this.NullTarget.GetValueOrDefault(ActionUnavailableBehaviour.Throw), this.ActionNotFound.GetValueOrDefault(ActionUnavailableBehaviour.Throw));
+                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo, this.Method, this.NullTarget.GetValueOrDefault(ActionUnavailableBehaviour.Enable), this.ActionNotFound.GetValueOrDefault(ActionUnavailableBehaviour.Throw));
                 return ec.GetDelegate();
             }
                 
