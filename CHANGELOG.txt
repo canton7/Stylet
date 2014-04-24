@@ -1,6 +1,11 @@
 Stylet Changelog
 ================
 
+v0.9.6
+------
+
+ - Fix bug when starting the bootloader
+
 v0.9.5
 ------
 
