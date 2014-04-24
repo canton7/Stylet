@@ -16,6 +16,12 @@ namespace Stylet
         /// Should be set to the UI thread's SynchronizationContext. This is normally done by the Bootstrapper.
         /// </summary>
         public static SynchronizationContext SynchronizationContext;
+
+        /// <summary>
+        /// FOR TESTING ONLY. Causes everything to execute synchronously
+        /// </summary>
+        public static bool TestExecuteSynchronously = false;
+
         private static bool? inDesignMode;
 
         /// <summary>
@@ -25,7 +31,7 @@ namespace Stylet
 
         private static void EnsureSynchronizationContext()
         {
-            if (SynchronizationContext == null)
+            if (SynchronizationContext == null && !TestExecuteSynchronously)
                 throw new Exception("Execute.SynchronizationContext must be set before this method can be called. This should normally have been done by the Bootstrapper");
         }
 
@@ -35,7 +41,10 @@ namespace Stylet
         public static void BeginOnUIThread(Action action)
         {
             EnsureSynchronizationContext();
-            SynchronizationContext.Post(_ => action(), null);
+            if (!TestExecuteSynchronously)
+                SynchronizationContext.Post(_ => action(), null);
+            else
+                action();
         }
 
         /// <summary>
@@ -44,7 +53,7 @@ namespace Stylet
         public static void BeginOnUIThreadOrSynchronous(Action action)
         {
             EnsureSynchronizationContext();
-            if (SynchronizationContext != SynchronizationContext.Current)
+            if (SynchronizationContext != SynchronizationContext.Current && !TestExecuteSynchronously)
                 SynchronizationContext.Post(_ => action(), null);
             else
                 action();
@@ -57,7 +66,7 @@ namespace Stylet
         {
             EnsureSynchronizationContext();
             Exception exception = null;
-            if (SynchronizationContext != SynchronizationContext.Current)
+            if (SynchronizationContext != SynchronizationContext.Current && !TestExecuteSynchronously)
             {
                 SynchronizationContext.Send(_ =>
                 {
@@ -86,7 +95,7 @@ namespace Stylet
         public static Task OnUIThreadAsync(Action action)
         {
             EnsureSynchronizationContext();
-            if (SynchronizationContext != SynchronizationContext.Current)
+            if (SynchronizationContext != SynchronizationContext.Current && !TestExecuteSynchronously)
             {
                 var tcs = new TaskCompletionSource<object>();
                 SynchronizationContext.Post(_ =>

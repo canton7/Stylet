@@ -14,6 +14,12 @@ namespace StyletUnitTests
     {
         private Conductor<IScreen>.Collection.AllActive conductor;
 
+        [TestFixtureSetUp]
+        public void SetUpFixture()
+        {
+            Execute.TestExecuteSynchronously = true;
+        }
+
         [SetUp]
         public void SetUp()
         {
