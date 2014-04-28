@@ -24,6 +24,10 @@ namespace Stylet.Samples.RedditBrowser.Pages
             this.SelectedSortMode = SortMode.Hot;
         }
 
+        public bool CanOpen
+        {
+            get { return !String.IsNullOrWhiteSpace(this.Subreddit); }
+        }
         public void Open()
         {
             this.events.Publish(new OpenSubredditEvent() { Subreddit = this.Subreddit, SortMode = this.SelectedSortMode });
