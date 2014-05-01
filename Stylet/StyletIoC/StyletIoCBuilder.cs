@@ -151,8 +151,10 @@ namespace StyletIoC
             return this;
         }
 
-        protected void EnsureType(Type implementationType)
+        protected void EnsureType(Type implementationType, Type serviceType = null)
         {
+            serviceType = serviceType ?? this.serviceType;
+
             if (!implementationType.IsClass || implementationType.IsAbstract)
                 throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.Name, this.serviceType.Name));
 
@@ -169,9 +171,9 @@ namespace StyletIoC
                 if (this.serviceType.GetTypeInfo().GenericTypeParameters.Length != implementationType.GetTypeInfo().GenericTypeParameters.Length)
                     throw new StyletIoCRegistrationException(String.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have the same number of type parameters. Service: {0}, Type: {1}", this.serviceType.Name, implementationType.Name));
             }
-            else if (this.serviceType.IsGenericTypeDefinition)
+            else if (serviceType.IsGenericTypeDefinition)
             {
-                throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic / non-generic type {0} to unbound generic service {1}", implementationType.Name, this.serviceType.Name));
+                throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic / non-generic type {0} to the unbound generic service {1}", implementationType.Name, serviceType.Name));
             }
 
             if (!implementationType.Implements(this.serviceType))
@@ -183,7 +185,7 @@ namespace StyletIoC
         {
             serviceType = serviceType ?? this.serviceType;
 
-            if (this.serviceType.IsGenericTypeDefinition)
+            if (serviceType.IsGenericTypeDefinition)
             {
                 var unboundGeneric = new UnboundGeneric(implementationType, container, this.isSingleton);
                 container.AddUnboundGeneric(new TypeKey(serviceType, this.Key), unboundGeneric);
@@ -193,7 +195,7 @@ namespace StyletIoC
                 var creator = new TypeCreator(implementationType, container);
                 IRegistration registration = this.isSingleton ? (IRegistration)new SingletonRegistration(creator) : (IRegistration)new TransientRegistration(creator);
 
-                container.AddRegistration(new TypeKey(this.serviceType, this.Key ?? creator.AttributeKey), registration);
+                container.AddRegistration(new TypeKey(serviceType, this.Key ?? creator.AttributeKey), registration);
             }
         }
 
@@ -262,7 +264,7 @@ namespace StyletIoC
             {
                 try
                 {
-                    this.EnsureType(candidate.Type);
+                    this.EnsureType(candidate.Type, candidate.Base);
                     this.BindImplementationToService(container, candidate.Type, candidate.Base);
                 }
                 catch (StyletIoCRegistrationException e)

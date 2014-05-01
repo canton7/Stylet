@@ -20,8 +20,13 @@ namespace StyletUnitTests
         class C21<T> : I2<T> { }
         class C22<T> : I2<T> { }
 
+
+        interface I3<T> { }
+        class C31 : I3<int> { }
+        class C32 : I3<string> { }
+
         [Inject("Key")]
-        class C3 { }
+        class C4 { }
 
         [Test]
         public void NongenericInterfaceToAllImplementations()
@@ -101,8 +106,8 @@ namespace StyletUnitTests
             builder.Autobind();
             var ioc = builder.BuildContainer();
 
-            var result = ioc.Get<C3>("Key");
-            Assert.IsInstanceOf<C3>(result);
+            var result = ioc.Get<C4>("Key");
+            Assert.IsInstanceOf<C4>(result);
         }
 
         [Test]
@@ -116,6 +121,17 @@ namespace StyletUnitTests
             var result1 = ioc.Get<C11>();
             var result2 = ioc.Get<C11>();
             Assert.AreEqual(result2, result1);
+        }
+
+        [Test]
+        public void BindsGenericInterfaceToAllNonGenericImplementations()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(I3<>)).ToAllImplementations();
+            var ioc = builder.BuildContainer();
+
+            var c31 = ioc.Get<I3<int>>();
+            Assert.IsInstanceOf<C31>(c31);
         }
     }
 }
