@@ -55,7 +55,7 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Validate all properties. If you override this, you MUST fire ErrorsChanged as appropriate, and NotifyOfPropertyChange(() => this.HasErrors) if appropriate
+        /// Validate all properties. If you override this, you MUST fire ErrorsChanged as appropriate, and call ValidationStateChanged
         /// </summary>
         protected virtual async Task ValidateAsync()
         {
@@ -80,7 +80,7 @@ namespace Stylet
             }
 
             if (anyChanged)
-                this.NotifyOfPropertyChange(() => this.HasErrors);
+                this.OnValidationStateChanged();
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Validate a single property, by name. If you override this, you MUST fire ErrorsChange and NotifyOfPropertyChange(() => this.HasErrors) if appropriate
+        /// Validate a single property, by name. If you override this, you MUST fire ErrorsChange and call OnValidationStateChanged() if appropriate
         /// </summary>
         /// <param name="propertyName">Property to validate</param>
         protected virtual async Task ValidatePropertyAsync(string propertyName)
@@ -112,7 +112,7 @@ namespace Stylet
                 var handler = this.ErrorsChanged;
                 if (handler != null)
                     handler(this, new DataErrorsChangedEventArgs(propertyName));
-                this.NotifyOfPropertyChange(() => this.HasErrors);
+                this.OnValidationStateChanged();
             }
         }
 
@@ -124,6 +124,14 @@ namespace Stylet
             // the validation results changing.
             if (this.autoValidate && propertyName != "HasErrors")
                 await this.ValidatePropertyAsync(propertyName);
+        }
+
+        /// <summary>
+        /// Called whenever the error state of any properties changes. Calls NotifyOfPropertyChange(() => this.HasErrors) by default
+        /// </summary>
+        protected virtual void OnValidationStateChanged()
+        {
+            this.NotifyOfPropertyChange(() => this.HasErrors);
         }
 
         /// <summary>
