@@ -45,9 +45,12 @@
   <ItemGroup>
     <Compile Include="ConductorNavigating.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="IValidationAdapter.cs" />
     <Compile Include="LabelledValue.cs" />
     <Compile Include="INotifyPropertyChangedDispatcher.cs" />
+    <Compile Include="LambdaComparer.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
+    <Compile Include="ValidatingModelBase.cs" />
     <Compile Include="WeakEventManager.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />

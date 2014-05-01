@@ -14,7 +14,7 @@ namespace Stylet
     /// <summary>
     /// Implementation of IScreen. Useful as a base class for your ViewModels
     /// </summary>
-    public class Screen : PropertyChangedBase, IScreen
+    public class Screen : ValidatingModelBase, IScreen
     {
         #region WeakEventManager
 
