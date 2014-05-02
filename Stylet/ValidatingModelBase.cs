@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -43,6 +44,11 @@ namespace Stylet
         public ValidatingModelBase()
         {
             this.autoValidate = true;
+        }
+
+        public ValidatingModelBase(IValidatorAdapter validator) : this()
+        {
+            this.validator = validator;
         }
 
         private bool ErrorsEqual(string[] e1, string[] e2)
@@ -96,7 +102,7 @@ namespace Stylet
         /// Validate a single property, by name. If you override this, you MUST fire ErrorsChange and call OnValidationStateChanged() if appropriate
         /// </summary>
         /// <param name="propertyName">Property to validate</param>
-        protected virtual async Task ValidatePropertyAsync(string propertyName)
+        protected virtual async Task ValidatePropertyAsync([CallerMemberName] string propertyName = null)
         {
             if (this.validator == null)
                 return;

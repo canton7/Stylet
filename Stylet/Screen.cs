@@ -16,6 +16,9 @@ namespace Stylet
     /// </summary>
     public class Screen : ValidatingModelBase, IScreen
     {
+        public Screen() : base() { }
+        public Screen(IValidatorAdapter validator) : base(validator) { }
+
         #region WeakEventManager
 
         private Lazy<IWeakEventManager> lazyWeakEventManager = new Lazy<IWeakEventManager>(() => new WeakEventManager(), true);
