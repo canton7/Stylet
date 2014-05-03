@@ -63,10 +63,10 @@ namespace Stylet
         /// <summary>
         /// Validate all properties. If you override this, you MUST fire ErrorsChanged as appropriate, and call ValidationStateChanged
         /// </summary>
-        protected virtual async Task ValidateAsync()
+        protected virtual async Task<bool> ValidateAsync()
         {
             if (this.validator == null)
-                return;
+                throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
             var handler = this.ErrorsChanged;
             bool anyChanged = false;
@@ -87,13 +87,16 @@ namespace Stylet
 
             if (anyChanged)
                 this.OnValidationStateChanged();
+
+            return !this.HasErrors;
         }
 
         /// <summary>
         /// Call ValidateProperty, deriving the name of the property in a type-safe manner
         /// </summary>
         /// <param name="property">Expression describing the property to validate</param>
-        protected virtual Task ValidatePropertyAsync<TProperty>(Expression<Func<TProperty>> property)
+        /// <returns>True if the property validates successfully</returns>
+        protected virtual Task<bool> ValidatePropertyAsync<TProperty>(Expression<Func<TProperty>> property)
         {
             return this.ValidatePropertyAsync(property.NameForProperty());
         }
@@ -102,10 +105,11 @@ namespace Stylet
         /// Validate a single property, by name. If you override this, you MUST fire ErrorsChange and call OnValidationStateChanged() if appropriate
         /// </summary>
         /// <param name="propertyName">Property to validate</param>
-        protected virtual async Task ValidatePropertyAsync([CallerMemberName] string propertyName = null)
+        /// <returns>True if the property validated successfully</returns>
+        protected virtual async Task<bool> ValidatePropertyAsync([CallerMemberName] string propertyName = null)
         {
             if (this.validator == null)
-                return;
+                throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
             if (!this.propertyErrors.ContainsKey(propertyName))
                 this.propertyErrors.Add(propertyName, null);
@@ -120,6 +124,7 @@ namespace Stylet
                     handler(this, new DataErrorsChangedEventArgs(propertyName));
                 this.OnValidationStateChanged();
             }
+            return newErrors == null || newErrors.Length == 0;
         }
 
         protected override async void OnPropertyChanged(string propertyName)
@@ -128,7 +133,7 @@ namespace Stylet
 
             // Save ourselves a little bit of work every time HasErrors is fired as the result of 
             // the validation results changing.
-            if (this.autoValidate && propertyName != "HasErrors")
+            if (this.validator != null && this.autoValidate && propertyName != "HasErrors")
                 await this.ValidatePropertyAsync(propertyName);
         }
 
