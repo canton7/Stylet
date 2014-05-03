@@ -26,7 +26,7 @@ namespace StyletUnitTests
         public void ThrowsIfTypeDoesNotImplementService()
         {
             var builder = new StyletIoCBuilder();
-            Assert.Throws<StyletIoCRegistrationException>(() =>builder.Bind<I1>().To<C2>());
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind<I1>().To<C2>());
         }
 
         [Test]

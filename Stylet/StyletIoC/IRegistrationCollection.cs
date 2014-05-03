@@ -66,7 +66,7 @@ namespace StyletIoC
             {
                 // Is there an existing registration for this type?
                 if (this.registrations.Any(x => x.Type == registration.Type))
-                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.Name));
+                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.Description()));
                 this.registrations.Add(registration);
                 return this;
             }

@@ -84,7 +84,7 @@ namespace StyletIoC
             var ctorsWithAttribute = this.Type.GetConstructors().Where(x => x.GetCustomAttributes(typeof(InjectAttribute), false).Any()).ToList();
             if (ctorsWithAttribute.Count > 1)
             {
-                throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", this.Type.Name));
+                throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", this.Type.Description()));
             }
             else if (ctorsWithAttribute.Count == 1)
             {
@@ -92,7 +92,7 @@ namespace StyletIoC
                 var key = ((InjectAttribute)ctorsWithAttribute[0].GetCustomAttribute(typeof(InjectAttribute), false)).Key;
                 var cantResolve = ctor.GetParameters().Where(p => !this.container.CanResolve(new TypeKey(p.ParameterType, key)) && !p.HasDefaultValue).FirstOrDefault();
                 if (cantResolve != null)
-                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (which doesn't have a default value).", this.Type.Name, cantResolve.Name));
+                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (which doesn't have a default value).", this.Type.Description(), cantResolve.Name));
             }
             else
             {
@@ -103,7 +103,7 @@ namespace StyletIoC
 
                 if (ctor == null)
                 {
-                    throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call.", this.Type.Name));
+                    throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call.", this.Type.Description()));
                 }
             }
 
@@ -121,7 +121,7 @@ namespace StyletIoC
                     }
                     catch (StyletIoCRegistrationException e)
                     {
-                        throw new StyletIoCRegistrationException(String.Format("{0} Required by paramter '{1}' of type {2}.", e.Message, x.Name, this.Type.Name), e);
+                        throw new StyletIoCRegistrationException(String.Format("{0} Required by parameter '{1}' of type {2}.", e.Message, x.Name, this.Type.Description()), e);
                     }
                 }
                 // For some reason we need this cast...

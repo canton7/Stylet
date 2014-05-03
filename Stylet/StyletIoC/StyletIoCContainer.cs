@@ -175,7 +175,7 @@ namespace StyletIoC
             var typeKey = new TypeKey(type, key);
             IRegistration registration;
             if (!this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration))
-                throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", typeKey.Type.Name, typeKey.Key));
+                throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", typeKey.Type.Description(), typeKey.Key));
             var generator = registration.GetGenerator();
             return (IEnumerable<object>)generator();
         }
@@ -381,14 +381,14 @@ namespace StyletIoC
                     // Couldn't find this type - is it a 'get all' collection type? (i.e. they've put IEnumerable<TypeWeCanResolve> in a ctor param)
                     IRegistration registration;
                     if (!this.TryRetrieveGetAllRegistration(typeKey, out registration))
-                        throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.Name));
+                        throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.Description()));
 
                     // Got this far? Good. There's actually a 'get all' collection type. Proceed with that
                     registrations = new SingleRegistration(registration);
                 }
                 else
                 {
-                    throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.Name));
+                    throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.Description()));
                 }
             }
 
@@ -409,7 +409,7 @@ namespace StyletIoC
             {
                 // Is there an auto-registration for this type? If so, remove it
                 if (unboundGenerics.Any(x => x.Type == unboundGeneric.Type))
-                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Name));
+                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Description()));
 
                 unboundGenerics.Add(unboundGeneric);
             }
@@ -423,7 +423,7 @@ namespace StyletIoC
         internal Type GetFactoryForType(Type serviceType)
         {
             if (!serviceType.IsInterface)
-                throw new StyletIoCCreateFactoryException(String.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.Name));
+                throw new StyletIoCCreateFactoryException(String.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.Description()));
 
             if (this.factoryBuilder == null)
             {
@@ -517,7 +517,7 @@ namespace StyletIoC
             }
             catch (TypeLoadException e)
             {
-                throw new StyletIoCCreateFactoryException(String.Format("Unable to create factory type for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to your AssemblyInfo.cs", serviceType.Name), e);
+                throw new StyletIoCCreateFactoryException(String.Format("Unable to create factory type for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to your AssemblyInfo.cs", serviceType.Description()), e);
             }
 
             return constructedType;
@@ -584,6 +584,32 @@ namespace StyletIoC
         {
             return serviceType.IsAssignableFrom(implementationType) ||
                 implementationType.GetBaseTypesAndInterfaces().Any(x => x == serviceType || (x.IsGenericType && x.GetGenericTypeDefinition() == serviceType));
+        }
+
+        private static readonly Dictionary<Type, string> primitiveNameMapping = new Dictionary<Type, string>()
+        {
+            { typeof(int), "int" },
+            { typeof(uint), "uint" },
+            { typeof(long), "long" },
+            { typeof(ulong), "ulong" },
+            { typeof(byte), "byte" },
+            { typeof(float), "float" },
+            { typeof(double), "double" },
+            { typeof(bool), "bool" },
+        };
+
+        public static string Description(this Type type)
+        {
+            if (type.IsGenericTypeDefinition)
+                return String.Format("{0}<{1}>", type.Name.Split('`')[0], String.Join(", ", type.GetTypeInfo().GenericTypeParameters.Select(x => x.Name)));
+            var genericArguments = type.GetGenericArguments();
+            if (genericArguments.Length > 0)
+                return String.Format("{0}<{1}>", type.Name.Split('`')[0], String.Join(", ", genericArguments.Select(x =>
+                    {
+                        string name;
+                        return primitiveNameMapping.TryGetValue(x, out name) ? name : x.Name;
+                    })));
+            return type.Name;
         }
     }
 

@@ -156,28 +156,31 @@ namespace StyletIoC
             serviceType = serviceType ?? this.serviceType;
 
             if (!implementationType.IsClass || implementationType.IsAbstract)
-                throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.Name, this.serviceType.Name));
+                throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.Description(), serviceType.Description()));
 
             // Test this first, as it's a bit clearer than hitting 'type doesn't implement service'
             if (implementationType.IsGenericTypeDefinition)
             {
                 if (this.isSingleton)
-                    throw new StyletIoCRegistrationException(String.Format("You cannot create singleton registration for unbound generic type {0}", implementationType.Name));
+                    throw new StyletIoCRegistrationException(String.Format("You cannot create singleton registration for unbound generic type {0}", implementationType.Description()));
 
-                if (!this.serviceType.IsGenericTypeDefinition)
-                    throw new StyletIoCRegistrationException(String.Format("You may not bind the unbound generic type {0} to the bound generic / non-generic service {1}", implementationType.Name, this.serviceType.Name));
+                if (!serviceType.IsGenericTypeDefinition)
+                    throw new StyletIoCRegistrationException(String.Format("You can't use an unbound generic type to implement anything that isn't an unbound generic service. Service: {0}, Type: {1}", serviceType.Description(), implementationType.Description()));
 
                 // This restriction may change when I figure out how to pass down the correct type argument
-                if (this.serviceType.GetTypeInfo().GenericTypeParameters.Length != implementationType.GetTypeInfo().GenericTypeParameters.Length)
-                    throw new StyletIoCRegistrationException(String.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have the same number of type parameters. Service: {0}, Type: {1}", this.serviceType.Name, implementationType.Name));
+                if (serviceType.GetTypeInfo().GenericTypeParameters.Length != implementationType.GetTypeInfo().GenericTypeParameters.Length)
+                    throw new StyletIoCRegistrationException(String.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have the same number of type parameters. Service: {0}, Type: {1}", serviceType.Description(), implementationType.Description()));
             }
             else if (serviceType.IsGenericTypeDefinition)
             {
-                throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic / non-generic type {0} to the unbound generic service {1}", implementationType.Name, serviceType.Name));
+                if (implementationType.GetGenericArguments().Length > 0)
+                    throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic type {0} to the unbound generic service {1}", implementationType.Description(), serviceType.Description()));
+                else
+                    throw new StyletIoCRegistrationException(String.Format("You cannot bind the non-generic type {0} to the unbound generic service {1}", implementationType.Description(), serviceType.Description()));
             }
 
             if (!implementationType.Implements(this.serviceType))
-                throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Name, this.serviceType.Name));
+                throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Description(), serviceType.Description()));
         }
 
         // Convenience...
@@ -231,7 +234,7 @@ namespace StyletIoC
         {
             this.EnsureType(typeof(TImplementation));
             if (this.serviceType.IsGenericTypeDefinition)
-                throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Name));
+                throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Description()));
             this.factory = factory;
         }
 
@@ -269,7 +272,7 @@ namespace StyletIoC
                 }
                 catch (StyletIoCRegistrationException e)
                 {
-                    Debug.WriteLine(String.Format("Unable to auto-bind type {0} to {1}: {2}", candidate.Base.Name, candidate.Type.Name, e.Message), "StyletIoC");
+                    Debug.WriteLine(String.Format("Unable to auto-bind type {0} to {1}: {2}", candidate.Base.Name, candidate.Type.Description(), e.Message), "StyletIoC");
                 }
             }
         }
@@ -383,7 +386,7 @@ namespace StyletIoC
                 }
                 catch (StyletIoCRegistrationException e)
                 {
-                    Debug.WriteLine(String.Format("Unable to auto-bind type {0}: {1}", cls.Name, e.Message), "StyletIoC");
+                    Debug.WriteLine(String.Format("Unable to auto-bind type {0}: {1}", cls.Description(), e.Message), "StyletIoC");
                 }
             }
         }
