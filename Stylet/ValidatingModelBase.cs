@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Stylet
@@ -20,6 +21,7 @@ namespace Stylet
         /// </summary>
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
+        private readonly SemaphoreSlim propertyErrorsLock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, string[]> propertyErrors = new Dictionary<string, string[]>();
         private IValidatorAdapter _validator;
 
@@ -41,11 +43,18 @@ namespace Stylet
         /// </summary>
         protected bool autoValidate { get; set; }
 
+        /// <summary>
+        /// Instantiate, without using an IValidatorAdapter
+        /// </summary>
         public ValidatingModelBase()
         {
             this.autoValidate = true;
         }
 
+        /// <summary>
+        /// Instantiate, using the specified IValidatorAdapter
+        /// </summary>
+        /// <param name="validator">Validator adapter to use to perform validations</param>
         public ValidatingModelBase(IValidatorAdapter validator) : this()
         {
             this.validator = validator;
@@ -61,8 +70,19 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Validate all properties. If you override this, you MUST fire ErrorsChanged as appropriate, and call ValidationStateChanged
+        /// Validate all properties, synchronously
         /// </summary>
+        /// <returns>True if all properties validated successfully</returns>
+        protected virtual bool Validate()
+        {
+            return this.ValidateAsync().Result;
+        }
+
+        /// <summary>
+        /// Validate all properties.
+        /// </summary>
+        /// <returns>True if all properties validated successfully</returns>
+        /// <remarks>If you override this, you MUST fire ErrorsChanged as appropriate, and call ValidationStateChanged</remarks>
         protected virtual async Task<bool> ValidateAsync()
         {
             if (this.validator == null)
@@ -71,19 +91,27 @@ namespace Stylet
             var handler = this.ErrorsChanged;
             bool anyChanged = false;
 
-            foreach (var kvp in await this.validator.ValidateAllPropertiesAsync())
+            // We need the ConfigureAwait(false), as we might be called synchronously
+            // However this means that the stuff after the await can be run in parallel on multiple threads
+            // Therefore, we need the lock
+            var results = await this.validator.ValidateAllPropertiesAsync().ConfigureAwait(false);
+            await this.propertyErrorsLock.WaitAsync().ConfigureAwait(false);
             {
-                if (!this.propertyErrors.ContainsKey(kvp.Key))
-                    this.propertyErrors.Add(kvp.Key, null);
+                foreach (var kvp in results)
+                {
+                    if (!this.propertyErrors.ContainsKey(kvp.Key))
+                        this.propertyErrors[kvp.Key] = kvp.Value;
 
-                if (this.ErrorsEqual(this.propertyErrors[kvp.Key], kvp.Value))
-                    continue;
+                    if (this.ErrorsEqual(this.propertyErrors[kvp.Key], kvp.Value))
+                        continue;
 
-                this.propertyErrors[kvp.Key] = kvp.Value;
-                anyChanged = true;
-                if (handler != null)
-                    handler(this, new DataErrorsChangedEventArgs(kvp.Key));
+                    this.propertyErrors[kvp.Key] = kvp.Value;
+                    anyChanged = true;
+                    if (handler != null)
+                        this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(kvp.Key)));
+                }
             }
+            this.propertyErrorsLock.Release();
 
             if (anyChanged)
                 this.OnValidationStateChanged();
@@ -92,38 +120,70 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Call ValidateProperty, deriving the name of the property in a type-safe manner
+        /// Validate a single property synchronously, by name
         /// </summary>
         /// <param name="property">Expression describing the property to validate</param>
-        /// <returns>True if the property validates successfully</returns>
+        /// <returns>True if the property validated successfully</returns>
+        protected virtual bool ValidateProperty<TProperty>(Expression<Func<TProperty>> property)
+        {
+            return this.ValidateProperty(property.NameForProperty());
+        }
+
+        /// <summary>
+        /// Validate a single property asynchronously, by name
+        /// </summary>
+        /// <param name="property">Expression describing the property to validate</param>
+        /// <returns>True if the property validated successfully</returns>
         protected virtual Task<bool> ValidatePropertyAsync<TProperty>(Expression<Func<TProperty>> property)
         {
             return this.ValidatePropertyAsync(property.NameForProperty());
         }
 
         /// <summary>
-        /// Validate a single property, by name. If you override this, you MUST fire ErrorsChange and call OnValidationStateChanged() if appropriate
+        /// Validate a single property synchronously, by name.
         /// </summary>
         /// <param name="propertyName">Property to validate</param>
         /// <returns>True if the property validated successfully</returns>
+        protected virtual bool ValidateProperty([CallerMemberName] string propertyName = null)
+        {
+            return this.ValidatePropertyAsync(propertyName).Result;
+        }
+
+        /// <summary>
+        /// Validate a single property asynchronously, by name.
+        /// </summary>
+        /// <param name="propertyName">Property to validate</param>
+        /// <returns>True if the property validated successfully</returns>
+        /// <remarks>If you override this, you MUST fire ErrorsChange and call OnValidationStateChanged() if appropriate</remarks>
         protected virtual async Task<bool> ValidatePropertyAsync([CallerMemberName] string propertyName = null)
         {
             if (this.validator == null)
                 throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
-            if (!this.propertyErrors.ContainsKey(propertyName))
-                this.propertyErrors.Add(propertyName, null);
+            // To allow synchronous calling of this method, we need to resume on the ThreadPool.
+            // Therefore, we might resume on any thread, hence the need for a lock
+            var newErrors = await this.validator.ValidatePropertyAsync(propertyName).ConfigureAwait(false);
+            bool propertyErrorsChanged = false;
 
-            var newErrors = await this.validator.ValidatePropertyAsync(propertyName);
-            if (!this.ErrorsEqual(this.propertyErrors[propertyName], newErrors))
+            await this.propertyErrorsLock.WaitAsync().ConfigureAwait(false);
             {
-                this.propertyErrors[propertyName] = newErrors;
+                if (!this.propertyErrors.ContainsKey(propertyName))
+                    this.propertyErrors.Add(propertyName, null);
 
-                var handler = this.ErrorsChanged;
-                if (handler != null)
-                    handler(this, new DataErrorsChangedEventArgs(propertyName));
-                this.OnValidationStateChanged();
+                if (!this.ErrorsEqual(this.propertyErrors[propertyName], newErrors))
+                {
+                    this.propertyErrors[propertyName] = newErrors;
+                    propertyErrorsChanged = true;
+                    var handler = this.ErrorsChanged;
+                    if (handler != null)
+                        this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(propertyName)));
+                }
             }
+            this.propertyErrorsLock.Release();
+
+            if (propertyErrorsChanged)
+                this.OnValidationStateChanged();
+
             return newErrors == null || newErrors.Length == 0;
         }
 
@@ -152,9 +212,18 @@ namespace Stylet
         /// <returns>The validation errors for the property or entity.</returns>
         public IEnumerable GetErrors(string propertyName)
         {
-            if (this.propertyErrors.ContainsKey(propertyName))
-                return this.propertyErrors[propertyName];
-            return null;
+            string[] errors = null;
+
+            // We'll just have to wait synchronously for this. Oh well. The lock shouldn't be long.
+            // Everything that awaits uses ConfigureAwait(false), so we shouldn't deadlock if someone calls this on the main thread
+            this.propertyErrorsLock.Wait();
+            {
+                if (this.propertyErrors.ContainsKey(propertyName))
+                    errors = this.propertyErrors[propertyName];
+            }
+            this.propertyErrorsLock.Release();
+            
+            return errors;
         }
 
         /// <summary>
