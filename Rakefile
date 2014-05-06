@@ -1,30 +1,40 @@
 require 'albacore'
 
-NUNIT_CONSOLE = Dir['packages/NUnit.Runners.*/tools/nunit-console.exe'].first
+CONFIG = ENV['CONFIG'] || 'Debug'
 
-msbuild :debug do |b|
-  b.solution = "Stylet.sln"
-  b.targets = [:Build]
-  b.properties = {:Configuration => "Debug"}
+NUNIT_TOOLS = Dir['packages/NUnit.Runners.*/tools'].first
+NUNIT_CONSOLE = File.join(NUNIT_TOOLS, 'nunit-console.exe')
+NUNIT_EXE = File.join(NUNIT_TOOLS, 'nunit.exe')
+
+OPENCOVER_CONSOLE = Dir['packages/OpenCover.*/OpenCover.Console.exe'].first
+REPORT_GENERATOR = Dir['packages/ReportGenerator*/ReportGenerator.exe'].first
+
+UNIT_TESTS_DLL = "StyletUnitTests/bin/#{CONFIG}/StyletUnitTests.dll"
+
+COVERAGE_DIR = 'Coverage'
+
+desc "Build Stylet.sln using the current CONFIG (or Debug)"
+build :build do |b|
+  b.sln = "Stylet.sln"
+  b.target = [:Build]
+  b.prop 'Configuration', CONFIG
 end
 
-build :stylet_debug do |b|
-  b.file = "Stylet/Stylet.csproj"
-  b.target = ['Build']
-  b.prop 'Configuration', 'Debug'
+desc "Run unit tests using the current CONFIG (or Debug)"
+test_runner :test => [:build] do |t|
+  t.exe = NUNIT_CONSOLE
+  t.files = [UNIT_TESTS_DLL]
+  t.add_parameter '/nologo'
 end
 
-build :stylet_unit_tests do |b|
-  b.file = 'StyletUnitTests/StyletUnitTests.csproj'
-  b.target = ['Build']
-  b.prop 'Configuration', 'Debug'
+desc "Launch the NUnit gui pointing at the correct DLL for CONFIG (or Debug)"
+task :nunit do |t|
+  sh NUNIT_EXE, UNIT_TESTS_DLL
 end
 
-#nunit :test => [:stylet_debug, :stylet_unit_tests] do |t|
-#  t.command = NUNIT_CONSOLE
-#  t.assemblies = 'StyletUnitTests/bin/Debug/StyletUnitTests.dll'
-#  t.parameters = ['/nologo']
-#end
-
-#../packages/OpenCover.4.5.2506/OpenCover.Console.exe -register:user -target:C:\Program Files (x86)\NUnit 2.6.3\bin\nunit-console.exe -filter:+[*]* -targetargs:bin/Debug/StyletUnitTests.dll /noshadow -output:output.xml
+desc "Generate code coverage reports for CONFIG (or Debug)"
+task :cover => [:build] do |t|
+  sh OPENCOVER_CONSOLE, %Q{-register:user -target:"#{NUNIT_CONSOLE}" -filter:+[*]* -targetargs:"#{UNIT_TESTS_DLL} /noshadow" -output:"#{File.join(COVERAGE_DIR, 'coverage.xml')}"}
+  sh REPORT_GENERATOR, %Q{-reports:"coverage.xml" -targetdir:"#{COVERAGE_DIR}"}
+end
 
