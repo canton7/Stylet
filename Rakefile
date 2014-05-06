@@ -7,7 +7,7 @@ NUNIT_CONSOLE = File.join(NUNIT_TOOLS, 'nunit-console.exe')
 NUNIT_EXE = File.join(NUNIT_TOOLS, 'nunit.exe')
 
 OPENCOVER_CONSOLE = Dir['packages/OpenCover.*/OpenCover.Console.exe'].first
-REPORT_GENERATOR = Dir['packages/ReportGenerator*/ReportGenerator.exe'].first
+REPORT_GENERATOR = Dir['packages/ReportGenerator.*/ReportGenerator.exe'].first
 
 UNIT_TESTS_DLL = "StyletUnitTests/bin/#{CONFIG}/StyletUnitTests.dll"
 
@@ -41,5 +41,6 @@ desc "Generate code coverage reports for CONFIG (or Debug)"
 task :cover => [:build] do |t|
   sh OPENCOVER_CONSOLE, %Q{-register:user -target:"#{NUNIT_CONSOLE}" -filter:+[Stylet]* -targetargs:"#{UNIT_TESTS_DLL} /noshadow" -output:"#{COVERAGE_FILE}"}
   sh REPORT_GENERATOR, %Q{-reports:"#{COVERAGE_FILE}" -targetdir:"#{COVERAGE_DIR}"}
+  rm 'TestResult.xml'
 end
 
