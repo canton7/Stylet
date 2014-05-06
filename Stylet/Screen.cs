@@ -21,11 +21,19 @@ namespace Stylet
 
         #region WeakEventManager
 
-        private Lazy<IWeakEventManager> lazyWeakEventManager = new Lazy<IWeakEventManager>(() => new WeakEventManager(), true);
+        private IWeakEventManager _weakEventManager;
         /// <summary>
         /// WeakEventManager owned by this screen (lazy)
         /// </summary>
-        protected IWeakEventManager weakEventManager { get { return this.lazyWeakEventManager.Value; } }
+        protected IWeakEventManager weakEventManager
+        {
+            get
+            {
+                if (this._weakEventManager == null)
+                    this._weakEventManager = new WeakEventManager();
+                return this._weakEventManager;
+            }
+        }
 
         /// <summary>
         /// Proxy around this.weakEventManager.BindWeak. Binds to an INotifyPropertyChanged source, in a way which doesn't cause us to be retained
