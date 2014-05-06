@@ -14,6 +14,12 @@ UNIT_TESTS_DLL = "StyletUnitTests/bin/#{CONFIG}/StyletUnitTests.dll"
 COVERAGE_DIR = 'Coverage'
 COVERAGE_FILE = File.join(COVERAGE_DIR, 'coverage.xml')
 
+raise "NUnit.Runners not found. Restore NuGet packages" unless NUNIT_TOOLS
+raise "OpenCover not found. Restore NuGet packages" unless OPENCOVER_CONSOLE
+raise "ReportGenerator not found. Restore NuGet packages" unless REPORT_GENERATOR
+
+directory COVERAGE_DIR
+
 desc "Build Stylet.sln using the current CONFIG (or Debug)"
 build :build do |b|
   b.sln = "Stylet.sln"
@@ -38,9 +44,9 @@ task :nunit do |t|
 end
 
 desc "Generate code coverage reports for CONFIG (or Debug)"
-task :cover => [:build] do |t|
+task :cover => [:build, COVERAGE_DIR] do |t|
   sh OPENCOVER_CONSOLE, %Q{-register:user -target:"#{NUNIT_CONSOLE}" -filter:+[Stylet]* -targetargs:"#{UNIT_TESTS_DLL} /noshadow" -output:"#{COVERAGE_FILE}"}
-  sh REPORT_GENERATOR, %Q{-reports:"#{COVERAGE_FILE}" -targetdir:"#{COVERAGE_DIR}"}
+  sh REPORT_GENERATOR, %Q{"-reports:#{COVERAGE_FILE}" "-targetdir:#{COVERAGE_DIR}"}
   rm 'TestResult.xml'
 end
 
