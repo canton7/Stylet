@@ -8,7 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
 
-namespace Stylet
+namespace Stylet.Xaml
 {
     public enum ActionUnavailableBehaviour
     {

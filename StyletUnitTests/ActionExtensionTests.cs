@@ -1,6 +1,7 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Stylet;
+using Stylet.Xaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;

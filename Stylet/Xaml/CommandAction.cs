@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 using Expressions = System.Linq.Expressions;
 
-namespace Stylet
+namespace Stylet.Xaml
 {
     /// <summary>
     /// ICommand returned by ActionExtension for binding buttons, etc, to methods on a ViewModel.
