@@ -103,7 +103,7 @@ namespace Stylet
 
         public void PublishOnUIThread(object message)
         {
-            this.PublishWithDispatcher(message, Execute.OnUIThread);
+            this.PublishWithDispatcher(message, Execute.BeginOnUIThreadOrSynchronous);
         }
 
         public void Publish(object message)

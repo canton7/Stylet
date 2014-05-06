@@ -269,5 +269,17 @@ namespace StyletUnitTests
             screen1.Verify(x => x.Close());
             screen1.VerifySet(x => x.Parent = null);
         }
+
+        [Test]
+        public void ClosesItemIfItemRequestsClose()
+        {
+            var screen = new Mock<IScreen>();
+            this.conductor.ActivateItem(screen.Object);
+            screen.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
+            ((IChildDelegate)this.conductor).CloseItem(screen.Object);
+
+            screen.Verify(x => x.Close());
+            Assert.Null(this.conductor.ActiveItem);
+        }
     }
 }

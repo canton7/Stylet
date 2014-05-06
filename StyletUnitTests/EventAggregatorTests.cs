@@ -17,7 +17,8 @@ namespace StyletUnitTests
         public class C1 : IHandle<M1>
         {
             public M1 ReceivedMessage;
-            public void Handle(M1 message) { this.ReceivedMessage = message; }
+            public int ReceivedMessageCount;
+            public void Handle(M1 message) { this.ReceivedMessage = message; this.ReceivedMessageCount++; }
         }
 
         public class C2 : IHandle<M2>, IHandle<M1>
@@ -31,6 +32,12 @@ namespace StyletUnitTests
         public class C3 : IHandle<M1>
         {
             public void Handle(M1 message) { throw new Exception("Should not be called. Ever"); }
+        }
+
+        [TestFixtureSetUp]
+        public void SetUpFixture()
+        {
+            Execute.TestExecuteSynchronously = true;
         }
 
         [Test]
@@ -88,6 +95,33 @@ namespace StyletUnitTests
 
             Assert.DoesNotThrow(() => ea.Publish(new M1()));
             Assert.IsNull(weaktarget.Target);
+        }
+
+        [Test]
+        public void SubscribingTwiceDoesNothing()
+        {
+            var ea = new EventAggregator();
+            var target = new C1();
+            ea.Subscribe(target);
+            ea.Subscribe(target);
+
+            var message = new M1();
+            ea.Publish(message);
+
+            Assert.AreEqual(1, target.ReceivedMessageCount);
+        }
+
+        [Test]
+        public void PublishOnUIThreadPublishedOnUIThread()
+        {
+            var ea = new EventAggregator();
+            var target = new C1();
+            ea.Subscribe(target);
+
+            var message = new M1();
+            ea.PublishOnUIThread(message);
+
+            Assert.AreEqual(message, target.ReceivedMessage);
         }
     }
 }

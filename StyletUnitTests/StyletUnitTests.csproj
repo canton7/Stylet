@@ -60,6 +60,8 @@
     <Compile Include="ConductorTests.cs" />
     <Compile Include="EventAggregatorTests.cs" />
     <Compile Include="ExecuteTests.cs" />
+    <Compile Include="ExpressionExtensionsTests.cs" />
+    <Compile Include="IoCTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyChangedBaseTests.cs" />
     <Compile Include="PropertyChangedExtensionsTests.cs" />
