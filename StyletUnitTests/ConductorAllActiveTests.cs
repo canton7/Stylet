@@ -164,5 +164,22 @@ namespace StyletUnitTests
             screen.Verify(x => x.Close());
             Assert.AreEqual(0, this.conductor.Items.Count);
         }
+
+        [Test]
+        public void ClosingConductorClosesAllItems()
+        {
+            var screen1 = new Mock<IScreen>();
+            screen1.SetupGet(x => x.Parent).Returns(this.conductor);
+            var screen2 = new Mock<IScreen>();
+            screen2.SetupGet(x => x.Parent).Returns(this.conductor);
+            this.conductor.ActivateItem(screen1.Object);
+            this.conductor.ActivateItem(screen2.Object);
+
+            ((IClose)this.conductor).Close();
+            screen1.Verify(x => x.Close());
+            screen1.VerifySet(x => x.Parent = null);
+            screen2.Verify(x => x.Close());
+            screen2.VerifySet(x => x.Parent = null);
+        }
     }
 }

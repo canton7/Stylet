@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionExtensionTests.cs" />
+    <Compile Include="AssemblySourceTests.cs" />
     <Compile Include="BindableCollectionTests.cs" />
     <Compile Include="ConductorAllActiveTests.cs" />
     <Compile Include="ConductorNavigatingTests.cs" />

@@ -111,6 +111,16 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void SettingActiveItemActivatesItem()
+        {
+            var screen = new Mock<IScreen>();
+            ((IActivate)this.conductor).Activate();
+            this.conductor.ActiveItem = screen.Object;
+            screen.Verify(x => x.Activate());
+            Assert.AreEqual(this.conductor.ActiveItem, screen.Object);
+        }
+
+        [Test]
         public void CloseItemDoesNothingIfToldToDeactiveInactiveItem()
         {
             var screen1 = new Mock<IScreen>();
@@ -167,6 +177,17 @@ namespace StyletUnitTests
             this.conductor.ActivateItem(screen1.Object);
             screen1.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(false));
             Assert.IsFalse(this.conductor.CanCloseAsync().Result);
+        }
+
+        [Test]
+        public void ClosingConductorClosesActiveItem()
+        {
+            var screen1 = new Mock<IScreen>();
+            screen1.SetupGet(x => x.Parent).Returns(this.conductor);
+            this.conductor.ActivateItem(screen1.Object);
+            ((IClose)this.conductor).Close();
+            screen1.Verify(x => x.Close());
+            screen1.VerifySet(x => x.Parent = null);
         }
     }
 }
