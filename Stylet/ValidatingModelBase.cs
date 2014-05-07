@@ -28,7 +28,7 @@ namespace Stylet
         /// <summary>
         /// IValidationAdapter to use to validate properties. You're expected to write your own, using your favourite validation library
         /// </summary>
-        protected IValidatorAdapter validator
+        protected virtual IValidatorAdapter validator
         {
             get { return this._validator; }
             set

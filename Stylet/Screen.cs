@@ -25,7 +25,7 @@ namespace Stylet
         /// <summary>
         /// WeakEventManager owned by this screen (lazy)
         /// </summary>
-        protected IWeakEventManager weakEventManager
+        protected virtual IWeakEventManager weakEventManager
         {
             get
             {
@@ -43,7 +43,7 @@ namespace Stylet
         /// <param name="selector">Expression for selecting the property to observe, e.g. x => x.PropertyName</param>
         /// <param name="handler">Handler to be called when that property changes</param>
         /// <returns>A resource which can be used to undo the binding</returns>
-        protected IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
+        protected virtual IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
             where TSource : class, INotifyPropertyChanged
         {
             return this.weakEventManager.BindWeak(source, selector, handler);

@@ -20,6 +20,8 @@ namespace Stylet
         /// <param name="comparer">Comparer, which takes two {T} instances and returns true if they are equal</param>
         public LambdaComparer(Func<T, T, bool> comparer)
         {
+            if (comparer == null)
+                throw new ArgumentNullException("comparer");
             this.comparer = comparer;
         }
 

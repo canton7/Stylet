@@ -32,6 +32,10 @@ namespace Stylet
             set { SetAndNotify(ref this._value, value); }
         }
 
+        public LabelledValue()
+        {
+        }
+
         public LabelledValue(string label, T value)
         {
             this._label = label;
