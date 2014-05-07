@@ -55,6 +55,7 @@ namespace Stylet
             this.ConfigureResources();
             this.Configure();
 
+            View.ViewManager = IoC.Get<IViewManager>();
             IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
         }
 

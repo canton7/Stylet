@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -37,10 +38,11 @@ namespace Stylet
         internal void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
             TSource source;
-            if (this.source.TryGetTarget(out source))
+            var got = this.source.TryGetTarget(out source);
+            // We should never hit this case. The PropertyChangedeventManager shouldn't call us if the source became null
+            Debug.Assert(got);
+            if (got)
                 this.handler(this.valueSelector(source));
-            else
-                this.remover(this);
         }
 
         public void Unbind()

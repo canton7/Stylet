@@ -54,6 +54,7 @@
     <Compile Include="ActionExtensionTests.cs" />
     <Compile Include="AssemblySourceTests.cs" />
     <Compile Include="BindableCollectionTests.cs" />
+    <Compile Include="BoolToVisibilityConverterTests.cs" />
     <Compile Include="ConductorAllActiveTests.cs" />
     <Compile Include="ConductorNavigatingTests.cs" />
     <Compile Include="ConductorOneActiveTests.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyChangedBaseTests.cs" />
     <Compile Include="PropertyChangedExtensionsTests.cs" />
+    <Compile Include="ScreenExtensionTests.cs" />
     <Compile Include="ScreenTests.cs" />
     <Compile Include="StyletIoC\StyletIoCAutobindingTests.cs" />
     <Compile Include="StyletIoC\StyletIoCBindingChecksTests.cs" />
@@ -77,6 +79,8 @@
     <Compile Include="StyletIoC\StyletIoCGetSingleKeyedTests.cs" />
     <Compile Include="StyletIoC\StyletIoCGetSingleTests.cs" />
     <Compile Include="StyletIoC\StyletIoCUnboundGenericTests.cs" />
+    <Compile Include="ViewManagerTests.cs" />
+    <Compile Include="ViewTests.cs" />
     <Compile Include="WindowManagerTests.cs" />
   </ItemGroup>
   <ItemGroup>

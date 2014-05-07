@@ -63,7 +63,7 @@ namespace Stylet
             }
         }
 
-        public virtual Type LocalViewForModel(Type modelType)
+        public virtual Type LocateViewForModel(Type modelType)
         {
             var viewName = Regex.Replace(modelType.FullName, @"ViewModel", "View");
             // TODO: This might need some more thinking
@@ -77,7 +77,7 @@ namespace Stylet
 
         public virtual UIElement CreateViewForModel(object model)
         {
-            var viewType = this.LocalViewForModel(model.GetType());
+            var viewType = this.LocateViewForModel(model.GetType());
 
             if (viewType.IsInterface || viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
                 throw new Exception(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name));
