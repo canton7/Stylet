@@ -1,0 +1,83 @@
+﻿using NUnit.Framework;
+using Stylet.Xaml;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace StyletUnitTests
+{
+    [TestFixture]
+    public class DebugConverterTests
+    {
+        private DebugConverter converter;
+        private List<string> log;
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.log = new List<string>();
+            this.converter = new DebugConverter();
+            this.converter.Logger = (msg, name) => log.Add(msg);
+        }
+
+        [Test]
+        public void InstancePropertyIsSingleton()
+        {
+            Assert.AreEqual(DebugConverter.Instance, DebugConverter.Instance);
+        }
+
+        [Test]
+        public void ConvertPassesThroughValue()
+        {
+            var result = this.converter.Convert(5, null, null, null);
+            Assert.AreEqual(5, result);
+        }
+
+        [Test]
+        public void ConvertBackPassesThrough()
+        {
+            var result = this.converter.ConvertBack("hello", null, null, null);
+            Assert.AreEqual("hello", result);
+        }
+
+        [Test]
+        public void NameIsUsedInLogger()
+        {
+            this.converter.Logger = (msg, name) => log.Add(name);
+            this.converter.Name = "Test";
+            this.converter.Convert(new object(), null, null, null);
+
+            Assert.That(this.log, Is.EquivalentTo(new[] { "Test" }));
+        }
+
+        [Test]
+        public void LogsConvertWithNoParameter()
+        {
+            this.converter.Convert(5, typeof(int), null, null);
+            Assert.That(this.log, Is.EquivalentTo(new[] { "Convert: Value = '5' TargetType = 'System.Int32'" }));
+        }
+
+        [Test]
+        public void LogsConvertWithParameter()
+        {
+            this.converter.Convert("hello", typeof(bool), "the parameter", null);
+            Assert.That(this.log, Is.EquivalentTo(new[] { "Convert: Value = 'hello' TargetType = 'System.Boolean' Parameter = 'the parameter'" }));
+        }
+
+        [Test]
+        public void LogsConvertBackWithNoParameter()
+        {
+            this.converter.ConvertBack(2.2, typeof(string), null, null);
+            Assert.That(this.log, Is.EquivalentTo(new[] { "ConvertBack: Value = '2.2' TargetType = 'System.String'" }));
+        }
+
+        [Test]
+        public void LogsConvertBackWithParameter()
+        {
+            this.converter.ConvertBack(false, typeof(double), 5, null);
+            Assert.That(this.log, Is.EquivalentTo(new[] { "ConvertBack: Value = 'False' TargetType = 'System.Double' Parameter = '5'" }));
+        }
+    }
+}

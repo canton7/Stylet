@@ -93,6 +93,13 @@ namespace StyletUnitTests
         }
     }
 
+    class C9
+    {
+        public C9(I1 i1)
+        {
+        }
+    }
+
     [TestFixture]
     public class StyletIoCConstructorInjectionTests
     {
@@ -214,6 +221,27 @@ namespace StyletUnitTests
             Assert.AreEqual(2, i1s.Count);
             Assert.IsInstanceOf<C1>(i1s[0]);
             Assert.IsInstanceOf<C2>(i1s[1]);
+        }
+
+        [Test]
+        public void ThrowsIfCantResolveAttributedConstructor()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C6>().ToSelf();
+            var ioc = builder.BuildContainer();
+            Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C6>());
+        }
+
+        [Test]
+        public void ThrowsIfResolvingParamFailsForSomeReason()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().To<C1>();
+            builder.Bind<I1>().To<C2>();
+            builder.Bind<C9>().ToSelf();
+            var ioc = builder.BuildContainer();
+
+            Assert.Throws<StyletIoCRegistrationException>(() => ioc.Get<C9>());
         }
     }
 }

@@ -397,7 +397,14 @@ namespace StyletIoC
 
         internal IRegistrationCollection AddRegistration(TypeKey typeKey, IRegistration registration)
         {
-            return this.registrations.AddOrUpdate(typeKey, x => new SingleRegistration(registration), (x, c) => c.AddRegistration(registration));
+            try
+            {
+                return this.registrations.AddOrUpdate(typeKey, x => new SingleRegistration(registration), (x, c) => c.AddRegistration(registration));
+            }
+            catch (StyletIoCRegistrationException e)
+            {
+                throw new StyletIoCRegistrationException(String.Format("{0} Service type: {1}, key: '{2}'", e.Message, typeKey.Type.Description(), typeKey.Key), e);
+            }
         }
 
         internal void AddUnboundGeneric(TypeKey typeKey, UnboundGeneric unboundGeneric)
@@ -407,7 +414,7 @@ namespace StyletIoC
             var unboundGenerics = this.unboundGenerics.GetOrAdd(typeKey, x => new List<UnboundGeneric>());
             lock (unboundGenerics)
             {
-                // Is there an auto-registration for this type? If so, remove it
+                // Is there an existing registration for this type?
                 if (unboundGenerics.Any(x => x.Type == unboundGeneric.Type))
                     throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Description()));
 

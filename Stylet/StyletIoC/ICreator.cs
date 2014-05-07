@@ -92,7 +92,7 @@ namespace StyletIoC
                 var key = ((InjectAttribute)ctorsWithAttribute[0].GetCustomAttribute(typeof(InjectAttribute), false)).Key;
                 var cantResolve = ctor.GetParameters().Where(p => !this.container.CanResolve(new TypeKey(p.ParameterType, key)) && !p.HasDefaultValue).FirstOrDefault();
                 if (cantResolve != null)
-                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (which doesn't have a default value).", this.Type.Description(), cantResolve.Name));
+                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", this.Type.Description(), cantResolve.Name, cantResolve.ParameterType.Description()));
             }
             else
             {
@@ -121,7 +121,7 @@ namespace StyletIoC
                     }
                     catch (StyletIoCRegistrationException e)
                     {
-                        throw new StyletIoCRegistrationException(String.Format("{0} Required by parameter '{1}' of type {2}.", e.Message, x.Name, this.Type.Description()), e);
+                        throw new StyletIoCRegistrationException(String.Format("{0} Required by parameter '{1}' of type {2} (which is a {3}).", e.Message, x.Name, this.Type.Description(), x.ParameterType.Description()), e);
                     }
                 }
                 // For some reason we need this cast...

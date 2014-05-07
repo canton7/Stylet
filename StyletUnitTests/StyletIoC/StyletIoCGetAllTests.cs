@@ -35,7 +35,7 @@ namespace StyletUnitTests
             var results1 = ioc.GetAll<IC1>().ToList();
             var results2 = ioc.GetAll<IC1>().ToList();
 
-            Assert.AreEqual(results1.Count, 3);
+            Assert.AreEqual(3, results1.Count);
 
             Assert.IsInstanceOf<C11>(results1[0]);
             Assert.IsInstanceOf<C12>(results1[1]);
@@ -57,7 +57,7 @@ namespace StyletUnitTests
             var results1 = ioc.GetAll(typeof(IC1)).ToList();
             var results2 = ioc.GetAll(typeof(IC1)).ToList();
 
-            Assert.AreEqual(results1.Count, 3);
+            Assert.AreEqual(3, results1.Count);
             Assert.IsInstanceOf<C11>(results1[0]);
             Assert.IsInstanceOf<C12>(results1[1]);
             Assert.IsInstanceOf<C13>(results1[2]);
@@ -78,7 +78,7 @@ namespace StyletUnitTests
             var results1 = ioc.GetAll<IC1>().ToList();
             var results2 = ioc.GetAll<IC1>().ToList();
 
-            Assert.AreEqual(results1.Count, 3);
+            Assert.AreEqual(3, results1.Count);
             Assert.IsInstanceOf<C11>(results1[0]);
             Assert.IsInstanceOf<C12>(results1[1]);
             Assert.IsInstanceOf<C13>(results1[2]);
@@ -99,12 +99,78 @@ namespace StyletUnitTests
             var results1 = ioc.GetAll(typeof(IC1)).ToList();
             var results2 = ioc.GetAll(typeof(IC1)).ToList();
 
-            Assert.AreEqual(results1.Count, 3);
+            Assert.AreEqual(3, results1.Count);
             Assert.IsInstanceOf<C11>(results1[0]);
             Assert.IsInstanceOf<C12>(results1[1]);
             Assert.IsInstanceOf<C13>(results1[2]);
 
             Assert.That(results1, Is.EquivalentTo(results2));
+        }
+
+        [Test]
+        public void GetAllReturnsSingleInstanceIfOnlyOneRegistration()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC1>().To<C11>();
+            var ioc = builder.BuildContainer();
+
+            var results = ioc.GetAll<IC1>().ToList();
+
+            Assert.AreEqual(1, results.Count);
+            Assert.IsInstanceOf<C11>(results[0]);
+        }
+
+        [Test]
+        public void GetAllThrowsIfNoRegistrationsFound()
+        {
+            var builder = new StyletIoCBuilder();
+            var ioc = builder.BuildContainer();
+            Assert.Throws<StyletIoCRegistrationException>(() => ioc.GetAll<IC1>());
+        }
+
+        [Test]
+        public void GetAllThrowsIfTypeIsNull()
+        {
+            var builder = new StyletIoCBuilder();
+            var ioc = builder.BuildContainer();
+            Assert.Throws<ArgumentNullException>(() => ioc.GetAll(null));
+        }
+
+        // Also cover GetTypeOrAll here
+        [Test]
+        public void GetTypeOrAllReturnsSingleIfOneRegistration()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC1>().To<C11>();
+            var ioc = builder.BuildContainer();
+
+            var result = ioc.GetTypeOrAll<IC1>();
+            Assert.IsInstanceOf<C11>(result);
+        }
+
+        [Test]
+        public void GetTypeOrAllReturnsCollectionIfManyRegistrations()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC1>().To<C11>();
+            builder.Bind<IC1>().To<C12>();
+            var ioc = builder.BuildContainer();
+
+            var result = ioc.GetTypeOrAll<IEnumerable<IC1>>();
+            Assert.IsInstanceOf<IEnumerable<IC1>>(result);
+
+            var list = ((IEnumerable<IC1>)result).ToList();
+            Assert.AreEqual(2, list.Count);
+            Assert.IsInstanceOf<C11>(list[0]);
+            Assert.IsInstanceOf<C12>(list[1]);
+        }
+
+        [Test]
+        public void GetTypeOrAllThrowsIfTypeIsNull()
+        {
+            var builder = new StyletIoCBuilder();
+            var ioc = builder.BuildContainer();
+            Assert.Throws<ArgumentNullException>(() => ioc.GetTypeOrAll(null));
         }
     }
 }

@@ -45,7 +45,7 @@ end
 
 desc "Generate code coverage reports for CONFIG (or Debug)"
 task :cover => [:build, COVERAGE_DIR] do |t|
-  sh OPENCOVER_CONSOLE, %Q{-register:user -target:"#{NUNIT_CONSOLE}" -filter:+[Stylet]* -targetargs:"#{UNIT_TESTS_DLL} /noshadow" -output:"#{COVERAGE_FILE}"}
+  sh OPENCOVER_CONSOLE, %Q{-register:user -target:"#{NUNIT_CONSOLE}" -filter:"+[Stylet]* -[Stylet]XamlGeneratedNamespace.*" -targetargs:"#{UNIT_TESTS_DLL} /noshadow" -output:"#{COVERAGE_FILE}"}
   sh REPORT_GENERATOR, %Q{-reports:"#{COVERAGE_FILE}" "-targetdir:#{COVERAGE_DIR}"}
   rm 'TestResult.xml'
 end

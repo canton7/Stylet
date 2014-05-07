@@ -48,5 +48,25 @@ namespace StyletUnitTests
             var c2 = ioc.Get<I2<int, bool>>();
             Assert.IsInstanceOf<C2<bool, int>>(c2);
         }
+
+        [Test]
+        public void ResolvesSingletonUnboundGeneric()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(I1<>)).To(typeof(C1<>)).InSingletonScope();
+            var ioc = builder.BuildContainer();
+
+            Assert.AreEqual(ioc.Get<I1<int>>(), ioc.Get<I1<int>>());
+        }
+
+        [Test]
+        public void ResolvesUnboundGenericFromKey()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(I1<>)).To(typeof(C1<>)).WithKey("test");
+            var ioc = builder.BuildContainer();
+
+            Assert.NotNull(ioc.Get<I1<int>>("test"));
+        }
     }
 }

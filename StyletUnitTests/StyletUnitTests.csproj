@@ -59,6 +59,7 @@
     <Compile Include="ConductorNavigatingTests.cs" />
     <Compile Include="ConductorOneActiveTests.cs" />
     <Compile Include="ConductorTests.cs" />
+    <Compile Include="DebugConverterTests.cs" />
     <Compile Include="EventAggregatorTests.cs" />
     <Compile Include="ExecuteTests.cs" />
     <Compile Include="ExpressionExtensionsTests.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="ScreenTests.cs" />
     <Compile Include="StyletIoC\StyletIoCAutobindingTests.cs" />
     <Compile Include="StyletIoC\StyletIoCBindingChecksTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCCompileTests.cs" />
     <Compile Include="StyletIoC\StyletIoCPropertyInjectionTests.cs" />
     <Compile Include="StyletIoC\StyletIoCConstructorInjectionTests.cs" />
     <Compile Include="StyletIoC\StyletIoCFactoryTests.cs" />

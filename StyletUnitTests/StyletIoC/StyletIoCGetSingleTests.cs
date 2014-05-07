@@ -13,6 +13,7 @@ namespace StyletUnitTests
     {
         interface IC1 { }
         class C1 : IC1 { }
+        class C12 : IC1 { }
 
         [Test]
         public void SelfTransientBindingResolvesGeneric()
@@ -180,6 +181,34 @@ namespace StyletUnitTests
 
             Assert.That(obj1, Is.Not.Null);
             Assert.That(obj1, Is.EqualTo(obj2));
+        }
+
+        [Test]
+        public void ThrowsIfMoreThanOneRegistrationFound()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC1>().To<C1>();
+            builder.Bind<IC1>().To<C12>();
+            var ioc = builder.BuildContainer();
+
+            Assert.Throws<StyletIoCRegistrationException>(() => ioc.Get<IC1>());
+        }
+
+        [Test]
+        public void ThrowsIfSameBindingAppearsMultipleTimes()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC1>().To<C1>();
+            builder.Bind<IC1>().To<C1>();
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.BuildContainer());
+        }
+
+        [Test]
+        public void ThrowsIfTypeIsNull()
+        {
+            var builder = new StyletIoCBuilder();
+            var ioc = builder.BuildContainer();
+            Assert.Throws<ArgumentNullException>(() => ioc.Get(null));
         }
     }
 }
