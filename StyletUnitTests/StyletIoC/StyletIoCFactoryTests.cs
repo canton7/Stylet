@@ -161,5 +161,16 @@ namespace StyletUnitTests
             builder.Bind<IFactoryWithVoidMethod>().ToAbstractFactory();
             Assert.Throws<StyletIoCCreateFactoryException>(() => builder.BuildContainer());
         }
+
+        [Test]
+        public void BindsWithKey()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1Factory>().ToAbstractFactory().WithKey("hello");
+            var ioc = builder.BuildContainer();
+
+            Assert.Throws<StyletIoCRegistrationException>(() => ioc.Get<I1Factory>());
+            Assert.NotNull(ioc.Get<I1Factory>("hello"));
+        }
     }
 }

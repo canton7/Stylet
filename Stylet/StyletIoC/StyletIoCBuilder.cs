@@ -161,9 +161,6 @@ namespace StyletIoC
             // Test this first, as it's a bit clearer than hitting 'type doesn't implement service'
             if (implementationType.IsGenericTypeDefinition)
             {
-                if (this.isSingleton)
-                    throw new StyletIoCRegistrationException(String.Format("You cannot create singleton registration for unbound generic type {0}", implementationType.Description()));
-
                 if (!serviceType.IsGenericTypeDefinition)
                     throw new StyletIoCRegistrationException(String.Format("You can't use an unbound generic type to implement anything that isn't an unbound generic service. Service: {0}, Type: {1}", serviceType.Description(), implementationType.Description()));
 

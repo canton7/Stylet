@@ -22,6 +22,7 @@ namespace StyletIoC
         {
             this.Type = type;
             this.container = container;
+            this.IsSingleton = isSingleton;
         }
 
         public IRegistration CreateRegistrationForType(Type boundType)
