@@ -53,6 +53,11 @@ namespace StyletUnitTests
             void Method();
         }
 
+        public interface IGenericFactory<T>
+        {
+            T GetI1();
+        }
+
         [Test]
         public void CreatesImplementationWithoutKey()
         {
@@ -171,6 +176,24 @@ namespace StyletUnitTests
 
             Assert.Throws<StyletIoCRegistrationException>(() => ioc.Get<I1Factory>());
             Assert.NotNull(ioc.Get<I1Factory>("hello"));
+        }
+
+        [Test]
+        public void ThrowsIfFactoryTypeIsUnboundGeneric()
+        {
+            var builder = new StyletIoCBuilder();
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(IGenericFactory<>)).ToAbstractFactory());
+        }
+
+        [Test]
+        public void BoundGenericFactoriesWork()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().To<C1>();
+            builder.Bind<IGenericFactory<I1>>().ToAbstractFactory();
+            var ioc = builder.BuildContainer();
+            var factory = ioc.Get<IGenericFactory<I1>>();
+            Assert.IsInstanceOf<C1>(factory.GetI1());
         }
     }
 }

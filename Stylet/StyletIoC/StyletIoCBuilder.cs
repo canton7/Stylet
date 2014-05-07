@@ -229,9 +229,9 @@ namespace StyletIoC
 
         public BuilderFactoryBinding(Type serviceType, Func<IContainer, TImplementation> factory) : base(serviceType)
         {
-            this.EnsureType(typeof(TImplementation));
             if (this.serviceType.IsGenericTypeDefinition)
                 throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Description()));
+            this.EnsureType(typeof(TImplementation));
             this.factory = factory;
         }
 
@@ -277,7 +277,11 @@ namespace StyletIoC
 
     internal class AbstractFactoryBinding : BuilderBindingBase
     {
-        public AbstractFactoryBinding(Type serviceType) : base(serviceType) { }
+        public AbstractFactoryBinding(Type serviceType) : base(serviceType)
+        {
+            if (serviceType.IsGenericTypeDefinition)
+                throw new StyletIoCRegistrationException(String.Format("Unbound generic type {0} can't be used as an abstract factory", serviceType.Description()));
+        }
 
         public override void Build(StyletIoCContainer container)
         {

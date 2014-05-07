@@ -66,5 +66,12 @@ namespace StyletUnitTests
             Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I6<>)).To(typeof(C7<,>)));
             Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I7<,>)).To(typeof(C6<>)));
         }
+
+        [Test]
+        public void ThrowsIfFactoryBoundToUnboundGeneric()
+        {
+            var builder = new StyletIoCBuilder();
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I6<>)).ToFactory(x => new C6<int>()));
+        }
     }
 }
