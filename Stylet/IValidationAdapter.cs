@@ -10,13 +10,13 @@ namespace Stylet
     /// Generic version of IValidationArapter. Provided for use with StyletIoC
     /// </summary>
     /// <remarks>
-    /// Having a generic version allows you implement it using a generic ValidationAdapter (ValidationAdapter{T} : IValidationAdapter{T})
+    /// Having a generic version allows you implement it using a generic ValidationAdapter (ValidationAdapter{T} : IModelValidator{T})
     /// then write a binding rule like this:
     /// builder.Bind(typeof(IValidationAdapter{})).ToAllImplementations()
     /// and request a new IValidationAdapter{MyViewModelType} in your ViewModel's constructor.
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public interface IValidatorAdapter<in T> : IValidatorAdapter
+    public interface IModelValidator<in T> : IModelValidator
     {
     }
 
@@ -26,7 +26,7 @@ namespace Stylet
     /// <remarks>
     /// This should be specialised to the particular ValidationModelBase instance it's validating
     /// </remarks>
-    public interface IValidatorAdapter
+    public interface IModelValidator
     {
         /// <summary>
         /// Called by ValidatingModelBase, which passes in an instance of itself.

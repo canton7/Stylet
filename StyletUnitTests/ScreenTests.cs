@@ -17,7 +17,7 @@ namespace StyletUnitTests
     {
         private class MyScreen : Screen
         {
-            public IValidatorAdapter Validator
+            public IModelValidator Validator
             {
                 get { return base.validator; }
                 set { base.validator = value; }
@@ -29,7 +29,7 @@ namespace StyletUnitTests
             }
 
             public MyScreen() { }
-            public MyScreen(IValidatorAdapter validator) : base(validator) { }
+            public MyScreen(IModelValidator validator) : base(validator) { }
 
             public bool OnActivateCalled;
             protected override void OnActivate()
@@ -275,7 +275,7 @@ namespace StyletUnitTests
         [Test]
         public void PassesValidatorAdapter()
         {
-            var adapter = new Mock<IValidatorAdapter>();
+            var adapter = new Mock<IModelValidator>();
             var screen = new MyScreen(adapter.Object);
             Assert.AreEqual(adapter.Object, screen.Validator);
         }

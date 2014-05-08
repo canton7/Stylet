@@ -17,7 +17,7 @@ namespace Stylet
     public class Screen : ValidatingModelBase, IScreen
     {
         public Screen() : base() { }
-        public Screen(IValidatorAdapter validator) : base(validator) { }
+        public Screen(IModelValidator validator) : base(validator) { }
 
         #region WeakEventManager
 

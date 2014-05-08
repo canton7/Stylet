@@ -23,12 +23,12 @@ namespace Stylet
 
         private readonly SemaphoreSlim propertyErrorsLock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, string[]> propertyErrors = new Dictionary<string, string[]>();
-        private IValidatorAdapter _validator;
+        private IModelValidator _validator;
 
         /// <summary>
-        /// IValidationAdapter to use to validate properties. You're expected to write your own, using your favourite validation library
+        /// IModelValidator to use to validate properties. You're expected to write your own, using your favourite validation library
         /// </summary>
-        protected virtual IValidatorAdapter validator
+        protected virtual IModelValidator validator
         {
             get { return this._validator; }
             set
@@ -55,7 +55,7 @@ namespace Stylet
         /// Instantiate, using the specified IValidatorAdapter
         /// </summary>
         /// <param name="validator">Validator adapter to use to perform validations</param>
-        public ValidatingModelBase(IValidatorAdapter validator) : this()
+        public ValidatingModelBase(IModelValidator validator) : this()
         {
             this.validator = validator;
         }
