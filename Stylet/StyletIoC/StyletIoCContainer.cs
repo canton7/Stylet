@@ -556,14 +556,12 @@ namespace StyletIoC
 
         public override bool Equals(object obj)
         {
-            if (!(obj is TypeKey))
-                return false;
-            return this.Equals((TypeKey)obj);
+            return this.Equals(obj as TypeKey);
         }
 
         public bool Equals(TypeKey other)
         {
-            return this.Type == other.Type && this.Key == other.Key;
+            return other != null && this.Type == other.Type && this.Key == other.Key;
         }
     }
 

@@ -3,6 +3,7 @@ using StyletIoC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -71,7 +72,7 @@ namespace StyletUnitTests
         public void AutobindingBindsConcreteTypes()
         {
             var builder = new StyletIoCBuilder();
-            builder.Autobind();
+            builder.Autobind(Enumerable.Empty<Assembly>());
             var ioc = builder.BuildContainer();
 
             var result = ioc.Get<C11>();
