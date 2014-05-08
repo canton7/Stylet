@@ -34,7 +34,8 @@ namespace Stylet
             set
             {
                 this._validator = value;
-                this._validator.Initialize(this);
+                if (this._validator != null)
+                    this._validator.Initialize(this);
             }
         }
 
@@ -75,7 +76,15 @@ namespace Stylet
         /// <returns>True if all properties validated successfully</returns>
         protected virtual bool Validate()
         {
-            return this.ValidateAsync().Result;
+            try
+            {
+                return this.ValidateAsync().Result;
+            }
+            catch (AggregateException e)
+            {
+                // We're only ever going to get one InnerException here - let's be nice and unwrap it
+                throw e.InnerException;
+            }
         }
 
         /// <summary>
@@ -101,11 +110,10 @@ namespace Stylet
                 {
                     if (!this.propertyErrors.ContainsKey(kvp.Key))
                         this.propertyErrors[kvp.Key] = kvp.Value;
-
-                    if (this.ErrorsEqual(this.propertyErrors[kvp.Key], kvp.Value))
+                    else if (this.ErrorsEqual(this.propertyErrors[kvp.Key], kvp.Value))
                         continue;
-
-                    this.propertyErrors[kvp.Key] = kvp.Value;
+                    else
+                        this.propertyErrors[kvp.Key] = kvp.Value;
                     anyChanged = true;
                     if (handler != null)
                         this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(kvp.Key)));
@@ -146,7 +154,15 @@ namespace Stylet
         /// <returns>True if the property validated successfully</returns>
         protected virtual bool ValidateProperty([CallerMemberName] string propertyName = null)
         {
-            return this.ValidatePropertyAsync(propertyName).Result;
+            try
+            {
+                return this.ValidatePropertyAsync(propertyName).Result;
+            }
+            catch (AggregateException e)
+            {
+                // We're only ever going to get one InnerException here. Let's be nice and unwrap it
+                throw e.InnerException;
+            }
         }
 
         /// <summary>

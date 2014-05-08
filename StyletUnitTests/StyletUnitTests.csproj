@@ -81,6 +81,7 @@
     <Compile Include="StyletIoC\StyletIoCGetSingleKeyedTests.cs" />
     <Compile Include="StyletIoC\StyletIoCGetSingleTests.cs" />
     <Compile Include="StyletIoC\StyletIoCUnboundGenericTests.cs" />
+    <Compile Include="ValidatingModelBaseTests.cs" />
     <Compile Include="ViewManagerTests.cs" />
     <Compile Include="ViewTests.cs" />
     <Compile Include="WindowManagerTests.cs" />
