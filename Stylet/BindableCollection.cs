@@ -30,10 +30,18 @@ namespace Stylet
     }
 
     /// <summary>
+    /// Interface encapsulating IReadOnlyList and INotifyCollectionChanged
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IReadOnlyObservableCollection<T> : IReadOnlyList<T>, INotifyCollectionChanged, INotifyPropertyChangedDispatcher
+    {
+    }
+
+    /// <summary>
     /// ObservableCollection subclass which supports AddRange and RemoveRange
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BindableCollection<T> : ObservableCollection<T>, IObservableCollection<T>
+    public class BindableCollection<T> : ObservableCollection<T>, IObservableCollection<T>, IReadOnlyObservableCollection<T>
     {
         private Action<Action> _propertyChangedDispatcher = Execute.DefaultPropertyChangedDispatcher;
         /// <summary>

@@ -7,15 +7,63 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Generalised dispatcher, which can post and end
+    /// </summary>
+    public interface IDispatcher
+    {
+        /// <summary>
+        /// Execute asynchronously
+        /// </summary>
+        void Post(Action action);
+
+        /// <summary>
+        /// Execute synchronously
+        /// </summary>
+        void Send(Action action);
+
+        /// <summary>
+        /// True if invocation isn't required
+        /// </summary>
+        bool IsCurrent { get; }
+    }
+
+    internal class DispatcherWrapper : IDispatcher
+    {
+        private Dispatcher dispatcher;
+
+        public DispatcherWrapper()
+        {
+            this.dispatcher = Dispatcher.CurrentDispatcher;
+        }
+
+
+        public void Post(Action action)
+        {
+            this.dispatcher.BeginInvoke(action);
+        }
+
+        public void Send(Action action)
+        {
+            this.dispatcher.Invoke(action);
+        }
+
+        public bool IsCurrent
+        {
+            get { return this.dispatcher.CheckAccess(); }
+        }
+    }
+
     public static class Execute
     {
         /// <summary>
-        /// Should be set to the UI thread's SynchronizationContext. This is normally done by the Bootstrapper.
+        /// Should be set to the UI thread's Dispatcher. This is normally done by the Bootstrapper.
         /// </summary>
-        public static SynchronizationContext SynchronizationContext;
+        public static IDispatcher Dispatcher;
 
         /// <summary>
         /// FOR TESTING ONLY. Causes everything to execute synchronously
@@ -29,9 +77,9 @@ namespace Stylet
         /// </summary>
         public static Action<Action> DefaultPropertyChangedDispatcher = Execute.BeginOnUIThreadOrSynchronous;
 
-        private static void EnsureSynchronizationContext()
+        private static void EnsureDispatcher()
         {
-            if (SynchronizationContext == null && !TestExecuteSynchronously)
+            if (Dispatcher == null && !TestExecuteSynchronously)
                 throw new InvalidOperationException("Execute.SynchronizationContext must be set before this method can be called. This should normally have been done by the Bootstrapper");
         }
 
@@ -40,9 +88,9 @@ namespace Stylet
         /// </summary>
         public static void BeginOnUIThread(Action action)
         {
-            EnsureSynchronizationContext();
+            EnsureDispatcher();
             if (!TestExecuteSynchronously)
-                SynchronizationContext.Post(_ => action(), null);
+                Dispatcher.Post(action);
             else
                 action();
         }
@@ -52,9 +100,9 @@ namespace Stylet
         /// </summary>
         public static void BeginOnUIThreadOrSynchronous(Action action)
         {
-            EnsureSynchronizationContext();
-            if (SynchronizationContext != SynchronizationContext.Current && !TestExecuteSynchronously)
-                SynchronizationContext.Post(_ => action(), null);
+            EnsureDispatcher();
+            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
+                Dispatcher.Post(action);
             else
                 action();
         }
@@ -64,11 +112,11 @@ namespace Stylet
         /// </summary>
         public static void OnUIThread(Action action)
         {
-            EnsureSynchronizationContext();
+            EnsureDispatcher();
             Exception exception = null;
-            if (SynchronizationContext != SynchronizationContext.Current && !TestExecuteSynchronously)
+            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
             {
-                SynchronizationContext.Send(_ =>
+                Dispatcher.Send(() =>
                 {
                     try
                     {
@@ -78,7 +126,7 @@ namespace Stylet
                     {
                         exception = e;
                     }
-                }, null);
+                });
 
                 if (exception != null)
                     throw new System.Reflection.TargetInvocationException("An error occurred while dispatching a call to the UI Thread", exception);
@@ -94,11 +142,11 @@ namespace Stylet
         /// </summary>
         public static Task OnUIThreadAsync(Action action)
         {
-            EnsureSynchronizationContext();
-            if (SynchronizationContext != SynchronizationContext.Current && !TestExecuteSynchronously)
+            EnsureDispatcher();
+            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
             {
                 var tcs = new TaskCompletionSource<object>();
-                SynchronizationContext.Post(_ =>
+                Dispatcher.Post(() =>
                 {
                     try
                     {
@@ -109,7 +157,7 @@ namespace Stylet
                     {
                         tcs.SetException(e);
                     }
-                }, null);
+                });
                 return tcs.Task;
             }
             else

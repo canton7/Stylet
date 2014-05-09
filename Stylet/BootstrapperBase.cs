@@ -45,7 +45,7 @@ namespace Stylet
         protected virtual void Start()
         {
             // Use the current SynchronizationContext for the Execute helper
-            Execute.SynchronizationContext = SynchronizationContext.Current;
+            Execute.Dispatcher = new DispatcherWrapper();
 
             // Add the current assembly to the assemblies list - this will be needed by the IViewManager
             // However it must be done *after* the SynchronizationContext has been set, or we'll try to raise a PropertyChanged notification and fail

@@ -21,71 +21,71 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void OnUIThreadExecutesUsingSynchronizationContext()
+        public void OnUIThreadExecutesUsingDispatcher()
         {
-            var sync = new Mock<SynchronizationContext>();
-            Execute.SynchronizationContext = sync.Object;
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
 
-            SendOrPostCallback passedAction = null;
-            sync.Setup(x => x.Send(It.IsAny<SendOrPostCallback>(), null)).Callback((SendOrPostCallback a, object o) => passedAction = a);
+            Action passedAction = null;
+            sync.Setup(x => x.Send(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             bool actionCalled = false;
             Execute.OnUIThread(() => actionCalled = true);
 
             Assert.IsFalse(actionCalled);
-            passedAction(null);
+            passedAction();
             Assert.IsTrue(actionCalled);
         }
 
         [Test]
-        public void BeginOnUIThreadExecutesUsingSynchronizationContext()
+        public void BeginOnUIThreadExecutesUsingDispatcher()
         {
-            var sync = new Mock<SynchronizationContext>();
-            Execute.SynchronizationContext = sync.Object;
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
 
-            SendOrPostCallback passedAction = null;
-            sync.Setup(x => x.Post(It.IsAny<SendOrPostCallback>(), null)).Callback((SendOrPostCallback a, object o) => passedAction = a);
+            Action passedAction = null;
+            sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             bool actionCalled = false;
             Execute.BeginOnUIThread(() => actionCalled = true);
 
             Assert.IsFalse(actionCalled);
-            passedAction(null);
+            passedAction();
             Assert.IsTrue(actionCalled);
         }
 
         [Test]
-        public void BeginOnUIThreadOrSynchronousExecutesUsingSynchronizationContextIfNotCurrent()
+        public void BeginOnUIThreadOrSynchronousExecutesUsingDispatcherIfNotCurrent()
         {
-            var sync = new Mock<SynchronizationContext>();
-            Execute.SynchronizationContext = sync.Object;
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
 
-            SendOrPostCallback passedAction = null;
-            sync.Setup(x => x.Post(It.IsAny<SendOrPostCallback>(), null)).Callback((SendOrPostCallback a, object o) => passedAction = a);
+            Action passedAction = null;
+            sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             bool actionCalled = false;
             Execute.BeginOnUIThreadOrSynchronous(() => actionCalled = true);
 
             Assert.IsFalse(actionCalled);
-            passedAction(null);
+            passedAction();
             Assert.IsTrue(actionCalled);
         }
 
         [Test]
-        public void OnUIThreadAsyncExecutesAsynchronouslyIfSynchronizationContextIsNotNull()
+        public void OnUIThreadAsyncExecutesAsynchronouslyIfDispatcherIsNotNull()
         {
-            var sync = new Mock<SynchronizationContext>();
-            Execute.SynchronizationContext = sync.Object;
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
 
-            SendOrPostCallback passedAction = null;
-            sync.Setup(x => x.Post(It.IsAny<SendOrPostCallback>(), null)).Callback((SendOrPostCallback a, object o) => passedAction = a);
+            Action passedAction = null;
+            sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             bool actionCalled = false;
             var task = Execute.OnUIThreadAsync(() => actionCalled = true);
 
             Assert.IsFalse(task.IsCompleted);
             Assert.IsFalse(actionCalled);
-            passedAction(null);
+            passedAction();
             Assert.IsTrue(actionCalled);
             Assert.IsTrue(task.IsCompleted);
         }
@@ -93,11 +93,11 @@ namespace StyletUnitTests
         [Test]
         public void OnUIThreadPropagatesException()
         {
-            var sync = new Mock<SynchronizationContext>();
-            Execute.SynchronizationContext = sync.Object;
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
 
             var ex = new Exception("testy");
-            sync.Setup(x => x.Send(It.IsAny<SendOrPostCallback>(), null)).Callback<SendOrPostCallback, object>((a, b) => a(b));
+            sync.Setup(x => x.Send(It.IsAny<Action>())).Callback<Action>(a => a());
 
             Exception caughtEx = null;
             try { Execute.OnUIThread(() => { throw ex; }); }
@@ -110,45 +110,45 @@ namespace StyletUnitTests
         [Test]
         public void OnUIThreadAsyncPropagatesException()
         {
-            var sync = new Mock<SynchronizationContext>();
-            Execute.SynchronizationContext = sync.Object;
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
 
-            SendOrPostCallback passedAction = null;
-            sync.Setup(x => x.Post(It.IsAny<SendOrPostCallback>(), null)).Callback((SendOrPostCallback a, object o) => passedAction = a);
+            Action passedAction = null;
+            sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             var ex = new Exception("test");
             var task = Execute.OnUIThreadAsync(() => { throw ex; });
 
-            passedAction(null);
+            passedAction();
             Assert.IsTrue(task.IsFaulted);
             Assert.AreEqual(ex, task.Exception.InnerExceptions[0]);
         }
 
         [Test]
-        public void ThrowsIfBeginOnUIThreadCalledWithNoSynchronizationContext()
+        public void ThrowsIfBeginOnUIThreadCalledWithNoDispatcher()
         {
-            Execute.SynchronizationContext = null;
+            Execute.Dispatcher = null;
             Assert.Throws<InvalidOperationException>(() => Execute.BeginOnUIThread(() => { }));
         }
 
         [Test]
-        public void ThrowsIfBeginOnUIThreadOrSynchronousCalledWithNoSynchronizationContext()
+        public void ThrowsIfBeginOnUIThreadOrSynchronousCalledWithNoDispatcher()
         {
-            Execute.SynchronizationContext = null;
+            Execute.Dispatcher = null;
             Assert.Throws<InvalidOperationException>(() => Execute.BeginOnUIThreadOrSynchronous(() => { }));
         }
 
         [Test]
-        public void ThrowsIfOnUIThreadCalledWithNoSynchronizationContext()
+        public void ThrowsIfOnUIThreadCalledWithNoDispatcher()
         {
-            Execute.SynchronizationContext = null;
+            Execute.Dispatcher = null;
             Assert.Throws<InvalidOperationException>(() => Execute.OnUIThread(() => { }));
         }
 
         [Test]
-        public void ThrowsIfOnUIThreadAsyncCalledWithNoSynchronizationContext()
+        public void ThrowsIfOnUIThreadAsyncCalledWithNoDispatcher()
         {
-            Execute.SynchronizationContext = null;
+            Execute.Dispatcher = null;
             Assert.Throws<InvalidOperationException>(() => Execute.OnUIThreadAsync(() => { }));
         }
 
@@ -157,7 +157,7 @@ namespace StyletUnitTests
         {
             Execute.TestExecuteSynchronously = true;
 
-            Execute.SynchronizationContext = null;
+            Execute.Dispatcher = null;
             bool called = false;
             Execute.BeginOnUIThread(() => called = true);
             Assert.True(called);
@@ -168,7 +168,7 @@ namespace StyletUnitTests
         {
             Execute.TestExecuteSynchronously = true;
 
-            Execute.SynchronizationContext = null;
+            Execute.Dispatcher = null;
             bool called = false;
             Execute.OnUIThread(() => called = true);
             Assert.True(called);
@@ -179,7 +179,7 @@ namespace StyletUnitTests
         {
             Execute.TestExecuteSynchronously = true;
 
-            Execute.SynchronizationContext = null;
+            Execute.Dispatcher = null;
             bool called = false;
             Execute.OnUIThreadAsync(() => called = true);
             Assert.True(called);
