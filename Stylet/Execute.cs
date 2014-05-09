@@ -125,14 +125,11 @@ namespace Stylet
             {
                 if (inDesignMode == null)
                 {
-                    var prop = DesignerProperties.IsInDesignModeProperty;
-                    inDesignMode = (bool)DependencyPropertyDescriptor.FromProperty(prop, typeof(FrameworkElement)).Metadata.DefaultValue;
-
-                    if (inDesignMode.GetValueOrDefault(false) && Process.GetCurrentProcess().ProcessName.StartsWith("devenv", StringComparison.Ordinal))
-                        inDesignMode = true;
+                    var descriptor = DependencyPropertyDescriptor.FromProperty(DesignerProperties.IsInDesignModeProperty, typeof(FrameworkElement));
+                    inDesignMode = (bool)descriptor.Metadata.DefaultValue;
                 }
 
-                return inDesignMode.GetValueOrDefault(false);
+                return inDesignMode.Value;
             }
         }
     }

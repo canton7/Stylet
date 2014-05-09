@@ -50,6 +50,12 @@ namespace StyletIntegrationTests
             this.windowManager.ShowWindow(window);
         }
 
+        public void ShowBootstrapperIoC()
+        {
+            var window = new BootstrapperIoC.WindowViewModel();
+            this.windowManager.ShowWindow(window);
+        }
+
         public void ShowActions()
         {
             var window = new Actions.ActionsViewModel();

@@ -325,9 +325,6 @@ namespace StyletIoC
             {
                 foreach (var unboundGeneric in unboundGenerics)
                 {
-                    if (unboundGeneric == null)
-                        continue;
-
                     // Consider this scenario:
                     // interface IC<T, U> { } class C<T, U> : IC<U, T> { }
                     // Then they ask for an IC<int, bool>. We need to give them a C<bool, int>

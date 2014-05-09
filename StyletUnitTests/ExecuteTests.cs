@@ -184,5 +184,11 @@ namespace StyletUnitTests
             Execute.OnUIThreadAsync(() => called = true);
             Assert.True(called);
         }
+
+        [Test]
+        public void InDesignModeReturnsFalse()
+        {
+            Assert.False(Execute.InDesignMode);
+        }
     }
 }

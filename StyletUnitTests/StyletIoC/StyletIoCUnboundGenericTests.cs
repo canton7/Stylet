@@ -68,5 +68,14 @@ namespace StyletUnitTests
 
             Assert.NotNull(ioc.Get<I1<int>>("test"));
         }
+
+        [Test]
+        public void ThrowsIfMultipleRegistrationsForUnboundGeneric()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind(typeof(C1<>)).ToSelf();
+            builder.Bind(typeof(C1<>)).ToSelf();
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.BuildContainer());
+        }
     }
 }

@@ -57,6 +57,10 @@
   <ItemGroup>
     <Compile Include="Actions\ActionsViewModel.cs" />
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="BootstrapperIoC\WindowView.xaml.cs">
+      <DependentUpon>WindowView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="BootstrapperIoC\WindowViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -96,6 +100,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Actions\ActionsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="BootstrapperIoC\WindowView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

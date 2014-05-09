@@ -2,6 +2,7 @@
 using StyletIoC;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -96,6 +97,13 @@ namespace StyletUnitTests
     class C9
     {
         public C9(I1 i1)
+        {
+        }
+    }
+
+    class C10
+    {
+        public C10(ObservableCollection<C10> c1s)
         {
         }
     }
@@ -242,6 +250,20 @@ namespace StyletUnitTests
             var ioc = builder.BuildContainer();
 
             Assert.Throws<StyletIoCRegistrationException>(() => ioc.Get<C9>());
+        }
+
+        [Test]
+        public void ThrowsIfCollectionTypeCantBeResolved()
+        {
+            // This test is needed to hit a condition in TryRetrieveGetAllRegistrationFromElementType
+            // where a collection type is constructed, but is unsuitable
+
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf();
+            builder.Bind<C10>().ToSelf();
+            var ioc = builder.BuildContainer();
+
+            Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C10>());
         }
     }
 }
