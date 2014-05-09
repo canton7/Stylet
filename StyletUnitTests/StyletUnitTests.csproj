@@ -55,11 +55,13 @@
     <Compile Include="AssemblySourceTests.cs" />
     <Compile Include="BindableCollectionTests.cs" />
     <Compile Include="BoolToVisibilityConverterTests.cs" />
+    <Compile Include="CommandActionTests.cs" />
     <Compile Include="ConductorAllActiveTests.cs" />
     <Compile Include="ConductorNavigatingTests.cs" />
     <Compile Include="ConductorOneActiveTests.cs" />
     <Compile Include="ConductorTests.cs" />
     <Compile Include="DebugConverterTests.cs" />
+    <Compile Include="EventActionTests.cs" />
     <Compile Include="EventAggregatorTests.cs" />
     <Compile Include="ExecuteTests.cs" />
     <Compile Include="ExpressionExtensionsTests.cs" />

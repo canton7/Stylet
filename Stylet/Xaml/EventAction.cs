@@ -58,6 +58,8 @@ namespace Stylet.Xaml
             this.nullTargetBehaviour = nullTargetBehaviour;
             this.actionNonExistentBehaviour = actionNonExistentBehaviour;
 
+            this.UpdateMethod();
+
             // Observe the View.ActionTarget for changes, and re-bind the guard property and MethodInfo if it changes
             DependencyPropertyDescriptor.FromProperty(View.ActionTargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateMethod());
         }
@@ -70,7 +72,7 @@ namespace Stylet.Xaml
             if (newTarget == null)
             {
                 if (this.nullTargetBehaviour == ActionUnavailableBehaviour.Throw)
-                    throw new Exception(String.Format("Method {0} has a target set which is null", this.methodName));
+                    throw new ArgumentException(String.Format("Method {0} has a target set which is null", this.methodName));
             }
             else
             {

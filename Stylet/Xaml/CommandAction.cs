@@ -81,7 +81,7 @@ namespace Stylet.Xaml
             {
                 // If it's Enable or Disable we don't do anything - CanExecute will handle this
                 if (this.targetNullBehaviour == ActionUnavailableBehaviour.Throw)
-                    throw new Exception(String.Format("Method {0} has a target set which is null", this.MethodName));
+                    throw new ArgumentException(String.Format("Method {0} has a target set which is null", this.MethodName));
             }
             else
             {
@@ -144,8 +144,8 @@ namespace Stylet.Xaml
             // It's enabled only if both the targetNull and actionNonExistent tests pass
 
             // Throw is handled when the target is set
-            if (this.target == null && this.targetNullBehaviour == ActionUnavailableBehaviour.Disable)
-                return false;
+            if (this.target == null)
+                return this.targetNullBehaviour != ActionUnavailableBehaviour.Disable;
 
             // Throw is handled when the target is set
             if (this.targetMethodInfo == null)
