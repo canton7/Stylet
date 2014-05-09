@@ -28,6 +28,10 @@
             <Button Command="{s:Action ShowBootstrapperIoC}">Show Window</Button>
         </GroupBox>
 
+        <GroupBox DockPanel.Dock="Top" Header="OnUnhandledException" Padding="10">
+            <Button Command="{s:Action ShowOnUnhandledException}">Show Window</Button>
+        </GroupBox>
+
         <GroupBox DockPanel.Dock="Top" Header="Actions" Padding="10">
             <Button Command="{s:Action ShowActions}">Show Window</Button>
         </GroupBox>

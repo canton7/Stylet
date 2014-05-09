@@ -56,6 +56,12 @@ namespace StyletIntegrationTests
             this.windowManager.ShowWindow(window);
         }
 
+        public void ShowOnUnhandledException()
+        {
+            var window = new OnUnhandledException.WindowViewModel();
+            this.windowManager.ShowWindow(window);
+        }
+
         public void ShowActions()
         {
             var window = new Actions.ActionsViewModel();
