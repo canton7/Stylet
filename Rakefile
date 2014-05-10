@@ -1,23 +1,14 @@
-require 'albacore'
+begin
+  require 'albacore'
+rescue LoadError
+  warn "Please run 'gem install albacore --pre'"
+  exit 1
+end
 
 CONFIG = ENV['CONFIG'] || 'Debug'
 
-NUNIT_TOOLS = Dir['packages/NUnit.Runners.*/tools'].first
-NUNIT_CONSOLE = File.join(NUNIT_TOOLS, 'nunit-console.exe')
-NUNIT_EXE = File.join(NUNIT_TOOLS, 'nunit.exe')
-
-OPENCOVER_CONSOLE = Dir['packages/OpenCover.*/OpenCover.Console.exe'].first
-REPORT_GENERATOR = Dir['packages/ReportGenerator.*/ReportGenerator.exe'].first
-
-UNIT_TESTS_DLL = "StyletUnitTests/bin/#{CONFIG}/StyletUnitTests.dll"
-INTEGRATION_TESTS_EXE = "StyletIntegrationTests/bin/#{CONFIG}/StyletIntegrationTests.exe"
-
 COVERAGE_DIR = 'Coverage'
 COVERAGE_FILE = File.join(COVERAGE_DIR, 'coverage.xml')
-
-raise "NUnit.Runners not found. Restore NuGet packages" unless NUNIT_TOOLS
-raise "OpenCover not found. Restore NuGet packages" unless OPENCOVER_CONSOLE
-raise "ReportGenerator not found. Restore NuGet packages" unless REPORT_GENERATOR
 
 directory COVERAGE_DIR
 
@@ -28,7 +19,23 @@ build :build do |b|
   b.prop 'Configuration', CONFIG
 end
 
-test_runner :nunit_test_runner => [:build] do |t|
+task :test_environment => [:build] do
+  NUNIT_TOOLS = 'packages/NUnit.Runners.*/tools'
+  NUNIT_CONSOLE = Dir[File.join(NUNIT_TOOLS, 'nunit-console.exe')].first
+  NUNIT_EXE = Dir[File.join(NUNIT_TOOLS, 'nunit.exe')].first
+
+  OPENCOVER_CONSOLE = Dir['packages/OpenCover.*/OpenCover.Console.exe'].first
+  REPORT_GENERATOR = Dir['packages/ReportGenerator.*/ReportGenerator.exe'].first
+
+  UNIT_TESTS_DLL = "StyletUnitTests/bin/#{CONFIG}/StyletUnitTests.dll"
+  INTEGRATION_TESTS_EXE = "StyletIntegrationTests/bin/#{CONFIG}/StyletIntegrationTests.exe"
+
+  raise "NUnit.Runners not found. Restore NuGet packages" unless NUNIT_CONSOLE && NUNIT_EXE
+  raise "OpenCover not found. Restore NuGet packages" unless OPENCOVER_CONSOLE
+  raise "ReportGenerator not found. Restore NuGet packages" unless REPORT_GENERATOR
+end
+
+test_runner :nunit_test_runner => [:test_environment] do |t|
   t.exe = NUNIT_CONSOLE
   t.files = [UNIT_TESTS_DLL]
   t.add_parameter '/nologo'
@@ -48,17 +55,17 @@ end
 namespace :cover do
 
   desc "Generate unit test code coverage reports for CONFIG (or Debug)"
-  task :unit => [:build, COVERAGE_DIR] do |t|
+  task :unit => [:test_environment, COVERAGE_DIR] do |t|
     coverage(instrument(:nunit, UNIT_TESTS_DLL))
   end
 
   desc "Create integration test code coverage reports for CONFIG (or Debug)"
-  task :integration => [:build, COVERAGE_DIR] do |t|
+  task :integration => [:test_environment, COVERAGE_DIR] do |t|
     coverage(instrument(:exe, INTEGRATION_TESTS_EXE))
   end
 
   desc "Create test code coverage for everything for CONFIG (or Debug)"
-  task :all => [:build, COVERAGE_DIR] do |t|
+  task :all => [:test_environment, COVERAGE_DIR] do |t|
     coverage([instrument(:nunit, UNIT_TESTS_DLL), instrument(:exe, INTEGRATION_TESTS_EXE)])
   end
 
