@@ -67,6 +67,12 @@ namespace StyletUnitTests
 
         private ViewManager viewManager;
 
+        [TestFixtureSetUp]
+        public void FixtureSetUp()
+        {
+            AssemblySource.Assemblies.Clear();
+        }
+
         [SetUp]
         public void SetUp()
         {
@@ -120,13 +126,13 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void LocateViewforModelThrowsIfViewNotFound()
+        public void LocateViewForModelThrowsIfViewNotFound()
         {
             Assert.Throws<Exception>(() => this.viewManager.LocateViewForModel(typeof(C1)));
         }
 
         [Test]
-        public void LocateViewforModelFindsViewForModel()
+        public void LocateViewForModelFindsViewForModel()
         {
             Execute.TestExecuteSynchronously = true;
             AssemblySource.Assemblies.Add(Assembly.GetExecutingAssembly());

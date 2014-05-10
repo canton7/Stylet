@@ -1,5 +1,4 @@
 ﻿using Stylet;
-using StyletIntegrationTests.BootstrapperIoC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +11,6 @@ namespace StyletIntegrationTests
 {
     public class Bootstrapper : Bootstrapper<ShellViewModel>
     {
-        protected override void ConfigureIoC(StyletIoC.IStyletIoCBuilder builder)
-        {
-            base.ConfigureIoC(builder); // Calling this just to trigger some code coverage
-            builder.Bind<BootstrapperIoCI1>().ToAllImplementations();
-        }
-
         protected override void OnUnhandledExecption(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
             base.OnUnhandledExecption(sender, e); // Calling this just to trigger some code coverage

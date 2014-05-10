@@ -47,7 +47,7 @@ task :test => [:nunit_test_runner] do |t|
 end
 
 desc "Launch the NUnit gui pointing at the correct DLL for CONFIG (or Debug)"
-task :nunit do |t|
+task :nunit => [:test_environment] do |t|
   sh NUNIT_EXE, UNIT_TESTS_DLL
 end
 

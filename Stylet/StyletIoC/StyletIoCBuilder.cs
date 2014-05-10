@@ -255,7 +255,7 @@ namespace StyletIoC
 
         public override void Build(StyletIoCContainer container)
         {
-            var candidates = from type in assemblies.SelectMany(x => x.GetTypes())
+            var candidates = from type in assemblies.Distinct().SelectMany(x => x.GetTypes())
                              let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x == this.serviceType || x.IsGenericType && x.GetGenericTypeDefinition() == this.serviceType)
                              where baseType != null
                              select new { Type = type, Base = baseType.ContainsGenericParameters ? baseType.GetGenericTypeDefinition() : baseType };
@@ -377,18 +377,13 @@ namespace StyletIoC
                 assemblies = new[] { Assembly.GetCallingAssembly() };
 
             // We self-bind concrete classes only
-            var classes = assemblies.SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
+            var classes = assemblies.Distinct().SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
             foreach (var cls in classes)
             {
-                // Don't care if binding fails - we're likely to hit a few of these
-                try
-                {
-                    this.BindWeak(cls).To(cls);
-                }
-                catch (StyletIoCRegistrationException e)
-                {
-                    Debug.WriteLine(String.Format("Unable to auto-bind type {0}: {1}", cls.Description(), e.Message), "StyletIoC");
-                }
+                // It's not actually possible for this to fail with a StyletIoCRegistrationException (at least currently)
+                // It's a self-binding, and those are always safe (at this stage - it could fall over when the containing's actually build)
+                
+                this.BindWeak(cls).To(cls);
             }
         }
 
@@ -412,7 +407,7 @@ namespace StyletIoC
         {
             var container = new StyletIoCContainer();
             container.AddRegistration(new TypeKey(typeof(IContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
-            container.AddRegistration(new TypeKey(typeof(StyletIoCContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
+            //container.AddRegistration(new TypeKey(typeof(StyletIoCContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
 
             // For each TypeKey, we remove any weak bindings if there are any strong bindings
             var groups = this.bindings.GroupBy(x =>  new { Key = x.Key, Type = x.ServiceType });

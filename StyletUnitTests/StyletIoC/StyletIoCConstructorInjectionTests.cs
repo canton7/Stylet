@@ -9,108 +9,108 @@ using System.Threading.Tasks;
 
 namespace StyletUnitTests
 {
-    interface I1 { }
-
-    class C1 : I1 { }
-    class C2 : I1
-    {
-        public C1 C1;
-        public C2(C1 c1)
-        {
-            this.C1 = c1;
-        }
-    }
-
-    class C3
-    {
-        public C1 C1;
-        public C2 C2;
-        public C3(C1 c1, C2 c2)
-        {
-            this.C1 = c1;
-            this.C2 = c2;
-        }
-    }
-
-    class C4
-    {
-        public C1 C1;
-        public C4([Inject("key1")] C1 c1)
-        {
-            this.C1 = c1;
-        }
-    }
-
-    class C5
-    {
-        public bool RightConstructorCalled;
-        public C5(C1 c1, C2 c2 = null, C3 c3 = null, C4 c4 = null)
-        {
-        }
-
-        public C5(C1 c1, C2 c2, C3 c3 = null)
-        {
-            this.RightConstructorCalled = true;
-        }
-
-        public C5(C1 c1, C2 c2)
-        {
-        }
-    }
-
-    class C6
-    {
-        public bool RightConstructorCalled;
-        [Inject]
-        public C6(C1 c1)
-        {
-            this.RightConstructorCalled = true;
-        }
-
-        public C6(C1 c1, C2 c2)
-        {
-        }
-    }
-
-    class C7
-    {
-        [Inject]
-        public C7()
-        {
-        }
-
-        [Inject]
-        public C7(C1 c1)
-        {
-        }
-    }
-
-    class C8
-    {
-        public IEnumerable<I1> I1s;
-        public C8(IEnumerable<I1> i1s)
-        {
-            this.I1s = i1s;
-        }
-    }
-
-    class C9
-    {
-        public C9(I1 i1)
-        {
-        }
-    }
-
-    class C10
-    {
-        public C10(ObservableCollection<C10> c1s)
-        {
-        }
-    }
-
     [TestFixture]
     public class StyletIoCConstructorInjectionTests
     {
+        interface I1 { }
+
+        class C1 : I1 { }
+        class C2 : I1
+        {
+            public C1 C1;
+            public C2(C1 c1)
+            {
+                this.C1 = c1;
+            }
+        }
+
+        class C3
+        {
+            public C1 C1;
+            public C2 C2;
+            public C3(C1 c1, C2 c2)
+            {
+                this.C1 = c1;
+                this.C2 = c2;
+            }
+        }
+
+        class C4
+        {
+            public C1 C1;
+            public C4([Inject("key1")] C1 c1)
+            {
+                this.C1 = c1;
+            }
+        }
+
+        class C5
+        {
+            public bool RightConstructorCalled;
+            public C5(C1 c1, C2 c2 = null, C3 c3 = null, C4 c4 = null)
+            {
+            }
+
+            public C5(C1 c1, C2 c2, C3 c3 = null)
+            {
+                this.RightConstructorCalled = true;
+            }
+
+            public C5(C1 c1, C2 c2)
+            {
+            }
+        }
+
+        class C6
+        {
+            public bool RightConstructorCalled;
+            [Inject]
+            public C6(C1 c1)
+            {
+                this.RightConstructorCalled = true;
+            }
+
+            public C6(C1 c1, C2 c2)
+            {
+            }
+        }
+
+        class C7
+        {
+            [Inject]
+            public C7()
+            {
+            }
+
+            [Inject]
+            public C7(C1 c1)
+            {
+            }
+        }
+
+        class C8
+        {
+            public IEnumerable<I1> I1s;
+            public C8(IEnumerable<I1> i1s)
+            {
+                this.I1s = i1s;
+            }
+        }
+
+        class C9
+        {
+            public C9(I1 i1)
+            {
+            }
+        }
+
+        class C10
+        {
+            public C10(ObservableCollection<C10> c1s)
+            {
+            }
+        }
+
         [Test]
         public void RecursivelyPopulatesConstructorParams()
         {

@@ -43,7 +43,9 @@ namespace StyletIoC
 
             var memberAccess = Expression.MakeMemberAccess(objExpression, member);
             var memberValue = this.container.GetExpression(new TypeKey(memberType, attribute.Key), true);
-            return Expression.Assign(memberAccess, memberValue);
+            var assign = Expression.Assign(memberAccess, memberValue);
+            // Only actually do the assignment if the field/property is currently null
+            return Expression.IfThen(Expression.Equal(memberAccess, Expression.Constant(null, memberType)), assign);
         }
 
         public Action<object> GetImplementor()

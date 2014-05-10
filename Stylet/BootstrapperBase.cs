@@ -30,13 +30,20 @@ namespace Stylet
 
             this.Application = Application.Current;
 
-            // Call this before calling our Start method
-            this.Application.Startup += this.OnStartup;
-            this.Application.Startup += (o, e) => this.Start();
+            // Allows for unit testing
+            if (this.Application != null)
+            {
+                // Call this before calling our Start method
+                this.Application.Startup += (o, e) =>
+                {
+                    this.OnStartup(o, e);
+                    this.Start();
+                };
 
-            // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
-            this.Application.Exit += OnExit;
-            this.Application.DispatcherUnhandledException += OnUnhandledExecption;
+                // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
+                this.Application.Exit += OnExit;
+                this.Application.DispatcherUnhandledException += OnUnhandledExecption;
+            }
         }
 
         /// <summary>
@@ -61,8 +68,11 @@ namespace Stylet
 
         protected virtual void ConfigureResources()
         {
+            if (this.Application == null)
+                return;
+
             var rc = new ResourceDictionary() { Source = new Uri("pack://application:,,,/Stylet;component/Xaml/StyletResourceDictionary.xaml", UriKind.Absolute) };
-            Application.Resources.MergedDictionaries.Add(rc);
+            this.Application.Resources.MergedDictionaries.Add(rc);
         }
 
         /// <summary>
@@ -95,9 +105,9 @@ namespace Stylet
         /// Initial contents of AssemblySource.Assemblies, defaults to the entry assembly
         /// </summary>
         /// <returns></returns>
-        protected IEnumerable<Assembly> SelectAssemblies()
+        protected virtual IEnumerable<Assembly> SelectAssemblies()
         {
-            return new[] { Assembly.GetEntryAssembly() };
+            return new[] { this.GetType().Assembly };
         }
 
         /// <summary>
@@ -110,7 +120,7 @@ namespace Stylet
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnExit(object sender, EventArgs e) { }
+        protected virtual void OnExit(object sender, ExitEventArgs e) { }
 
         /// <summary>
         /// Hook called on an unhandled exception

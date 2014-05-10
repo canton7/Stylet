@@ -20,6 +20,15 @@ namespace StyletUnitTests
         class C21 : IC2 { }
         class C22 : IC2 { }
 
+        class C3
+        {
+            public List<IC2> C2s;
+            public C3(IEnumerable<IC2> c2s)
+            {
+                this.C2s = c2s.ToList();
+            }
+        }
+
         // Tests that Bind() and friends worked was done in StyletIoCGetSingleTests
 
         [Test]
@@ -171,6 +180,25 @@ namespace StyletUnitTests
             var builder = new StyletIoCBuilder();
             var ioc = builder.BuildContainer();
             Assert.Throws<ArgumentNullException>(() => ioc.GetTypeOrAll(null));
+        }
+
+        [Test]
+        public void CachedGetAllExpressionWorks()
+        {
+            // The GetAll creator's instance expression can be cached. This ensures that that works
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC2>().To<C21>();
+            builder.Bind<IC2>().To<C22>();
+            builder.Bind<C3>().ToSelf();
+            var ioc = builder.BuildContainer();
+
+            var c2s = ioc.GetAll<IC2>().ToList();
+            var c3 = ioc.Get<C3>();
+
+            Assert.NotNull(c3.C2s);
+            Assert.AreEqual(2, c3.C2s.Count);
+            Assert.AreNotEqual(c2s[0], c3.C2s[0]);
+            Assert.AreNotEqual(c2s[1], c3.C2s[1]);
         }
     }
 }

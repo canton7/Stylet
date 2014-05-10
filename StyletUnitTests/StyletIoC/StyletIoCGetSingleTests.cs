@@ -14,6 +14,14 @@ namespace StyletUnitTests
         interface IC1 { }
         class C1 : IC1 { }
         class C12 : IC1 { }
+        class C2
+        {
+            public C1 C1;
+            public C2(C1 c1)
+            {
+                this.C1 = c1;
+            }
+        }
 
         [Test]
         public void SelfTransientBindingResolvesGeneric()
@@ -209,6 +217,22 @@ namespace StyletUnitTests
             var builder = new StyletIoCBuilder();
             var ioc = builder.BuildContainer();
             Assert.Throws<ArgumentNullException>(() => ioc.Get(null));
+        }
+
+        [Test]
+        public void CachedFactoryInstanceExpressionWorks()
+        {
+            // The factory's instance expression can be cached. This ensures that that works
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToFactory(x => new C1());
+            builder.Bind<C2>().ToSelf();
+            var ioc = builder.BuildContainer();
+
+            var c1 = ioc.Get<C1>();
+            var c2 = ioc.Get<C2>();
+
+            Assert.NotNull(c2.C1);
+            Assert.AreNotEqual(c1, c2.C1);
         }
     }
 }

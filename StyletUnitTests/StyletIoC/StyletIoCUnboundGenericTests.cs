@@ -13,6 +13,7 @@ namespace StyletUnitTests
     {
         interface I1<T> { }
         class C1<T> : I1<T> { }
+        class C12<T> { }
 
         interface I2<T, U> { }
         class C2<T, U> : I2<U, T> { }
@@ -76,6 +77,13 @@ namespace StyletUnitTests
             builder.Bind(typeof(C1<>)).ToSelf();
             builder.Bind(typeof(C1<>)).ToSelf();
             Assert.Throws<StyletIoCRegistrationException>(() => builder.BuildContainer());
+        }
+
+        [Test]
+        public void ThrowsIfUnboundGenericDoesNotImplementService()
+        {
+            var builder = new StyletIoCBuilder();
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I1<>)).To(typeof(C12<>)));
         }
     }
 }

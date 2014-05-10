@@ -16,6 +16,7 @@ namespace StyletUnitTests
         public void SetUpFixture()
         {
             Execute.TestExecuteSynchronously = true;
+            AssemblySource.Assemblies.Clear();
         }
 
         [Test]

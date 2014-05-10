@@ -174,8 +174,9 @@ namespace StyletIoC
                 throw new ArgumentNullException("type");
             var typeKey = new TypeKey(type, key);
             IRegistration registration;
-            if (!this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration))
-                throw new StyletIoCRegistrationException(String.Format("Could not find registration for type {0} and key '{1}'", typeKey.Type.Description(), typeKey.Key));
+            // This can currently never fail, since we pass in null
+            var result = this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration);
+            Debug.Assert(result);
             var generator = registration.GetGenerator();
             return (IEnumerable<object>)generator();
         }
@@ -345,8 +346,8 @@ namespace StyletIoC
                         newType = unboundGeneric.Type.MakeGenericType(unboundGeneric.Type.GetTypeInfo().GenericTypeParameters.Select(x => mapping.Single(t => t.Name.Name == x.Name).Type).ToArray());
                     }
 
-                    if (!type.IsAssignableFrom(newType))
-                        continue;
+                    // The binder should have made sure of this
+                    Debug.Assert(type.IsAssignableFrom(newType));
 
                     // Right! We've made a new generic type we can use
                     var registration = unboundGeneric.CreateRegistrationForType(newType);
@@ -571,14 +572,9 @@ namespace StyletIoC
 
         public static IEnumerable<Type> GetBaseTypes(this Type type)
         {
-            if (type == typeof(object))
-                yield break;
-            var baseType = type.BaseType ?? typeof(object);
-
-            while (baseType != null)
+            for (var baseType = type.BaseType; baseType != null; baseType = baseType.BaseType)
             {
                 yield return baseType;
-                baseType = baseType.BaseType;
             }
         }
 
@@ -635,7 +631,6 @@ namespace StyletIoC
     public class StyletIoCFindConstructorException : StyletIoCException
     {
         public StyletIoCFindConstructorException(string message) : base(message) { }
-        public StyletIoCFindConstructorException(string message, Exception innerException) : base(message, innerException) { }
     }
 
     public class StyletIoCCreateFactoryException : StyletIoCException

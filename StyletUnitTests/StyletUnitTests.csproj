@@ -55,6 +55,8 @@
     <Compile Include="AssemblySourceTests.cs" />
     <Compile Include="BindableCollectionTests.cs" />
     <Compile Include="BoolToVisibilityConverterTests.cs" />
+    <Compile Include="BootstrapperBaseTests.cs" />
+    <Compile Include="BootstrapperTests.cs" />
     <Compile Include="CommandActionTests.cs" />
     <Compile Include="ConductorAllActiveTests.cs" />
     <Compile Include="ConductorNavigatingTests.cs" />

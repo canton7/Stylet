@@ -188,5 +188,19 @@ namespace StyletUnitTests
 
             Assert.IsInstanceOf<C1>(subject.C1);
         }
+
+        [Test]
+        public void BuildUpDoesNotReplaceAlreadySetProperties()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf();
+            var ioc = builder.BuildContainer();
+
+            var s = new Subject1();
+            ioc.BuildUp(s);
+            var firstC1 = s.C1;
+            ioc.BuildUp(s);
+            Assert.AreEqual(s.C1, firstC1);
+        }
     }
 }

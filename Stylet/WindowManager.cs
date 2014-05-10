@@ -18,6 +18,13 @@ namespace Stylet
 
     public class WindowManager : IWindowManager
     {
+        private IViewManager viewManager;
+
+        public WindowManager(IViewManager viewManager)
+        {
+            this.viewManager = viewManager;
+        }
+
         public void ShowWindow(object viewModel)
         {
             this.CreateWindow(viewModel, false).Show();
@@ -28,16 +35,14 @@ namespace Stylet
             return this.CreateWindow(viewModel, true).ShowDialog();
         }
 
-        private Window CreateWindow(object viewModel, bool isDialog)
+        protected virtual Window CreateWindow(object viewModel, bool isDialog)
         {
-            var viewManager = IoC.Get<IViewManager>();
-
-            var view = viewManager.CreateViewForModel(viewModel);
+            var view = this.viewManager.CreateViewForModel(viewModel);
             var window = view as Window;
             if (window == null)
                 throw new Exception(String.Format("Tried to show {0} as a window, but it isn't a Window", view == null ? "(null)" : view.GetType().Name));
 
-            viewManager.BindViewToModel(window, viewModel);
+            this.viewManager.BindViewToModel(window, viewModel);
 
             var haveDisplayName = viewModel as IHaveDisplayName;
             if (haveDisplayName != null)
@@ -139,9 +144,8 @@ namespace Stylet
                     if (await task)
                     {
                         this.window.Closing -= this.WindowClosing;
-                        this.window.StateChanged -= this.WindowStateChanged;
-                        ScreenExtensions.TryClose(this.viewModel);
                         this.window.Close();
+                        // The Closed event handler handles unregistering the events, and closing the ViewModel
                     }
                 }
             }

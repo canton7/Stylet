@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace StyletIntegrationTests
 {
@@ -32,40 +33,36 @@ namespace StyletIntegrationTests
             this.ShowDialogAndDialogResultDialogResult = this.windowManager.ShowDialog(dialog);
         }
 
-        public void ShowWindowsDisplayNameBound()
-        {
-            var window = new WindowDisplayNameBound.WindowViewModel();
-            this.windowManager.ShowWindow(window);
-        }
-
-        public void ShowWindowGuardClose()
-        {
-            var window = new WindowGuardClose.WindowViewModel();
-            this.windowManager.ShowWindow(window);
-        }
-
         public void ShowWindowLifecycle()
         {
             var window = new WindowLifecycle.WindowViewModel();
             this.windowManager.ShowWindow(window);
         }
 
-        public void ShowBootstrapperIoC()
+        public void ThrowException()
         {
-            var window = new BootstrapperIoC.WindowViewModel();
-            this.windowManager.ShowWindow(window);
+            throw new Exception("Hello");
         }
 
-        public void ShowOnUnhandledException()
+        public async void TestDispatcher()
         {
-            var window = new OnUnhandledException.WindowViewModel();
-            this.windowManager.ShowWindow(window);
-        }
+            var dispatcher = Execute.Dispatcher;
+            var log = new List<string>();
 
-        public void ShowActions()
-        {
-            var window = new Actions.ActionsViewModel();
-            this.windowManager.ShowDialog(window);
+            await Task.Run(() => dispatcher.Send(() => { lock(log) { log.Add("One"); }; }));
+            lock (log) { log.Add("Two"); };
+
+            await Task.Run(() => dispatcher.Post(() => { lock (log) { log.Add("Three"); }; }));
+            lock (log) { log.Add("Four"); };
+
+            // OK, so at this point there's a queued message saying to add Three to the log
+            // Give the main thread time to process that message
+            await Task.Delay(100);
+
+            if (log.SequenceEqual(new[] { "One", "Two", "Four", "Three" }))
+                MessageBox.Show("Success");
+            else
+                MessageBox.Show("Failure");
         }
     }
 }
