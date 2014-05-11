@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StyletIoC
@@ -52,7 +53,11 @@ namespace StyletIoC
     // Sealed so Code Analysis doesn't moan about us setting the virtual Type property
     internal sealed class TypeCreator : CreatorBase
     {
-        public string AttributeKey { get; private set; }
+        private readonly string _attributeKey;
+        public string AttributeKey
+        {
+            get { return this._attributeKey; }
+        }
         private Expression creationExpression;
 
         public TypeCreator(Type type, StyletIoCContainer container) : base(container)
@@ -62,7 +67,7 @@ namespace StyletIoC
             // Use the key from InjectAttribute (if present), and let someone else override it if they want
             var attribute = (InjectAttribute)type.GetCustomAttributes(typeof(InjectAttribute), false).FirstOrDefault();
             if (attribute != null)
-                this.AttributeKey = attribute.Key;
+                this._attributeKey = attribute.Key;
         }
 
         private string KeyForParameter(ParameterInfo parameter)
@@ -132,15 +137,15 @@ namespace StyletIoC
 
             var completeExpression = this.CompleteExpressionFromCreator(creator);
 
-            this.creationExpression = completeExpression;
-            return completeExpression;
+            Interlocked.CompareExchange(ref this.creationExpression, completeExpression, null);
+            return this.creationExpression;
         }
     }
 
     // Sealed for consistency with TypeCreator
     internal sealed class FactoryCreator<T> : CreatorBase
     {
-        private Func<StyletIoCContainer, T> factory;
+        private readonly Func<StyletIoCContainer, T> factory;
         private Expression instanceExpression;
 
         public override Type Type { get { return typeof(T); } }
@@ -160,8 +165,8 @@ namespace StyletIoC
 
             var completeExpression = this.CompleteExpressionFromCreator(invoked);
 
-            this.instanceExpression = completeExpression;
-            return completeExpression;
+            Interlocked.CompareExchange(ref this.instanceExpression, completeExpression, null);
+            return this.instanceExpression;
         }
     }
 }

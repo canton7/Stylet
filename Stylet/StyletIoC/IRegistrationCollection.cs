@@ -16,7 +16,7 @@ namespace StyletIoC
 
     internal class SingleRegistration : IRegistrationCollection
     {
-        private IRegistration registration;
+        private readonly IRegistration registration;
 
         public SingleRegistration(IRegistration registration)
         {
@@ -43,7 +43,8 @@ namespace StyletIoC
 
     internal class RegistrationCollection : IRegistrationCollection
     {
-        private List<IRegistration> registrations;
+        private readonly object registrationsLock = new object();
+        private readonly List<IRegistration> registrations;
 
         public RegistrationCollection(List<IRegistration> registrations)
         {
@@ -58,14 +59,14 @@ namespace StyletIoC
         public List<IRegistration> GetAll()
         {
             List<IRegistration> registrationsCopy;
-            lock (this.registrations) { registrationsCopy = registrations.ToList(); }
+            lock (this.registrationsLock) { registrationsCopy = registrations.ToList(); }
             return registrationsCopy;
         }
 
         public IRegistrationCollection AddRegistration(IRegistration registration)
         {
             // Need to lock the list, as someone might be fetching from it while we do this
-            lock (this.registrations)
+            lock (this.registrationsLock)
             {
                 // Should have been caught by SingleRegistration.AddRegistration
                 Debug.Assert(!this.registrations.Any(x => x.Type == registration.Type));

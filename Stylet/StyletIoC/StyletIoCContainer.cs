@@ -100,9 +100,9 @@ namespace StyletIoC
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is an unbound generic (something like IValidator{}) to something which, given a type, can create an IRegistration for that type.
         /// So if they've bound an IValidator{} to a an IntValidator, StringValidator, etc, and request an IValidator{string}, one of the UnboundGenerics here can generatr a StringValidator.
-        /// Type-safety with the List is ensured by locking using the list as the lock object before modifying / iterating.
         /// </summary>
-        private readonly ConcurrentDictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new ConcurrentDictionary<TypeKey, List<UnboundGeneric>>();
+        /// <remarks>Dictionary{TKey, TValue} and List{T} are thread-safe for concurrent reads, which is all that happens after building</remarks>
+        private readonly Dictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new Dictionary<TypeKey, List<UnboundGeneric>>();
 
         /// <summary>
         /// Maps a type onto a BuilderUpper for that type, which can create an Expresson/Delegate to build up that type.
@@ -321,41 +321,37 @@ namespace StyletIoC
             if (!this.unboundGenerics.TryGetValue(new TypeKey(unboundGenericType, typeKey.Key), out unboundGenerics))
                 return false;
 
-            // Need to lock this, as someone might modify the underying list by registering a new unbound generic
-            lock (unboundGenerics)
+            foreach (var unboundGeneric in unboundGenerics)
             {
-                foreach (var unboundGeneric in unboundGenerics)
+                // Consider this scenario:
+                // interface IC<T, U> { } class C<T, U> : IC<U, T> { }
+                // Then they ask for an IC<int, bool>. We need to give them a C<bool, int>
+                // Search the ancestry of C for an IC (called implOfUnboundGenericType), then create a mapping which says that
+                // U is a bool and T is an int by comparing this against 'type' - the IC<T, U> that's registered as the service
+                // Then use this when making the type for C
+
+                Type newType;
+                if (unboundGeneric.Type == unboundGenericType)
                 {
-                    // Consider this scenario:
-                    // interface IC<T, U> { } class C<T, U> : IC<U, T> { }
-                    // Then they ask for an IC<int, bool>. We need to give them a C<bool, int>
-                    // Search the ancestry of C for an IC (called implOfUnboundGenericType), then create a mapping which says that
-                    // U is a bool and T is an int by comparing this against 'type' - the IC<T, U> that's registered as the service
-                    // Then use this when making the type for C
-
-                    Type newType;
-                    if (unboundGeneric.Type == unboundGenericType)
-                    {
-                        newType = type;
-                    }
-                    else
-                    {
-                        var implOfUnboundGenericType = unboundGeneric.Type.GetBaseTypesAndInterfaces().Single(x => x.Name == unboundGenericType.Name);
-                        var mapping = implOfUnboundGenericType.GenericTypeArguments.Zip(type.GenericTypeArguments, (n, t) => new { Type = t, Name = n });
-
-                        newType = unboundGeneric.Type.MakeGenericType(unboundGeneric.Type.GetTypeInfo().GenericTypeParameters.Select(x => mapping.Single(t => t.Name.Name == x.Name).Type).ToArray());
-                    }
-
-                    // The binder should have made sure of this
-                    Debug.Assert(type.IsAssignableFrom(newType));
-
-                    // Right! We've made a new generic type we can use
-                    var registration = unboundGeneric.CreateRegistrationForType(newType);
-
-                    // AddRegistration returns the IRegistrationCollection which was added/updated, so the one returned from the final
-                    // call to AddRegistration is the final IRegistrationCollection for this key
-                    registrations = this.AddRegistration(typeKey, registration);
+                    newType = type;
                 }
+                else
+                {
+                    var implOfUnboundGenericType = unboundGeneric.Type.GetBaseTypesAndInterfaces().Single(x => x.Name == unboundGenericType.Name);
+                    var mapping = implOfUnboundGenericType.GenericTypeArguments.Zip(type.GenericTypeArguments, (n, t) => new { Type = t, Name = n });
+
+                    newType = unboundGeneric.Type.MakeGenericType(unboundGeneric.Type.GetTypeInfo().GenericTypeParameters.Select(x => mapping.Single(t => t.Name.Name == x.Name).Type).ToArray());
+                }
+
+                // The binder should have made sure of this
+                Debug.Assert(type.IsAssignableFrom(newType));
+
+                // Right! We've made a new generic type we can use
+                var registration = unboundGeneric.CreateRegistrationForType(newType);
+
+                // AddRegistration returns the IRegistrationCollection which was added/updated, so the one returned from the final
+                // call to AddRegistration is the final IRegistrationCollection for this key
+                registrations = this.AddRegistration(typeKey, registration);
             }
 
             return registrations != null;
@@ -408,25 +404,23 @@ namespace StyletIoC
         internal void AddUnboundGeneric(TypeKey typeKey, UnboundGeneric unboundGeneric)
         {
             // We're not worried about thread-safety across multiple calls to this function (as it's only called as part of setup, which we're
-            // not thread-safe about). However someone might be fetching something from this list while we're modifying it, which we need to avoid
-            var unboundGenerics = this.unboundGenerics.GetOrAdd(typeKey, x => new List<UnboundGeneric>());
-            lock (unboundGenerics)
+            // not thread-safe about).
+            List<UnboundGeneric> unboundGenerics;
+            if (!this.unboundGenerics.TryGetValue(typeKey, out unboundGenerics))
             {
-                // Is there an existing registration for this type?
-                if (unboundGenerics.Any(x => x.Type == unboundGeneric.Type))
-                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Description()));
-
-                unboundGenerics.Add(unboundGeneric);
+                unboundGenerics = new List<UnboundGeneric>();
+                this.unboundGenerics.Add(typeKey, unboundGenerics);
             }
+            // Is there an existing registration for this type?
+            if (unboundGenerics.Any(x => x.Type == unboundGeneric.Type))
+                throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Description()));
+
+            unboundGenerics.Add(unboundGeneric);
         }
 
-        /// <summary>
-        /// </summary>
-        /// <remarks>Not thread-safe, as it's only ever called from the builder</remarks>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
         internal Type GetFactoryForType(Type serviceType)
         {
+            // Not thread-safe, as it's only called from the builder
             if (!serviceType.IsInterface)
                 throw new StyletIoCCreateFactoryException(String.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.Description()));
 

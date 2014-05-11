@@ -4,14 +4,16 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StyletIoC
 {
     internal class BuilderUpper
     {
-        private Type type;
-        private StyletIoCContainer container;
+        private readonly Type type;
+        private readonly StyletIoCContainer container;
+        private readonly object implementorLock = new object();
         private Action<object> implementor;
 
         public BuilderUpper(Type type, StyletIoCContainer container)
@@ -50,15 +52,18 @@ namespace StyletIoC
 
         public Action<object> GetImplementor()
         {
-            if (this.implementor != null)
+            lock (this.implementorLock)
+            {
+                if (this.implementor != null)
+                    return this.implementor;
+
+                var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
+                var typedParameterExpression = Expression.Convert(parameterExpression, this.type);
+                var expression = this.GetExpression(typedParameterExpression);
+                this.implementor = Expression.Lambda<Action<object>>(this.GetExpression(typedParameterExpression), parameterExpression).Compile();
+
                 return this.implementor;
-
-            var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
-            var typedParameterExpression = Expression.Convert(parameterExpression, this.type);
-            var expression = this.GetExpression(typedParameterExpression);
-            this.implementor = Expression.Lambda<Action<object>>(this.GetExpression(typedParameterExpression), parameterExpression).Compile();
-
-            return this.implementor;
+            }
         }
     }
 }

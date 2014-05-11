@@ -17,10 +17,10 @@ namespace StyletIoC
 
     internal abstract class RegistrationBase : IRegistration
     {
-        protected ICreator creator;
-
+        protected readonly ICreator creator;
         public Type Type { get { return this.creator.Type; } }
-
+        protected readonly object generatorLock = new object();
+        // Value type, so needs locked access
         protected Func<object> generator { get; set; }
 
         public RegistrationBase(ICreator creator)
@@ -44,9 +44,18 @@ namespace StyletIoC
 
         public override Func<object> GetGenerator()
         {
-            if (this.generator == null)
-                this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression()).Compile();
-            return this.generator;
+            // Compiling the generator might be expensive, but there's nothing to be gained from
+            // doing it outside of the lock - the altnerative is having two threads compiling it in parallel,
+            // while would take just as long and use more resources
+            lock (this.generatorLock)
+            {
+                if (this.generator != null)
+                    return this.generator;
+                var generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression()).Compile();
+                if (this.generator == null)
+                    this.generator = generator;
+                return this.generator;
+            }
         }
     }
 
@@ -63,17 +72,21 @@ namespace StyletIoC
                 return;
 
             // Ensure we don't end up creating two singletons, one used by each thread
-            Interlocked.CompareExchange(ref this.instance, Expression.Lambda<Func<object>>(this.creator.GetInstanceExpression()).Compile()(), null);
+            var instance = Expression.Lambda<Func<object>>(this.creator.GetInstanceExpression()).Compile()();
+            Interlocked.CompareExchange(ref this.instance, instance, null);
         }
 
         public override Func<object> GetGenerator()
         {
             this.EnsureInstantiated();
 
-            if (this.generator == null)
-                this.generator = () => this.instance;
-
-            return this.generator;
+            // Cheap delegate creation, so doesn't need to be outside the lock
+            lock (this.generatorLock)
+            {
+                if (this.generator == null)
+                    this.generator = () => this.instance;
+                return this.generator;
+            }
         }
 
         public override Expression GetInstanceExpression()
@@ -84,32 +97,41 @@ namespace StyletIoC
             this.EnsureInstantiated();
 
             // This expression yields the actual type of instance, not 'object'
-            this.instanceExpression = Expression.Constant(this.instance);
+            var instanceExpression = Expression.Constant(this.instance);
+            Interlocked.CompareExchange(ref this.instanceExpression, instanceExpression, null);
             return this.instanceExpression;
         }
     }
 
     internal class GetAllRegistration : IRegistration
     {
-        private StyletIoCContainer container;
+        private readonly StyletIoCContainer container;
 
         public string Key { get; set; }
-        public Type Type { get; private set; }
+        private readonly Type _type;
+        public Type Type
+        {
+            get { return this._type; }
+        }
 
         private Expression expression;
+        private readonly object generatorLock = new object();
         private Func<object> generator;
 
         public GetAllRegistration(Type type, StyletIoCContainer container)
         {
-            this.Type = type;
+            this._type = type;
             this.container = container;
         }
 
         public Func<object> GetGenerator()
         {
-            if (this.generator == null)
-                this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression()).Compile();
-            return this.generator;
+            lock (this.generatorLock)
+            {
+                if (this.generator == null)
+                    this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression()).Compile();
+                return this.generator;
+            }
         }
 
         public Expression GetInstanceExpression()
@@ -120,7 +142,7 @@ namespace StyletIoC
             var list = Expression.New(this.Type);
             var init = Expression.ListInit(list, this.container.GetRegistrations(new TypeKey(this.Type.GenericTypeArguments[0], this.Key), false).GetAll().Select(x => x.GetInstanceExpression()));
 
-            this.expression = init;
+            Interlocked.CompareExchange(ref this.expression, init, null);
             return this.expression;
         }
     }
