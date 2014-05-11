@@ -73,9 +73,9 @@ namespace Stylet
         private static bool? inDesignMode;
 
         /// <summary>
-        /// Default dispatcher used by PropertyChangedBase instances. Defaults to BeginOnUIThreadOrSynchronous
+        /// Default dispatcher used by PropertyChangedBase instances. Defaults to OnUIThread
         /// </summary>
-        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.BeginOnUIThreadOrSynchronous;
+        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.OnUIThread;
 
         private static void EnsureDispatcher()
         {
@@ -84,9 +84,9 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Dispatches the given action to be run on the UI thread, even if the current thread is the UI thread
+        /// Dispatches the given action to be run on the UI thread asynchronously, even if the current thread is the UI thread
         /// </summary>
-        public static void BeginOnUIThread(Action action)
+        public static void PostToUIThread(Action action)
         {
             EnsureDispatcher();
             if (!TestExecuteSynchronously)
@@ -96,9 +96,9 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Dispatches the given action to be run on the UI thread, or runs it synchronously if the current thread is the UI thread
+        /// Dispatches the given action to be run on the UI thread asynchronously, or runs it synchronously if the current thread is the UI thread
         /// </summary>
-        public static void BeginOnUIThreadOrSynchronous(Action action)
+        public static void OnUIThread(Action action)
         {
             EnsureDispatcher();
             if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
@@ -110,7 +110,7 @@ namespace Stylet
         /// <summary>
         /// Dispatches the given action to be run on the UI thread and blocks until it completes, or runs it synchronously if the current thread is the UI thread
         /// </summary>
-        public static void OnUIThread(Action action)
+        public static void OnUIThreadSync(Action action)
         {
             EnsureDispatcher();
             Exception exception = null;

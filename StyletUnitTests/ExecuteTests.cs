@@ -30,7 +30,7 @@ namespace StyletUnitTests
             sync.Setup(x => x.Send(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             bool actionCalled = false;
-            Execute.OnUIThread(() => actionCalled = true);
+            Execute.OnUIThreadSync(() => actionCalled = true);
 
             Assert.IsFalse(actionCalled);
             passedAction();
@@ -47,7 +47,7 @@ namespace StyletUnitTests
             sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             bool actionCalled = false;
-            Execute.BeginOnUIThread(() => actionCalled = true);
+            Execute.PostToUIThread(() => actionCalled = true);
 
             Assert.IsFalse(actionCalled);
             passedAction();
@@ -64,7 +64,7 @@ namespace StyletUnitTests
             sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             bool actionCalled = false;
-            Execute.BeginOnUIThreadOrSynchronous(() => actionCalled = true);
+            Execute.OnUIThread(() => actionCalled = true);
 
             Assert.IsFalse(actionCalled);
             passedAction();
@@ -100,7 +100,7 @@ namespace StyletUnitTests
             sync.Setup(x => x.Send(It.IsAny<Action>())).Callback<Action>(a => a());
 
             Exception caughtEx = null;
-            try { Execute.OnUIThread(() => { throw ex; }); }
+            try { Execute.OnUIThreadSync(() => { throw ex; }); }
             catch (Exception e) { caughtEx = e; }
 
             Assert.IsInstanceOf<System.Reflection.TargetInvocationException>(caughtEx);
@@ -128,21 +128,21 @@ namespace StyletUnitTests
         public void ThrowsIfBeginOnUIThreadCalledWithNoDispatcher()
         {
             Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.BeginOnUIThread(() => { }));
+            Assert.Throws<InvalidOperationException>(() => Execute.PostToUIThread(() => { }));
         }
 
         [Test]
         public void ThrowsIfBeginOnUIThreadOrSynchronousCalledWithNoDispatcher()
         {
             Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.BeginOnUIThreadOrSynchronous(() => { }));
+            Assert.Throws<InvalidOperationException>(() => Execute.OnUIThread(() => { }));
         }
 
         [Test]
         public void ThrowsIfOnUIThreadCalledWithNoDispatcher()
         {
             Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.OnUIThread(() => { }));
+            Assert.Throws<InvalidOperationException>(() => Execute.OnUIThreadSync(() => { }));
         }
 
         [Test]
@@ -159,7 +159,7 @@ namespace StyletUnitTests
 
             Execute.Dispatcher = null;
             bool called = false;
-            Execute.BeginOnUIThread(() => called = true);
+            Execute.PostToUIThread(() => called = true);
             Assert.True(called);
         }
 
@@ -170,7 +170,7 @@ namespace StyletUnitTests
 
             Execute.Dispatcher = null;
             bool called = false;
-            Execute.OnUIThread(() => called = true);
+            Execute.OnUIThreadSync(() => called = true);
             Assert.True(called);
         }
 
