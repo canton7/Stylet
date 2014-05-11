@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
 
-namespace Stylet
+namespace Stylet.Xaml
 {
     public class View : DependencyObject
     {
