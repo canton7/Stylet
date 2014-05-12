@@ -102,13 +102,14 @@ namespace Stylet
             if (this.validator == null)
                 throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
-            var handler = this.ErrorsChanged;
             bool anyChanged = false;
 
             // We need the ConfigureAwait(false), as we might be called synchronously
             // However this means that the stuff after the await can be run in parallel on multiple threads
             // Therefore, we need the lock
+            // However, we can't raise PropertyChanged events from within the lock, otherwise deadlock
             var results = await this.validator.ValidateAllPropertiesAsync().ConfigureAwait(false);
+            var changedProperties = new List<string>();
             await this.propertyErrorsLock.WaitAsync().ConfigureAwait(false);
             {
                 foreach (var kvp in results)
@@ -120,12 +121,19 @@ namespace Stylet
                     else
                         this.propertyErrors[kvp.Key] = kvp.Value;
                     anyChanged = true;
-                    if (handler != null)
-                        this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(kvp.Key)));
+                    changedProperties.Add(kvp.Key);
                 }
             }
             this.propertyErrorsLock.Release();
 
+            var handler = this.ErrorsChanged;
+            if (handler != null)
+            {
+                foreach (var property in changedProperties)
+                {
+                    this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(property)));
+                }
+            }
             if (anyChanged)
                 this.OnValidationStateChanged();
 
@@ -195,15 +203,17 @@ namespace Stylet
                 {
                     this.propertyErrors[propertyName] = newErrors;
                     propertyErrorsChanged = true;
-                    var handler = this.ErrorsChanged;
-                    if (handler != null)
-                        this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(propertyName)));
                 }
             }
             this.propertyErrorsLock.Release();
 
             if (propertyErrorsChanged)
+            {
+                var handler = this.ErrorsChanged;
+                if (handler != null)
+                    this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(propertyName)));
                 this.OnValidationStateChanged();
+            }
 
             return newErrors == null || newErrors.Length == 0;
         }
