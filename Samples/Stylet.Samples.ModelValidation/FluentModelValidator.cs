@@ -1,0 +1,37 @@
+﻿using FluentValidation;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Stylet.Samples.ModelValidation
+{
+    public class FluentModelValidator<T> : IModelValidator<T>
+    {
+        private readonly IValidator<T> validator;
+        private T subject;
+
+        public FluentModelValidator(IValidator<T> validator)
+        {
+            this.validator = validator;
+        }
+
+        public void Initialize(object subject)
+        {
+            this.subject = (T)subject;
+        }
+
+        public async Task<string[]> ValidatePropertyAsync(string propertyName)
+        {
+            return (await this.validator.ValidateAsync(this.subject, propertyName)).Errors.Select(x => x.ErrorMessage).ToArray();
+        }
+
+        public async Task<Dictionary<string, string[]>> ValidateAllPropertiesAsync()
+        {
+            return (await this.validator.ValidateAsync(this.subject)).Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(x => x.Key, x => x.Select(failure => failure.ErrorMessage).ToArray());
+        }
+    }
+}
