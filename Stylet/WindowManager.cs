@@ -40,7 +40,7 @@ namespace Stylet
             var view = this.viewManager.CreateViewForModel(viewModel);
             var window = view as Window;
             if (window == null)
-                throw new Exception(String.Format("Tried to show {0} as a window, but it isn't a Window", view == null ? "(null)" : view.GetType().Name));
+                throw new ArgumentException(String.Format("Tried to show {0} as a window, but it isn't a Window", view == null ? "(null)" : view.GetType().Name));
 
             this.viewManager.BindViewToModel(window, viewModel);
 

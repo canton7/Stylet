@@ -73,7 +73,6 @@ namespace Stylet
             // the WeakPropertyBinding instance, so once we release it, it will too.
 
             var propertyName = selector.NameForProperty();
-            var compiledSelector = selector.Compile();
 
             var binding = new WeakPropertyBinding<TSource, TProperty>(source, selector, handler, this.Remove);
             lock (this.bindingsLock)

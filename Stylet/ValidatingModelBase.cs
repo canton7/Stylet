@@ -14,6 +14,8 @@ namespace Stylet
     /// <summary>
     /// Base for ViewModels which require property validation
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable",
+        Justification="According to Albahari and Albahari, relying on the GC to tidy up WaitHandles is arguably acceptable, since they're so small.")]
     public class ValidatingModelBase : PropertyChangedBase, INotifyDataErrorInfo
     {
         /// <summary>
@@ -58,7 +60,10 @@ namespace Stylet
         /// <param name="validator">Validator adapter to use to perform validations</param>
         public ValidatingModelBase(IModelValidator validator) : this()
         {
-            this.validator = validator;
+            // Can't set this.validator, as it's virtual, and FxCop complains
+            this._validator = validator;
+            if (this._validator != null)
+                this._validator.Initialize(this);
         }
 
         private bool ErrorsEqual(string[] e1, string[] e2)
