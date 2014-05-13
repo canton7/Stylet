@@ -79,7 +79,7 @@ namespace Stylet
         /// Validate all properties, synchronously
         /// </summary>
         /// <returns>True if all properties validated successfully</returns>
-        protected virtual bool Validate()
+        protected bool Validate()
         {
             try
             {
@@ -134,16 +134,8 @@ namespace Stylet
             }
             this.propertyErrorsLock.Release();
 
-            var handler = this.ErrorsChanged;
-            if (handler != null)
-            {
-                foreach (var property in changedProperties)
-                {
-                    this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(property)));
-                }
-            }
             if (anyChanged)
-                this.OnValidationStateChanged();
+                this.OnValidationStateChanged(changedProperties);
 
             return !this.HasErrors;
         }
@@ -173,7 +165,7 @@ namespace Stylet
         /// </summary>
         /// <param name="propertyName">Property to validate</param>
         /// <returns>True if the property validated successfully</returns>
-        protected virtual bool ValidateProperty([CallerMemberName] string propertyName = null)
+        protected bool ValidateProperty([CallerMemberName] string propertyName = null)
         {
             try
             {
@@ -216,12 +208,7 @@ namespace Stylet
             this.propertyErrorsLock.Release();
 
             if (propertyErrorsChanged)
-            {
-                var handler = this.ErrorsChanged;
-                if (handler != null)
-                    this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(propertyName)));
-                this.OnValidationStateChanged();
-            }
+                this.OnValidationStateChanged(new[] { propertyName });
 
             return newErrors == null || newErrors.Length == 0;
         }
@@ -239,9 +226,24 @@ namespace Stylet
         /// <summary>
         /// Called whenever the error state of any properties changes. Calls NotifyOfPropertyChange(() => this.HasErrors) by default
         /// </summary>
-        protected virtual void OnValidationStateChanged()
+        protected virtual void OnValidationStateChanged(IEnumerable<string> changedProperties)
         {
             this.NotifyOfPropertyChange(() => this.HasErrors);
+            foreach (var property in changedProperties)
+            {
+                this.RaiseErrorsChanged(property);
+            }
+        }
+
+        /// <summary>
+        /// Raise the ErrorsChanged event for a given property
+        /// </summary>
+        /// <param name="propertyName">Property to raise the ErrorsChanged event for</param>
+        protected virtual void RaiseErrorsChanged(string propertyName)
+        {
+            var handler = this.ErrorsChanged;
+            if (handler != null)
+                this.PropertyChangedDispatcher(() => handler(this, new DataErrorsChangedEventArgs(propertyName)));
         }
 
         /// <summary>
@@ -249,7 +251,7 @@ namespace Stylet
         /// </summary>
         /// <param name="propertyName">The name of the property to retrieve validation errors for; or null or System.String.Empty, to retrieve entity-level errors.</param>
         /// <returns>The validation errors for the property or entity.</returns>
-        public IEnumerable GetErrors(string propertyName)
+        public virtual IEnumerable GetErrors(string propertyName)
         {
             string[] errors = null;
 

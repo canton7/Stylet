@@ -24,9 +24,9 @@ namespace Stylet.Samples.ModelValidation.Pages
         {
         }
 
-        protected override void OnValidationStateChanged()
+        protected override void OnValidationStateChanged(IEnumerable<string> changedProperties)
         {
-            base.OnValidationStateChanged();
+            base.OnValidationStateChanged(changedProperties);
             // Fody can't weave other assemblies, so we have to manually raise this
             this.NotifyOfPropertyChange(() => this.CanSubmit);
         }

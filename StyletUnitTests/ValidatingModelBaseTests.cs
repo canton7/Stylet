@@ -311,7 +311,7 @@ namespace StyletUnitTests
 
             this.model.Validate();
 
-            Assert.That(errors, Is.EquivalentTo(new[] { "OtherProperty", "NewOKProperty", "NewNotOKProperty" }));
+            Assert.That(errors, Is.EquivalentTo(new[] { "OtherProperty", "NewOKProperty", "NewNotOKProperty", "PropertyThatWillDisappear" }));
             Assert.AreEqual(1, hasErrorsChangedCount);
         }
 
