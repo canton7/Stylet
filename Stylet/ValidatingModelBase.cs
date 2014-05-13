@@ -123,6 +123,14 @@ namespace Stylet
                     anyChanged = true;
                     changedProperties.Add(kvp.Key);
                 }
+
+                // If they haven't included a key in their validation results, that counts as no validation error
+                foreach (var removedKey in this.propertyErrors.Keys.Except(results.Keys).ToArray())
+                {
+                    this.propertyErrors[removedKey] = null;
+                    anyChanged = true;
+                    changedProperties.Add(removedKey);
+                }
             }
             this.propertyErrorsLock.Release();
 
