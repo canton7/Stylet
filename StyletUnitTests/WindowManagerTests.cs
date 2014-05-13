@@ -73,7 +73,7 @@ namespace StyletUnitTests
         {
             var model = new object();
             this.viewManager.Setup(x => x.CreateViewForModel(model)).Returns(new UIElement());
-            Assert.Throws<Exception>(() => this.windowManager.CreateWindow(model, false));
+            Assert.Throws<ArgumentException>(() => this.windowManager.CreateWindow(model, false));
         }
 
         [Test]
