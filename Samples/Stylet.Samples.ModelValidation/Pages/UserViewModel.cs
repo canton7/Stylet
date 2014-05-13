@@ -24,9 +24,21 @@ namespace Stylet.Samples.ModelValidation.Pages
         {
         }
 
-        public void ValidateModel()
+        protected override void OnValidationStateChanged()
         {
-            base.Validate();
+            base.OnValidationStateChanged();
+            // Fody can't weave other assemblies, so we have to manually raise this
+            this.NotifyOfPropertyChange(() => this.CanSubmit);
+        }
+
+        public bool CanSubmit
+        {
+            get { return !this.AutoValidate || !this.HasErrors; }
+        }
+        public void Submit()
+        {
+            if (this.Validate())
+                System.Windows.MessageBox.Show("Successfully submitted");
         }
     }
 
@@ -34,10 +46,10 @@ namespace Stylet.Samples.ModelValidation.Pages
     {
         public UserViewModelValidator()
         {
-            RuleFor(x => x.UserName).Length(1, 20);
-            RuleFor(x => x.Email).EmailAddress();
-            RuleFor(x => x.Password).Matches("[0-9]").WithMessage("Must contain a number");
-            RuleFor(x => x.PasswordConfirmation).Equal(s => s.Password).WithMessage("Should match Password"); ;
+            RuleFor(x => x.UserName).NotEmpty().Length(1, 20);
+            RuleFor(x => x.Email).NotEmpty().EmailAddress();
+            RuleFor(x => x.Password).NotEmpty().Matches("[0-9]").WithMessage("{PropertyName} must contain a number");
+            RuleFor(x => x.PasswordConfirmation).NotEmpty().Equal(s => s.Password).WithMessage("{PropertyName} should match Password");
         }
     }
 }
