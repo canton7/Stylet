@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:s="https://github.com/canton7/Stylet"
+             xmlns:xaml="clr-namespace:Stylet.Samples.ModelValidation.Xaml"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
@@ -11,7 +12,7 @@
             <Setter Property="Margin" Value="5,0,5,0" />
             <Setter Property="HorizontalAlignment" Value="Left" />
         </Style>
-        <Style TargetType="{x:Type TextBox}">
+        <Style x:Key="CommonStyle" TargetType="{x:Type Control}">
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Margin" Value="0,2,40,20" />
             <Setter Property="Validation.ErrorTemplate">
@@ -33,6 +34,8 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource CommonStyle}"/>
+        <Style TargetType="{x:Type PasswordBox}" BasedOn="{StaticResource CommonStyle}"/>
     </UserControl.Resources>
     
     <Grid Margin="10">
@@ -55,10 +58,10 @@
         <TextBox Grid.Row="1" Grid.Column="1" x:Name="Email" Text="{Binding Email}"/>
         
         <Label Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=Password}">Password:</Label>
-        <TextBox Grid.Row="2" Grid.Column="1" x:Name="Password" Text="{Binding Password}"/>
+        <PasswordBox Grid.Row="2" Grid.Column="1" x:Name="Password" xaml:Secure.Password="{Binding Password}"/>
 
         <Label Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=PasswordConfirmation}">Password Confirmation:</Label>
-        <TextBox Grid.Row="3" Grid.Column="1" x:Name="PasswordConfirmation" Text="{Binding PasswordConfirmation}"/>
+        <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="PasswordConfirmation" xaml:Secure.Password="{Binding PasswordConfirmation}"/>
         
         <CheckBox Grid.Row="4" Grid.Column="0" IsChecked="{Binding AutoValidate}">Auto-Validate</CheckBox>
         <Button Grid.Row="4" Grid.Column="1" Command="{s:Action Submit}" HorizontalAlignment="Left">Submit</Button>
