@@ -25,9 +25,12 @@ namespace Stylet.Samples.ModelValidation.Xaml
             obj.SetValue(PasswordProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for Password.  This enables animation, styling, binding, etc...
+        // We play a trick here. If we set the initial value to something, it'll be set to something else when the binding kicks in,
+        // and HandleBoundPasswordChanged will be called, which allows us to set up our event subscription.
+        // If the binding sets us to a value which we already are, then this doesn't happen. Therefore start with a value that's
+        // definitely unique.
         public static readonly DependencyProperty PasswordProperty =
-            DependencyProperty.RegisterAttached("Password", typeof(string), typeof(Secure), new FrameworkPropertyMetadata(String.Empty, HandleBoundPasswordChanged)
+            DependencyProperty.RegisterAttached("Password", typeof(string), typeof(Secure), new FrameworkPropertyMetadata(Guid.NewGuid().ToString(), HandleBoundPasswordChanged)
             { 
                 BindsTwoWayByDefault = true,
                 DefaultUpdateSourceTrigger = UpdateSourceTrigger.LostFocus // Match the default on Binding
@@ -75,8 +78,13 @@ namespace Stylet.Samples.ModelValidation.Xaml
             obj.SetValue(SecurePasswordProperty, value);
         }
 
+        // Similarly, we'll be set to something which isn't this exact instance of SecureString when the binding kicks in
         public static readonly DependencyProperty SecurePasswordProperty =
-            DependencyProperty.RegisterAttached("SecurePassword", typeof(SecureString), typeof(Secure), new FrameworkPropertyMetadata(new SecureString(), HandleBoundSecurePasswordChanged) { BindsTwoWayByDefault = true });
+            DependencyProperty.RegisterAttached("SecurePassword", typeof(SecureString), typeof(Secure), new FrameworkPropertyMetadata(new SecureString(), HandleBoundSecurePasswordChanged)
+            {
+                BindsTwoWayByDefault = true,
+                DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+            });
 
 
         private static void HandleBoundSecurePasswordChanged(DependencyObject dp, DependencyPropertyChangedEventArgs e)

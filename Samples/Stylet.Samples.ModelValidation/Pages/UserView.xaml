@@ -49,6 +49,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Target="{Binding ElementName=UserName}">UserName:</Label>
@@ -56,14 +57,17 @@
 
         <Label Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=Email}">Email:</Label>
         <TextBox Grid.Row="1" Grid.Column="1" x:Name="Email" Text="{Binding Email}"/>
-        
-        <Label Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=Password}">Password:</Label>
-        <PasswordBox Grid.Row="2" Grid.Column="1" x:Name="Password" xaml:Secure.Password="{Binding Password}"/>
 
-        <Label Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=PasswordConfirmation}">Password Confirmation:</Label>
-        <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="PasswordConfirmation" xaml:Secure.Password="{Binding PasswordConfirmation}"/>
+        <Label Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=Age}">Age:</Label>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="Age" Text="{Binding Age}"/>
+
+        <Label Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=Password}">Password:</Label>
+        <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="Password" xaml:Secure.Password="{Binding Password}"/>
+
+        <Label Grid.Row="4" Grid.Column="0" Target="{Binding ElementName=PasswordConfirmation}">Password Confirmation:</Label>
+        <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="PasswordConfirmation" xaml:Secure.Password="{Binding PasswordConfirmation}"/>
         
-        <CheckBox Grid.Row="4" Grid.Column="0" IsChecked="{Binding AutoValidate}">Auto-Validate</CheckBox>
-        <Button Grid.Row="4" Grid.Column="1" Command="{s:Action Submit}" HorizontalAlignment="Left">Submit</Button>
+        <CheckBox Grid.Row="5" Grid.Column="0" IsChecked="{Binding AutoValidate}">Auto-Validate</CheckBox>
+        <Button Grid.Row="5" Grid.Column="1" Command="{s:Action Submit}" HorizontalAlignment="Left">Submit</Button>
     </Grid>
 </UserControl>

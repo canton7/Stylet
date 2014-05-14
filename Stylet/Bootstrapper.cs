@@ -16,6 +16,18 @@ namespace Stylet
     public class Bootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
     {
         /// <summary>
+        /// Create a new Bootstrapper, which automatically starts and launches
+        /// </summary>
+        public Bootstrapper() : base() { }
+
+        /// <summary>
+        /// Create a new Bootstrapper, and specify whether to auto-start and auto-launhc
+        /// </summary>
+        /// <param name="autoStart">True to call this.Start() at the end of this constructor</param>
+        /// <param name="autoLaunch">True to call this.Launch at the end of this.Start()</param>
+        public Bootstrapper(bool autoStart, bool autoLaunch) : base(autoStart, autoLaunch) { }
+
+        /// <summary>
         /// IoC container. This is created after ConfigureIoC has been run.
         /// </summary>
         protected IContainer container;

@@ -21,6 +21,8 @@ namespace StyletUnitTests
 
         private class MyBootstrapper<T> : Bootstrapper<T> where T : class
         {
+            public MyBootstrapper() : base(true, false) { }
+
             public IContainer Container
             {
                 get { return base.container; }

@@ -21,10 +21,12 @@ namespace StyletUnitTests
             private IViewManager viewManager;
             private IWindowManager windowManager;
 
-            public MyBootstrapperBase(IViewManager viewManager, IWindowManager windowManager)
+            public MyBootstrapperBase(IViewManager viewManager, IWindowManager windowManager) : base(false, false)
             {
                 this.viewManager = viewManager;
                 this.windowManager = windowManager;
+
+                this.Start();
             }
 
             public bool GetInstanceCalled;

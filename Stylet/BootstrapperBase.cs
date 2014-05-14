@@ -1,6 +1,7 @@
 ﻿using Stylet.Xaml;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -17,34 +18,42 @@ namespace Stylet
     /// <typeparam name="TRootViewModel">Type of the root ViewModel. This will be instantiated and displayed</typeparam>
     public abstract class BootstrapperBase<TRootViewModel> where TRootViewModel : class
     {
+        private bool autoLaunch;
+
         /// <summary>
         /// Reference to the current application
         /// </summary>
         protected Application Application { get; private set; }
 
-        public BootstrapperBase()
+        /// <summary>
+        /// Create a new BootstrapperBase, which automatically starts and launches
+        /// </summary>
+        public BootstrapperBase() : this(true, true) { }
+
+        /// <summary>
+        /// Create a new BootstrapperBase, and specify whether to auto-start and auto-launhc
+        /// </summary>
+        /// <param name="autoStart">True to call this.Start() at the end of this constructor</param>
+        /// <param name="autoLaunch">True to call this.Launch at the end of this.Start()</param>
+        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "Calling the virtual Start here really is the cleanest, most sensible thing to do")]
+        public BootstrapperBase(bool autoStart, bool autoLaunch)
         {
-            // Stitch the IoC shell to us
-            IoC.GetInstance = this.GetInstance;
-            IoC.GetAllInstances = this.GetAllInstances;
-            IoC.BuildUp = this.BuildUp;
+            this.autoLaunch = autoLaunch;
 
             this.Application = Application.Current;
 
             // Allows for unit testing
             if (this.Application != null)
             {
-                // Call this before calling our Start method
-                this.Application.Startup += (o, e) =>
-                {
-                    this.OnStartup(o, e);
-                    this.Start();
-                };
+                this.Application.Startup += this.OnStartup;
 
                 // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
                 this.Application.Exit += OnExit;
                 this.Application.DispatcherUnhandledException += OnUnhandledExecption;
             }
+
+            if (autoStart)
+                this.Start();
         }
 
         /// <summary>
@@ -52,6 +61,11 @@ namespace Stylet
         /// </summary>
         protected virtual void Start()
         {
+            // Stitch the IoC shell to us
+            IoC.GetInstance = this.GetInstance;
+            IoC.GetAllInstances = this.GetAllInstances;
+            IoC.BuildUp = this.BuildUp;
+
             // Use the current SynchronizationContext for the Execute helper
             Execute.Dispatcher = new DispatcherWrapper();
 
@@ -64,6 +78,16 @@ namespace Stylet
             this.Configure();
 
             View.ViewManager = IoC.Get<IViewManager>();
+
+            if (this.autoLaunch && !Execute.InDesignMode)
+                this.Launch();
+        }
+
+        /// <summary>
+        /// Launch the root view
+        /// </summary>
+        protected virtual void Launch()
+        {
             IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
         }
 
