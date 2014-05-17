@@ -16,8 +16,11 @@ namespace Stylet
     /// </summary>
     public class Screen : ValidatingModelBase, IScreen
     {
-        public Screen() : base() { }
-        public Screen(IModelValidator validator) : base(validator) { }
+        public Screen() : this(null) { }
+        public Screen(IModelValidator validator) : base(validator)
+        {
+            this.DisplayName = this.GetType().FullName;
+        }
 
         #region WeakEventManager
 
@@ -54,7 +57,7 @@ namespace Stylet
         #region IHaveDisplayName
 
         private string _displayName;
-        public string DisplayName
+        public virtual string DisplayName
         {
             get { return this._displayName; }
             set { SetAndNotify(ref this._displayName, value); }
