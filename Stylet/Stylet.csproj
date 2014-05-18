@@ -35,6 +35,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
@@ -52,6 +53,7 @@
     <Compile Include="LambdaComparer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MessageBox.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
     <Compile Include="ValidatingModelBase.cs" />
     <Compile Include="WeakEventManager.cs" />
@@ -67,6 +69,7 @@
     <Compile Include="ConductorBaseWithActiveItem.cs" />
     <Compile Include="ConductorOneActive.cs" />
     <Compile Include="Xaml\DebugConverter.cs" />
+    <Compile Include="Xaml\EqualityConverter.cs" />
     <Compile Include="Xaml\EventAction.cs" />
     <Compile Include="EventAggregator.cs" />
     <Compile Include="Execute.cs" />
@@ -92,6 +95,10 @@
     <Compile Include="WindowManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="MessageBoxView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Xaml\StyletResourceDictionary.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -57,6 +57,7 @@ namespace Stylet
             builder.BindWeak(typeof(IWindowManager)).To<WindowManager>().InSingletonScope();
             builder.BindWeak(typeof(IEventAggregator)).To<EventAggregator>().InSingletonScope();
             builder.BindWeak(typeof(IViewManager)).To<ViewManager>().InSingletonScope();
+            builder.BindWeak(typeof(IMessageBoxViewModel)).To<MessageBoxViewModel>();
 
             builder.Autobind(AssemblySource.Assemblies);
         }
