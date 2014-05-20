@@ -41,13 +41,13 @@
                             <Button.IsDefault>
                                 <MultiBinding Converter="{x:Static s:EqualityConverter.Instance}">
                                     <Binding/>
-                                    <Binding Path="DataContext.ControlDefaultButton" ElementName="rootObject"/>
+                                    <Binding Path="DataContext.DefaultButton" ElementName="rootObject"/>
                                 </MultiBinding>
                             </Button.IsDefault>
                             <Button.IsCancel>
                                 <MultiBinding Converter="{x:Static s:EqualityConverter.Instance}">
                                     <Binding/>
-                                    <Binding Path="DataContext.ControlCancelButton" ElementName="rootObject"/>
+                                    <Binding Path="DataContext.CancelButton" ElementName="rootObject"/>
                                 </MultiBinding>
                             </Button.IsCancel>
                         </Button>

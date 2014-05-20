@@ -31,12 +31,7 @@ namespace Stylet
         public static MessageBoxButton ShowMessageBox(this IWindowManager windowManager, string text, string title, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, MessageBoxButton defaultButton = MessageBoxButton.Default, MessageBoxButton cancelButton = MessageBoxButton.Default)
         {
             var vm = IoC.Get<IMessageBoxViewModel>();
-            vm.Text = text;
-            vm.Title = title;
-            vm.DefaultButton = defaultButton;
-            vm.CancelButton = cancelButton;
-            vm.Buttons = buttons;
-            vm.Icon = icon;
+            vm.Setup(text, title, buttons, icon, defaultButton, cancelButton);
             windowManager.ShowDialog(vm);
             return vm.ClickedButton;
         }
@@ -44,12 +39,7 @@ namespace Stylet
 
     public interface IMessageBoxViewModel
     {
-        MessageBoxButton Buttons { get; set; }
-        string Title { get; set; }
-        string Text { get; set; }
-        MessageBoxImage Icon { get; set; }
-        MessageBoxButton DefaultButton { get; set; }
-        MessageBoxButton CancelButton { get; set; }
+        void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxButton defaultButton, MessageBoxButton cancelButton);
         MessageBoxButton ClickedButton { get; }
     }
 
@@ -89,127 +79,66 @@ namespace Stylet
             };
         }
 
-        private MessageBoxButton _buttons;
-        public virtual MessageBoxButton Buttons
+        public void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxButton defaultButton, MessageBoxButton cancelButton)
         {
-            get { return this._buttons; }
-            set
-            {
-                if (value == MessageBoxButton.Default)
-                    throw new ArgumentException("MessageBoxButton.Default is not a valid value for Buttons");
-                this._buttons = value;
-                this.RefreshButtonList();
-            }
-        }
+            if (buttons == MessageBoxButton.Default)
+                throw new ArgumentException("MessageBoxButton.Default is not a valid value for Buttons", "buttons");
 
-        private MessageBoxButton _defaultButton;
-        public virtual MessageBoxButton DefaultButton
-        {
-            get { return this._defaultButton; }
-            set
-            {
-                this._defaultButton = value;
-                this.RefreshButtonList();
-            }
-        }
+            this.Text = text;
+            this.DisplayName = title;
+            this.Icon = icon;
 
-        private MessageBoxButton _cancelButton;
-        public virtual MessageBoxButton CancelButton
-        {
-            get { return this._cancelButton; }
-            set
-            {
-                this._cancelButton = value;
-                this.RefreshButtonList();
-            }
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public IObservableCollection<LabelledValue<MessageBoxButton>> ButtonList { get; protected set; }
-
-        private LabelledValue<MessageBoxButton> _controlDefaultButton;
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public LabelledValue<MessageBoxButton> ControlDefaultButton
-        {
-            get { return this._controlDefaultButton; }
-            set { SetAndNotify(ref this._controlDefaultButton, value); }
-        }
-
-        private LabelledValue<MessageBoxButton> _controlCancelButton;
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public LabelledValue<MessageBoxButton> ControlCancelButton
-        {
-            get { return this._controlCancelButton; }
-            set { SetAndNotify(ref this._controlCancelButton, value); }
-        }
-
-        
-        public virtual string Title
-        {
-            get { return this.DisplayName; }
-            set { this.DisplayName = value; }
-        }
-
-        public virtual string Text { get; set; }
-
-        private MessageBoxImage _icon;
-        public virtual MessageBoxImage Icon
-        {
-            get { return this._icon; }
-            set
-            {
-                this._icon = value;
-                this.ImageIcon = IconMapping[this._icon];
-            }
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual Icon ImageIcon { get; set; }
-
-        public virtual MessageBoxButton ClickedButton { get; private set; }
-
-        public MessageBoxViewModel()
-        {
-            this.ButtonList = new BindableCollection<LabelledValue<MessageBoxButton>>();
-        }
-
-        protected virtual void RefreshButtonList()
-        {
-            this.ButtonList.Clear();
-            this.ControlDefaultButton = null;
-            this.ControlCancelButton = null;
+            var buttonList = new List<LabelledValue<MessageBoxButton>>();
+            this.ButtonList = buttonList;
             var buttonValues = Enum.GetValues(typeof(MessageBoxButton));
             foreach (MessageBoxButton val in buttonValues)
             {
                 // Ignore those are are composites - i.e. aren't powers of 2
-                if ((val & (val - 1)) != 0 || !this._buttons.HasFlag(val) || val == MessageBoxButton.Default)
+                if ((val & (val - 1)) != 0 || !buttons.HasFlag(val) || val == MessageBoxButton.Default)
                     continue;
 
                 var lbv = new LabelledValue<MessageBoxButton>(ButtonLabels[val], val);
-                this.ButtonList.Add(lbv);
-                if (val == this.DefaultButton)
-                    this.ControlCancelButton = lbv;
-                else if (val == this.CancelButton)
-                    this.ControlCancelButton = lbv;
+                buttonList.Add(lbv);
+                if (val == defaultButton)
+                    this.DefaultButton = lbv;
+                else if (val == cancelButton)
+                    this.CancelButton = lbv;
             }
             if (this.ButtonList.Any())
             {
-                if (this.ControlDefaultButton == null)
+                if (this.DefaultButton == null)
                 {
-                    if (this.DefaultButton == MessageBoxButton.Default)
-                        this.ControlDefaultButton = this.ButtonList[0];
+                    if (defaultButton == MessageBoxButton.Default)
+                        this.DefaultButton = buttonList[0];
                     else
                         throw new ArgumentException("DefaultButton set to a button which doesn't appear in Buttons");
                 }
-                if (this.ControlCancelButton == null)
+                if (this.CancelButton == null)
                 {
-                    if (this.CancelButton == MessageBoxButton.Default)
-                        this.ControlCancelButton = this.ButtonList.Last();
+                    if (cancelButton == MessageBoxButton.Default)
+                        this.CancelButton = buttonList.Last();
                     else
-                        throw new ArgumentException("CancelButton set to a button whcih doesn't appear in Buttons");
+                        throw new ArgumentException("CancelButton set to a button which doesn't appear in Buttons");
                 }
             }
         }
+
+        public IEnumerable<LabelledValue<MessageBoxButton>> ButtonList { get; protected set; }
+
+        public LabelledValue<MessageBoxButton> DefaultButton { get; set; }
+
+        public LabelledValue<MessageBoxButton> CancelButton { get; set; }      
+
+        public virtual string Text { get; set; }
+
+        public virtual MessageBoxImage Icon { get; set; }
+
+        public virtual Icon ImageIcon
+        {
+            get { return IconMapping[this.Icon]; }
+        }
+
+        public virtual MessageBoxButton ClickedButton { get; private set; }
 
         protected override void OnViewLoaded()
         {
