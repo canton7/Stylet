@@ -42,6 +42,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -68,6 +69,7 @@
     <Compile Include="EventAggregatorTests.cs" />
     <Compile Include="ExecuteTests.cs" />
     <Compile Include="ExpressionExtensionsTests.cs" />
+    <Compile Include="IconToBitmapSourceConverterTests.cs" />
     <Compile Include="IoCTests.cs" />
     <Compile Include="LabelledValueTests.cs" />
     <Compile Include="LambdaComparerTests.cs" />

@@ -144,7 +144,7 @@ namespace StyletUnitTests
         {
             AssemblySource.Assemblies.Add(null);
             this.bootstrapper.Start();
-            Assert.That(AssemblySource.Assemblies, Is.EquivalentTo(new[] { this.bootstrapper.GetType().Assembly }));
+            Assert.That(AssemblySource.Assemblies, Is.EquivalentTo(new[] { typeof(BootstrapperBase<>).Assembly, this.bootstrapper.GetType().Assembly }));
         }
 
         [Test]

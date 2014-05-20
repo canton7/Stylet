@@ -13,54 +13,6 @@ using System.Windows.Media.Imaging;
 
 namespace Stylet
 {
-    /// <summary>
-    /// Specifies button(s) which are displayed on a MessageBox, and which button was clicked
-    /// </summary>
-    [Flags]
-    public enum MessageBoxButtons
-    {
-        /// <summary>
-        /// When used as the defaultButton or cancelButton, specified that it should be chosen automatically.
-        /// Not valid for specifying which buttons to display.
-        /// </summary>
-        Default = 0,
-
-        /// <summary>
-        /// "Yes" button
-        /// </summary>
-        Yes = 1,
-
-        /// <summary>
-        /// "No" button
-        /// </summary>
-        No = 2,
-
-        /// <summary>
-        /// "OK" button
-        /// </summary>
-        OK = 4,
-
-        /// <summary>
-        /// "Cancel" button
-        /// </summary>
-        Cancel = 8,
-
-        /// <summary>
-        /// Display both the "Yes" and "No" buttons. Only valid for specifying which buttons to display
-        /// </summary>
-        YesNo = Yes | No,
-
-        /// <summary>
-        /// Display the "Yes", "No", and "Cancel" button. Only valid for specifying which buttons to display
-        /// </summary>
-        YesNoCancel = Yes | No | Cancel,
-
-        /// <summary>
-        /// Display both the "OK" and "Cancel" buttons. Only valid for specifying which buttons to display
-        /// </summary>
-        OKCancel = OK | Cancel,
-    }
-
     public static class MessageBoxWindowManagerExtensions
     {
         /// <summary>
@@ -74,7 +26,7 @@ namespace Stylet
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
         /// <returns>Which button the user clicked</returns>
-        public static MessageBoxButtons ShowMessageBox(this IWindowManager windowManager, string text, string title, MessageBoxButtons buttons = MessageBoxButtons.OK, MessageBoxImage icon = MessageBoxImage.None, MessageBoxButtons defaultButton = MessageBoxButtons.Default, MessageBoxButtons cancelButton = MessageBoxButtons.Default)
+        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, MessageBoxResult defaultButton = MessageBoxResult.None, MessageBoxResult cancelButton = MessageBoxResult.None)
         {
             var vm = IoC.Get<IMessageBoxViewModel>();
             vm.Setup(text, title, buttons, icon, defaultButton, cancelButton);
@@ -97,12 +49,12 @@ namespace Stylet
         /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        void Setup(string text, string title, MessageBoxButtons buttons, MessageBoxImage icon, MessageBoxButtons defaultButton, MessageBoxButtons cancelButton);
+        void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defaultButton, MessageBoxResult cancelButton);
 
         /// <summary>
         /// After the user has clicked a button, holds which button was clicked
         /// </summary>
-        MessageBoxButtons ClickedButton { get; }
+        MessageBoxResult ClickedButton { get; }
     }
 
     /// <summary>
@@ -113,7 +65,9 @@ namespace Stylet
         /// <summary>
         /// Mapping of button to text to display on that button. You can modify this to localize your application.
         /// </summary>
-        public static IDictionary<MessageBoxButtons, string> ButtonLabels { get; set; }
+        public static IDictionary<MessageBoxResult, string> ButtonLabels { get; set; }
+
+        public static IDictionary<MessageBoxButton, MessageBoxResult[]> ButtonToResults { get; set; }
 
         /// <summary>
         /// Mapping of MessageBoxImage to the SystemIcon to display. You can customize this if you really want.
@@ -127,12 +81,20 @@ namespace Stylet
 
         static MessageBoxViewModel()
         {
-            ButtonLabels = new Dictionary<MessageBoxButtons, string>()
+            ButtonLabels = new Dictionary<MessageBoxResult, string>()
             {
-                { MessageBoxButtons.OK, "OK" },
-                { MessageBoxButtons.Cancel, "Cancel" },
-                { MessageBoxButtons.Yes, "Yes" },
-                { MessageBoxButtons.No, "No" },
+                { MessageBoxResult.OK, "OK" },
+                { MessageBoxResult.Cancel, "Cancel" },
+                { MessageBoxResult.Yes, "Yes" },
+                { MessageBoxResult.No, "No" },
+            };
+
+            ButtonToResults = new Dictionary<MessageBoxButton, MessageBoxResult[]>()
+            {
+                { MessageBoxButton.OK, new[] { MessageBoxResult.OK } },
+                { MessageBoxButton.OKCancel, new[] { MessageBoxResult.OK, MessageBoxResult.Cancel } },
+                { MessageBoxButton.YesNo, new[] { MessageBoxResult.Yes, MessageBoxResult.No } },
+                { MessageBoxButton.YesNoCancel, new[] { MessageBoxResult.Yes, MessageBoxResult.No, MessageBoxResult.Cancel} },
             };
 
             IconMapping = new Dictionary<MessageBoxImage, Icon>()
@@ -164,25 +126,17 @@ namespace Stylet
         /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        public void Setup(string text, string title, MessageBoxButtons buttons, MessageBoxImage icon, MessageBoxButtons defaultButton, MessageBoxButtons cancelButton)
+        public void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defaultButton, MessageBoxResult cancelButton)
         {
-            if (buttons == MessageBoxButtons.Default)
-                throw new ArgumentException("MessageBoxButton.Default is not a valid value for Buttons", "buttons");
-
             this.Text = text;
             this.DisplayName = title;
             this.Icon = icon;
 
-            var buttonList = new List<LabelledValue<MessageBoxButtons>>();
+            var buttonList = new List<LabelledValue<MessageBoxResult>>();
             this.ButtonList = buttonList;
-            var buttonValues = Enum.GetValues(typeof(MessageBoxButtons));
-            foreach (MessageBoxButtons val in buttonValues)
+            foreach (var val in ButtonToResults[buttons])
             {
-                // Ignore those are are composites - i.e. aren't powers of 2
-                if ((val & (val - 1)) != 0 || !buttons.HasFlag(val) || val == MessageBoxButtons.Default)
-                    continue;
-
-                var lbv = new LabelledValue<MessageBoxButtons>(ButtonLabels[val], val);
+                var lbv = new LabelledValue<MessageBoxResult>(ButtonLabels[val], val);
                 buttonList.Add(lbv);
                 if (val == defaultButton)
                     this.DefaultButton = lbv;
@@ -192,14 +146,14 @@ namespace Stylet
             // If they didn't specify a button which we showed, then pick a default, if we can
             if (this.DefaultButton == null)
             {
-                if (defaultButton == MessageBoxButtons.Default&& this.ButtonList.Any())
+                if (defaultButton == MessageBoxResult.None && this.ButtonList.Any())
                     this.DefaultButton = buttonList[0];
                 else
                     throw new ArgumentException("DefaultButton set to a button which doesn't appear in Buttons");
             }
             if (this.CancelButton == null)
             {
-                if (cancelButton == MessageBoxButtons.Default && this.ButtonList.Any())
+                if (cancelButton == MessageBoxResult.None && this.ButtonList.Any())
                     this.CancelButton = buttonList.Last();
                 else
                     throw new ArgumentException("CancelButton set to a button which doesn't appear in Buttons");
@@ -209,17 +163,17 @@ namespace Stylet
         /// <summary>
         /// List of buttons which are shown in the View.
         /// </summary>
-        public IEnumerable<LabelledValue<MessageBoxButtons>> ButtonList { get; protected set; }
+        public IEnumerable<LabelledValue<MessageBoxResult>> ButtonList { get; protected set; }
 
         /// <summary>
         /// Item in ButtonList which is the Default button
         /// </summary>
-        public LabelledValue<MessageBoxButtons> DefaultButton { get; set; }
+        public LabelledValue<MessageBoxResult> DefaultButton { get; set; }
 
         /// <summary>
         /// Item in ButtonList which is the Cancel button
         /// </summary>
-        public LabelledValue<MessageBoxButtons> CancelButton { get; set; }      
+        public LabelledValue<MessageBoxResult> CancelButton { get; set; }      
 
         /// <summary>
         /// Text which is shown in the body of the MessageBox
@@ -242,7 +196,7 @@ namespace Stylet
         /// <summary>
         /// Which button the user clicked, once they've clicked a button
         /// </summary>
-        public virtual MessageBoxButtons ClickedButton { get; private set; }
+        public virtual MessageBoxResult ClickedButton { get; private set; }
 
         protected override void OnViewLoaded()
         {
@@ -253,7 +207,7 @@ namespace Stylet
                 sound.Play();
         }
 
-        public void ButtonClicked(MessageBoxButtons button)
+        public void ButtonClicked(MessageBoxResult button)
         {
             this.ClickedButton = button;
             this.TryClose(true);
