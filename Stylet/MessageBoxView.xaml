@@ -7,12 +7,13 @@
         mc:Ignorable="d"
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterScreen"
         ShowInTaskbar="False"
-        Height="300"
-        MinWidth="240" MaxWidth="485"
+        MinWidth="140" MaxWidth="485"
         x:Name="rootObject">
     <Grid Margin="0,30,0,0">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6"/> <!-- Padding -->
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
@@ -20,13 +21,15 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
-        
-        <Image Grid.Row="0" Grid.Column="0" Stretch="Uniform" Margin="25,0,0,0" VerticalAlignment="Top"
-               Source="{Binding ImageIcon, Converter={x:Static s:IconToBitmapSourceConverter.Instance}}"/>
-        
-        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Text}" Margin="8,0,30,30" TextWrapping="Wrap"/>
 
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+        <Image Grid.Row="0" Grid.Column="1" Stretch="Uniform" Margin="19,0,0,0" VerticalAlignment="Top"
+               Source="{Binding ImageIcon, Converter={x:Static s:IconToBitmapSourceConverter.Instance}}"
+               Visibility="{Binding ImageIconVisible, Converter={x:Static s:BoolToVisibilityConverter.Instance}}">
+        </Image>
+
+        <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Text}" Margin="8,0,30,30" TextWrapping="Wrap"/>
+
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
             <ItemsControl Grid.Row="1" ItemsSource="{Binding ButtonList}"
                           HorizontalAlignment="Right" VerticalAlignment="Center">
                 <ItemsControl.ItemsPanel>
