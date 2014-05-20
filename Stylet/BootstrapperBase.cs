@@ -132,7 +132,7 @@ namespace Stylet
         /// <returns></returns>
         protected virtual IEnumerable<Assembly> SelectAssemblies()
         {
-            return new[] { this.GetType().Assembly };
+            return new[] { typeof(BootstrapperBase<>).Assembly, this.GetType().Assembly };
         }
 
         /// <summary>
