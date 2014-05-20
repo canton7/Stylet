@@ -45,7 +45,7 @@ namespace Stylet
             this.viewManager.BindViewToModel(window, viewModel);
 
             var haveDisplayName = viewModel as IHaveDisplayName;
-            if (haveDisplayName != null)
+            if (haveDisplayName != null && BindingOperations.GetBindingBase(window, Window.TitleProperty) == null)
             {
                 var binding = new Binding("DisplayName") { Mode = BindingMode.TwoWay };
                 window.SetBinding(Window.TitleProperty, binding);
