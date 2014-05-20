@@ -51,8 +51,8 @@ namespace Stylet.Samples.ModelValidation.Pages
             RuleFor(x => x.Email).NotEmpty().EmailAddress();
             RuleFor(x => x.Password).NotEmpty().Matches("[0-9]").WithMessage("{PropertyName} must contain a number");
             RuleFor(x => x.PasswordConfirmation).Equal(s => s.Password).WithMessage("{PropertyName} should match Password");
-            RuleFor(x => x.Age).Must(x => x.IsValid).WithMessage("{PropertyName} must be a valid number");
-            When(x => x.Age.IsValid, () =>
+            RuleFor(x => x.Age).Must(x => x != null && x.IsValid).WithMessage("{PropertyName} must be a valid number");
+            When(x => x.Age != null && x.Age.IsValid, () =>
             {
                 RuleFor(x => x.Age.Value).GreaterThan(0).WithName("Age");
             });
