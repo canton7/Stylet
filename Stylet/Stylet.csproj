@@ -90,7 +90,7 @@
     <Compile Include="StyletIoC\StyletIoCBuilder.cs" />
     <Compile Include="StyletIoC\StyletIoCContainer.cs" />
     <Compile Include="StyletIoC\UnboundGeneric.cs" />
-    <Compile Include="Xaml\IconConverter.cs" />
+    <Compile Include="Xaml\IconToBitmapSourceConverter.cs" />
     <Compile Include="Xaml\View.cs" />
     <Compile Include="ViewManager.cs" />
     <Compile Include="WindowManager.cs" />

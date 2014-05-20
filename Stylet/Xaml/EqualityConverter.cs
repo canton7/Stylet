@@ -29,6 +29,8 @@ namespace Stylet.Xaml
 
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            if (values == null || values.Length == 0)
+                return null;
             var first = values.FirstOrDefault();
             var result = values.Skip(1).All(x => first.Equals(x));
             return this.Invert ? !result : result;
