@@ -8,17 +8,22 @@ using System.Windows.Data;
 
 namespace Stylet.Xaml
 {
+    /// <summary>
+    /// Converter to compare a number of values, and return true (or false if Invert is true) if they are all equal
+    /// </summary>
     public class EqualityConverter : DependencyObject, IMultiValueConverter
     {
         public static readonly EqualityConverter Instance = new EqualityConverter();
 
+        /// <summary>
+        /// True false, instead of true, if call values are equal
+        /// </summary>
         public bool Invert
         {
             get { return (bool)GetValue(InvertProperty); }
             set { SetValue(InvertProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for Invert.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty InvertProperty =
             DependencyProperty.Register("Invert", typeof(bool), typeof(EqualityConverter), new PropertyMetadata(false));
 

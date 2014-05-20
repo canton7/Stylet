@@ -4,14 +4,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:s="clr-namespace:Stylet.Xaml"
-        xmlns:stylet="clr-namespace:Stylet"
         mc:Ignorable="d"
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
+        ShowInTaskbar="False"
         Height="300"
-        MinWidth="240" MaxWidth="450"
+        MinWidth="240" MaxWidth="485"
         x:Name="rootObject">
-    <Grid>
+    <Grid Margin="0,30,0,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition/>
@@ -21,12 +21,12 @@
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
         
-        <Image Grid.Row="0" Grid.Column="0" Stretch="Uniform" Margin="25,0,0,0"
-               Source="{Binding ImageIcon, Converter={x:Static stylet:IconConverter.Instance}}"/>
+        <Image Grid.Row="0" Grid.Column="0" Stretch="Uniform" Margin="25,0,0,0" VerticalAlignment="Top"
+               Source="{Binding ImageIcon, Converter={x:Static s:IconToBitmapSourceConverter.Instance}}"/>
         
-        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Text}" Margin="8,30,30,30" TextWrapping="Wrap"/>
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Text}" Margin="8,0,30,30" TextWrapping="Wrap"/>
 
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Background="#F0F0F0">
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
             <ItemsControl Grid.Row="1" ItemsSource="{Binding ButtonList}"
                           HorizontalAlignment="Right" VerticalAlignment="Center">
                 <ItemsControl.ItemsPanel>
@@ -36,7 +36,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Button Content="{Binding Label}" Width="90" Margin="0,0,10,0"
+                        <Button Content="{Binding Label}" Width="85" Height="25" Margin="0,0,10,0"
                                 Command="{s:Action ButtonClicked}" CommandParameter="{Binding Value}">
                             <Button.IsDefault>
                                 <MultiBinding Converter="{x:Static s:EqualityConverter.Instance}">
