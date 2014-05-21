@@ -24,8 +24,7 @@ namespace Stylet
         /// Create a new Bootstrapper, and specify whether to auto-start and auto-launhc
         /// </summary>
         /// <param name="autoStart">True to call this.Start() at the end of this constructor</param>
-        /// <param name="autoLaunch">True to call this.Launch at the end of this.Start()</param>
-        public Bootstrapper(bool autoStart, bool autoLaunch) : base(autoStart, autoLaunch) { }
+        public Bootstrapper(bool autoStart) : base(autoStart) { }
 
         /// <summary>
         /// IoC container. This is created after ConfigureIoC has been run.

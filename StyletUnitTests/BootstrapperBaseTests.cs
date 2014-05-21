@@ -21,7 +21,7 @@ namespace StyletUnitTests
             private IViewManager viewManager;
             private IWindowManager windowManager;
 
-            public MyBootstrapperBase(IViewManager viewManager, IWindowManager windowManager) : base(false, false)
+            public MyBootstrapperBase(IViewManager viewManager, IWindowManager windowManager) : base(false)
             {
                 this.viewManager = viewManager;
                 this.windowManager = windowManager;
@@ -75,7 +75,7 @@ namespace StyletUnitTests
                 base.Configure();
             }
 
-            public new void Start()
+            public void Start()
             {
                 base.Start();
             }

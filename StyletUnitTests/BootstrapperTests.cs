@@ -21,7 +21,10 @@ namespace StyletUnitTests
 
         private class MyBootstrapper<T> : Bootstrapper<T> where T : class
         {
-            public MyBootstrapper() : base(true, false) { }
+            public MyBootstrapper() : base(false)
+            {
+                this.Start(false);
+            }
 
             public IContainer Container
             {

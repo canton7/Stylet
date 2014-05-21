@@ -18,28 +18,23 @@ namespace Stylet
     /// <typeparam name="TRootViewModel">Type of the root ViewModel. This will be instantiated and displayed</typeparam>
     public abstract class BootstrapperBase<TRootViewModel> where TRootViewModel : class
     {
-        private bool autoLaunch;
-
         /// <summary>
         /// Reference to the current application
         /// </summary>
         protected Application Application { get; private set; }
 
         /// <summary>
-        /// Create a new BootstrapperBase, which automatically starts and launches
+        /// Create a new BootstrapperBase, which automatically start
         /// </summary>
-        public BootstrapperBase() : this(true, true) { }
+        public BootstrapperBase() : this(true) { }
 
         /// <summary>
-        /// Create a new BootstrapperBase, and specify whether to auto-start and auto-launhc
+        /// Create a new BootstrapperBase, and specify whether to auto-start
         /// </summary>
         /// <param name="autoStart">True to call this.Start() at the end of this constructor</param>
-        /// <param name="autoLaunch">True to call this.Launch at the end of this.Start()</param>
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "Calling the virtual Start here really is the cleanest, most sensible thing to do")]
-        public BootstrapperBase(bool autoStart, bool autoLaunch)
+        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "We give the user the option to not call the virtual method, and call it themselves, if they want/need to")]
+        public BootstrapperBase(bool autoStart)
         {
-            this.autoLaunch = autoLaunch;
-
             this.Application = Application.Current;
 
             // Allows for unit testing
@@ -59,7 +54,8 @@ namespace Stylet
         /// <summary>
         /// Called from the constructor, this does everything necessary to start the application
         /// </summary>
-        protected virtual void Start()
+        /// <param name="autoLaunch">True to automatically launch the main window</param>
+        protected virtual void Start(bool autoLaunch = true)
         {
             // Stitch the IoC shell to us
             IoC.GetInstance = this.GetInstance;
@@ -79,7 +75,7 @@ namespace Stylet
 
             View.ViewManager = IoC.Get<IViewManager>();
 
-            if (this.autoLaunch && !Execute.InDesignMode)
+            if (autoLaunch && !Execute.InDesignMode)
                 this.Launch();
         }
 
