@@ -9,6 +9,8 @@ namespace Stylet.Samples.ModelValidation.Pages
 {
     public class UserViewModel : Screen
     {
+        private IWindowManager windowManager;
+
         public string UserName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
@@ -21,8 +23,9 @@ namespace Stylet.Samples.ModelValidation.Pages
             set { this.autoValidate = value; this.NotifyOfPropertyChange(); }
         }
 
-        public UserViewModel(IModelValidator<UserViewModel> validator) : base(validator)
+        public UserViewModel(IWindowManager windowManager, IModelValidator<UserViewModel> validator) : base(validator)
         {
+            this.windowManager = windowManager;
         }
 
         protected override void OnValidationStateChanged(IEnumerable<string> changedProperties)
@@ -39,7 +42,7 @@ namespace Stylet.Samples.ModelValidation.Pages
         public void Submit()
         {
             if (this.Validate())
-                System.Windows.MessageBox.Show("Successfully submitted");
+                this.windowManager.ShowMessageBox("Successfully submitted", "success");
         }
     }
 

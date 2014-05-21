@@ -35,7 +35,7 @@ namespace StyletIntegrationTests
 
         public void ShowWindowLifecycle()
         {
-            var window = new WindowLifecycle.WindowViewModel();
+            var window = new WindowLifecycle.WindowViewModel(this.windowManager);
             this.windowManager.ShowWindow(window);
         }
 
@@ -60,9 +60,9 @@ namespace StyletIntegrationTests
             await Task.Delay(100);
 
             if (log.SequenceEqual(new[] { "One", "Two", "Four", "Three" }))
-                MessageBox.Show("Success");
+                this.windowManager.ShowMessageBox("Success");
             else
-                MessageBox.Show("Failure");
+                this.windowManager.ShowMessageBox("Failure");
         }
     }
 }

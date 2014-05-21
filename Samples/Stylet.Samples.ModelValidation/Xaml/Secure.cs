@@ -12,8 +12,30 @@ namespace Stylet.Samples.ModelValidation.Xaml
 {
     public static class Secure
     {
-        private static bool passwordInitialized;
-        private static bool settingPassword;
+        private static bool GetPasswordInitialized(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(PasswordInitializedProperty);
+        }
+        private static void SetPasswordInitialized(DependencyObject obj, bool value)
+        {
+            obj.SetValue(PasswordInitializedProperty, value);
+        }
+        // Using a DependencyProperty as the backing store for PasswordInitialized.  This enables animation, styling, binding, etc...
+        private static readonly DependencyProperty PasswordInitializedProperty =
+            DependencyProperty.RegisterAttached("PasswordInitialized", typeof(bool), typeof(Secure), new PropertyMetadata(false));
+
+
+        private static bool GetSettingPassword(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(SettingPasswordProperty);
+        }
+        private static void SetSettingPassword(DependencyObject obj, bool value)
+        {
+            obj.SetValue(SettingPasswordProperty, value);
+        }
+        // Using a DependencyProperty as the backing store for SettingPassword.  This enables animation, styling, binding, etc...
+        private static readonly DependencyProperty SettingPasswordProperty =
+            DependencyProperty.RegisterAttached("SettingPassword", typeof(bool), typeof(Secure), new PropertyMetadata(false));
 
         public static string GetPassword(DependencyObject obj)
         {
@@ -39,17 +61,17 @@ namespace Stylet.Samples.ModelValidation.Xaml
 
         private static void HandleBoundPasswordChanged(DependencyObject dp, DependencyPropertyChangedEventArgs e)
         {
-            if (settingPassword)
-                return;
-
             var passwordBox = dp as PasswordBox;
             if (passwordBox == null)
                 return;
 
+            if (GetSettingPassword(passwordBox))
+                return;
+
             // If this is the initial set
-            if (!passwordInitialized)
+            if (!GetPasswordInitialized(passwordBox))
             {
-                passwordInitialized = true;
+                SetPasswordInitialized(passwordBox, true);
                 passwordBox.PasswordChanged += HandlePasswordChanged;
             }
 
@@ -59,14 +81,38 @@ namespace Stylet.Samples.ModelValidation.Xaml
         private static void HandlePasswordChanged(object sender, RoutedEventArgs e)
         {
             var passwordBox = (PasswordBox)sender;
-            settingPassword = true;
+            SetSettingPassword(passwordBox, true);
             SetPassword(passwordBox, passwordBox.Password);
-            settingPassword = false;
+            SetSettingPassword(passwordBox, false);
         }
 
 
-        private static bool securePasswordInitialized;
-        private static bool settingSecurePassword;
+        private static bool GetSecurePasswordInitialized(DependencyObject obj)
+        {
+            return (bool )obj.GetValue(SecurePasswordInitializedProperty);
+        }
+        private static void SetSecurePasswordInitialized(DependencyObject obj, bool value)
+        {
+            obj.SetValue(SecurePasswordInitializedProperty, value);
+        }
+        // Using a DependencyProperty as the backing store for SecurePasswordInitialized.  This enables animation, styling, binding, etc...
+        private static readonly DependencyProperty SecurePasswordInitializedProperty =
+            DependencyProperty.RegisterAttached("SecurePasswordInitialized", typeof(bool ), typeof(Secure), new PropertyMetadata(false));
+
+        private static bool GetSettingSecurePassword(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(SettingSecurePasswordProperty);
+        }
+
+        private static void SetSettingSecurePassword(DependencyObject obj, bool value)
+        {
+            obj.SetValue(SettingSecurePasswordProperty, value);
+        }
+
+        // Using a DependencyProperty as the backing store for SettingSecurePassword.  This enables animation, styling, binding, etc...
+        private static readonly DependencyProperty SettingSecurePasswordProperty =
+            DependencyProperty.RegisterAttached("SettingSecurePassword", typeof(bool), typeof(Secure), new PropertyMetadata(false));
+
 
         public static SecureString GetSecurePassword(DependencyObject obj)
         {
@@ -89,26 +135,26 @@ namespace Stylet.Samples.ModelValidation.Xaml
 
         private static void HandleBoundSecurePasswordChanged(DependencyObject dp, DependencyPropertyChangedEventArgs e)
         {
-            if (settingSecurePassword)
-                return;
-
             var passwordBox = dp as PasswordBox;
             if (passwordBox == null)
                 return;
 
-            if (!securePasswordInitialized)
+            if (GetSettingSecurePassword(passwordBox))
+                return;
+
+            if (!GetSecurePasswordInitialized(passwordBox))
             {
                 passwordBox.PasswordChanged += HandleSecurePasswordChanged;
-                securePasswordInitialized = true;
+                SetSecurePasswordInitialized(passwordBox, true);
             }
         }
 
         private static void HandleSecurePasswordChanged(object sender, RoutedEventArgs e)
         {
             var passwordBox = (PasswordBox)sender;
-            settingSecurePassword = true;
+            SetSettingSecurePassword(passwordBox, true);
             SetSecurePassword(passwordBox, passwordBox.SecurePassword);
-            settingSecurePassword = false;
+            SetSettingSecurePassword(passwordBox, false);
         }
     }
 }

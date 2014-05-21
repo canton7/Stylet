@@ -10,11 +10,15 @@ namespace StyletIntegrationTests.WindowLifecycle
 {
     public class WindowViewModel : Screen
     {
+        private IWindowManager windowManager;
+
         public BindableCollection<string> Log { get; private set; }
 
-        public WindowViewModel()
+        public WindowViewModel(IWindowManager windowManager)
         {
             this.DisplayName = "Window Lifecycle";
+
+            this.windowManager = windowManager;
 
             this.Log = new BindableCollection<string>();
         }
@@ -41,7 +45,7 @@ namespace StyletIntegrationTests.WindowLifecycle
 
         protected override void OnClose()
         {
-            MessageBox.Show("Closed");
+            this.windowManager.ShowMessageBox("Closed", "Closed");
         }
     }
 }

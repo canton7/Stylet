@@ -26,7 +26,7 @@ namespace Stylet
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
         /// <returns>Which button the user clicked</returns>
-        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, MessageBoxResult defaultButton = MessageBoxResult.None, MessageBoxResult cancelButton = MessageBoxResult.None)
+        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title = null, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, MessageBoxResult defaultButton = MessageBoxResult.None, MessageBoxResult cancelButton = MessageBoxResult.None)
         {
             var vm = IoC.Get<IMessageBoxViewModel>();
             vm.Setup(text, title, buttons, icon, defaultButton, cancelButton);

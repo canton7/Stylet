@@ -8,11 +8,6 @@ namespace Stylet.Samples.ModelValidation.Pages
 {
     public class ShellViewModel : Conductor<IScreen>
     {
-        public ShellViewModel()
-        {
-            this.ActiveItem = new UserViewModel(new FluentModelValidator<UserViewModel>(new UserViewModelValidator()));
-        }
-
         public ShellViewModel(UserViewModel userViewModel)
         {
             this.DisplayName = "Stylet.Samples.ModelValidation";
