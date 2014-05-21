@@ -28,13 +28,6 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void ConvertReturnsNullIfValueNotBool()
-        {
-            var result = this.converter.Convert(new object(), null, null, null);
-            Assert.Null(result);
-        }
-
-        [Test]
         public void ConvertReturnsVisibleForTrueByDefault()
         {
             var result = this.converter.Convert(true, null, null, null);
@@ -65,10 +58,68 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void ConvertTreatsZeroAsFalse()
+        {
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0u, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0L, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0Lu, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0m, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0.0, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0.0f, null, null, null));
+        }
+
+        [Test]
+        public void ConvertTreatsNonZeroAsTrue()
+        {
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(1, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(1u, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(1L, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(1Lu, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(1m, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(1.0, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(1.0f, null, null, null));
+        }
+
+        [Test]
+        public void ConvertTreatsNullAsFalse()
+        {
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(null, null, null, null));
+        }
+
+        [Test]
+        public void ConvertTreatsNonNullAsTrue()
+        {
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(new object(), null, null, null));
+        }
+
+        [Test]
+        public void ConvertTreatsEmptyCollectionAsFalse()
+        {
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(new int[0], null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(new List<object>(), null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(new Dictionary<string, string>(), null, null, null));
+        }
+
+        [Test]
+        public void ConvertTreatsNonEmptyCollectionAsTrue()
+        {
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(new int[1], null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(new List<object>() { 3 }, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(new Dictionary<string, string>() { { "A", "B" } }, null, null, null));
+        }
+
+        [Test]
+        public void ConvertBackThrowsIfTargetTypeIsNotBool()
+        {
+            Assert.Throws<ArgumentException>(() => this.converter.ConvertBack(null, null, null, null));
+        }
+
+        [Test]
         public void ConvertBackReturnsTrueIfValueIsTrueVisibility()
         {
             this.converter.TrueVisibility = Visibility.Hidden;
-            var result = this.converter.ConvertBack(Visibility.Hidden, null, null, null);
+            var result = this.converter.ConvertBack(Visibility.Hidden, typeof(bool), null, null);
             Assert.AreEqual(true, result);
         }
 
@@ -76,21 +127,21 @@ namespace StyletUnitTests
         public void ConvertBackReturnsFalseIfValueIsFalseVisibility()
         {
             this.converter.FalseVisibility = Visibility.Hidden;
-            var result = this.converter.ConvertBack(Visibility.Hidden, null, null, null);
+            var result = this.converter.ConvertBack(Visibility.Hidden, typeof(bool), null, null);
             Assert.AreEqual(false, result);
         }
 
         [Test]
         public void ConvertBackReturnsNullIfValueIsNotAVisibility()
         {
-            var result = this.converter.ConvertBack(new object(), null, null, null);
+            var result = this.converter.ConvertBack(new object(), typeof(bool), null, null);
             Assert.Null(result);
         }
 
         [Test]
         public void ConvertBackReturnsNullIfValueIsNotAConfiguredVisibility()
         {
-            var result = this.converter.ConvertBack(Visibility.Hidden, null, null, null);
+            var result = this.converter.ConvertBack(Visibility.Hidden, typeof(bool), null, null);
             Assert.Null(result);
         }
     }

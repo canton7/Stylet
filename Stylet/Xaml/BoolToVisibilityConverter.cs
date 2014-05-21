@@ -52,10 +52,11 @@ namespace Stylet.Xaml
                 result = (bool)value;
             else if (value is IEnumerable)
                 result = ((IEnumerable)value).GetEnumerator().MoveNext();
-            else if (value.Equals(0) || value.Equals(0.0f) || value.Equals(0.0) || value.Equals(0u) || value.Equals(0m))
+            else if (value.Equals(0) || value.Equals(0u) || value.Equals(0L) || value.Equals(0uL) ||
+                value.Equals(0.0f) || value.Equals(0.0) || value.Equals(0m))
                 result = false;
             else
-                return null;
+                result = true; // Not null, didn't meet any other falsy behaviour
 
             return result ? this.TrueVisibility : this.FalseVisibility;
         }
@@ -63,7 +64,7 @@ namespace Stylet.Xaml
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (targetType != typeof(bool))
-                throw new InvalidOperationException("Can't ConvertBack on BoolToVisibilityConverter when TargetType is not bool");
+                throw new ArgumentException("Can't ConvertBack on BoolToVisibilityConverter when TargetType is not bool");
 
             if (!(value is Visibility))
                 return null;

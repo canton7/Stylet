@@ -16,7 +16,7 @@ namespace StyletUnitTests
     {
         private class MyMessageBoxViewModel : MessageBoxViewModel
         {
-            public void OnViewLoaded()
+            public new void OnViewLoaded()
             {
                 base.OnViewLoaded();
             }
