@@ -60,7 +60,7 @@ namespace StyletIntegrationTests
             await Task.Delay(100);
 
             if (log.SequenceEqual(new[] { "One", "Two", "Four", "Three" }))
-                this.windowManager.ShowMessageBox("Success");
+                this.windowManager.ShowMessageBox("Success", icon: MessageBoxImage.Information);
             else
                 this.windowManager.ShowMessageBox("Failure");
         }
