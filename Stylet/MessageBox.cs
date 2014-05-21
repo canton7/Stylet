@@ -194,14 +194,6 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Whether to display an icon
-        /// </summary>
-        public virtual bool ImageIconVisible
-        {
-            get { return this.Icon != MessageBoxImage.None; }
-        }
-
-        /// <summary>
         /// Which button the user clicked, once they've clicked a button
         /// </summary>
         public virtual MessageBoxResult ClickedButton { get; private set; }
