@@ -46,7 +46,7 @@ namespace StyletUnitTests
             vm.SetupGet(x => x.ClickedButton).Returns(MessageBoxResult.OK);
             var result = MessageBoxWindowManagerExtensions.ShowMessageBox(windowManager.Object, "this is the text", "this is the title", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation, MessageBoxResult.OK, MessageBoxResult.Cancel);
 
-            vm.Verify(x => x.Setup("this is the text", "this is the title", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation, MessageBoxResult.OK, MessageBoxResult.Cancel));
+            vm.Verify(x => x.Setup("this is the text", "this is the title", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation, MessageBoxResult.OK, MessageBoxResult.Cancel, null));
             windowManager.Verify(x => x.ShowDialog(vm.Object));
 
             Assert.AreEqual(MessageBoxResult.OK, result);
@@ -55,21 +55,21 @@ namespace StyletUnitTests
         [Test]
         public void SetsTextCorrectly()
         {
-            this.vm.Setup("this is the text", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None);
+            this.vm.Setup("this is the text", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null);
             Assert.AreEqual("this is the text", this.vm.Text);
         }
 
         [Test]
         public void SetsTitleCorrectly()
         {
-            this.vm.Setup(null, "this is the title", MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None);
+            this.vm.Setup(null, "this is the title", MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null);
             Assert.AreEqual("this is the title", this.vm.DisplayName);
         }
 
         [Test]
         public void DisplaysRequestedButtons()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None);
+            this.vm.Setup(null, null, MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null);
             var buttons = vm.ButtonList.ToList();
             Assert.AreEqual(2, buttons.Count);
             Assert.AreEqual("OK", buttons[0].Label);
@@ -81,47 +81,47 @@ namespace StyletUnitTests
         [Test]
         public void SetsDefaultButtonToTheRequestedButton()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.Cancel, MessageBoxResult.None);
+            this.vm.Setup(null, null, MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.Cancel, MessageBoxResult.None, null);
             Assert.AreEqual(this.vm.ButtonList.ElementAt(1), this.vm.DefaultButton);
         }
 
         [Test]
         public void SetsDefaultToLeftmostButtonIfDefaultRequested()
         {
-            this.vm.Setup(null, null, MessageBoxButton.YesNoCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None);
+            this.vm.Setup(null, null, MessageBoxButton.YesNoCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null);
             Assert.AreEqual(this.vm.ButtonList.ElementAt(0), this.vm.DefaultButton);
         }
 
         [Test]
         public void ThrowsIfTheRequestedDefaultButtonIsNotDisplayed()
         {
-            Assert.Throws<ArgumentException>(() => this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.Yes, MessageBoxResult.None));
+            Assert.Throws<ArgumentException>(() => this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.Yes, MessageBoxResult.None, null));
         }
 
         [Test]
         public void SetsCancelButtonToTheRequestedButton()
         {
-            this.vm.Setup(null, null, MessageBoxButton.YesNoCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.No);
+            this.vm.Setup(null, null, MessageBoxButton.YesNoCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.No, null);
             Assert.AreEqual(this.vm.ButtonList.ElementAt(1), this.vm.CancelButton);
         }
 
         [Test]
         public void SetsCancelToRighmostButtonIfDefaultRequested()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None);
+            this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null);
             Assert.AreEqual(this.vm.ButtonList.ElementAt(1), this.vm.CancelButton);
         }
 
         [Test]
         public void ThrowsIfRequestedCancelButtonIsNotDisplayed()
         {
-            Assert.Throws<ArgumentException>(() => this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.No));
+            Assert.Throws<ArgumentException>(() => this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.No, null));
         }
 
         [Test]
         public void SetsIconCorrectly()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.None, MessageBoxResult.None);
+            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.None, MessageBoxResult.None, null);
             Assert.AreEqual(SystemIcons.Exclamation, this.vm.ImageIcon);
         }
 
@@ -130,7 +130,7 @@ namespace StyletUnitTests
         {
             var parent = new Mock<IChildDelegate>();
             this.vm.Parent = parent.Object;
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None);
+            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null);
             
             this.vm.ButtonClicked(MessageBoxResult.No);
 
@@ -143,8 +143,19 @@ namespace StyletUnitTests
         {
             var vm = new MyMessageBoxViewModel();
             // Can't test it actually playing the sound
-            vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None);
+            vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null);
             Assert.DoesNotThrow(() => vm.OnViewLoaded());
+        }
+
+        [Test]
+        public void ButtonTextOverridesWork()
+        {
+            this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, new Dictionary<MessageBoxResult, string>()
+                {
+                    { MessageBoxResult.Cancel, "YAY!" },
+                });
+            Assert.AreEqual("OK", this.vm.ButtonList.ElementAt(0).Label);
+            Assert.AreEqual("YAY!", this.vm.ButtonList.ElementAt(1).Label);
         }
     }
 }

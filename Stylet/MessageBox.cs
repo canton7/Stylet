@@ -25,11 +25,12 @@ namespace Stylet
         /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
+        /// <param name="buttonTextOverrides">You may override the text for individual buttons on a case-by-case basis</param>
         /// <returns>Which button the user clicked</returns>
-        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title = null, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, MessageBoxResult defaultButton = MessageBoxResult.None, MessageBoxResult cancelButton = MessageBoxResult.None)
+        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title = null, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, MessageBoxResult defaultButton = MessageBoxResult.None, MessageBoxResult cancelButton = MessageBoxResult.None, IDictionary<MessageBoxResult, string> buttonTextOverrides = null)
         {
             var vm = IoC.Get<IMessageBoxViewModel>();
-            vm.Setup(text, title, buttons, icon, defaultButton, cancelButton);
+            vm.Setup(text, title, buttons, icon, defaultButton, cancelButton, buttonTextOverrides);
             windowManager.ShowDialog(vm);
             return vm.ClickedButton;
         }
@@ -49,7 +50,8 @@ namespace Stylet
         /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defaultButton, MessageBoxResult cancelButton);
+        /// <param name="buttonTextOverrides">You may override the text for individual buttons on a case-by-case basis</param>
+        void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defaultButton, MessageBoxResult cancelButton, IDictionary<MessageBoxResult, string> buttonTextOverrides = null);
 
         /// <summary>
         /// After the user has clicked a button, holds which button was clicked
@@ -126,7 +128,8 @@ namespace Stylet
         /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        public void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defaultButton, MessageBoxResult cancelButton)
+        /// <param name="buttonTextOverrides">You may override the text for individual buttons on a case-by-case basis</param>
+        public void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defaultButton, MessageBoxResult cancelButton, IDictionary<MessageBoxResult, string> buttonTextOverrides)
         {
             this.Text = text;
             this.DisplayName = title;
@@ -136,7 +139,11 @@ namespace Stylet
             this.ButtonList = buttonList;
             foreach (var val in ButtonToResults[buttons])
             {
-                var lbv = new LabelledValue<MessageBoxResult>(ButtonLabels[val], val);
+                string label;
+                if (buttonTextOverrides == null || !buttonTextOverrides.TryGetValue(val, out label))
+                    label = ButtonLabels[val];
+                    
+                var lbv = new LabelledValue<MessageBoxResult>(label, val);
                 buttonList.Add(lbv);
                 if (val == defaultButton)
                     this.DefaultButton = lbv;
