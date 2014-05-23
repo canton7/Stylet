@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
+        FlowDirection="{Binding FlowDirection}"
         WindowStartupLocation="CenterScreen"
         ShowInTaskbar="False"
         MinWidth="160" MaxWidth="485"
@@ -27,11 +28,11 @@
                Visibility="{Binding ImageIcon, Converter={x:Static s:BoolToVisibilityConverter.Instance}}">
         </Image>
 
-        <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Text}" Margin="8,30,30,30" TextWrapping="Wrap"/>
+        <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Text}" Margin="8,30,15,30" TextWrapping="Wrap" TextAlignment="{Binding TextAlignment}"/>
 
         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
             <ItemsControl Grid.Row="1" ItemsSource="{Binding ButtonList}"
-                          HorizontalAlignment="Right" VerticalAlignment="Center">
+                          HorizontalAlignment="Right" VerticalAlignment="Center" Margin="43,0,0,0">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>

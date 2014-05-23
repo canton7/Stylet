@@ -25,12 +25,17 @@ namespace Stylet
         /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        /// <param name="buttonTextOverrides">You may override the text for individual buttons on a case-by-case basis</param>
+        /// <param name="options">Additional options</param>
+        /// <param name="buttonLabels">You may override the text for individual buttons on a case-by-case basis</param>
         /// <returns>Which button the user clicked</returns>
-        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title = null, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, MessageBoxResult defaultButton = MessageBoxResult.None, MessageBoxResult cancelButton = MessageBoxResult.None, IDictionary<MessageBoxResult, string> buttonTextOverrides = null)
+        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title = null,
+            MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None,
+            MessageBoxResult defaultButton = MessageBoxResult.None, MessageBoxResult cancelButton = MessageBoxResult.None,
+            MessageBoxOptions options = MessageBoxOptions.None,
+            IDictionary<MessageBoxResult, string> buttonLabels = null)
         {
             var vm = IoC.Get<IMessageBoxViewModel>();
-            vm.Setup(text, title, buttons, icon, defaultButton, cancelButton, buttonTextOverrides);
+            vm.Setup(text, title, buttons, icon, defaultButton, cancelButton, options, buttonLabels);
             windowManager.ShowDialog(vm);
             return vm.ClickedButton;
         }
@@ -50,8 +55,11 @@ namespace Stylet
         /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        /// <param name="buttonTextOverrides">You may override the text for individual buttons on a case-by-case basis</param>
-        void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defaultButton, MessageBoxResult cancelButton, IDictionary<MessageBoxResult, string> buttonTextOverrides = null);
+        /// <param name="options">Additional options</param>
+        /// <param name="buttonLabels">You may override the text for individual buttons on a case-by-case basis</param>
+        void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon,
+            MessageBoxResult defaultButton, MessageBoxResult cancelButton, MessageBoxOptions options,
+            IDictionary<MessageBoxResult, string> buttonLabels = null);
 
         /// <summary>
         /// After the user has clicked a button, holds which button was clicked
@@ -128,8 +136,11 @@ namespace Stylet
         /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
         /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
         /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        /// <param name="buttonTextOverrides">You may override the text for individual buttons on a case-by-case basis</param>
-        public void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon, MessageBoxResult defaultButton, MessageBoxResult cancelButton, IDictionary<MessageBoxResult, string> buttonTextOverrides)
+        /// <param name="options">Additional options</param>
+        /// <param name="buttonLabels">You may override the text for individual buttons on a case-by-case basis</param>
+        public void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon,
+            MessageBoxResult defaultButton, MessageBoxResult cancelButton, MessageBoxOptions options,
+            IDictionary<MessageBoxResult, string> buttonLabels)
         {
             this.Text = text;
             this.DisplayName = title;
@@ -140,7 +151,7 @@ namespace Stylet
             foreach (var val in ButtonToResults[buttons])
             {
                 string label;
-                if (buttonTextOverrides == null || !buttonTextOverrides.TryGetValue(val, out label))
+                if (buttonLabels == null || !buttonLabels.TryGetValue(val, out label))
                     label = ButtonLabels[val];
                     
                 var lbv = new LabelledValue<MessageBoxResult>(label, val);
@@ -165,6 +176,9 @@ namespace Stylet
                 else
                     throw new ArgumentException("CancelButton set to a button which doesn't appear in Buttons");
             }
+
+            this.FlowDirection = options.HasFlag(MessageBoxOptions.RtlReading) ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+            this.TextAlignment = (options.HasFlag(MessageBoxOptions.RightAlign) == options.HasFlag(MessageBoxOptions.RtlReading)) ? TextAlignment.Left : TextAlignment.Right;
         }
 
         /// <summary>
@@ -175,22 +189,22 @@ namespace Stylet
         /// <summary>
         /// Item in ButtonList which is the Default button
         /// </summary>
-        public LabelledValue<MessageBoxResult> DefaultButton { get; set; }
+        public LabelledValue<MessageBoxResult> DefaultButton { get; protected set; }
 
         /// <summary>
         /// Item in ButtonList which is the Cancel button
         /// </summary>
-        public LabelledValue<MessageBoxResult> CancelButton { get; set; }      
+        public LabelledValue<MessageBoxResult> CancelButton { get; protected set; }      
 
         /// <summary>
         /// Text which is shown in the body of the MessageBox
         /// </summary>
-        public virtual string Text { get; set; }
+        public virtual string Text { get; protected set; }
 
         /// <summary>
         /// Icon which the user specified
         /// </summary>
-        public virtual MessageBoxImage Icon { get; set; }
+        public virtual MessageBoxImage Icon { get; protected set; }
 
         /// <summary>
         /// Icon which is shown next to the text in the View
@@ -201,9 +215,19 @@ namespace Stylet
         }
 
         /// <summary>
+        /// Which way the document should flow
+        /// </summary>
+        public virtual FlowDirection FlowDirection { get; protected set; }
+
+        /// <summary>
+        /// Text alignment of the message
+        /// </summary>
+        public virtual TextAlignment TextAlignment { get; protected set; }
+
+        /// <summary>
         /// Which button the user clicked, once they've clicked a button
         /// </summary>
-        public virtual MessageBoxResult ClickedButton { get; private set; }
+        public virtual MessageBoxResult ClickedButton { get; protected set; }
 
         protected override void OnViewLoaded()
         {
