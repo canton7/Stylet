@@ -43,7 +43,7 @@ end
 
 desc "Run unit tests using the current CONFIG (or Debug)"
 task :test => [:nunit_test_runner] do |t|
-  rm 'TestResult.xml'
+  rm 'TestResult.xml', :force => true
 end
 
 desc "Launch the NUnit gui pointing at the correct DLL for CONFIG (or Debug)"
@@ -86,7 +86,7 @@ def instrument(runner, target)
   coverage_file = File.join(COVERAGE_DIR, File.basename(target).ext('xml'))
   sh OPENCOVER_CONSOLE, %Q{-register:user -target:"#{opttarget}" -filter:"+[Stylet]* -[Stylet]XamlGeneratedNamespace.*" -targetargs:"#{opttargetargs} /noshadow" -output:"#{coverage_file}"}
 
-  rm 'TestResult.xml' if runner == :nunit
+  rm('TestResult.xml', :force => true) if runner == :nunit
 
   coverage_file
 end
