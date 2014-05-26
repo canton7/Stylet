@@ -47,18 +47,6 @@ namespace Stylet
         /// <param name="message">Event to publish</param>
         /// <param name="dispatcher">Dispatcher to use to call each subscriber's handle method(s)</param>
         void PublishWithDispatcher(object message, Action<Action> dispatcher);
-
-        /// <summary>
-        /// Publish an event to all subscribers, calling the handle methods on the UI thread
-        /// </summary>
-        /// <param name="message">Event to publish</param>
-        void PublishOnUIThread(object message);
-
-        /// <summary>
-        /// Publish an event to all subscribers, calling the handle methods synchronously on the current thread
-        /// </summary>
-        /// <param name="message">Event to publish</param>
-        void Publish(object message);
     }
 
     public class EventAggregator : IEventAggregator
@@ -99,16 +87,6 @@ namespace Stylet
                     this.handlers.Remove(deadHandler);
                 }
             }
-        }
-
-        public void PublishOnUIThread(object message)
-        {
-            this.PublishWithDispatcher(message, Execute.OnUIThread);
-        }
-
-        public void Publish(object message)
-        {
-            this.PublishWithDispatcher(message, x => x());
         }
 
         private class Handler
@@ -169,6 +147,32 @@ namespace Stylet
                 if (this.messageType.IsAssignableFrom(messageType))
                     dispatcher(() => this.invoker(target, message));
             }
+        }
+    }
+
+    /// <summary>
+    /// Extension methods on IEventAggregator, to give more dispatching options
+    /// </summary>
+    public static class EventAggregatorExtensions
+    {
+        /// <summary>
+        /// Publish an event to all subscribers, calling the handle methods on the UI thread
+        /// </summary>
+        /// <param name="eventAggregator">EventAggregator to publish the message with</param>
+        /// <param name="message">Event to publish</param>
+        public static void PublishOnUIThread(this IEventAggregator eventAggregator, object message)
+        {
+            eventAggregator.PublishWithDispatcher(message, Execute.OnUIThread);
+        }
+
+        /// <summary>
+        /// Publish an event to all subscribers, calling the handle methods synchronously on the current thread
+        /// </summary>
+        /// <param name="eventAggregator">EventAggregator to publish the message with</param>
+        /// <param name="message">Event to publish</param>
+        public static void Publish(this IEventAggregator eventAggregator, object message)
+        {
+            eventAggregator.PublishWithDispatcher(message, a => a());
         }
     }
 }
