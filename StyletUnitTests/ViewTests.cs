@@ -47,15 +47,19 @@ namespace StyletUnitTests
             var model = new object();
             View.SetModel(obj, null);
 
-            DependencyPropertyChangedEventArgs ea = default(DependencyPropertyChangedEventArgs);
-            this.viewManager.Setup(x => x.OnModelChanged(obj, It.IsAny<DependencyPropertyChangedEventArgs>()))
-                .Callback<DependencyObject, DependencyPropertyChangedEventArgs>((d, e) => ea = e).Verifiable();
+            object oldValue = null;
+            object newValue = null;
+            this.viewManager.Setup(x => x.OnModelChanged(obj, It.IsAny<object>(), It.IsAny<object>()))
+                .Callback<DependencyObject, object, object>((d, eOldValue, eNewValue) =>
+                {
+                    oldValue = eOldValue;
+                    newValue = eNewValue;
+                }).Verifiable();
             View.SetModel(obj, model);
 
             this.viewManager.Verify();
-            Assert.Null(ea.OldValue);
-            Assert.AreEqual(model, ea.NewValue);
-            Assert.AreEqual(View.ModelProperty, ea.Property);
+            Assert.Null(oldValue);
+            Assert.AreEqual(model, newValue);
         }
 
         [Test]

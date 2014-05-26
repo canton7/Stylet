@@ -38,7 +38,7 @@ namespace Stylet.Xaml
         }
 
         public static readonly DependencyProperty ModelProperty =
-            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(null, (d, e) => ViewManager.OnModelChanged(d, e) ));
+            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(null, (d, e) => ViewManager.OnModelChanged(d, e.OldValue, e.NewValue) ));
 
 
         public static void SetContentProperty(DependencyObject targetLocation, UIElement view)

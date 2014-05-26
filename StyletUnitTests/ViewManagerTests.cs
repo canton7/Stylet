@@ -32,7 +32,7 @@ namespace StyletUnitTests
         {
             public UIElement View;
             public object RequestedModel;
-            public override UIElement CreateViewForModel(object model)
+            public override UIElement CreateAndSetupViewForModel(object model)
             {
                 this.RequestedModel = model;
                 return this.View;
@@ -84,14 +84,14 @@ namespace StyletUnitTests
         public void OnModelChangedDoesNothingIfNoChange()
         {
             var val = new object();
-            this.viewManager.OnModelChanged(null, new DependencyPropertyChangedEventArgs(View.ModelProperty, val, val));
+            this.viewManager.OnModelChanged(null, val, val);
         }
 
         [Test]
         public void OnModelChangedSetsNullIfNewValueNull()
         {
             var target = new ContentControl();
-            this.viewManager.OnModelChanged(target, new DependencyPropertyChangedEventArgs(View.ModelProperty, 5, null));
+            this.viewManager.OnModelChanged(target, 5, null);
             Assert.Null(target.Content);
         }
 
@@ -103,7 +103,7 @@ namespace StyletUnitTests
             var view = new UIElement();
 
             model.Setup(x => x.View).Returns(view);
-            this.viewManager.OnModelChanged(target, new DependencyPropertyChangedEventArgs(View.ModelProperty, null, model.Object));
+            this.viewManager.OnModelChanged(target, null, model.Object);
 
             Assert.AreEqual(view, target.Content);
         }
@@ -118,7 +118,7 @@ namespace StyletUnitTests
 
             viewManager.View = view;
 
-            viewManager.OnModelChanged(target, new DependencyPropertyChangedEventArgs(View.ModelProperty, null, model));
+            viewManager.OnModelChanged(target, null, model);
 
             Assert.AreEqual(viewManager.RequestedModel, model);
             Assert.AreEqual(viewManager.BindViewToModelView, view);
@@ -147,13 +147,13 @@ namespace StyletUnitTests
             var viewManager = new LocatingViewManager();
 
             viewManager.LocatedViewType = typeof(I1);
-            Assert.Throws<Exception>(() => viewManager.CreateViewForModel(new object()));
+            Assert.Throws<Exception>(() => viewManager.CreateAndSetupViewForModel(new object()));
 
             viewManager.LocatedViewType = typeof(AC1);
-            Assert.Throws<Exception>(() => viewManager.CreateViewForModel(new object()));
+            Assert.Throws<Exception>(() => viewManager.CreateAndSetupViewForModel(new object()));
 
             viewManager.LocatedViewType = typeof(C1);
-            Assert.Throws<Exception>(() => viewManager.CreateViewForModel(new object()));
+            Assert.Throws<Exception>(() => viewManager.CreateAndSetupViewForModel(new object()));
         }
 
         [Test]
@@ -169,7 +169,7 @@ namespace StyletUnitTests
             var viewManager = new LocatingViewManager();
             viewManager.LocatedViewType = typeof(TestView);
 
-            var returnedView = viewManager.CreateViewForModel(new object());
+            var returnedView = viewManager.CreateAndSetupViewForModel(new object());
 
             Assert.True(view.InitializeComponentCalled);
             Assert.AreEqual(view, returnedView);
@@ -188,7 +188,7 @@ namespace StyletUnitTests
             var viewManager = new LocatingViewManager();
             viewManager.LocatedViewType = typeof(UIElement);
 
-            var returnedView = viewManager.CreateViewForModel(new object());
+            var returnedView = viewManager.CreateAndSetupViewForModel(new object());
 
             Assert.AreEqual(view, returnedView);
         }

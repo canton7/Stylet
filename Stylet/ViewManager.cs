@@ -18,14 +18,14 @@ namespace Stylet
     {
         /// <summary>
         /// Called by the View.Model attached property when the ViewModel its bound to changes
-        void OnModelChanged(DependencyObject targetLocation, DependencyPropertyChangedEventArgs e);
+        void OnModelChanged(DependencyObject targetLocation, object oldValue, object newValue);
 
         /// <summary>
         /// Given an instance of a ViewModel, locate the correct view for it, and instantiate it
         /// </summary>
         /// <param name="model">ViewModel to locate the view for</param>
         /// <returns>An instance of the correct view</returns>
-        UIElement CreateViewForModel(object model);
+        UIElement CreateAndSetupViewForModel(object model);
 
         /// <summary>
         /// Given an instance of a ViewModel and an instance of its View, bind the two together
@@ -37,23 +37,23 @@ namespace Stylet
 
     public class ViewManager : IViewManager
     {
-        public virtual void OnModelChanged(DependencyObject targetLocation, DependencyPropertyChangedEventArgs e)
+        public virtual void OnModelChanged(DependencyObject targetLocation, object oldValue, object newValue)
         {
-            if (e.OldValue == e.NewValue)
+            if (oldValue == newValue)
                 return;
 
-            if (e.NewValue != null)
+            if (newValue != null)
             {
                 UIElement view;
-                var viewModelAsViewAware = e.NewValue as IViewAware;
+                var viewModelAsViewAware = newValue as IViewAware;
                 if (viewModelAsViewAware != null && viewModelAsViewAware.View != null)
                 {
                     view = viewModelAsViewAware.View;
                 }
                 else
                 {
-                    view = this.CreateViewForModel(e.NewValue);
-                    this.BindViewToModel(view, e.NewValue);
+                    view = this.CreateAndSetupViewForModel(newValue);
+                    this.BindViewToModel(view, newValue);
                 }
 
                 View.SetContentProperty(targetLocation, view);
@@ -67,7 +67,11 @@ namespace Stylet
         public virtual Type ViewTypeForViewName(string viewName)
         {
             // TODO: This might need some more thinking
-            return AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+            var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+            if (viewType == null)
+                throw new Exception(String.Format("Unable to find a View with type {0}", viewName));
+
+            return viewType;
         }
 
         public virtual Type LocateViewForModel(Type modelType)
@@ -75,13 +79,22 @@ namespace Stylet
             var viewName = Regex.Replace(modelType.FullName, @"ViewModel", "View");
             var viewType = this.ViewTypeForViewName(viewName);
 
-            if (viewType == null)
-                throw new Exception(String.Format("Unable to find a View with type {0}", viewName));
-
             return viewType;
         }
 
-        public virtual UIElement CreateViewForModel(object model)
+        public virtual void BindViewToModel(UIElement view, object viewModel)
+        {
+            View.SetActionTarget(view, viewModel);
+
+            var viewAsFrameworkElement = view as FrameworkElement;
+            if (viewAsFrameworkElement != null)
+                viewAsFrameworkElement.DataContext = viewModel;
+
+            var viewModelAsViewAware = viewModel as IViewAware;
+            if (viewModelAsViewAware != null)
+                viewModelAsViewAware.AttachView(view);
+        }
+        public virtual UIElement CreateAndSetupViewForModel(object model)
         {
             var viewType = this.LocateViewForModel(model.GetType());
 
@@ -96,19 +109,6 @@ namespace Stylet
                 initializer.Invoke(view, null);
 
             return view;
-        }
-
-        public virtual void BindViewToModel(UIElement view, object viewModel)
-        {
-            View.SetActionTarget(view, viewModel);
-
-            var viewAsFrameworkElement = view as FrameworkElement;
-            if (viewAsFrameworkElement != null)
-                viewAsFrameworkElement.DataContext = viewModel;
-
-            var viewModelAsViewAware = viewModel as IViewAware;
-            if (viewModelAsViewAware != null)
-                viewModelAsViewAware.AttachView(view);
         }
     }
 }
