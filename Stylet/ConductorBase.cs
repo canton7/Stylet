@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,8 +42,7 @@ namespace Stylet
         /// </summary>
         protected virtual void EnsureItem(T newItem)
         {
-            if (newItem == null)
-                throw new ArgumentNullException("newItem");
+            Debug.Assert(newItem != null);
 
             var newItemAsChild = newItem as IChild;
             if (newItemAsChild != null && newItemAsChild.Parent != this)
