@@ -93,8 +93,8 @@ namespace Stylet
 
                     if (item.Equals(this.ActiveItem))
                     {
-                        var nextItem = this.DetermineNextItemToActivate(this.items, this.items.IndexOf(item));
-                        this.ChangeActiveItem(null, false);
+                        var nextItem = this.DetermineNextItemToActivate(item);
+                        this.ChangeActiveItem(nextItem, false);
                     }
                     else
                     {
@@ -109,7 +109,7 @@ namespace Stylet
 
                     if (item.Equals(this.ActiveItem))
                     {
-                        var nextItem = this.DetermineNextItemToActivate(this.items, this.items.IndexOf(item));
+                        var nextItem = this.DetermineNextItemToActivate(item);
                         this.ChangeActiveItem(nextItem, true);
                     }
                     else
@@ -120,17 +120,23 @@ namespace Stylet
                     this.items.Remove(item);
                 }
 
-                protected virtual T DetermineNextItemToActivate(IList<T> list, int indexOfItemBeingRemoved)
+                protected virtual T DetermineNextItemToActivate(T itemToRemove)
                 {
-                    // indexOfItemBeingRemoved *can* be -1 - if the item being removed doesn't exist in the list
-                    if (list.Count > 1)
+                    if (itemToRemove == null)
                     {
+                        return this.items.FirstOrDefault();
+                    }
+                    else if (this.items.Count > 1)
+                    {
+                        // indexOfItemBeingRemoved *can* be -1 - if the item being removed doesn't exist in the list
+                        var indexOfItemBeingRemoved = this.items.IndexOf(itemToRemove);
+
                         if (indexOfItemBeingRemoved < 0)
-                            return list[0];
+                            return this.items[0];
                         else if (indexOfItemBeingRemoved == 0)
-                            return list[1];
+                            return this.items[1];
                         else
-                            return list[indexOfItemBeingRemoved - 1];
+                            return this.items[indexOfItemBeingRemoved - 1];
                     }
                     else
                     {
