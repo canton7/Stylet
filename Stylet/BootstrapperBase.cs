@@ -87,6 +87,9 @@ namespace Stylet
             IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
         }
 
+        /// <summary>
+        /// Add any application resources to the application. Override to add your own, or to avoid Stylet's default resources from being added
+        /// </summary>
         protected virtual void ConfigureResources()
         {
             if (this.Application == null)

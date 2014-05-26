@@ -16,6 +16,7 @@ namespace StyletIoC
     {
         /// <summary>
         /// Bind the specified service to itself - if you self-bind MyClass, and request an instance of MyClass, you'll get an instance of MyClass.
+        /// </summary>
         /// <returns></returns>
         IInScopeOrWithKey ToSelf();
 
@@ -50,14 +51,9 @@ namespace StyletIoC
         IInScopeOrWithKey ToAllImplementations(params Assembly[] assemblies);
     }
 
-    public interface IInScopeOrWithKey : IInScope
-    {
-        /// <summary>
-        /// Associate a key with this binding. Requests for the service will have to specify this key to retrieve the result of this binding
-        /// </summary>
-        /// <param name="key">Key to associate with this binding</param>
-        IInScope WithKey(string key);
-    }
+    /// <summary>
+    /// Fluent interface on which WithKey can be called
+    /// </summary>
     public interface IWithKey
     {
         /// <summary>
@@ -66,12 +62,28 @@ namespace StyletIoC
         /// <param name="key">Key to associate with this binding</param>
         void WithKey(string key);
     }
+
+    /// <summary>
+    /// Fluent interface on which InSingletonScope can be called
+    /// </summary>
     public interface IInScope
     {
         /// <summary>
         /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
         /// </summary>
         void InSingletonScope();
+    }
+
+    /// <summary>
+    /// Fluent interface on which InSingletonScope or WithKey can be called
+    /// </summary>
+    public interface IInScopeOrWithKey : IInScope
+    {
+        /// <summary>
+        /// Associate a key with this binding. Requests for the service will have to specify this key to retrieve the result of this binding
+        /// </summary>
+        /// <param name="key">Key to associate with this binding</param>
+        IInScope WithKey(string key);
     }
 
     internal class BuilderBindTo : IBindTo

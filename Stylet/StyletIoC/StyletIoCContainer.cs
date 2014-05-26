@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace StyletIoC
 {
+    /// <summary>
+    /// Describes an IoC container, specifically StyletIoC
+    /// </summary>
     public interface IContainer
     {
         /// <summary>
@@ -165,7 +168,7 @@ namespace StyletIoC
         /// <summary>
         /// Fetch instances of all types which implement the specified service
         /// </summary>
-        /// <typeparam name="T">Type of the service to fetch implementations for</typeparam>
+        /// <param name="type">Type of the service to fetch implementations for</param>
         /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
         /// <returns>All implementations of the requested service, with the requested key</returns>
         public IEnumerable<object> GetAll(Type type, string key = null)
@@ -605,47 +608,77 @@ namespace StyletIoC
         }
     }
 
+    /// <summary>
+    /// Interface to be implemented by objects if they want to be notified when property injection has occurred
+    /// </summary>
     public interface IInjectionAware
     {
+        /// <summary>
+        /// Called by StyletIoC when property injection has occurred
+        /// </summary>
         void ParametersInjected();
     }
 
-    public class StyletIoCException : Exception
+    /// <summary>
+    /// Base class for all exceptions describing StyletIoC-specific problems?
+    /// </summary>
+    public abstract class StyletIoCException : Exception
     {
-        public StyletIoCException(string message) : base(message) { }
-        public StyletIoCException(string message, Exception innerException) : base(message, innerException) { }
+        internal StyletIoCException(string message) : base(message) { }
+        internal StyletIoCException(string message, Exception innerException) : base(message, innerException) { }
     }
 
+    /// <summary>
+    /// A problem occured with a registration process (failed to register, failed to find a registration, etc)
+    /// </summary>
     public class StyletIoCRegistrationException : StyletIoCException
     {
-        public StyletIoCRegistrationException(string message) : base(message) { }
-        public StyletIoCRegistrationException(string message, Exception innerException) : base(message, innerException) { }
+        internal StyletIoCRegistrationException(string message) : base(message) { }
+        internal StyletIoCRegistrationException(string message, Exception innerException) : base(message, innerException) { }
     }
 
+    /// <summary>
+    /// StyletIoC was unable to find a callable constructor for a type
+    /// </summary>
     public class StyletIoCFindConstructorException : StyletIoCException
     {
-        public StyletIoCFindConstructorException(string message) : base(message) { }
+        internal StyletIoCFindConstructorException(string message) : base(message) { }
     }
 
+    /// <summary>
+    /// StyletIoC was unable to create an abstract factory
+    /// </summary>
     public class StyletIoCCreateFactoryException : StyletIoCException
     {
-        public StyletIoCCreateFactoryException(string message) : base(message) { }
-        public StyletIoCCreateFactoryException(string message, Exception innerException) : base(message, innerException) { }
+        internal StyletIoCCreateFactoryException(string message) : base(message) { }
+        internal StyletIoCCreateFactoryException(string message, Exception innerException) : base(message, innerException) { }
     }
 
+    /// <summary>
+    /// Attribute which can be used to mark the constructor to use, properties to inject, which key to use to resolve an injected property, and others. See the docs
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
     public sealed class InjectAttribute : Attribute
     {
+        /// <summary>
+        /// Create a new InjectAttribute
+        /// </summary>
         public InjectAttribute()
         {
         }
 
+        /// <summary>
+        /// Create a new InjectAttribute, which has the specified key
+        /// </summary>
+        /// <param name="key"></param>
         public InjectAttribute(string key)
         {
             this.Key = key;
         }
 
-        // This is a named argument
+        /// <summary>
+        /// Key to use to resolve the relevant dependency
+        /// </summary>
         public string Key { get; set; }
     }
 }

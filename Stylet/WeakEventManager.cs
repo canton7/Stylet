@@ -9,8 +9,20 @@ using System.Threading.Tasks;
 
 namespace Stylet
 {
+    /// <summary>
+    /// A manager capable of creating a weak event subscription for INotifyPropertyChanged events from a source to a subscriber. Manager MUST be owned by the subscriber.
+    /// </summary>
     public interface IWeakEventManager
     {
+        /// <summary>
+        /// Create a weak event subscription from the source, to the given handler
+        /// </summary>
+        /// <typeparam name="TSource">Type of the source</typeparam>
+        /// <typeparam name="TProperty">Type of the property to subscribe to on the source</typeparam>
+        /// <param name="source">Source object, whic implements INotifyPropertyChanged, to subscribe to</param>
+        /// <param name="selector">Describes which property to observe, e.g. (x => x.SomeProperty)</param>
+        /// <param name="handler">Callback to be called whenever the property changes. Is passed the new value of the property</param>
+        /// <returns>An event binding, which can be used to unregister the subscription</returns>
         IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
             where TSource : class, INotifyPropertyChanged;
     }
@@ -54,11 +66,23 @@ namespace Stylet
         }
     }
 
+    /// <summary>
+    /// Default implementation of IWeakEventManager: a manager capable of creating a weak event subscription for INotifyPropertyChanged events from a source to a subscriber. Manager MUST be owned by the subscriber.
+    /// </summary>
     public class WeakEventManager : IWeakEventManager
     {
         private object bindingsLock = new object();
         private List<IEventBinding> bindings = new List<IEventBinding>();
 
+        /// <summary>
+        /// Create a weak event subscription from the source, to the given handler
+        /// </summary>
+        /// <typeparam name="TSource">Type of the source</typeparam>
+        /// <typeparam name="TProperty">Type of the property to subscribe to on the source</typeparam>
+        /// <param name="source">Source object, whic implements INotifyPropertyChanged, to subscribe to</param>
+        /// <param name="selector">Describes which property to observe, e.g. (x => x.SomeProperty)</param>
+        /// <param name="handler">Callback to be called whenever the property changes. Is passed the new value of the property</param>
+        /// <returns>An event binding, which can be used to unregister the subscription</returns>
         public IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
             where TSource : class, INotifyPropertyChanged
         {

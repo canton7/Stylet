@@ -13,10 +13,13 @@ namespace Stylet.Xaml
     /// </summary>
     public class EqualityConverter : DependencyObject, IMultiValueConverter
     {
+        /// <summary>
+        /// Singleton instance of this converter. Usage: Converter="{x:Static s:EqualityConverter.Instance}"
+        /// </summary>
         public static readonly EqualityConverter Instance = new EqualityConverter();
 
         /// <summary>
-        /// True false, instead of true, if call values are equal
+        /// Return false, instead of true, if call values are equal
         /// </summary>
         public bool Invert
         {
@@ -24,9 +27,15 @@ namespace Stylet.Xaml
             set { SetValue(InvertProperty, value); }
         }
 
+        /// <summary>
+        /// Property specifying whether the output should be inverted
+        /// </summary>
         public static readonly DependencyProperty InvertProperty =
             DependencyProperty.Register("Invert", typeof(bool), typeof(EqualityConverter), new PropertyMetadata(false));
 
+        /// <summary>
+        /// Perform the conversion
+        /// </summary>
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (values == null || values.Length == 0)
@@ -36,6 +45,9 @@ namespace Stylet.Xaml
             return this.Invert ? !result : result;
         }
 
+        /// <summary>
+        /// Perform the reverse convesion. Not implemented.
+        /// </summary>
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotImplementedException();

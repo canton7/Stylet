@@ -58,6 +58,9 @@ namespace Stylet
         }
     }
 
+    /// <summary>
+    /// Static class providing methods to easily run an action on the UI thread in various ways, and some other things
+    /// </summary>
     public static class Execute
     {
         /// <summary>
@@ -167,6 +170,9 @@ namespace Stylet
             }
         }
 
+        /// <summary>
+        /// Determing if we're currently running in design mode
+        /// </summary>
         public static bool InDesignMode
         {
             get

@@ -21,6 +21,10 @@ namespace Stylet
     /// <typeparam name="TMessageType">Message type to handle. Can be a base class of the messsage type(s) to handle</typeparam>
     public interface IHandle<TMessageType> : IHandle
     {
+        /// <summary>
+        /// Called whenever a message of type TMessageType is posted
+        /// </summary>
+        /// <param name="message">Message which was posted</param>
         void Handle(TMessageType message);
     }
 
@@ -49,11 +53,18 @@ namespace Stylet
         void PublishWithDispatcher(object message, Action<Action> dispatcher);
     }
 
+    /// <summary>
+    /// Default implementation of IEventAggregator
+    /// </summary>
     public class EventAggregator : IEventAggregator
     {
         private readonly List<Handler> handlers = new List<Handler>();
         private readonly object handlersLock = new object();
 
+        /// <summary>
+        /// Register an instance as wanting to receive events. Implement IHandle{T} for each event type you want to receive.
+        /// </summary>
+        /// <param name="handler">Instance that will be registered with the EventAggregator</param>
         public void Subscribe(IHandle handler)
         {
             lock (this.handlersLock)
@@ -66,6 +77,10 @@ namespace Stylet
             }
         }
 
+        /// <summary>
+        /// Unregister as wanting to receive events. The instance will no longer receive events after this is called.
+        /// </summary>
+        /// <param name="handler">Instance to unregister</param>
         public void Unsubscribe(IHandle handler)
         {
             lock (this.handlersLock)
@@ -76,6 +91,11 @@ namespace Stylet
             }
         }
 
+        /// <summary>
+        /// Publish an event to all subscribers, using the specified dispatcher
+        /// </summary>
+        /// <param name="message">Event to publish</param>
+        /// <param name="dispatcher">Dispatcher to use to call each subscriber's handle method(s)</param>
         public void PublishWithDispatcher(object message, Action<Action> dispatcher)
         {
             lock (this.handlersLock)

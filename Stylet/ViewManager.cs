@@ -17,14 +17,18 @@ namespace Stylet
     public interface IViewManager
     {
         /// <summary>
-        /// Called by the View.Model attached property when the ViewModel its bound to changes
+        /// Called by View whenever its current View.Model changes. Will locate and instantiate the correct view, and set it as the target's Content
+        /// </summary>
+        /// <param name="targetLocation">Thing which View.Model was changed on. Will have its Content set</param>
+        /// <param name="oldValue">Previous value of View.Model</param>
+        /// <param name="newValue">New value of View.Model</param>
         void OnModelChanged(DependencyObject targetLocation, object oldValue, object newValue);
 
         /// <summary>
-        /// Given an instance of a ViewModel, locate the correct view for it, and instantiate it
+        /// Given a ViewModel instance, locate its View type (using LocateViewForModel), instantiates and initializes it
         /// </summary>
-        /// <param name="model">ViewModel to locate the view for</param>
-        /// <returns>An instance of the correct view</returns>
+        /// <param name="model">ViewModel to locate and instantiate the View for</param>
+        /// <returns>Instantiated and setup view</returns>
         UIElement CreateAndSetupViewForModel(object model);
 
         /// <summary>
@@ -35,8 +39,17 @@ namespace Stylet
         void BindViewToModel(UIElement view, object viewModel);
     }
 
+    /// <summary>
+    /// Default implementation of ViewManager. Responsible for locating, creating, and settings up Views. Also owns the View.Model and View.ActionTarget attached properties
+    /// </summary>
     public class ViewManager : IViewManager
     {
+        /// <summary>
+        /// Called by View whenever its current View.Model changes. Will locate and instantiate the correct view, and set it as the target's Content
+        /// </summary>
+        /// <param name="targetLocation">Thing which View.Model was changed on. Will have its Content set</param>
+        /// <param name="oldValue">Previous value of View.Model</param>
+        /// <param name="newValue">New value of View.Model</param>
         public virtual void OnModelChanged(DependencyObject targetLocation, object oldValue, object newValue)
         {
             if (oldValue == newValue)
@@ -64,6 +77,11 @@ namespace Stylet
             }
         }
 
+        /// <summary>
+        /// Given the expected name for a view, locate its type (or throw an exception if a suitable type couldn't be found)
+        /// </summary>
+        /// <param name="viewName">View name to locate the type for</param>
+        /// <returns>Type for that view name</returns>
         public virtual Type ViewTypeForViewName(string viewName)
         {
             // TODO: This might need some more thinking
@@ -74,6 +92,11 @@ namespace Stylet
             return viewType;
         }
 
+        /// <summary>
+        /// Given the type of a model, locate the type of its View (or throw an exception)
+        /// </summary>
+        /// <param name="modelType">Model to find the view for</param>
+        /// <returns>Type of the ViewModel's View</returns>
         public virtual Type LocateViewForModel(Type modelType)
         {
             var viewName = Regex.Replace(modelType.FullName, @"ViewModel", "View");
@@ -82,6 +105,11 @@ namespace Stylet
             return viewType;
         }
 
+        /// <summary>
+        /// Given an instance of a ViewModel and an instance of its View, bind the two together
+        /// </summary>
+        /// <param name="view">View to bind to the ViewModel</param>
+        /// <param name="viewModel">ViewModel to bind the View to</param>
         public virtual void BindViewToModel(UIElement view, object viewModel)
         {
             View.SetActionTarget(view, viewModel);
@@ -94,6 +122,12 @@ namespace Stylet
             if (viewModelAsViewAware != null)
                 viewModelAsViewAware.AttachView(view);
         }
+
+        /// <summary>
+        /// Given a ViewModel instance, locate its View type (using LocateViewForModel), instantiates and initializes it, and binds it to the ViewModel (using BindViewToModel)
+        /// </summary>
+        /// <param name="model">ViewModel to locate and instantiate the View for</param>
+        /// <returns>Instantiated and setup view</returns>
         public virtual UIElement CreateAndSetupViewForModel(object model)
         {
             var viewType = this.LocateViewForModel(model.GetType());

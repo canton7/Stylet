@@ -14,6 +14,9 @@ namespace Stylet.Xaml
     /// </summary>
     public class BoolToVisibilityConverter : DependencyObject, IValueConverter
     {
+        /// <summary>
+        /// Singleton instance of this converter. Usage e.g. Converter="{x:Static s:BoolToVisibilityConverter.Instance}"
+        /// </summary>
         public static readonly BoolToVisibilityConverter Instance = new BoolToVisibilityConverter();
 
         /// <summary>
@@ -25,7 +28,9 @@ namespace Stylet.Xaml
             set { SetValue(TrueVisibilityProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for TrueVisibility.  This enables animation, styling, binding, etc...
+        /// <summary>
+        /// Property specifying the visibility to return when the parameter is true
+        /// </summary>
         public static readonly DependencyProperty TrueVisibilityProperty =
             DependencyProperty.Register("TrueVisibility", typeof(Visibility), typeof(BoolToVisibilityConverter), new PropertyMetadata(Visibility.Visible));
 
@@ -38,11 +43,16 @@ namespace Stylet.Xaml
             set { SetValue(FalseVisibilityProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for FalseVisibility.  This enables animation, styling, binding, etc...
+        /// <summary>
+        /// Property specifying the visibility to return when the parameter is false
+        /// </summary>
         public static readonly DependencyProperty FalseVisibilityProperty =
             DependencyProperty.Register("FalseVisibility", typeof(Visibility), typeof(BoolToVisibilityConverter), new PropertyMetadata(Visibility.Collapsed));
 
 
+        /// <summary>
+        /// Perform the conversion
+        /// </summary>
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             bool result;
@@ -61,6 +71,9 @@ namespace Stylet.Xaml
             return result ? this.TrueVisibility : this.FalseVisibility;
         }
 
+        /// <summary>
+        /// Perform the inverse conversion. Only valid if the value is bool
+        /// </summary>
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (targetType != typeof(bool))

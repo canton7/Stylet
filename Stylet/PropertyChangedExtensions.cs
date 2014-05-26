@@ -14,9 +14,15 @@ namespace Stylet
     /// </summary>
     public interface IEventBinding
     {
+        /// <summary>
+        /// Unbind this event binding, so that it will no longer receive events
+        /// </summary>
         void Unbind();
     }
 
+    /// <summary>
+    /// Class holding extension methods on INotifyPropertyChanged, to allow strong/weak binding
+    /// </summary>
     public static class PropertyChangedExtensions
     {
         internal class StrongPropertyChangedBinding : IEventBinding

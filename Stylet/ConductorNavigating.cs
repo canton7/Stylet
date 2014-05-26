@@ -97,6 +97,9 @@ namespace Stylet
                 return this.CanAllItemsCloseAsync(this.history.Concat(new[] { this.ActiveItem }));
             }
 
+            /// <summary>
+            /// Ensures that all children are closed when this conductor is closed
+            /// </summary>
             protected override void OnClose()
             {
                 // We've already been deactivated by this point

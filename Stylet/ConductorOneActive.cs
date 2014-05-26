@@ -18,11 +18,18 @@ namespace Stylet
             public class OneActive : ConductorBaseWithActiveItem<T>
             {
                 private BindableCollection<T> items = new BindableCollection<T>();
+
+                /// <summary>
+                /// Items owned by this Conductor, one of which is active
+                /// </summary>
                 public IObservableCollection<T> Items
                 {
                     get { return this.items; }
                 }
 
+                /// <summary>
+                /// Create a new Conductor{T}.Collections.OneActive instance
+                /// </summary>
                 public OneActive()
                 {
                     this.items.CollectionChanged += (o, e) =>
@@ -52,6 +59,9 @@ namespace Stylet
                     };
                 }
 
+                /// <summary>
+                /// Called when the ActiveItem may have been removed from the Items collection. If it has, will change the ActiveItem to something sensible
+                /// </summary>
                 protected virtual void ActiveItemMayHaveBeenRemovedFromItems()
                 {
                     if (this.items.Contains(this.ActiveItem))
@@ -60,6 +70,10 @@ namespace Stylet
                     this.ChangeActiveItem(this.items.FirstOrDefault(), true);
                 }
 
+                /// <summary>
+                /// Return all items associated with this conductor
+                /// </summary>
+                /// <returns></returns>
                 public override IEnumerable<T> GetChildren()
                 {
                     return this.items;
@@ -102,6 +116,10 @@ namespace Stylet
                     }
                 }
 
+                /// <summary>
+                /// Close the given item (if and when possible, depending on IGuardClose.CanCloseAsync). This will deactive if it is the active item
+                /// </summary>
+                /// <param name="item">Item to close</param>
                 public override async void CloseItem(T item)
                 {
                     if (item == null || !await this.CanCloseItem(item))
@@ -120,6 +138,10 @@ namespace Stylet
                     this.items.Remove(item);
                 }
 
+                /// <summary>
+                /// Given a list of items, and and item which is going to be removed, choose a new item to be the next ActiveItem 
+                /// </summary>
+                /// <returns>The next item to activate, or default(T) if no such item exists</returns>
                 protected virtual T DetermineNextItemToActivate(T itemToRemove)
                 {
                     if (itemToRemove == null)
@@ -153,6 +175,9 @@ namespace Stylet
                     return this.CanAllItemsCloseAsync(this.items);
                 }
 
+                /// <summary>
+                /// Ensures that all items are closed when this conductor is closed
+                /// </summary>
                 protected override void OnClose()
                 {
                     // We've already been deactivated by this point
@@ -161,6 +186,10 @@ namespace Stylet
                     this.items.Clear();
                 }
 
+                /// <summary>
+                /// Ensure an item is ready to be activated
+                /// </summary>
+                /// <param name="newItem"></param>
                 protected override void EnsureItem(T newItem)
                 {
                     if (!this.items.Contains(newItem))

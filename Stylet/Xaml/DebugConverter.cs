@@ -14,6 +14,9 @@ namespace Stylet.Xaml
     /// </summary>
     public class DebugConverter : DependencyObject, IValueConverter
     {
+        /// <summary>
+        /// Singleton instance of this DebugConverter. Usage e.g. Converter={x:Static s:DebugConverter.Instance}"
+        /// </summary>
         public static readonly DebugConverter Instance;
 
         /// <summary>
@@ -25,7 +28,9 @@ namespace Stylet.Xaml
             set { SetValue(NameProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for Name.  This enables animation, styling, binding, etc...
+        /// <summary>
+        /// Property specifying the category to use with Debug.WriteLine
+        /// </summary>
         public static readonly DependencyProperty NameProperty =
             DependencyProperty.Register("Name", typeof(string), typeof(DebugConverter), new PropertyMetadata("DebugConverter"));
 
@@ -39,7 +44,9 @@ namespace Stylet.Xaml
             set { SetValue(LoggerProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for Logger.  This enables animation, styling, binding, etc...
+        /// <summary>
+        /// Property specifying an action, which when called will log an entry.
+        /// </summary>
         public static readonly DependencyProperty LoggerProperty =
             DependencyProperty.Register("Logger", typeof(Action<string, string>), typeof(DebugConverter), new PropertyMetadata(null));
 
@@ -51,13 +58,18 @@ namespace Stylet.Xaml
             Instance = new DebugConverter();
         }
 
+        /// <summary>
+        /// Create a new DebugConverter instance
+        /// </summary>
         public DebugConverter()
         {
             if (this.Logger == null)
                 this.Logger = (msg, name) => Debug.WriteLine(msg, name);
         }
 
-        
+        /// <summary>
+        /// Perform the conversion
+        /// </summary>
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (parameter == null)
@@ -68,6 +80,9 @@ namespace Stylet.Xaml
             return value;
         }
 
+        /// <summary>
+        /// Perform the reverse conversion
+        /// </summary>
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (parameter == null)

@@ -32,31 +32,57 @@ namespace Stylet
             set { SetAndNotify(ref this._value, value); }
         }
 
+        /// <summary>
+        /// Create a new LabelledValue, without setting Label or Value
+        /// </summary>
         public LabelledValue()
         {
         }
 
+        /// <summary>
+        /// Create a new LabelledValue, with the given label and value
+        /// </summary>
+        /// <param name="label">Label to use. This value is displayed in your view</param>
+        /// <param name="value">Value to use. This is used by your ViewModel</param>
         public LabelledValue(string label, T value)
         {
             this._label = label;
             this._value = value;
         }
 
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <param name="other">An object to compare with this object</param>
+        /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
         public bool Equals(LabelledValue<T> other)
         {
             return other == null ? false : this.Label == other.Label && EqualityComparer<T>.Default.Equals(this.Value, other.Value);
         }
 
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of any type
+        /// </summary>
+        /// <param name="obj">An object to compare with this object</param>
+        /// <returns>true if the current object is of the same type as the other object, and equal to the other parameter; otherwise, false.</returns>
         public override bool Equals(object obj)
         {
             return this.Equals(obj as LabelledValue<T>);
         }
 
+        /// <summary>
+        /// Returns a hash code for the this object
+        /// </summary>
+        /// <returns>A hash code for this object.</returns>
         public override int GetHashCode()
         {
             return new { this.Label, this.Value }.GetHashCode();
         }
 
+        /// <summary>
+        /// Return the Label associated with this object
+        /// </summary>
+        /// <returns>The Label associated with this object</returns>
         public override string ToString()
         {
             return this.Label;

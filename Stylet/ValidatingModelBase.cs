@@ -213,6 +213,10 @@ namespace Stylet
             return newErrors == null || newErrors.Length == 0;
         }
 
+        /// <summary>
+        /// Raise a PropertyChanged notification for the named property, and validate that property if this.validation is set and this.autoValidate is true
+        /// </summary>
+        /// <param name="propertyName"></param>
         protected override async void OnPropertyChanged(string propertyName)
         {
             base.OnPropertyChanged(propertyName);

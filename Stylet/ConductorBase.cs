@@ -12,6 +12,10 @@ namespace Stylet
     /// <typeparam name="T">Type of item to be conducted</typeparam>
     public abstract class ConductorBase<T> : Screen, IConductor<T>, IParent<T>, IChildDelegate where T : class
     {
+        /// <summary>
+        /// Retrieves the Item or Items associated with this Conductor
+        /// </summary>
+        /// <returns>Item or Items associated with this Conductor</returns>
         public abstract IEnumerable<T> GetChildren();
 
         /// <summary>
@@ -27,7 +31,7 @@ namespace Stylet
         public abstract void DeactivateItem(T item);
 
         /// <summary>
-        /// Deactivate the given item
+        /// Close the given item
         /// </summary>
         /// <param name="item">Item to deactivate</param>
         public abstract void CloseItem(T item);

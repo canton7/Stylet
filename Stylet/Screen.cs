@@ -16,7 +16,15 @@ namespace Stylet
     /// </summary>
     public class Screen : ValidatingModelBase, IScreen
     {
+        /// <summary>
+        /// Create a new Screen instance (without setting up a validator)
+        /// </summary>
         public Screen() : this(null) { }
+
+        /// <summary>
+        /// Create a new screen instance, which can validate properties using the given validator
+        /// </summary>
+        /// <param name="validator">Validator to use</param>
         public Screen(IModelValidator validator) : base(validator)
         {
             this.DisplayName = this.GetType().FullName;
@@ -57,6 +65,10 @@ namespace Stylet
         #region IHaveDisplayName
 
         private string _displayName;
+
+        /// <summary>
+        /// Name associated with this ViewModel. Shown e.g. in a window's title bar, or as a tab's displayName
+        /// </summary>
         public virtual string DisplayName
         {
             get { return this._displayName; }
@@ -67,6 +79,9 @@ namespace Stylet
 
         #region IActivate
 
+        /// <summary>
+        /// Fired whenever the Screen is activated
+        /// </summary>
         public event EventHandler<ActivationEventArgs> Activated;
 
         private bool hasBeenActivatedEver;
@@ -114,6 +129,9 @@ namespace Stylet
 
         #region IDeactivate
 
+        /// <summary>
+        /// Fired whenever the Screen is deactivated
+        /// </summary>
         public event EventHandler<DeactivationEventArgs> Deactivated;
 
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Scope = "member", Target = "Stylet.Screen.#Stylet.IDeactivate.Deactivate()", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
@@ -140,6 +158,9 @@ namespace Stylet
 
         #region IClose
 
+        /// <summary>
+        /// Called whenever this Screen is closed
+        /// </summary>
         public event EventHandler<CloseEventArgs> Closed;
 
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
@@ -166,6 +187,9 @@ namespace Stylet
 
         #region IViewAware
 
+        /// <summary>
+        /// View attached to this ViewModel, if any. Using this should be a last resort
+        /// </summary>
         public UIElement View { get; private set; }
 
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]

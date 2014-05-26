@@ -53,6 +53,8 @@ namespace Stylet.Xaml
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
+        /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
+        /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
         public CommandAction(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
         {
             this.Subject = subject;
@@ -139,6 +141,11 @@ namespace Stylet.Xaml
                 handler(this, EventArgs.Empty);
         }
 
+        /// <summary>
+        /// Defines the method that determines whether the command can execute in its current state.
+        /// </summary>
+        /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
+        /// <returns>true if this command can be executed; otherwise, false.</returns>
         public bool CanExecute(object parameter)
         {
             // It's enabled only if both the targetNull and actionNonExistent tests pass
@@ -162,8 +169,15 @@ namespace Stylet.Xaml
             return this.guardPropertyGetter();
         }
 
+        /// <summary>
+        /// Occurs when changes occur that affect whether or not the command should execute.
+        /// </summary>
         public event EventHandler CanExecuteChanged;
 
+        /// <summary>
+        /// The method to be called when the command is invoked.
+        /// </summary>
+        /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
         public void Execute(object parameter)
         {
             // Any throwing would have been handled prior to this

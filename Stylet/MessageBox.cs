@@ -13,6 +13,9 @@ using System.Windows.Media.Imaging;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Class holding extension method(s) on IWindowManager, used to show a MessageBox
+    /// </summary>
     public static class MessageBoxWindowManagerExtensions
     {
         /// <summary>
@@ -77,6 +80,9 @@ namespace Stylet
         /// </summary>
         public static IDictionary<MessageBoxResult, string> ButtonLabels { get; set; }
 
+        /// <summary>
+        /// Mapping of MessageBoxButton values to the buttons which should be displayed
+        /// </summary>
         public static IDictionary<MessageBoxButton, MessageBoxResult[]> ButtonToResults { get; set; }
 
         /// <summary>
@@ -229,6 +235,9 @@ namespace Stylet
         /// </summary>
         public virtual MessageBoxResult ClickedButton { get; protected set; }
 
+        /// <summary>
+        /// When the View loads, play a sound if appropriate
+        /// </summary>
         protected override void OnViewLoaded()
         {
             // There might not be a sound, or it might be null
@@ -238,6 +247,10 @@ namespace Stylet
                 sound.Play();
         }
 
+        /// <summary>
+        /// Called when MessageBoxView when the user clicks a button
+        /// </summary>
+        /// <param name="button">Button which was clicked</param>
         public void ButtonClicked(MessageBoxResult button)
         {
             this.ClickedButton = button;
