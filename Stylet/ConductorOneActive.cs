@@ -30,7 +30,7 @@ namespace Stylet
                         switch (e.Action)
                         {
                             case NotifyCollectionChangedAction.Add:
-                                this.SetParent(e.NewItems, true);
+                                this.SetParent(e.NewItems);
                                 break;
 
                             case NotifyCollectionChangedAction.Remove:
@@ -39,13 +39,13 @@ namespace Stylet
                                 break;
 
                             case NotifyCollectionChangedAction.Replace:
-                                this.SetParent(e.NewItems, true);
+                                this.SetParent(e.NewItems);
                                 this.CloseAndCleanUp(e.OldItems);
                                 this.ActiveItemMayHaveBeenRemovedFromItems();
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
-                                this.SetParent(this.items, true);
+                                this.SetParent(this.items);
                                 this.ActiveItemMayHaveBeenRemovedFromItems();
                                 break;
                         }

@@ -10,14 +10,11 @@ namespace Stylet
     // Don't name ConductorExtensions, otherwise it's too obvious when someone types 'Conductor'
     public static class StyletConductorExtensions
     {
-        public static void SetParent<T>(this IConductor<T> parent, IEnumerable items, bool setOrClear)
+        public static void SetParent<T>(this IConductor<T> parent, IEnumerable items)
         {
             foreach (var child in items.OfType<IChild>())
             {
-                if (setOrClear)
-                    child.Parent = parent;
-                else if (child.Parent == parent)
-                    child.Parent = null;
+                child.Parent = parent;
             }
         }
 
@@ -35,12 +32,10 @@ namespace Stylet
         
         public static void CloseAndCleanUp<T>(this IConductor<T> parent, IEnumerable items)
         {
-            foreach (var item in items.OfType<IClose>())
+            foreach (var item in items.OfType<T>())
             {
-                item.Close();
+                parent.CloseAndCleanUp(item);
             }
-
-            parent.SetParent(items, false);
         }
     }
 }

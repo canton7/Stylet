@@ -51,7 +51,7 @@ namespace Stylet
 
                 protected virtual void ActivateAndSetParent(IEnumerable items)
                 {
-                    this.SetParent(items, true);
+                    this.SetParent(items);
                     if (this.IsActive)
                     {
                         foreach (var item in items.OfType<IActivate>())
