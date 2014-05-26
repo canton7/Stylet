@@ -34,11 +34,11 @@ namespace Stylet
 
     internal class DispatcherWrapper : IDispatcher
     {
-        private Dispatcher dispatcher;
+        private readonly Dispatcher dispatcher;
 
-        public DispatcherWrapper()
+        public DispatcherWrapper(Dispatcher dispatcher)
         {
-            this.dispatcher = Dispatcher.CurrentDispatcher;
+            this.dispatcher = dispatcher;
         }
 
 

@@ -63,7 +63,7 @@ namespace Stylet
             IoC.BuildUp = this.BuildUp;
 
             // Use the current SynchronizationContext for the Execute helper
-            Execute.Dispatcher = new DispatcherWrapper();
+            Execute.Dispatcher = new DispatcherWrapper(Dispatcher.CurrentDispatcher);
 
             // Add the current assembly to the assemblies list - this will be needed by the IViewManager
             // However it must be done *after* the SynchronizationContext has been set, or we'll try to raise a PropertyChanged notification and fail
