@@ -155,19 +155,12 @@ namespace Stylet
                     this.items.Clear();
                 }
 
-                protected override T EnsureItem(T newItem)
+                protected override void EnsureItem(T newItem)
                 {
-                    if (newItem == null)
-                    {
-                        newItem = this.DetermineNextItemToActivate(this.items, this.ActiveItem == null ? 0 : this.items.IndexOf(this.ActiveItem));
-                    }
-                    else
-                    {
-                        if (!this.items.Contains(newItem))
-                            this.items.Add(newItem);
-                    }
+                    if (!this.items.Contains(newItem))
+                        this.items.Add(newItem);
 
-                    return base.EnsureItem(newItem);
+                    base.EnsureItem(newItem);
                 }
             }
         }

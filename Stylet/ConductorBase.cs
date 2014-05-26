@@ -35,13 +35,14 @@ namespace Stylet
         /// <summary>
         /// Ensure an item is ready to be activated
         /// </summary>
-        protected virtual T EnsureItem(T newItem)
+        protected virtual void EnsureItem(T newItem)
         {
+            if (newItem == null)
+                throw new ArgumentNullException("newItem");
+
             var newItemAsChild = newItem as IChild;
             if (newItemAsChild != null && newItemAsChild.Parent != this)
                 newItemAsChild.Parent = this;
-
-            return newItem;
         }
 
         /// <summary>

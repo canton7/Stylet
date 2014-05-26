@@ -103,7 +103,7 @@ namespace Stylet
                     if (item == null)
                         return;
 
-                    item = this.EnsureItem(item);
+                    this.EnsureItem(item);
 
                     if (this.IsActive)
                         ScreenExtensions.TryActivate(item);
@@ -142,12 +142,12 @@ namespace Stylet
                     return this.items;
                 }
 
-                protected override T EnsureItem(T newItem)
+                protected override void EnsureItem(T newItem)
                 {
                     if (!this.items.Contains(newItem))
                         this.items.Add(newItem);
 
-                    return base.EnsureItem(newItem);
+                    base.EnsureItem(newItem);
                 }
             }
         }
