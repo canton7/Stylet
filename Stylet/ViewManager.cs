@@ -64,11 +64,16 @@ namespace Stylet
             }
         }
 
+        public virtual Type ViewTypeForViewName(string viewName)
+        {
+            // TODO: This might need some more thinking
+            return AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+        }
+
         public virtual Type LocateViewForModel(Type modelType)
         {
             var viewName = Regex.Replace(modelType.FullName, @"ViewModel", "View");
-            // TODO: This might need some more thinking
-            var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+            var viewType = this.ViewTypeForViewName(viewName);
 
             if (viewType == null)
                 throw new Exception(String.Format("Unable to find a View with type {0}", viewName));
