@@ -82,7 +82,7 @@ namespace Stylet
         /// </summary>
         /// <param name="viewName">View name to locate the type for</param>
         /// <returns>Type for that view name</returns>
-        public virtual Type ViewTypeForViewName(string viewName)
+        protected virtual Type ViewTypeForViewName(string viewName)
         {
             // TODO: This might need some more thinking
             var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
@@ -97,30 +97,12 @@ namespace Stylet
         /// </summary>
         /// <param name="modelType">Model to find the view for</param>
         /// <returns>Type of the ViewModel's View</returns>
-        public virtual Type LocateViewForModel(Type modelType)
+        protected virtual Type LocateViewForModel(Type modelType)
         {
             var viewName = Regex.Replace(modelType.FullName, @"ViewModel", "View");
             var viewType = this.ViewTypeForViewName(viewName);
 
             return viewType;
-        }
-
-        /// <summary>
-        /// Given an instance of a ViewModel and an instance of its View, bind the two together
-        /// </summary>
-        /// <param name="view">View to bind to the ViewModel</param>
-        /// <param name="viewModel">ViewModel to bind the View to</param>
-        public virtual void BindViewToModel(UIElement view, object viewModel)
-        {
-            View.SetActionTarget(view, viewModel);
-
-            var viewAsFrameworkElement = view as FrameworkElement;
-            if (viewAsFrameworkElement != null)
-                viewAsFrameworkElement.DataContext = viewModel;
-
-            var viewModelAsViewAware = viewModel as IViewAware;
-            if (viewModelAsViewAware != null)
-                viewModelAsViewAware.AttachView(view);
         }
 
         /// <summary>
@@ -143,6 +125,24 @@ namespace Stylet
                 initializer.Invoke(view, null);
 
             return view;
+        }
+
+                /// <summary>
+        /// Given an instance of a ViewModel and an instance of its View, bind the two together
+        /// </summary>
+        /// <param name="view">View to bind to the ViewModel</param>
+        /// <param name="viewModel">ViewModel to bind the View to</param>
+        public virtual void BindViewToModel(UIElement view, object viewModel)
+        {
+            View.SetActionTarget(view, viewModel);
+
+            var viewAsFrameworkElement = view as FrameworkElement;
+            if (viewAsFrameworkElement != null)
+                viewAsFrameworkElement.DataContext = viewModel;
+
+            var viewModelAsViewAware = viewModel as IViewAware;
+            if (viewModelAsViewAware != null)
+                viewModelAsViewAware.AttachView(view);
         }
     }
 }

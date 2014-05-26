@@ -50,7 +50,7 @@ namespace StyletUnitTests
         private class LocatingViewManager : ViewManager
         {
             public Type LocatedViewType;
-            public override Type LocateViewForModel(Type modelType)
+            protected override Type LocateViewForModel(Type modelType)
             {
  	             return this.LocatedViewType;
             }
@@ -66,7 +66,15 @@ namespace StyletUnitTests
             }
         }
 
-        private ViewManager viewManager;
+        private class MyViewManager : ViewManager
+        {
+            public new Type LocateViewForModel(Type modelType)
+            {
+                return base.LocateViewForModel(modelType);
+            }
+        }
+
+        private MyViewManager viewManager;
 
         [TestFixtureSetUp]
         public void FixtureSetUp()
@@ -77,7 +85,7 @@ namespace StyletUnitTests
         [SetUp]
         public void SetUp()
         {
-            this.viewManager = new ViewManager();
+            this.viewManager = new MyViewManager();
         }
 
         [Test]
