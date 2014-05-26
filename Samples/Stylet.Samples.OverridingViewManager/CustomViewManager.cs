@@ -38,12 +38,12 @@ namespace Stylet.Samples.OverridingViewManager
             this.viewModelToViewMapping = mappings.ToDictionary(x => x.ViewModel, x => x.View);
         }
 
-        public override UIElement CreateViewForModel(object model)
+        protected override Type LocateViewForModel(Type modelType)
         {
             Type viewType;
-            if (!this.viewModelToViewMapping.TryGetValue(model.GetType(), out viewType))
-                throw new Exception(String.Format("Could not find View for ViewModel {0}", model.GetType().Name));
-            return (UIElement)IoC.GetInstance(viewType, null);
+            if (!this.viewModelToViewMapping.TryGetValue(modelType, out viewType))
+                throw new Exception(String.Format("Could not find View for ViewModel {0}", modelType.Name));
+            return viewType;
         }
     }
 }
