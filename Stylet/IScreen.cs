@@ -114,15 +114,23 @@ namespace Stylet
     {
     }
 
-
+    /// <summary>
+    /// EventArgs associated with the IActivate.Activated event
+    /// </summary>
     public class ActivationEventArgs : EventArgs
     {
     }
 
+    /// <summary>
+    /// EventArgs associated with the IDeactivate.Deactivated event
+    /// </summary>
     public class DeactivationEventArgs : EventArgs
     {
     }
 
+    /// <summary>
+    /// EventArgs associated with the IClose.Closed event
+    /// </summary>
     public class CloseEventArgs : EventArgs
     {
     }

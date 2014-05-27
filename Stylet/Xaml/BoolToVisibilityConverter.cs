@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,9 @@ namespace Stylet.Xaml
     /// </summary>
     public class BoolToVisibilityConverter : DependencyObject, IValueConverter
     {
+        /// <summary>
+        /// Singleton instance of this converter. Usage e.g. Converter="{x:Static s:BoolToVisibilityConverter.Instance}"
+        /// </summary>
         public static readonly BoolToVisibilityConverter Instance = new BoolToVisibilityConverter();
 
         /// <summary>
@@ -24,7 +28,9 @@ namespace Stylet.Xaml
             set { SetValue(TrueVisibilityProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for TrueVisibility.  This enables animation, styling, binding, etc...
+        /// <summary>
+        /// Property specifying the visibility to return when the parameter is true
+        /// </summary>
         public static readonly DependencyProperty TrueVisibilityProperty =
             DependencyProperty.Register("TrueVisibility", typeof(Visibility), typeof(BoolToVisibilityConverter), new PropertyMetadata(Visibility.Visible));
 
@@ -37,21 +43,42 @@ namespace Stylet.Xaml
             set { SetValue(FalseVisibilityProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for FalseVisibility.  This enables animation, styling, binding, etc...
+        /// <summary>
+        /// Property specifying the visibility to return when the parameter is false
+        /// </summary>
         public static readonly DependencyProperty FalseVisibilityProperty =
             DependencyProperty.Register("FalseVisibility", typeof(Visibility), typeof(BoolToVisibilityConverter), new PropertyMetadata(Visibility.Collapsed));
 
 
+        /// <summary>
+        /// Perform the conversion
+        /// </summary>
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            if (!(value is bool))
-                return null;
+            bool result;
+            if (value == null)
+                result = false;
+            else if (value is bool)
+                result = (bool)value;
+            else if (value is IEnumerable)
+                result = ((IEnumerable)value).GetEnumerator().MoveNext();
+            else if (value.Equals(0) || value.Equals(0u) || value.Equals(0L) || value.Equals(0uL) ||
+                value.Equals(0.0f) || value.Equals(0.0) || value.Equals(0m))
+                result = false;
+            else
+                result = true; // Not null, didn't meet any other falsy behaviour
 
-            return (bool)value ? this.TrueVisibility : this.FalseVisibility;
+            return result ? this.TrueVisibility : this.FalseVisibility;
         }
 
+        /// <summary>
+        /// Perform the inverse conversion. Only valid if the value is bool
+        /// </summary>
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            if (targetType != typeof(bool))
+                throw new ArgumentException("Can't ConvertBack on BoolToVisibilityConverter when TargetType is not bool");
+
             if (!(value is Visibility))
                 return null;
 

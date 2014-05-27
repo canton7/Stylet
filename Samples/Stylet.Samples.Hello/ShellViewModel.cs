@@ -9,6 +9,8 @@ namespace Stylet.Samples.Hello
 {
     class ShellViewModel : Screen
     {
+        private IWindowManager windowManager;
+
         private string _name;
         public string Name
         {
@@ -16,9 +18,10 @@ namespace Stylet.Samples.Hello
             set { SetAndNotify(ref this._name, value); this.NotifyOfPropertyChange(() => this.CanSayHello); }
         }
 
-        public ShellViewModel()
+        public ShellViewModel(IWindowManager windowManager)
         {
             this.DisplayName = "Hello, Stylet";
+            this.windowManager = windowManager;
         }
 
         public bool CanSayHello
@@ -27,7 +30,7 @@ namespace Stylet.Samples.Hello
         }
         public void SayHello()
         {
-            MessageBox.Show(String.Format("Hello, {0}", this.Name)); // Don't do this
+            this.windowManager.ShowMessageBox(String.Format("Hello, {0}", this.Name));
         }
     }
 }

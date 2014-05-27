@@ -10,6 +10,9 @@ namespace Stylet
 {
     public partial class Conductor<T>
     {
+        /// <summary>
+        /// Contains specific Conductor{T} collection types
+        /// </summary>
         public partial class Collection
         {
             /// <summary>
@@ -18,11 +21,18 @@ namespace Stylet
             public class AllActive : ConductorBase<T>
             {
                 private BindableCollection<T> items = new BindableCollection<T>();
+
+                /// <summary>
+                /// All items associated with this conductor
+                /// </summary>
                 public IObservableCollection<T> Items
                 {
                     get { return this.items; }
                 }
 
+                /// <summary>
+                /// Creates a new Conductor{T}.Collection.AllActive
+                /// </summary>
                 public AllActive()
                 {
                     this.items.CollectionChanged += (o, e) =>
@@ -49,9 +59,13 @@ namespace Stylet
                     };
                 }
 
+                /// <summary>
+                /// Active all items in a given collection if appropriate, and set the parent of all items to this
+                /// </summary>
+                /// <param name="items">Items to manipulate</param>
                 protected virtual void ActivateAndSetParent(IEnumerable items)
                 {
-                    this.SetParent(items, true);
+                    this.SetParent(items);
                     if (this.IsActive)
                     {
                         foreach (var item in items.OfType<IActivate>())
@@ -61,6 +75,9 @@ namespace Stylet
                     }
                 }
 
+                /// <summary>
+                /// Activates all items whenever this conductor is activated
+                /// </summary>
                 protected override void OnActivate()
                 {
                     foreach (var item in this.items.OfType<IActivate>())
@@ -69,6 +86,9 @@ namespace Stylet
                     }
                 }
 
+                /// <summary>
+                /// Deactivates all items whenever this conductor is deactivated
+                /// </summary>
                 protected override void OnDeactivate()
                 {
                     foreach (var item in this.items.OfType<IDeactivate>())
@@ -77,6 +97,9 @@ namespace Stylet
                     }
                 }
 
+                /// <summary>
+                /// Close, and clean up, all items when this conductor is closed
+                /// </summary>
                 protected override void OnClose()
                 {
                     // We've already been deactivated by this point    
@@ -103,7 +126,7 @@ namespace Stylet
                     if (item == null)
                         return;
 
-                    item = this.EnsureItem(item);
+                    this.EnsureItem(item);
 
                     if (this.IsActive)
                         ScreenExtensions.TryActivate(item);
@@ -142,12 +165,16 @@ namespace Stylet
                     return this.items;
                 }
 
-                protected override T EnsureItem(T newItem)
+                /// <summary>
+                /// Ensure an item is ready to be activated, by adding it to the items collection, as well as setting it up
+                /// </summary>
+                /// <param name="newItem">Item to ensure</param>
+                protected override void EnsureItem(T newItem)
                 {
                     if (!this.items.Contains(newItem))
                         this.items.Add(newItem);
 
-                    return base.EnsureItem(newItem);
+                    base.EnsureItem(newItem);
                 }
             }
         }

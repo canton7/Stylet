@@ -30,10 +30,18 @@ namespace Stylet
     }
 
     /// <summary>
+    /// Interface encapsulating IReadOnlyList and INotifyCollectionChanged
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IReadOnlyObservableCollection<T> : IReadOnlyList<T>, INotifyCollectionChanged, INotifyPropertyChangedDispatcher
+    {
+    }
+
+    /// <summary>
     /// ObservableCollection subclass which supports AddRange and RemoveRange
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BindableCollection<T> : ObservableCollection<T>, IObservableCollection<T>
+    public class BindableCollection<T> : ObservableCollection<T>, IObservableCollection<T>, IReadOnlyObservableCollection<T>
     {
         private Action<Action> _propertyChangedDispatcher = Execute.DefaultPropertyChangedDispatcher;
         /// <summary>
@@ -50,15 +58,31 @@ namespace Stylet
         /// </summary>
         private bool isNotifying = true;
 
+        /// <summary>
+        /// Create a new empty BindableCollection
+        /// </summary>
         public BindableCollection() : base() { }
+
+        /// <summary>
+        /// Create a new BindableCollection with the given members
+        /// </summary>
+        /// <param name="collection">The collection from which the elements are copied</param>
         public BindableCollection(IEnumerable<T> collection) : base(collection) { }
 
+        /// <summary>
+        /// Raises the System.Collections.ObjectModel.ObservableCollection{T}.PropertyChanged event with the provided arguments.
+        /// </summary>
+        /// <param name="e">Arguments of the event being raised.</param>
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             if (this.isNotifying)
                 this.PropertyChangedDispatcher(() => base.OnPropertyChanged(e));
         }
 
+        /// <summary>
+        /// Raises the System.Collections.ObjectModel.ObservableCollection{T}.CollectionChanged event with the provided arguments.
+        /// </summary>
+        /// <param name="e">Arguments of the event being raised.</param>
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
             if (this.isNotifying)

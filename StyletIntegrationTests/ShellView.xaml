@@ -12,20 +12,22 @@
             </StackPanel>
         </GroupBox>
         
-        <GroupBox DockPanel.Dock="Top" Header="Window DisplayName Bound" Padding="10">
-            <Button Command="{s:Action ShowWindowsDisplayNameBound}">Show Window</Button>
-        </GroupBox>
-        
-        <GroupBox DockPanel.Dock="Top" Header="Window Guard Close" Padding="10">
-            <Button Command="{s:Action ShowWindowGuardClose}">Show Window</Button>
-        </GroupBox>
-        
         <GroupBox DockPanel.Dock="Top" Header="Window Lifecycle" Padding="10">
             <Button Command="{s:Action ShowWindowLifecycle}">Show Window</Button>
         </GroupBox>
-        
-        <GroupBox DockPanel.Dock="Top" Header="Actions" Padding="10">
-            <Button Command="{s:Action ShowActions}">Show Window</Button>
+
+        <GroupBox DockPanel.Dock="Top" Header="OnUnhandledException" Padding="10">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" TextWrapping="WrapWithOverflow">Verify that pressing the button below shows a dialog, containing the message 'Unhandled Exception: Hello'.</TextBlock>
+                <Button DockPanel.Dock="Top" Command="{s:Action ThrowException}">Throw Exception</Button>
+            </DockPanel>
+        </GroupBox>
+
+        <GroupBox DockPanel.Dock="Top" Header="Dispatcher" Padding="10">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" TextWrapping="WrapWithOverflow">Verify that pressing the button shows a MessageBox saying 'Success'.</TextBlock>
+                <Button DockPanel.Dock="Top" Command="{s:Action TestDispatcher}">Test Dispatcher</Button>
+            </DockPanel>
         </GroupBox>
     </DockPanel>
 </Window>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StyletIoC
@@ -52,7 +53,11 @@ namespace StyletIoC
     // Sealed so Code Analysis doesn't moan about us setting the virtual Type property
     internal sealed class TypeCreator : CreatorBase
     {
-        public string AttributeKey { get; private set; }
+        private readonly string _attributeKey;
+        public string AttributeKey
+        {
+            get { return this._attributeKey; }
+        }
         private Expression creationExpression;
 
         public TypeCreator(Type type, StyletIoCContainer container) : base(container)
@@ -62,7 +67,7 @@ namespace StyletIoC
             // Use the key from InjectAttribute (if present), and let someone else override it if they want
             var attribute = (InjectAttribute)type.GetCustomAttributes(typeof(InjectAttribute), false).FirstOrDefault();
             if (attribute != null)
-                this.AttributeKey = attribute.Key;
+                this._attributeKey = attribute.Key;
         }
 
         private string KeyForParameter(ParameterInfo parameter)
@@ -84,7 +89,7 @@ namespace StyletIoC
             var ctorsWithAttribute = this.Type.GetConstructors().Where(x => x.GetCustomAttributes(typeof(InjectAttribute), false).Any()).ToList();
             if (ctorsWithAttribute.Count > 1)
             {
-                throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", this.Type.Name));
+                throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", this.Type.Description()));
             }
             else if (ctorsWithAttribute.Count == 1)
             {
@@ -92,7 +97,7 @@ namespace StyletIoC
                 var key = ((InjectAttribute)ctorsWithAttribute[0].GetCustomAttribute(typeof(InjectAttribute), false)).Key;
                 var cantResolve = ctor.GetParameters().Where(p => !this.container.CanResolve(new TypeKey(p.ParameterType, key)) && !p.HasDefaultValue).FirstOrDefault();
                 if (cantResolve != null)
-                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (which doesn't have a default value).", this.Type.Name, cantResolve.Name));
+                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", this.Type.Description(), cantResolve.Name, cantResolve.ParameterType.Description()));
             }
             else
             {
@@ -103,7 +108,7 @@ namespace StyletIoC
 
                 if (ctor == null)
                 {
-                    throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call.", this.Type.Name));
+                    throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call.", this.Type.Description()));
                 }
             }
 
@@ -121,7 +126,7 @@ namespace StyletIoC
                     }
                     catch (StyletIoCRegistrationException e)
                     {
-                        throw new StyletIoCRegistrationException(String.Format("{0} Required by paramter '{1}' of type {2}.", e.Message, x.Name, this.Type.Name), e);
+                        throw new StyletIoCRegistrationException(String.Format("{0} Required by parameter '{1}' of type {2} (which is a {3}).", e.Message, x.Name, this.Type.Description(), x.ParameterType.Description()), e);
                     }
                 }
                 // For some reason we need this cast...
@@ -132,15 +137,15 @@ namespace StyletIoC
 
             var completeExpression = this.CompleteExpressionFromCreator(creator);
 
-            this.creationExpression = completeExpression;
-            return completeExpression;
+            Interlocked.CompareExchange(ref this.creationExpression, completeExpression, null);
+            return this.creationExpression;
         }
     }
 
     // Sealed for consistency with TypeCreator
     internal sealed class FactoryCreator<T> : CreatorBase
     {
-        private Func<StyletIoCContainer, T> factory;
+        private readonly Func<StyletIoCContainer, T> factory;
         private Expression instanceExpression;
 
         public override Type Type { get { return typeof(T); } }
@@ -160,8 +165,8 @@ namespace StyletIoC
 
             var completeExpression = this.CompleteExpressionFromCreator(invoked);
 
-            this.instanceExpression = completeExpression;
-            return completeExpression;
+            Interlocked.CompareExchange(ref this.instanceExpression, completeExpression, null);
+            return this.instanceExpression;
         }
     }
 }

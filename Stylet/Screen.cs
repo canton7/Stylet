@@ -14,15 +14,37 @@ namespace Stylet
     /// <summary>
     /// Implementation of IScreen. Useful as a base class for your ViewModels
     /// </summary>
-    public class Screen : PropertyChangedBase, IScreen
+    public class Screen : ValidatingModelBase, IScreen
     {
+        /// <summary>
+        /// Create a new Screen instance (without setting up a validator)
+        /// </summary>
+        public Screen() : this(null) { }
+
+        /// <summary>
+        /// Create a new screen instance, which can validate properties using the given validator
+        /// </summary>
+        /// <param name="validator">Validator to use</param>
+        public Screen(IModelValidator validator) : base(validator)
+        {
+            this.DisplayName = this.GetType().FullName;
+        }
+
         #region WeakEventManager
 
-        private Lazy<IWeakEventManager> lazyWeakEventManager = new Lazy<IWeakEventManager>(() => new WeakEventManager(), true);
+        private IWeakEventManager _weakEventManager;
         /// <summary>
         /// WeakEventManager owned by this screen (lazy)
         /// </summary>
-        protected IWeakEventManager weakEventManager { get { return this.lazyWeakEventManager.Value; } }
+        protected virtual IWeakEventManager weakEventManager
+        {
+            get
+            {
+                if (this._weakEventManager == null)
+                    this._weakEventManager = new WeakEventManager();
+                return this._weakEventManager;
+            }
+        }
 
         /// <summary>
         /// Proxy around this.weakEventManager.BindWeak. Binds to an INotifyPropertyChanged source, in a way which doesn't cause us to be retained
@@ -32,7 +54,7 @@ namespace Stylet
         /// <param name="selector">Expression for selecting the property to observe, e.g. x => x.PropertyName</param>
         /// <param name="handler">Handler to be called when that property changes</param>
         /// <returns>A resource which can be used to undo the binding</returns>
-        protected IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
+        protected virtual IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
             where TSource : class, INotifyPropertyChanged
         {
             return this.weakEventManager.BindWeak(source, selector, handler);
@@ -43,7 +65,11 @@ namespace Stylet
         #region IHaveDisplayName
 
         private string _displayName;
-        public string DisplayName
+
+        /// <summary>
+        /// Name associated with this ViewModel. Shown e.g. in a window's title bar, or as a tab's displayName
+        /// </summary>
+        public virtual string DisplayName
         {
             get { return this._displayName; }
             set { SetAndNotify(ref this._displayName, value); }
@@ -53,6 +79,9 @@ namespace Stylet
 
         #region IActivate
 
+        /// <summary>
+        /// Fired whenever the Screen is activated
+        /// </summary>
         public event EventHandler<ActivationEventArgs> Activated;
 
         private bool hasBeenActivatedEver;
@@ -100,6 +129,9 @@ namespace Stylet
 
         #region IDeactivate
 
+        /// <summary>
+        /// Fired whenever the Screen is deactivated
+        /// </summary>
         public event EventHandler<DeactivationEventArgs> Deactivated;
 
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Scope = "member", Target = "Stylet.Screen.#Stylet.IDeactivate.Deactivate()", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
@@ -126,6 +158,9 @@ namespace Stylet
 
         #region IClose
 
+        /// <summary>
+        /// Called whenever this Screen is closed
+        /// </summary>
         public event EventHandler<CloseEventArgs> Closed;
 
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
@@ -152,6 +187,9 @@ namespace Stylet
 
         #region IViewAware
 
+        /// <summary>
+        /// View attached to this ViewModel, if any. Using this should be a last resort
+        /// </summary>
         public UIElement View { get; private set; }
 
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]

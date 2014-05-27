@@ -42,6 +42,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -52,19 +53,35 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionExtensionTests.cs" />
+    <Compile Include="AssemblySourceTests.cs" />
     <Compile Include="BindableCollectionTests.cs" />
+    <Compile Include="BoolToVisibilityConverterTests.cs" />
+    <Compile Include="BootstrapperBaseTests.cs" />
+    <Compile Include="BootstrapperTests.cs" />
+    <Compile Include="CommandActionTests.cs" />
     <Compile Include="ConductorAllActiveTests.cs" />
     <Compile Include="ConductorNavigatingTests.cs" />
     <Compile Include="ConductorOneActiveTests.cs" />
     <Compile Include="ConductorTests.cs" />
+    <Compile Include="DebugConverterTests.cs" />
+    <Compile Include="EqualityConverterTests.cs" />
+    <Compile Include="EventActionTests.cs" />
     <Compile Include="EventAggregatorTests.cs" />
     <Compile Include="ExecuteTests.cs" />
+    <Compile Include="ExpressionExtensionsTests.cs" />
+    <Compile Include="IconToBitmapSourceConverterTests.cs" />
+    <Compile Include="IoCTests.cs" />
+    <Compile Include="LabelledValueTests.cs" />
+    <Compile Include="LambdaComparerTests.cs" />
+    <Compile Include="MessageBoxTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyChangedBaseTests.cs" />
     <Compile Include="PropertyChangedExtensionsTests.cs" />
+    <Compile Include="ScreenExtensionTests.cs" />
     <Compile Include="ScreenTests.cs" />
     <Compile Include="StyletIoC\StyletIoCAutobindingTests.cs" />
     <Compile Include="StyletIoC\StyletIoCBindingChecksTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCCompileTests.cs" />
     <Compile Include="StyletIoC\StyletIoCPropertyInjectionTests.cs" />
     <Compile Include="StyletIoC\StyletIoCConstructorInjectionTests.cs" />
     <Compile Include="StyletIoC\StyletIoCFactoryTests.cs" />
@@ -72,6 +89,9 @@
     <Compile Include="StyletIoC\StyletIoCGetSingleKeyedTests.cs" />
     <Compile Include="StyletIoC\StyletIoCGetSingleTests.cs" />
     <Compile Include="StyletIoC\StyletIoCUnboundGenericTests.cs" />
+    <Compile Include="ValidatingModelBaseTests.cs" />
+    <Compile Include="ViewManagerTests.cs" />
+    <Compile Include="ViewTests.cs" />
     <Compile Include="WindowManagerTests.cs" />
   </ItemGroup>
   <ItemGroup>

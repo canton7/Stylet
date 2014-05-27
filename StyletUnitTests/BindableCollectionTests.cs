@@ -132,5 +132,33 @@ namespace StyletUnitTests
             var changedEvent = changedEvents[0];
             Assert.AreEqual(NotifyCollectionChangedAction.Reset, changedEvent.Action);
         }
+
+        [Test]
+        public void UsesPropertyChangedDipatcher()
+        {
+            var collection = new BindableCollection<Element>();
+
+            var changedProperties = new List<string>();
+            ((INotifyPropertyChanged)collection).PropertyChanged += (o, e) => changedProperties.Add(e.PropertyName);
+
+            var changedEvents = new List<NotifyCollectionChangedEventArgs>();
+            collection.CollectionChanged += (o, e) => changedEvents.Add(e);
+
+            List<Action> dispatchedActions = new List<Action>();
+            collection.PropertyChangedDispatcher = a => dispatchedActions.Add(a);
+
+            collection.Add(new Element());
+
+            Assert.IsEmpty(changedProperties);
+            Assert.IsNotEmpty(dispatchedActions);
+
+            foreach (var action in dispatchedActions)
+                action();
+
+            Assert.That(changedProperties, Is.EquivalentTo(new[] { "Count", "Item[]" }));
+            Assert.AreEqual(1, changedEvents.Count);
+            var changedEvent = changedEvents[0];
+            Assert.AreEqual(NotifyCollectionChangedAction.Add, changedEvent.Action);
+        }
     }
 }

@@ -8,12 +8,26 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
 
-namespace Stylet
+namespace Stylet.Xaml
 {
+    /// <summary>
+    /// What to do if the given target is null, or if the given action doesn't exist on the target
+    /// </summary>
     public enum ActionUnavailableBehaviour
     {
+        /// <summary>
+        /// Enable the control anyway. Clicking/etc the control won't do anything
+        /// </summary>
         Enable,
+
+        /// <summary>
+        /// Disable the control. This is only valid for commands, not events
+        /// </summary>
         Disable,
+
+        /// <summary>
+        /// Throw an exception
+        /// </summary>
         Throw
     };
 
@@ -46,6 +60,11 @@ namespace Stylet
             this.Method = method;
         }
 
+        /// <summary>
+        /// When implemented in a derived class, returns an object that is provided as the value of the target property for this markup extension.
+        /// </summary>
+        /// <param name="serviceProvider">A service provider helper that can provide services for the markup extension.</param>
+        /// <returns>The object value to set on the property where the extension is applied.</returns>
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
             var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));

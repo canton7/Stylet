@@ -7,15 +7,66 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Stylet
 {
+    /// <summary>
+    /// Generalised dispatcher, which can post and end
+    /// </summary>
+    public interface IDispatcher
+    {
+        /// <summary>
+        /// Execute asynchronously
+        /// </summary>
+        void Post(Action action);
+
+        /// <summary>
+        /// Execute synchronously
+        /// </summary>
+        void Send(Action action);
+
+        /// <summary>
+        /// True if invocation isn't required
+        /// </summary>
+        bool IsCurrent { get; }
+    }
+
+    internal class DispatcherWrapper : IDispatcher
+    {
+        private readonly Dispatcher dispatcher;
+
+        public DispatcherWrapper(Dispatcher dispatcher)
+        {
+            this.dispatcher = dispatcher;
+        }
+
+
+        public void Post(Action action)
+        {
+            this.dispatcher.BeginInvoke(action);
+        }
+
+        public void Send(Action action)
+        {
+            this.dispatcher.Invoke(action);
+        }
+
+        public bool IsCurrent
+        {
+            get { return this.dispatcher.CheckAccess(); }
+        }
+    }
+
+    /// <summary>
+    /// Static class providing methods to easily run an action on the UI thread in various ways, and some other things
+    /// </summary>
     public static class Execute
     {
         /// <summary>
-        /// Should be set to the UI thread's SynchronizationContext. This is normally done by the Bootstrapper.
+        /// Should be set to the UI thread's Dispatcher. This is normally done by the Bootstrapper.
         /// </summary>
-        public static SynchronizationContext SynchronizationContext;
+        public static IDispatcher Dispatcher;
 
         /// <summary>
         /// FOR TESTING ONLY. Causes everything to execute synchronously
@@ -25,36 +76,36 @@ namespace Stylet
         private static bool? inDesignMode;
 
         /// <summary>
-        /// Default dispatcher used by PropertyChangedBase instances. Defaults to BeginOnUIThreadOrSynchronous
+        /// Default dispatcher used by PropertyChangedBase instances. Defaults to OnUIThread
         /// </summary>
-        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.BeginOnUIThreadOrSynchronous;
+        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.OnUIThread;
 
-        private static void EnsureSynchronizationContext()
+        private static void EnsureDispatcher()
         {
-            if (SynchronizationContext == null && !TestExecuteSynchronously)
-                throw new Exception("Execute.SynchronizationContext must be set before this method can be called. This should normally have been done by the Bootstrapper");
+            if (Dispatcher == null && !TestExecuteSynchronously)
+                throw new InvalidOperationException("Execute.SynchronizationContext must be set before this method can be called. This should normally have been done by the Bootstrapper");
         }
 
         /// <summary>
-        /// Dispatches the given action to be run on the UI thread, even if the current thread is the UI thread
+        /// Dispatches the given action to be run on the UI thread asynchronously, even if the current thread is the UI thread
         /// </summary>
-        public static void BeginOnUIThread(Action action)
+        public static void PostToUIThread(Action action)
         {
-            EnsureSynchronizationContext();
+            EnsureDispatcher();
             if (!TestExecuteSynchronously)
-                SynchronizationContext.Post(_ => action(), null);
+                Dispatcher.Post(action);
             else
                 action();
         }
 
         /// <summary>
-        /// Dispatches the given action to be run on the UI thread, or runs it synchronously if the current thread is the UI thread
+        /// Dispatches the given action to be run on the UI thread asynchronously, or runs it synchronously if the current thread is the UI thread
         /// </summary>
-        public static void BeginOnUIThreadOrSynchronous(Action action)
+        public static void OnUIThread(Action action)
         {
-            EnsureSynchronizationContext();
-            if (SynchronizationContext != SynchronizationContext.Current && !TestExecuteSynchronously)
-                SynchronizationContext.Post(_ => action(), null);
+            EnsureDispatcher();
+            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
+                Dispatcher.Post(action);
             else
                 action();
         }
@@ -62,13 +113,13 @@ namespace Stylet
         /// <summary>
         /// Dispatches the given action to be run on the UI thread and blocks until it completes, or runs it synchronously if the current thread is the UI thread
         /// </summary>
-        public static void OnUIThread(Action action)
+        public static void OnUIThreadSync(Action action)
         {
-            EnsureSynchronizationContext();
+            EnsureDispatcher();
             Exception exception = null;
-            if (SynchronizationContext != SynchronizationContext.Current && !TestExecuteSynchronously)
+            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
             {
-                SynchronizationContext.Send(_ =>
+                Dispatcher.Send(() =>
                 {
                     try
                     {
@@ -78,7 +129,7 @@ namespace Stylet
                     {
                         exception = e;
                     }
-                }, null);
+                });
 
                 if (exception != null)
                     throw new System.Reflection.TargetInvocationException("An error occurred while dispatching a call to the UI Thread", exception);
@@ -94,11 +145,11 @@ namespace Stylet
         /// </summary>
         public static Task OnUIThreadAsync(Action action)
         {
-            EnsureSynchronizationContext();
-            if (SynchronizationContext != SynchronizationContext.Current && !TestExecuteSynchronously)
+            EnsureDispatcher();
+            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
             {
                 var tcs = new TaskCompletionSource<object>();
-                SynchronizationContext.Post(_ =>
+                Dispatcher.Post(() =>
                 {
                     try
                     {
@@ -109,7 +160,7 @@ namespace Stylet
                     {
                         tcs.SetException(e);
                     }
-                }, null);
+                });
                 return tcs.Task;
             }
             else
@@ -119,20 +170,20 @@ namespace Stylet
             }
         }
 
+        /// <summary>
+        /// Determing if we're currently running in design mode
+        /// </summary>
         public static bool InDesignMode
         {
             get
             {
                 if (inDesignMode == null)
                 {
-                    var prop = DesignerProperties.IsInDesignModeProperty;
-                    inDesignMode = (bool)DependencyPropertyDescriptor.FromProperty(prop, typeof(FrameworkElement)).Metadata.DefaultValue;
-
-                    if (inDesignMode.GetValueOrDefault(false) && Process.GetCurrentProcess().ProcessName.StartsWith("devenv", StringComparison.Ordinal))
-                        inDesignMode = true;
+                    var descriptor = DependencyPropertyDescriptor.FromProperty(DesignerProperties.IsInDesignModeProperty, typeof(FrameworkElement));
+                    inDesignMode = (bool)descriptor.Metadata.DefaultValue;
                 }
 
-                return inDesignMode.GetValueOrDefault(false);
+                return inDesignMode.Value;
             }
         }
     }

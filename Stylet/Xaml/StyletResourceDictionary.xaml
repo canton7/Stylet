@@ -1,6 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:s="clr-namespace:Stylet">
+                    xmlns:s="clr-namespace:Stylet.Xaml">
     <Style x:Key="StyletConductorTabControl" TargetType="TabControl">
         <Setter Property="ItemsSource" Value="{Binding Items}"/>
         <Setter Property="SelectedItem" Value="{Binding ActiveItem}"/>

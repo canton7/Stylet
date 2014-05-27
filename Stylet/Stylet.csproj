@@ -20,6 +20,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <DocumentationFile>bin\Debug\Stylet.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,12 +30,14 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Stylet.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
@@ -45,9 +49,15 @@
   <ItemGroup>
     <Compile Include="ConductorNavigating.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="IValidationAdapter.cs" />
     <Compile Include="LabelledValue.cs" />
     <Compile Include="INotifyPropertyChangedDispatcher.cs" />
+    <Compile Include="LambdaComparer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MessageBox.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
+    <Compile Include="ValidatingModelBase.cs" />
     <Compile Include="WeakEventManager.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />
@@ -61,6 +71,7 @@
     <Compile Include="ConductorBaseWithActiveItem.cs" />
     <Compile Include="ConductorOneActive.cs" />
     <Compile Include="Xaml\DebugConverter.cs" />
+    <Compile Include="Xaml\EqualityConverter.cs" />
     <Compile Include="Xaml\EventAction.cs" />
     <Compile Include="EventAggregator.cs" />
     <Compile Include="Execute.cs" />
@@ -81,11 +92,16 @@
     <Compile Include="StyletIoC\StyletIoCBuilder.cs" />
     <Compile Include="StyletIoC\StyletIoCContainer.cs" />
     <Compile Include="StyletIoC\UnboundGeneric.cs" />
-    <Compile Include="View.cs" />
+    <Compile Include="Xaml\IconToBitmapSourceConverter.cs" />
+    <Compile Include="Xaml\View.cs" />
     <Compile Include="ViewManager.cs" />
     <Compile Include="WindowManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="MessageBoxView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Xaml\StyletResourceDictionary.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

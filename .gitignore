@@ -38,3 +38,4 @@ installer/Output
 
 *.gjq
 *.tmp
+Coverage

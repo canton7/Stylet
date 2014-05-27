@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 using Expressions = System.Linq.Expressions;
 
-namespace Stylet
+namespace Stylet.Xaml
 {
     /// <summary>
     /// ICommand returned by ActionExtension for binding buttons, etc, to methods on a ViewModel.
@@ -53,6 +53,8 @@ namespace Stylet
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
+        /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
+        /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
         public CommandAction(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
         {
             this.Subject = subject;
@@ -81,7 +83,7 @@ namespace Stylet
             {
                 // If it's Enable or Disable we don't do anything - CanExecute will handle this
                 if (this.targetNullBehaviour == ActionUnavailableBehaviour.Throw)
-                    throw new Exception(String.Format("Method {0} has a target set which is null", this.MethodName));
+                    throw new ArgumentException(String.Format("Method {0} has a target set which is null", this.MethodName));
             }
             else
             {
@@ -139,13 +141,18 @@ namespace Stylet
                 handler(this, EventArgs.Empty);
         }
 
+        /// <summary>
+        /// Defines the method that determines whether the command can execute in its current state.
+        /// </summary>
+        /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
+        /// <returns>true if this command can be executed; otherwise, false.</returns>
         public bool CanExecute(object parameter)
         {
             // It's enabled only if both the targetNull and actionNonExistent tests pass
 
             // Throw is handled when the target is set
-            if (this.target == null && this.targetNullBehaviour == ActionUnavailableBehaviour.Disable)
-                return false;
+            if (this.target == null)
+                return this.targetNullBehaviour != ActionUnavailableBehaviour.Disable;
 
             // Throw is handled when the target is set
             if (this.targetMethodInfo == null)
@@ -162,8 +169,15 @@ namespace Stylet
             return this.guardPropertyGetter();
         }
 
+        /// <summary>
+        /// Occurs when changes occur that affect whether or not the command should execute.
+        /// </summary>
         public event EventHandler CanExecuteChanged;
 
+        /// <summary>
+        /// The method to be called when the command is invoked.
+        /// </summary>
+        /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
         public void Execute(object parameter)
         {
             // Any throwing would have been handled prior to this

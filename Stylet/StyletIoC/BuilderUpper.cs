@@ -4,14 +4,16 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StyletIoC
 {
     internal class BuilderUpper
     {
-        private Type type;
-        private StyletIoCContainer container;
+        private readonly Type type;
+        private readonly StyletIoCContainer container;
+        private readonly object implementorLock = new object();
         private Action<object> implementor;
 
         public BuilderUpper(Type type, StyletIoCContainer container)
@@ -43,20 +45,25 @@ namespace StyletIoC
 
             var memberAccess = Expression.MakeMemberAccess(objExpression, member);
             var memberValue = this.container.GetExpression(new TypeKey(memberType, attribute.Key), true);
-            return Expression.Assign(memberAccess, memberValue);
+            var assign = Expression.Assign(memberAccess, memberValue);
+            // Only actually do the assignment if the field/property is currently null
+            return Expression.IfThen(Expression.Equal(memberAccess, Expression.Constant(null, memberType)), assign);
         }
 
         public Action<object> GetImplementor()
         {
-            if (this.implementor != null)
+            lock (this.implementorLock)
+            {
+                if (this.implementor != null)
+                    return this.implementor;
+
+                var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
+                var typedParameterExpression = Expression.Convert(parameterExpression, this.type);
+                var expression = this.GetExpression(typedParameterExpression);
+                this.implementor = Expression.Lambda<Action<object>>(this.GetExpression(typedParameterExpression), parameterExpression).Compile();
+
                 return this.implementor;
-
-            var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
-            var typedParameterExpression = Expression.Convert(parameterExpression, this.type);
-            var expression = this.GetExpression(typedParameterExpression);
-            this.implementor = Expression.Lambda<Action<object>>(this.GetExpression(typedParameterExpression), parameterExpression).Compile();
-
-            return this.implementor;
+            }
         }
     }
 }

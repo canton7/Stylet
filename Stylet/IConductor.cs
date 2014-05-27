@@ -25,6 +25,9 @@ namespace Stylet
     /// <typeparam name="T">Type of the active item</typeparam>
     public interface IHaveActiveItem<T>
     {
+        /// <summary>
+        /// Only item which is currently active. This normally corresponds to the item being displayed
+        /// </summary>
         T ActiveItem { get; set; }
     }
 
@@ -33,6 +36,11 @@ namespace Stylet
     /// </summary>
     public interface IChildDelegate
     {
+        /// <summary>
+        /// Called by the child to request that is be closed
+        /// </summary>
+        /// <param name="item">Child object, which is passed by the child itself</param>
+        /// <param name="dialogResult">DialogResult to use to close, if any</param>
         void CloseItem(object item, bool? dialogResult = null);
     }
 

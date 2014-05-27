@@ -1,0 +1,73 @@
+﻿<UserControl x:Class="Stylet.Samples.ModelValidation.Pages.UserView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:s="https://github.com/canton7/Stylet"
+             xmlns:xaml="clr-namespace:Stylet.Samples.ModelValidation.Xaml"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="Margin" Value="5,0,5,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="CommonStyle" TargetType="{x:Type Control}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,2,40,20" />
+            <Setter Property="Validation.ErrorTemplate">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <DockPanel LastChildFill="False">
+                            <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Left" Width="{Binding ElementName=CustomAdorner, Path=ActualWidth}"
+                                       Foreground="OrangeRed" TextTrimming="WordEllipsis"
+                                       Text="{Binding ElementName=CustomAdorner,Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"/>
+                            <Border Background="OrangeRed" DockPanel.Dock="Right" Margin="5,0,0,0" VerticalAlignment="Top"
+                                Width="20" Height="20" CornerRadius="5">
+                                <TextBlock Text="!" VerticalAlignment="center" HorizontalAlignment="center" FontWeight="Bold" Foreground="white" />
+                            </Border>
+                            <Border BorderBrush="red" BorderThickness="1">
+                                <AdornedElementPlaceholder Name="CustomAdorner" VerticalAlignment="Center"/>
+                            </Border>
+                        </DockPanel>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource CommonStyle}"/>
+        <Style TargetType="{x:Type PasswordBox}" BasedOn="{StaticResource CommonStyle}"/>
+    </UserControl.Resources>
+    
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Target="{Binding ElementName=UserName}">UserName:</Label>
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="UserName" Text="{Binding UserName}"/>
+
+        <Label Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=Email}">Email:</Label>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="Email" Text="{Binding Email}"/>
+
+        <Label Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=Age}">Age:</Label>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="Age" Text="{Binding Age}"/>
+
+        <Label Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=Password}">Password:</Label>
+        <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="Password" xaml:Secure.Password="{Binding Password}"/>
+
+        <Label Grid.Row="4" Grid.Column="0" Target="{Binding ElementName=PasswordConfirmation}">Password Confirmation:</Label>
+        <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="PasswordConfirmation" xaml:Secure.Password="{Binding PasswordConfirmation}"/>
+        
+        <CheckBox Grid.Row="5" Grid.Column="0" IsChecked="{Binding AutoValidate}">Auto-Validate</CheckBox>
+        <Button Grid.Row="5" Grid.Column="1" Command="{s:Action Submit}" HorizontalAlignment="Left">Submit</Button>
+    </Grid>
+</UserControl>

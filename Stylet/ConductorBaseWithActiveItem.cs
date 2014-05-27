@@ -40,10 +40,13 @@ namespace Stylet
             if (closePrevious)
                 this.CloseAndCleanUp(this.ActiveItem);
 
-            newItem = this.EnsureItem(newItem);
+            if (newItem != null)
+            {
+                this.EnsureItem(newItem);
 
-            if (this.IsActive)
-                ScreenExtensions.TryActivate(newItem);
+                if (this.IsActive)
+                    ScreenExtensions.TryActivate(newItem);
+            }
 
             this._activeItem = newItem;
             this.NotifyOfPropertyChange(() => this.ActiveItem);

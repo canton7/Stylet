@@ -16,6 +16,7 @@ namespace StyletIoC
     {
         /// <summary>
         /// Bind the specified service to itself - if you self-bind MyClass, and request an instance of MyClass, you'll get an instance of MyClass.
+        /// </summary>
         /// <returns></returns>
         IInScopeOrWithKey ToSelf();
 
@@ -50,14 +51,9 @@ namespace StyletIoC
         IInScopeOrWithKey ToAllImplementations(params Assembly[] assemblies);
     }
 
-    public interface IInScopeOrWithKey : IInScope
-    {
-        /// <summary>
-        /// Associate a key with this binding. Requests for the service will have to specify this key to retrieve the result of this binding
-        /// </summary>
-        /// <param name="key">Key to associate with this binding</param>
-        IInScope WithKey(string key);
-    }
+    /// <summary>
+    /// Fluent interface on which WithKey can be called
+    /// </summary>
     public interface IWithKey
     {
         /// <summary>
@@ -66,12 +62,28 @@ namespace StyletIoC
         /// <param name="key">Key to associate with this binding</param>
         void WithKey(string key);
     }
+
+    /// <summary>
+    /// Fluent interface on which InSingletonScope can be called
+    /// </summary>
     public interface IInScope
     {
         /// <summary>
         /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
         /// </summary>
         void InSingletonScope();
+    }
+
+    /// <summary>
+    /// Fluent interface on which InSingletonScope or WithKey can be called
+    /// </summary>
+    public interface IInScopeOrWithKey : IInScope
+    {
+        /// <summary>
+        /// Associate a key with this binding. Requests for the service will have to specify this key to retrieve the result of this binding
+        /// </summary>
+        /// <param name="key">Key to associate with this binding</param>
+        IInScope WithKey(string key);
     }
 
     internal class BuilderBindTo : IBindTo
@@ -151,31 +163,33 @@ namespace StyletIoC
             return this;
         }
 
-        protected void EnsureType(Type implementationType)
+        protected void EnsureType(Type implementationType, Type serviceType = null)
         {
+            serviceType = serviceType ?? this.serviceType;
+
             if (!implementationType.IsClass || implementationType.IsAbstract)
-                throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.Name, this.serviceType.Name));
+                throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.Description(), serviceType.Description()));
 
             // Test this first, as it's a bit clearer than hitting 'type doesn't implement service'
             if (implementationType.IsGenericTypeDefinition)
             {
-                if (this.isSingleton)
-                    throw new StyletIoCRegistrationException(String.Format("You cannot create singleton registration for unbound generic type {0}", implementationType.Name));
-
-                if (!this.serviceType.IsGenericTypeDefinition)
-                    throw new StyletIoCRegistrationException(String.Format("You may not bind the unbound generic type {0} to the bound generic / non-generic service {1}", implementationType.Name, this.serviceType.Name));
+                if (!serviceType.IsGenericTypeDefinition)
+                    throw new StyletIoCRegistrationException(String.Format("You can't use an unbound generic type to implement anything that isn't an unbound generic service. Service: {0}, Type: {1}", serviceType.Description(), implementationType.Description()));
 
                 // This restriction may change when I figure out how to pass down the correct type argument
-                if (this.serviceType.GetTypeInfo().GenericTypeParameters.Length != implementationType.GetTypeInfo().GenericTypeParameters.Length)
-                    throw new StyletIoCRegistrationException(String.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have the same number of type parameters. Service: {0}, Type: {1}", this.serviceType.Name, implementationType.Name));
+                if (serviceType.GetTypeInfo().GenericTypeParameters.Length != implementationType.GetTypeInfo().GenericTypeParameters.Length)
+                    throw new StyletIoCRegistrationException(String.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have the same number of type parameters. Service: {0}, Type: {1}", serviceType.Description(), implementationType.Description()));
             }
-            else if (this.serviceType.IsGenericTypeDefinition)
+            else if (serviceType.IsGenericTypeDefinition)
             {
-                throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic / non-generic type {0} to unbound generic service {1}", implementationType.Name, this.serviceType.Name));
+                if (implementationType.GetGenericArguments().Length > 0)
+                    throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic type {0} to the unbound generic service {1}", implementationType.Description(), serviceType.Description()));
+                else
+                    throw new StyletIoCRegistrationException(String.Format("You cannot bind the non-generic type {0} to the unbound generic service {1}", implementationType.Description(), serviceType.Description()));
             }
 
             if (!implementationType.Implements(this.serviceType))
-                throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Name, this.serviceType.Name));
+                throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Description(), serviceType.Description()));
         }
 
         // Convenience...
@@ -183,7 +197,7 @@ namespace StyletIoC
         {
             serviceType = serviceType ?? this.serviceType;
 
-            if (this.serviceType.IsGenericTypeDefinition)
+            if (serviceType.IsGenericTypeDefinition)
             {
                 var unboundGeneric = new UnboundGeneric(implementationType, container, this.isSingleton);
                 container.AddUnboundGeneric(new TypeKey(serviceType, this.Key), unboundGeneric);
@@ -193,7 +207,7 @@ namespace StyletIoC
                 var creator = new TypeCreator(implementationType, container);
                 IRegistration registration = this.isSingleton ? (IRegistration)new SingletonRegistration(creator) : (IRegistration)new TransientRegistration(creator);
 
-                container.AddRegistration(new TypeKey(this.serviceType, this.Key ?? creator.AttributeKey), registration);
+                container.AddRegistration(new TypeKey(serviceType, this.Key ?? creator.AttributeKey), registration);
             }
         }
 
@@ -227,9 +241,9 @@ namespace StyletIoC
 
         public BuilderFactoryBinding(Type serviceType, Func<IContainer, TImplementation> factory) : base(serviceType)
         {
-            this.EnsureType(typeof(TImplementation));
             if (this.serviceType.IsGenericTypeDefinition)
-                throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Name));
+                throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Description()));
+            this.EnsureType(typeof(TImplementation));
             this.factory = factory;
         }
 
@@ -253,7 +267,7 @@ namespace StyletIoC
 
         public override void Build(StyletIoCContainer container)
         {
-            var candidates = from type in assemblies.SelectMany(x => x.GetTypes())
+            var candidates = from type in assemblies.Distinct().SelectMany(x => x.GetTypes())
                              let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x == this.serviceType || x.IsGenericType && x.GetGenericTypeDefinition() == this.serviceType)
                              where baseType != null
                              select new { Type = type, Base = baseType.ContainsGenericParameters ? baseType.GetGenericTypeDefinition() : baseType };
@@ -262,12 +276,12 @@ namespace StyletIoC
             {
                 try
                 {
-                    this.EnsureType(candidate.Type);
+                    this.EnsureType(candidate.Type, candidate.Base);
                     this.BindImplementationToService(container, candidate.Type, candidate.Base);
                 }
                 catch (StyletIoCRegistrationException e)
                 {
-                    Debug.WriteLine(String.Format("Unable to auto-bind type {0} to {1}: {2}", candidate.Base.Name, candidate.Type.Name, e.Message), "StyletIoC");
+                    Debug.WriteLine(String.Format("Unable to auto-bind type {0} to {1}: {2}", candidate.Base.Name, candidate.Type.Description(), e.Message), "StyletIoC");
                 }
             }
         }
@@ -275,7 +289,11 @@ namespace StyletIoC
 
     internal class AbstractFactoryBinding : BuilderBindingBase
     {
-        public AbstractFactoryBinding(Type serviceType) : base(serviceType) { }
+        public AbstractFactoryBinding(Type serviceType) : base(serviceType)
+        {
+            if (serviceType.IsGenericTypeDefinition)
+                throw new StyletIoCRegistrationException(String.Format("Unbound generic type {0} can't be used as an abstract factory", serviceType.Description()));
+        }
 
         public override void Build(StyletIoCContainer container)
         {
@@ -371,18 +389,13 @@ namespace StyletIoC
                 assemblies = new[] { Assembly.GetCallingAssembly() };
 
             // We self-bind concrete classes only
-            var classes = assemblies.SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
+            var classes = assemblies.Distinct().SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
             foreach (var cls in classes)
             {
-                // Don't care if binding fails - we're likely to hit a few of these
-                try
-                {
-                    this.BindWeak(cls).To(cls);
-                }
-                catch (StyletIoCRegistrationException e)
-                {
-                    Debug.WriteLine(String.Format("Unable to auto-bind type {0}: {1}", cls.Name, e.Message), "StyletIoC");
-                }
+                // It's not actually possible for this to fail with a StyletIoCRegistrationException (at least currently)
+                // It's a self-binding, and those are always safe (at this stage - it could fall over when the containing's actually build)
+                
+                this.BindWeak(cls).To(cls);
             }
         }
 
@@ -406,7 +419,7 @@ namespace StyletIoC
         {
             var container = new StyletIoCContainer();
             container.AddRegistration(new TypeKey(typeof(IContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
-            container.AddRegistration(new TypeKey(typeof(StyletIoCContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
+            //container.AddRegistration(new TypeKey(typeof(StyletIoCContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
 
             // For each TypeKey, we remove any weak bindings if there are any strong bindings
             var groups = this.bindings.GroupBy(x =>  new { Key = x.Key, Type = x.ServiceType });

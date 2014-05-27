@@ -1,0 +1,14 @@
+﻿<Window x:Class="Stylet.Samples.ModelValidation.Pages.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:s="https://github.com/canton7/Stylet"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:Stylet.Samples.ModelValidation.Pages"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance local:ShellViewModel, IsDesignTimeCreatable=True}"
+        Title="ShellView" Height="300" Width="700">
+    <Grid>
+        <ContentControl s:View.Model="{Binding ActiveItem}"/>
+    </Grid>
+</Window>

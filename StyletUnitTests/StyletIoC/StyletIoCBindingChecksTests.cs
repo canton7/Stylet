@@ -21,12 +21,13 @@ namespace StyletUnitTests
         class C6<T> : I6<T> { }
         interface I7<T, U> { }
         class C7<T, U> { }
+        class C8 : I6<int> { }
 
         [Test]
         public void ThrowsIfTypeDoesNotImplementService()
         {
             var builder = new StyletIoCBuilder();
-            Assert.Throws<StyletIoCRegistrationException>(() =>builder.Bind<I1>().To<C2>());
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind<I1>().To<C2>());
         }
 
         [Test]
@@ -38,17 +39,17 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void ThrowsIfImplementationIsSingletonUnboundGeneric()
-        {
-            var builder = new StyletIoCBuilder();
-            Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind<I1>().To(typeof(C5<>)).InSingletonScope());
-        }
-
-        [Test]
         public void ThrowsIfUnboundGenericServiceBoundToNormalImplementation()
         {
             var builder = new StyletIoCBuilder();
             Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I6<>)).To<C6<int>>());
+        }
+
+        [Test]
+        public void ThrowsINonGenericServiceBoundToNormalImplementation()
+        {
+            var builder = new StyletIoCBuilder();
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I6<>)).To<C8>());
         }
 
         [Test]
@@ -64,6 +65,13 @@ namespace StyletUnitTests
             var builder = new StyletIoCBuilder();
             Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I6<>)).To(typeof(C7<,>)));
             Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I7<,>)).To(typeof(C6<>)));
+        }
+
+        [Test]
+        public void ThrowsIfFactoryBoundToUnboundGeneric()
+        {
+            var builder = new StyletIoCBuilder();
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I6<>)).ToFactory(x => new C6<int>()));
         }
     }
 }

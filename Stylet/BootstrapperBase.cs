@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Stylet.Xaml;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -21,31 +23,47 @@ namespace Stylet
         /// </summary>
         protected Application Application { get; private set; }
 
-        public BootstrapperBase()
+        /// <summary>
+        /// Create a new BootstrapperBase, which automatically start
+        /// </summary>
+        public BootstrapperBase() : this(true) { }
+
+        /// <summary>
+        /// Create a new BootstrapperBase, and specify whether to auto-start
+        /// </summary>
+        /// <param name="autoStart">True to call this.Start() at the end of this constructor</param>
+        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "We give the user the option to not call the virtual method, and call it themselves, if they want/need to")]
+        public BootstrapperBase(bool autoStart)
+        {
+            this.Application = Application.Current;
+
+            // Allows for unit testing
+            if (this.Application != null)
+            {
+                this.Application.Startup += this.OnStartup;
+
+                // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
+                this.Application.Exit += OnExit;
+                this.Application.DispatcherUnhandledException += OnUnhandledExecption;
+            }
+
+            if (autoStart)
+                this.Start();
+        }
+
+        /// <summary>
+        /// Called from the constructor, this does everything necessary to start the application
+        /// </summary>
+        /// <param name="autoLaunch">True to automatically launch the main window</param>
+        protected virtual void Start(bool autoLaunch = true)
         {
             // Stitch the IoC shell to us
             IoC.GetInstance = this.GetInstance;
             IoC.GetAllInstances = this.GetAllInstances;
             IoC.BuildUp = this.BuildUp;
 
-            this.Application = Application.Current;
-
-            // Call this before calling our Start method
-            this.Application.Startup += this.OnStartup;
-            this.Application.Startup += (o, e) => this.Start();
-
-            // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
-            this.Application.Exit += OnExit;
-            this.Application.DispatcherUnhandledException += OnUnhandledExecption;
-        }
-
-        /// <summary>
-        /// Called from the constructor, this does everything necessary to start the application
-        /// </summary>
-        protected virtual void Start()
-        {
             // Use the current SynchronizationContext for the Execute helper
-            Execute.SynchronizationContext = SynchronizationContext.Current;
+            Execute.Dispatcher = new DispatcherWrapper(Dispatcher.CurrentDispatcher);
 
             // Add the current assembly to the assemblies list - this will be needed by the IViewManager
             // However it must be done *after* the SynchronizationContext has been set, or we'll try to raise a PropertyChanged notification and fail
@@ -55,13 +73,30 @@ namespace Stylet
             this.ConfigureResources();
             this.Configure();
 
+            View.ViewManager = IoC.Get<IViewManager>();
+
+            if (autoLaunch && !Execute.InDesignMode)
+                this.Launch();
+        }
+
+        /// <summary>
+        /// Launch the root view
+        /// </summary>
+        protected virtual void Launch()
+        {
             IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
         }
 
+        /// <summary>
+        /// Add any application resources to the application. Override to add your own, or to avoid Stylet's default resources from being added
+        /// </summary>
         protected virtual void ConfigureResources()
         {
+            if (this.Application == null)
+                return;
+
             var rc = new ResourceDictionary() { Source = new Uri("pack://application:,,,/Stylet;component/Xaml/StyletResourceDictionary.xaml", UriKind.Absolute) };
-            Application.Resources.MergedDictionaries.Add(rc);
+            this.Application.Resources.MergedDictionaries.Add(rc);
         }
 
         /// <summary>
@@ -94,9 +129,9 @@ namespace Stylet
         /// Initial contents of AssemblySource.Assemblies, defaults to the entry assembly
         /// </summary>
         /// <returns></returns>
-        protected IEnumerable<Assembly> SelectAssemblies()
+        protected virtual IEnumerable<Assembly> SelectAssemblies()
         {
-            return new[] { Assembly.GetEntryAssembly() };
+            return new[] { typeof(BootstrapperBase<>).Assembly, this.GetType().Assembly };
         }
 
         /// <summary>
@@ -109,7 +144,7 @@ namespace Stylet
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnExit(object sender, EventArgs e) { }
+        protected virtual void OnExit(object sender, ExitEventArgs e) { }
 
         /// <summary>
         /// Hook called on an unhandled exception

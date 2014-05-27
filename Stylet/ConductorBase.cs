@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,10 @@ namespace Stylet
     /// <typeparam name="T">Type of item to be conducted</typeparam>
     public abstract class ConductorBase<T> : Screen, IConductor<T>, IParent<T>, IChildDelegate where T : class
     {
+        /// <summary>
+        /// Retrieves the Item or Items associated with this Conductor
+        /// </summary>
+        /// <returns>Item or Items associated with this Conductor</returns>
         public abstract IEnumerable<T> GetChildren();
 
         /// <summary>
@@ -27,7 +32,7 @@ namespace Stylet
         public abstract void DeactivateItem(T item);
 
         /// <summary>
-        /// Deactivate the given item
+        /// Close the given item
         /// </summary>
         /// <param name="item">Item to deactivate</param>
         public abstract void CloseItem(T item);
@@ -35,13 +40,13 @@ namespace Stylet
         /// <summary>
         /// Ensure an item is ready to be activated
         /// </summary>
-        protected virtual T EnsureItem(T newItem)
+        protected virtual void EnsureItem(T newItem)
         {
+            Debug.Assert(newItem != null);
+
             var newItemAsChild = newItem as IChild;
             if (newItemAsChild != null && newItemAsChild.Parent != this)
                 newItemAsChild.Parent = this;
-
-            return newItem;
         }
 
         /// <summary>

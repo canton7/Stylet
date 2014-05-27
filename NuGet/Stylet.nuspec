@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>Stylet</id>
-    <version>0.9.6</version>
+    <version>0.9.7</version>
     <title>Stylet</title>
     <authors>Antony Male</authors>
     <owners>Antony Male</owners>
@@ -18,6 +18,7 @@
   <files>
     <file src="..\Stylet\bin\Release\Stylet.dll" target="lib\net45"/>
     <file src="..\Stylet\bin\Release\Stylet.pdb" target="lib\net45"/>
+    <file src="..\Stylet\bin\Release\Stylet.xml" target="lib\net45"/>
     <file src="..\Stylet\**\*.cs" target="src"/>
     <file src="tools\**.*" target="tools"/>
     <file src="content\**.*" target="content"/>

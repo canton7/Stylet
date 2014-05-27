@@ -3,7 +3,9 @@ using NUnit.Framework;
 using Stylet;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +17,20 @@ namespace StyletUnitTests
     {
         private class MyScreen : Screen
         {
+            public IModelValidator Validator
+            {
+                get { return base.validator; }
+                set { base.validator = value; }
+            }
+
+            public IWeakEventManager WeakEventManager
+            {
+                get { return base.weakEventManager; }
+            }
+
+            public MyScreen() { }
+            public MyScreen(IModelValidator validator) : base(validator) { }
+
             public bool OnActivateCalled;
             protected override void OnActivate()
             {
@@ -43,6 +59,21 @@ namespace StyletUnitTests
             protected override void OnViewLoaded()
             {
                 this.OnViewLoadedCalled = true;
+            }
+        }
+
+        private class WeakEventScreen : Screen
+        {
+            public IWeakEventManager WeakEventManager;
+            protected override IWeakEventManager weakEventManager
+            {
+                get { return this.WeakEventManager; }
+            }
+
+            public new IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
+                where TSource : class, INotifyPropertyChanged
+            {
+                return base.BindWeak(source, selector, handler);
             }
         }
 
@@ -239,6 +270,37 @@ namespace StyletUnitTests
             screen.Parent = parent.Object;
             this.screen.TryClose(true);
             parent.Verify(x => x.CloseItem(this.screen, true));
+        }
+
+        [Test]
+        public void PassesValidatorAdapter()
+        {
+            var adapter = new Mock<IModelValidator>();
+            var screen = new MyScreen(adapter.Object);
+            Assert.AreEqual(adapter.Object, screen.Validator);
+        }
+
+        [Test]
+        public void WeakEventManagerReturnsConsistentObject()
+        {
+            var w1 = screen.WeakEventManager;
+            var w2 = screen.WeakEventManager;
+            Assert.AreEqual(w1, w2);
+        }
+
+        [Test]
+        public void BindWeakProxies()
+        {
+            var s = new WeakEventScreen();
+            var m = new Mock<IWeakEventManager>();
+            s.WeakEventManager = m.Object;
+
+            var source = new LabelledValue<int>("test", 5);
+            Expression<Func<LabelledValue<int>, int>> selector = x => x.Value;
+            Action<int> handler = x => { };
+            s.BindWeak(source, selector, handler);
+
+            m.Verify(x => x.BindWeak(source, selector, handler));
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Stylet
+namespace Stylet.Xaml
 {
     /// <summary>
     /// Created by ActionExtension, this can return a delegate suitable adding binding to an event, and can call a method on the View.ActionTarget
@@ -36,7 +36,7 @@ namespace Stylet
 
         private object target;
 
-        private ActionUnavailableBehaviour nullTargetBehaviour;
+        private ActionUnavailableBehaviour targetNullBehaviour;
         private ActionUnavailableBehaviour actionNonExistentBehaviour;
 
         /// <summary>
@@ -45,9 +45,11 @@ namespace Stylet
         /// <param name="subject">View whose View.ActionTarget we watch</param>
         /// <param name="targetProperty">Property on the WPF element we're returning a delegate for</param>
         /// <param name="methodName">The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired</param>
-        public EventAction(DependencyObject subject, EventInfo targetProperty, string methodName, ActionUnavailableBehaviour nullTargetBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+        /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
+        /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
+        public EventAction(DependencyObject subject, EventInfo targetProperty, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
         {
-            if (nullTargetBehaviour == ActionUnavailableBehaviour.Disable)
+            if (targetNullBehaviour == ActionUnavailableBehaviour.Disable)
                 throw new ArgumentException("Setting NullTarget = Disable is unsupported when used on an Event");
             if (actionNonExistentBehaviour == ActionUnavailableBehaviour.Disable)
                 throw new ArgumentException("Setting ActionNotFound = Disable is unsupported when used on an Event");
@@ -55,8 +57,10 @@ namespace Stylet
             this.subject = subject;
             this.targetProperty = targetProperty;
             this.methodName = methodName;
-            this.nullTargetBehaviour = nullTargetBehaviour;
+            this.targetNullBehaviour = targetNullBehaviour;
             this.actionNonExistentBehaviour = actionNonExistentBehaviour;
+
+            this.UpdateMethod();
 
             // Observe the View.ActionTarget for changes, and re-bind the guard property and MethodInfo if it changes
             DependencyPropertyDescriptor.FromProperty(View.ActionTargetProperty, typeof(View)).AddValueChanged(this.subject, (o, e) => this.UpdateMethod());
@@ -69,8 +73,8 @@ namespace Stylet
 
             if (newTarget == null)
             {
-                if (this.nullTargetBehaviour == ActionUnavailableBehaviour.Throw)
-                    throw new Exception(String.Format("Method {0} has a target set which is null", this.methodName));
+                if (this.targetNullBehaviour == ActionUnavailableBehaviour.Throw)
+                    throw new ArgumentException(String.Format("Method {0} has a target set which is null", this.methodName));
             }
             else
             {
@@ -96,12 +100,9 @@ namespace Stylet
         /// <summary>
         /// Return a delegate which can be added to the targetProperty
         /// </summary>
-        public Delegate GetDelegate()
+        public RoutedEventHandler GetDelegate()
         {
-            var methodInfo = this.GetType().GetMethod("InvokeCommand", BindingFlags.NonPublic | BindingFlags.Instance);
-
-            var parameterType = this.targetProperty.EventHandlerType;
-            return Delegate.CreateDelegate(parameterType, this, methodInfo);
+            return new RoutedEventHandler(this.InvokeCommand);
         }
 
         private void InvokeCommand(object sender, RoutedEventArgs e)

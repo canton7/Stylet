@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace StyletIoC
 
     internal class SingleRegistration : IRegistrationCollection
     {
-        private IRegistration registration;
+        private readonly IRegistration registration;
 
         public SingleRegistration(IRegistration registration)
         {
@@ -34,13 +35,16 @@ namespace StyletIoC
 
         public IRegistrationCollection AddRegistration(IRegistration registration)
         {
+            if (this.registration.Type == registration.Type)
+                throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.Description()));
             return new RegistrationCollection(new List<IRegistration>() { this.registration, registration });
         }
     }
 
     internal class RegistrationCollection : IRegistrationCollection
     {
-        private List<IRegistration> registrations;
+        private readonly object registrationsLock = new object();
+        private readonly List<IRegistration> registrations;
 
         public RegistrationCollection(List<IRegistration> registrations)
         {
@@ -55,18 +59,17 @@ namespace StyletIoC
         public List<IRegistration> GetAll()
         {
             List<IRegistration> registrationsCopy;
-            lock (this.registrations) { registrationsCopy = registrations.ToList(); }
+            lock (this.registrationsLock) { registrationsCopy = registrations.ToList(); }
             return registrationsCopy;
         }
 
         public IRegistrationCollection AddRegistration(IRegistration registration)
         {
             // Need to lock the list, as someone might be fetching from it while we do this
-            lock (this.registrations)
+            lock (this.registrationsLock)
             {
-                // Is there an existing registration for this type?
-                if (this.registrations.Any(x => x.Type == registration.Type))
-                    throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.Name));
+                // Should have been caught by SingleRegistration.AddRegistration
+                Debug.Assert(!this.registrations.Any(x => x.Type == registration.Type));
                 this.registrations.Add(registration);
                 return this;
             }
