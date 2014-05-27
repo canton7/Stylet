@@ -1,6 +1,11 @@
 Stylet Changelog
 ================
 
+v0.9.8
+------
+
+ - Fix bug with symbols package
+
 v0.9.7
 ------
 
