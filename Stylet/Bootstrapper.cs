@@ -16,14 +16,14 @@ namespace Stylet
     public class Bootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
     {
         /// <summary>
-        /// Create a new Bootstrapper, which automatically starts and launches
+        /// Create a new Bootstrapper, which automatically starts and launches on application startup
         /// </summary>
         public Bootstrapper() : base() { }
 
         /// <summary>
-        /// Create a new Bootstrapper, and specify whether to auto-start and auto-launhc
+        /// Create a new Bootstrapper, and specify whether to auto-start and auto-launch
         /// </summary>
-        /// <param name="autoStart">True to call this.Start() at the end of this constructor</param>
+        /// <param name="autoStart">True to call this.Start() on Application.Startup. If false, call this.Start() in your OnStartup override</param>
         public Bootstrapper(bool autoStart) : base(autoStart) { }
 
         /// <summary>

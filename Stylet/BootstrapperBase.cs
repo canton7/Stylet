@@ -24,7 +24,7 @@ namespace Stylet
         protected Application Application { get; private set; }
 
         /// <summary>
-        /// Create a new BootstrapperBase, which automatically start
+        /// Create a new BootstrapperBase, which automatically starts on application startup
         /// </summary>
         public BootstrapperBase() : this(true) { }
 
@@ -40,15 +40,17 @@ namespace Stylet
             // Allows for unit testing
             if (this.Application != null)
             {
-                this.Application.Startup += this.OnStartup;
+                this.Application.Startup += (o, e) =>
+                {
+                    this.OnStartup(o, e);
+                    if (autoStart)
+                        this.Start();
+                };
 
                 // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
                 this.Application.Exit += OnExit;
                 this.Application.DispatcherUnhandledException += OnUnhandledExecption;
             }
-
-            if (autoStart)
-                this.Start();
         }
 
         /// <summary>
