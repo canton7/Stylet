@@ -1,6 +1,11 @@
 Stylet Changelog
 ================
 
+v0.9.9
+------
+
+ - Fix bug where Stylet would launch before resources were loaded
+
 v0.9.8
 ------
 
