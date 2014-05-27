@@ -1,6 +1,15 @@
 Stylet Changelog
 ================
 
+v0.9.7
+------
+
+ - Add ValidatingModelBase
+ - Increase code coverage to > 99%
+ - Add MessageBox implementation
+ - Generate XML documentation
+ - Misc tweaks and fixes
+
 v0.9.6
 ------
 
