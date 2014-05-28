@@ -1,5 +1,5 @@
-StyletIoC
-=========
+Stylet
+======
 
 Introduction
 ------------
