@@ -20,7 +20,7 @@ namespace Stylet.Samples.RedditBrowser.Pages
             this.posts = posts;
             this.postCommentsViewModelFactory = postCommentsViewModelFactory;
 
-            this.posts.PostCommentsOpened += (o, e) => this.OpenPostCommands(e.PostId36);
+            this.posts.PostCommentsOpened += (o, e) => this.OpenPostComments(e.PostId36);
             this.posts.Closed += (o, e) => this.TryClose();
         }
 
@@ -33,7 +33,7 @@ namespace Stylet.Samples.RedditBrowser.Pages
             this.ActivateItem(this.posts);
         }
 
-        private void OpenPostCommands(string postId36)
+        private void OpenPostComments(string postId36)
         {
             var item = this.postCommentsViewModelFactory.CreatePostCommentsViewModel();
             item.PostId36 = postId36;
