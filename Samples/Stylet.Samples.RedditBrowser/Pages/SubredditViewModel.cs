@@ -21,7 +21,6 @@ namespace Stylet.Samples.RedditBrowser.Pages
             this.postCommentsViewModelFactory = postCommentsViewModelFactory;
 
             this.posts.PostCommentsOpened += (o, e) => this.OpenPostComments(e.PostId36);
-            this.posts.Closed += (o, e) => this.TryClose();
         }
 
         protected override void OnInitialActivate()
@@ -38,6 +37,15 @@ namespace Stylet.Samples.RedditBrowser.Pages
             var item = this.postCommentsViewModelFactory.CreatePostCommentsViewModel();
             item.PostId36 = postId36;
             this.ActivateItem(item);
+        }
+
+        protected override void ChangeActiveItem(IScreen newItem, bool closePrevious)
+        {
+            base.ChangeActiveItem(newItem, closePrevious);
+
+            // If we're setting the ActiveItem to null, that means everything's been closed - close ourselves
+            if (newItem == null)
+                this.TryClose();
         }
     }
 
