@@ -48,9 +48,12 @@ I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so
 
 In Visual Studio, go to Debug -> Options and Settings, and make the following changes:
 
- - Under General, turn **off** "Enable Just My Code"
- - Under General, turn **on** "Enable source server support". You may have to Ok a security warning.
- - Under Symbols, add "http://srv.symbolsource.org/pdb/Public" to the list. 
+ 1. In General
+   1. Turn **off** "Enable Just My Code"
+   2. Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
+   3. Turn **on** "Enable source server support". You may have to OK a security warning.
+ 2. In Symbols
+   1. Add "http://srv.symbolsource.org/pdb/Public" to the list. 
 
 ### Source
 
