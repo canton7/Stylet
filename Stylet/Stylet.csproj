@@ -55,6 +55,7 @@
     <Compile Include="LambdaComparer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LambdaEqualityComparer.cs" />
     <Compile Include="MessageBox.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
     <Compile Include="ValidatingModelBase.cs" />
