@@ -62,8 +62,7 @@ namespace Stylet.Xaml
                 result = (bool)value;
             else if (value is IEnumerable)
                 result = ((IEnumerable)value).GetEnumerator().MoveNext();
-            else if (value.Equals(0) || value.Equals(0u) || value.Equals(0L) || value.Equals(0uL) ||
-                value.Equals(0.0f) || value.Equals(0.0) || value.Equals(0m))
+            else if (value.Equals(System.Convert.ChangeType((object)0, value.GetType())))
                 result = false;
             else
                 result = true; // Not null, didn't meet any other falsy behaviour
