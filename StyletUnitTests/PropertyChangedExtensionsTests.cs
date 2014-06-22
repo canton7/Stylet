@@ -40,16 +40,17 @@ namespace StyletUnitTests
             public IEventBinding BindStrong(NotifyingClass notifying)
             {
                 // Must make sure the compiler doesn't generate an inner class for this, otherwise we're not testing the right thing
-                return notifying.Bind(x => x.Foo, x => this.LastFoo = x);
+                return notifying.Bind(x => x.Foo, (o, e) => this.LastFoo = e.NewValue);
             }
 
             public IEventBinding BindWeak(NotifyingClass notifying)
             {
-                return notifying.BindWeak(x => x.Foo, x => this.LastFoo = x);
+                return notifying.BindWeak(x => x.Foo, (o, e) => this.LastFoo = e.NewValue);
             }
         }
 
         private string newVal;
+        private object sender;
 
         [TestFixtureSetUp]
         public void SetUpFixture()
@@ -61,6 +62,7 @@ namespace StyletUnitTests
         public void SetUp()
         {
             this.newVal = null;
+            this.sender = null;
         }
 
         [Test]
@@ -68,7 +70,7 @@ namespace StyletUnitTests
         {
             string newVal = null;
             var c1 = new NotifyingClass();
-            c1.Bind(x => x.Foo, x => newVal = x);
+            c1.Bind(x => x.Foo, (o, e) => newVal = e.NewValue);
             c1.Foo = "bar";
 
             Assert.AreEqual("bar", newVal);
@@ -79,7 +81,7 @@ namespace StyletUnitTests
         {
             string newVal = null;
             var c1 = new NotifyingClass();
-            c1.Bind(x => x.Bar, x => newVal = x);
+            c1.Bind(x => x.Bar, (o, e) => newVal = e.NewValue);
             c1.Foo = "bar";
 
             Assert.AreEqual(null, newVal);
@@ -91,7 +93,7 @@ namespace StyletUnitTests
             string newVal = null;
             var c1 = new NotifyingClass();
             c1.Bar = "bar";
-            c1.Bind(x => x.Bar, x => newVal = x);
+            c1.Bind(x => x.Bar, (o, e) => newVal = e.NewValue);
             c1.NotifyAll();
 
             Assert.AreEqual("bar", newVal);
@@ -113,11 +115,21 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void StrongBindingPassesTarget()
+        {
+            var c1 = new NotifyingClass();
+            object sender = null;
+            c1.Bind(x => x.Foo, (o, e) => sender = o);
+            c1.Foo = "foo";
+            Assert.AreEqual(c1, sender);
+        }
+
+        [Test]
         public void StrongBindingUnbinds()
         {
             string newVal = null;
             var c1 = new NotifyingClass();
-            var binding = c1.Bind(x => x.Bar, x => newVal = x);
+            var binding = c1.Bind(x => x.Bar, (o, e) => newVal = e.NewValue);
             binding.Unbind();
             c1.Bar = "bar";
 
@@ -128,7 +140,7 @@ namespace StyletUnitTests
         public void WeakBindingBinds()
         {
             var c1 = new NotifyingClass();
-            c1.BindWeak(x => x.Foo, x => this.newVal = x);
+            c1.BindWeak(x => x.Foo, (o, e) => this.newVal = e.NewValue);
             c1.Foo = "bar";
 
             Assert.AreEqual("bar", this.newVal);
@@ -138,7 +150,7 @@ namespace StyletUnitTests
         public void WeakBindingIgnoresOtherProperties()
         {
             var c1 = new NotifyingClass();
-            c1.BindWeak(x => x.Bar, x => this.newVal = x);
+            c1.BindWeak(x => x.Bar, (o, e) => this.newVal = e.NewValue);
             c1.Foo = "bar";
 
             Assert.IsNull(this.newVal);
@@ -149,7 +161,7 @@ namespace StyletUnitTests
         {
             var c1 = new NotifyingClass();
             c1.Bar = "bar";
-            c1.BindWeak(x => x.Bar, x => this.newVal = x);
+            c1.BindWeak(x => x.Bar, (o, e) => this.newVal = e.NewValue);
             c1.NotifyAll();
 
             Assert.AreEqual("bar", this.newVal);
@@ -165,6 +177,8 @@ namespace StyletUnitTests
 
             var notifying = new NotifyingClass();
             binding.BindWeak(notifying);
+
+            
 
             binding = null;
             GC.Collect();
@@ -190,7 +204,7 @@ namespace StyletUnitTests
         public void WeakBindingUnbinds()
         {
             var c1 = new NotifyingClass();
-            var binding = c1.BindWeak(x => x.Bar, x => this.newVal = x);
+            var binding = c1.BindWeak(x => x.Bar, (o, e) => this.newVal = e.NewValue);
             binding.Unbind();
             c1.Bar = "bar";
 
@@ -198,11 +212,20 @@ namespace StyletUnitTests
         }
         
         [Test]
+        public void BindWeakPassesSender()
+        {
+            var c1 = new NotifyingClass();
+            c1.BindWeak(x => x.Foo, (o, e) => this.sender = o);
+            c1.Foo = "foo";
+            Assert.AreEqual(c1, this.sender);
+        }
+
+        [Test]
         public void BindWeakThrowsIfTargetIsCompilerGenerated()
         {
             var c1 = new NotifyingClass();
             string newVal = null;
-            Assert.Throws<InvalidOperationException>(() => c1.BindWeak(x => x.Foo, x => newVal = x));
+            Assert.Throws<InvalidOperationException>(() => c1.BindWeak(x => x.Foo, (o, e) => newVal = e.NewValue));
         }
     }
 }
