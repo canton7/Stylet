@@ -30,38 +30,6 @@ namespace Stylet
             this.DisplayName = this.GetType().FullName;
         }
 
-        #region WeakEventManager
-
-        private IWeakEventManager _weakEventManager;
-        /// <summary>
-        /// WeakEventManager owned by this screen (lazy)
-        /// </summary>
-        protected virtual IWeakEventManager weakEventManager
-        {
-            get
-            {
-                if (this._weakEventManager == null)
-                    this._weakEventManager = new WeakEventManager();
-                return this._weakEventManager;
-            }
-        }
-
-        /// <summary>
-        /// Proxy around this.weakEventManager.BindWeak. Binds to an INotifyPropertyChanged source, in a way which doesn't cause us to be retained
-        /// </summary>
-        /// <example>this.BindWeak(objectToBindTo, x => x.PropertyToBindTo, newValue => handlerForNewValue)</example>
-        /// <param name="source">Object to observe for PropertyChanged events</param>
-        /// <param name="selector">Expression for selecting the property to observe, e.g. x => x.PropertyName</param>
-        /// <param name="handler">Handler to be called when that property changes</param>
-        /// <returns>A resource which can be used to undo the binding</returns>
-        protected virtual IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
-            where TSource : class, INotifyPropertyChanged
-        {
-            return this.weakEventManager.BindWeak(source, selector, handler);
-        }
-
-        #endregion
-
         #region IHaveDisplayName
 
         private string _displayName;

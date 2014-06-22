@@ -59,7 +59,6 @@
     <Compile Include="MessageBox.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
     <Compile Include="ValidatingModelBase.cs" />
-    <Compile Include="WeakEventManager.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />
     <Compile Include="BindableCollection.cs" />

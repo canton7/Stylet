@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace Stylet
 {
@@ -46,6 +48,60 @@ namespace Stylet
             }
         }
 
+        internal class WeakPropertyChangedHandler<TSource, TProperty> : IEventBinding where TSource : class, INotifyPropertyChanged
+        {
+            private readonly WeakReference<TSource> source;
+            private Action<TProperty> handler;
+            private string propertyName;
+            private Func<TSource, TProperty> valueSelector;
+
+            public WeakPropertyChangedHandler(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
+            {
+                // We keep a strong reference to the handler, and have the PropertyChangedEventManager keep a weak
+                // reference to us. This means that anyone retaining us will also retain the handler.
+
+                this.source = new WeakReference<TSource>(source);
+                this.handler = handler;
+                this.propertyName = selector.NameForProperty();
+                this.valueSelector = selector.Compile();
+
+                PropertyChangedEventManager.AddHandler(source, this.PropertyChangedHandler, this.propertyName);
+            }
+
+            private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+            {
+                TSource source;
+                var got = this.source.TryGetTarget(out source);
+                // We should never hit this case. The PropertyChangedeventManager shouldn't call us if the source became null
+                Debug.Assert(got);
+                this.handler(this.valueSelector(source));
+            }
+
+            public void Unbind()
+            {
+                TSource source;
+                if (this.source.TryGetTarget(out source))
+                    PropertyChangedEventManager.RemoveHandler(source, this.PropertyChangedHandler, this.propertyName);
+            }
+        }
+
+        internal class WeakPropertyChangedBinding : IEventBinding
+        {
+            private WeakReference<IEventBinding> wrappedBinding;
+
+            public WeakPropertyChangedBinding(IEventBinding wrappedBinding)
+            {
+                this.wrappedBinding = new WeakReference<IEventBinding>(wrappedBinding);
+            }
+
+            public void Unbind()
+            {
+                IEventBinding wrappedBinding;
+                if (this.wrappedBinding.TryGetTarget(out wrappedBinding))
+                    wrappedBinding.Unbind();
+            }
+        }
+
         /// <summary>
         /// Strongly bind to PropertyChanged events for a particular property on a particular object
         /// </summary>
@@ -77,6 +133,16 @@ namespace Stylet
             var listener = new StrongPropertyChangedBinding(target, ourHandler);
 
             return listener;
+        }
+
+        public static IEventBinding BindWeak<TBindTo, TMember>(this TBindTo target, Expression<Func<TBindTo, TMember>> targetSelector, Action<TMember> handler) where TBindTo : class, INotifyPropertyChanged
+        {
+            var attribute = handler.Target.GetType().GetCustomAttribute<CompilerGeneratedAttribute>();
+            if (attribute != null)
+                throw new InvalidOperationException("Handler passed to BindWeak refers to a compiler-generated class. You may not capture local variables in the handler");
+
+            var binding = new WeakPropertyChangedHandler<TBindTo, TMember>(target, targetSelector, handler);
+            return new WeakPropertyChangedBinding(binding);
         }
     }
 }
