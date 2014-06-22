@@ -99,7 +99,7 @@
     <Compile Include="WindowManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="MessageBoxView.xaml">
+    <Page Include="Xaml\MessageBoxView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
