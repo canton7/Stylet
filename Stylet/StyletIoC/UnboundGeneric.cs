@@ -6,21 +6,18 @@ namespace StyletIoC
     {
         private StyletIoCContainer container;
         public Type Type { get; private set; }
-        public bool IsSingleton { get; private set; }
+        public Func<ICreator, IRegistration> RegistrationFactory { get; private set; }
 
-        public UnboundGeneric(Type type, StyletIoCContainer container, bool isSingleton)
+        public UnboundGeneric(Type type, StyletIoCContainer container, Func<ICreator, IRegistration> registrationFactory)
         {
             this.Type = type;
             this.container = container;
-            this.IsSingleton = isSingleton;
+            this.RegistrationFactory = registrationFactory;
         }
 
         public IRegistration CreateRegistrationForType(Type boundType)
         {
-            if (this.IsSingleton)
-                return new SingletonRegistration(new TypeCreator(boundType, this.container));
-            else
-                return new TransientRegistration(new TypeCreator(boundType, this.container));
+            return this.RegistrationFactory(new TypeCreator(boundType, this.container));
         }
     }
 }
