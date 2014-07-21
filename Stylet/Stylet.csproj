@@ -58,6 +58,10 @@
     <Compile Include="LambdaEqualityComparer.cs" />
     <Compile Include="MessageBox.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
+    <Compile Include="StyletIoC\IInjectionAware.cs" />
+    <Compile Include="StyletIoC\InjectAttribute.cs" />
+    <Compile Include="StyletIoC\StyletIoCException.cs" />
+    <Compile Include="StyletIoC\TypeExtensions.cs" />
     <Compile Include="ValidatingModelBase.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />
