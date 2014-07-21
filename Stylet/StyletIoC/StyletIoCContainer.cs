@@ -583,13 +583,18 @@ namespace StyletIoC
 
         private static readonly Dictionary<Type, string> primitiveNameMapping = new Dictionary<Type, string>()
         {
+            { typeof(byte), "byte" },
+            { typeof(sbyte), "sbyte" },
+            { typeof(char), "char" },
+            { typeof(short), "short" },
+            { typeof(ushort), "ushort" },
             { typeof(int), "int" },
             { typeof(uint), "uint" },
             { typeof(long), "long" },
             { typeof(ulong), "ulong" },
-            { typeof(byte), "byte" },
             { typeof(float), "float" },
             { typeof(double), "double" },
+            { typeof(decimal), "decimal" },
             { typeof(bool), "bool" },
         };
 
@@ -599,11 +604,13 @@ namespace StyletIoC
                 return String.Format("{0}<{1}>", type.Name.Split('`')[0], String.Join(", ", type.GetTypeInfo().GenericTypeParameters.Select(x => x.Name)));
             var genericArguments = type.GetGenericArguments();
             if (genericArguments.Length > 0)
+            {
                 return String.Format("{0}<{1}>", type.Name.Split('`')[0], String.Join(", ", genericArguments.Select(x =>
                     {
                         string name;
                         return primitiveNameMapping.TryGetValue(x, out name) ? name : x.Name;
                     })));
+            }
             return type.Name;
         }
     }
