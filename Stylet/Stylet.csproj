@@ -58,6 +58,7 @@
     <Compile Include="LambdaEqualityComparer.cs" />
     <Compile Include="MessageBox.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
+    <Compile Include="StyletIoC\IContainer.cs" />
     <Compile Include="StyletIoC\IInjectionAware.cs" />
     <Compile Include="StyletIoC\InjectAttribute.cs" />
     <Compile Include="StyletIoC\StyletIoCException.cs" />
