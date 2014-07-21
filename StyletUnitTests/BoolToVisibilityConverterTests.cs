@@ -130,6 +130,12 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void ConvertTreatsRandomObjectAsTrue()
+        {
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(typeof(int), null, null, null));
+        }
+
+        [Test]
         public void ConvertBackThrowsIfTargetTypeIsNotBool()
         {
             Assert.Throws<ArgumentException>(() => this.converter.ConvertBack(null, null, null, null));
