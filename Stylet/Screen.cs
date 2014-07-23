@@ -158,7 +158,7 @@ namespace Stylet
         void IViewAware.AttachView(UIElement view)
         {
             if (this.View != null)
-                throw new Exception(String.Format("Tried to attach View {0} to ViewModel {1}, but it already has a view attached", view.GetType().Name, this.GetType().Name));
+                throw new InvalidOperationException(String.Format("Tried to attach View {0} to ViewModel {1}, but it already has a view attached", view.GetType().Name, this.GetType().Name));
 
             this.View = view;
 

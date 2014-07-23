@@ -83,7 +83,7 @@ namespace Stylet
             // TODO: This might need some more thinking
             var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
             if (viewType == null)
-                throw new Exception(String.Format("Unable to find a View with type {0}", viewName));
+                throw new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
 
             return viewType;
         }
@@ -111,7 +111,7 @@ namespace Stylet
             var viewType = this.LocateViewForModel(model.GetType());
 
             if (viewType.IsInterface || viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
-                throw new Exception(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name));
+                throw new StyletViewLocationException(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name), viewType.Name);
 
             var view = (UIElement)IoC.GetInstance(viewType, null);
 
@@ -139,6 +139,28 @@ namespace Stylet
             var viewModelAsViewAware = viewModel as IViewAware;
             if (viewModelAsViewAware != null)
                 viewModelAsViewAware.AttachView(view);
+        }
+    }
+
+    /// <summary>
+    /// Exception raised while attempting to locate a View for a ViewModel
+    /// </summary>
+    public class StyletViewLocationException : Exception
+    {
+        /// <summary>
+        /// Name of the View in question
+        /// </summary>
+        public readonly string ViewTypeName;
+
+        /// <summary>
+        /// Create a new StyletViewLocationException
+        /// </summary>
+        /// <param name="message">Message associated with the Exception</param>
+        /// <param name="viewTypeName">Name of the View this question was thrown for</param>
+        public StyletViewLocationException(string message, string viewTypeName)
+            : base(message)
+        {
+            this.ViewTypeName = viewTypeName;
         }
     }
 }
