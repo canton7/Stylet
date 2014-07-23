@@ -38,14 +38,14 @@ namespace Stylet
             {
                 this.Application.Startup += (o, e) =>
                 {
-                    this.OnStartup(o, e);
+                    this.OnApplicationStartup(o, e);
                     if (autoStart)
                         this.Start();
                 };
 
                 // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
-                this.Application.Exit += OnExit;
-                this.Application.DispatcherUnhandledException += OnUnhandledExecption;
+                this.Application.Exit += OnApplicationExit;
+                this.Application.DispatcherUnhandledException += OnApplicationUnhandledExecption;
             }
         }
 
@@ -72,6 +72,8 @@ namespace Stylet
             this.Configure();
 
             View.ViewManager = IoC.Get<IViewManager>();
+
+            this.OnStart();
 
             if (autoLaunch && !Execute.InDesignMode)
                 this.Launch();
@@ -133,20 +135,25 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Hook called on application startup
+        /// Hook called on application startup. This occurs before Start() is called (if autoStart is true)
         /// </summary>
-        protected virtual void OnStartup(object sender, StartupEventArgs e) { }
+        protected virtual void OnApplicationStartup(object sender, StartupEventArgs e) { }
+
+        /// <summary>
+        /// Hook called when the application has started, and Stylet is fully initialised
+        /// </summary>
+        protected virtual void OnStart() { }
 
         /// <summary>
         /// Hook called on application exit
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnExit(object sender, ExitEventArgs e) { }
+        protected virtual void OnApplicationExit(object sender, ExitEventArgs e) { }
 
         /// <summary>
         /// Hook called on an unhandled exception
         /// </summary>
-        protected virtual void OnUnhandledExecption(object sender, DispatcherUnhandledExceptionEventArgs e) { }
+        protected virtual void OnApplicationUnhandledExecption(object sender, DispatcherUnhandledExceptionEventArgs e) { }
     }
 }

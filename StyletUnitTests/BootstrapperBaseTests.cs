@@ -56,7 +56,7 @@ namespace StyletUnitTests
             }
 
             public bool OnExitCalled;
-            protected override void OnExit(object sender, ExitEventArgs e)
+            protected override void OnApplicationExit(object sender, ExitEventArgs e)
             {
                 this.OnExitCalled = true;
             }

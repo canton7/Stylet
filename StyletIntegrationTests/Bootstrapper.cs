@@ -11,9 +11,9 @@ namespace StyletIntegrationTests
 {
     public class Bootstrapper : Bootstrapper<ShellViewModel>
     {
-        protected override void OnUnhandledExecption(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        protected override void OnApplicationUnhandledExecption(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            base.OnUnhandledExecption(sender, e); // Calling this just to trigger some code coverage
+            base.OnApplicationUnhandledExecption(sender, e); // Calling this just to trigger some code coverage
             var message = e.Exception.Message;
             if (e.Exception is TargetInvocationException)
                 message = e.Exception.InnerException.Message;
