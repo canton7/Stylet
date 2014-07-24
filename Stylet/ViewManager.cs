@@ -21,18 +21,11 @@ namespace Stylet
         void OnModelChanged(DependencyObject targetLocation, object oldValue, object newValue);
 
         /// <summary>
-        /// Given a ViewModel instance, locate its View type (using LocateViewForModel), instantiates and initializes it
+        /// Create a View for the given ViewModel, and bind the two together
         /// </summary>
-        /// <param name="model">ViewModel to locate and instantiate the View for</param>
-        /// <returns>Instantiated and setup view</returns>
-        UIElement CreateAndSetupViewForModel(object model);
-
-        /// <summary>
-        /// Given an instance of a ViewModel and an instance of its View, bind the two together
-        /// </summary>
-        /// <param name="view">View to bind to the ViewModel</param>
-        /// <param name="viewModel">ViewModel to bind the View to</param>
-        void BindViewToModel(UIElement view, object viewModel);
+        /// <param name="model">ViewModel to create a Veiw for</param>
+        /// <returns>Newly created View, bound to the given ViewModel</returns>
+        UIElement CreateAndBindViewForModel(object model);
     }
 
     /// <summary>
@@ -61,8 +54,7 @@ namespace Stylet
                 }
                 else
                 {
-                    view = this.CreateAndSetupViewForModel(newValue);
-                    this.BindViewToModel(view, newValue);
+                    view = this.CreateAndBindViewForModel(newValue);
                 }
 
                 View.SetContentProperty(targetLocation, view);
@@ -71,6 +63,20 @@ namespace Stylet
             {
                 View.SetContentProperty(targetLocation, null);
             }
+        }
+
+        /// <summary>
+        /// Create a View for the given ViewModel, and bind the two together
+        /// </summary>
+        /// <param name="model">ViewModel to create a Veiw for</param>
+        /// <returns>Newly created View, bound to the given ViewModel</returns>
+        public virtual UIElement CreateAndBindViewForModel(object model)
+        {
+            // Need to bind before we initialize the view
+            // Otherwise e.g. the Command bindings get evaluated (by InitializeComponent) but the ActionTarget hasn't been set yet
+            var view = this.CreateViewForModel(model);
+            this.BindViewToModel(view, model);
+            return view;
         }
 
         /// <summary>
@@ -102,11 +108,11 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Given a ViewModel instance, locate its View type (using LocateViewForModel), instantiates and initializes it, and binds it to the ViewModel (using BindViewToModel)
+        /// Given a ViewModel instance, locate its View type (using LocateViewForModel), and instantiates it
         /// </summary>
         /// <param name="model">ViewModel to locate and instantiate the View for</param>
         /// <returns>Instantiated and setup view</returns>
-        public virtual UIElement CreateAndSetupViewForModel(object model)
+        protected virtual UIElement CreateViewForModel(object model)
         {
             var viewType = this.LocateViewForModel(model.GetType());
 
@@ -123,12 +129,12 @@ namespace Stylet
             return view;
         }
 
-                /// <summary>
+        /// <summary>
         /// Given an instance of a ViewModel and an instance of its View, bind the two together
         /// </summary>
         /// <param name="view">View to bind to the ViewModel</param>
         /// <param name="viewModel">ViewModel to bind the View to</param>
-        public virtual void BindViewToModel(UIElement view, object viewModel)
+        protected virtual void BindViewToModel(UIElement view, object viewModel)
         {
             View.SetActionTarget(view, viewModel);
 

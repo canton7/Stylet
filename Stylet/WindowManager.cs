@@ -68,12 +68,10 @@ namespace Stylet
         /// <returns>Window which was created and set up</returns>
         protected virtual Window CreateWindow(object viewModel, bool isDialog)
         {
-            var view = this.viewManager.CreateAndSetupViewForModel(viewModel);
+            var view = this.viewManager.CreateAndBindViewForModel(viewModel);
             var window = view as Window;
             if (window == null)
                 throw new ArgumentException(String.Format("Tried to show {0} as a window, but it isn't a Window", view == null ? "(null)" : view.GetType().Name));
-
-            this.viewManager.BindViewToModel(window, viewModel);
 
             var haveDisplayName = viewModel as IHaveDisplayName;
             if (haveDisplayName != null && BindingOperations.GetBindingBase(window, Window.TitleProperty) == null)
