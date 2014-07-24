@@ -79,6 +79,7 @@ namespace StyletUnitTests
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
+            Execute.TestExecuteSynchronously = true;
             AssemblySource.Assemblies.Clear();
         }
 
@@ -137,7 +138,7 @@ namespace StyletUnitTests
         [Test]
         public void LocateViewForModelThrowsIfViewNotFound()
         {
-            Assert.Throws<Exception>(() => this.viewManager.LocateViewForModel(typeof(C1)));
+            Assert.Throws<StyletViewLocationException>(() => this.viewManager.LocateViewForModel(typeof(C1)));
         }
 
         [Test]
@@ -155,13 +156,13 @@ namespace StyletUnitTests
             var viewManager = new LocatingViewManager();
 
             viewManager.LocatedViewType = typeof(I1);
-            Assert.Throws<Exception>(() => viewManager.CreateAndSetupViewForModel(new object()));
+            Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndSetupViewForModel(new object()));
 
             viewManager.LocatedViewType = typeof(AC1);
-            Assert.Throws<Exception>(() => viewManager.CreateAndSetupViewForModel(new object()));
+            Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndSetupViewForModel(new object()));
 
             viewManager.LocatedViewType = typeof(C1);
-            Assert.Throws<Exception>(() => viewManager.CreateAndSetupViewForModel(new object()));
+            Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndSetupViewForModel(new object()));
         }
 
         [Test]

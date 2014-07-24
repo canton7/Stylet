@@ -201,6 +201,25 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void DoubleCloseDoesNotClose()
+        {
+            ((IClose)this.screen).Close();
+            this.screen.OnCloseCalled = false;
+            ((IClose)this.screen).Close();
+            Assert.IsFalse(this.screen.OnCloseCalled);
+        }
+
+        [Test]
+        public void ActivatingAllowsScreenToBeClosedAgain()
+        {
+            ((IClose)this.screen).Close();
+            this.screen.OnCloseCalled = false;
+            ((IActivate)this.screen).Activate();
+            ((IClose)this.screen).Close();
+            Assert.IsTrue(this.screen.OnCloseCalled);
+        }
+
+        [Test]
         public void AttachViewAttachesView()
         {
             var view = new UIElement();
@@ -213,7 +232,7 @@ namespace StyletUnitTests
         {
             var view = new UIElement();
             ((IViewAware)this.screen).AttachView(view);
-            Assert.Throws<Exception>(() => ((IViewAware)this.screen).AttachView(view));
+            Assert.Throws<InvalidOperationException>(() => ((IViewAware)this.screen).AttachView(view));
         }
 
         [Test]

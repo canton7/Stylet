@@ -65,6 +65,7 @@ namespace Stylet
                 return;
 
             this.IsActive = true;
+            this.isClosed = false;
 
             if (!this.hasBeenActivatedEver)
                 this.OnInitialActivate();
@@ -103,6 +104,7 @@ namespace Stylet
                 return;
 
             this.IsActive = false;
+            this.isClosed = false;
 
             this.OnDeactivate();
 
@@ -120,6 +122,8 @@ namespace Stylet
 
         #region IClose
 
+        private bool isClosed = false;
+
         /// <summary>
         /// Called whenever this Screen is closed
         /// </summary>
@@ -128,10 +132,14 @@ namespace Stylet
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IClose.Close()
         {
+            if (this.isClosed)
+                return;
+
             // This will early-exit if it's already deactive
             ((IDeactivate)this).Deactivate();
 
             this.View = null;
+            this.isClosed = true;
 
             this.OnClose();
 
