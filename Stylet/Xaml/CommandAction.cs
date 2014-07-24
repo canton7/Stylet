@@ -72,7 +72,14 @@ namespace Stylet.Xaml
         {
             var newTarget = View.GetActionTarget(this.Subject);
             MethodInfo targetMethodInfo = null;
-            
+
+            // If it's being set to the initial value, ignore it
+            // At this point, we're executing the View's InitializeComponent method, and the ActionTarget hasn't yet been assigned
+            // If they've opted to throw if the target is null, then this will cause that exception.
+            // We'll just wait until the ActionTarget is assigned, and we're called again
+            if (newTarget == View.InitialActionTarget)
+                return;
+
             this.guardPropertyGetter = null;
             if (newTarget == null)
             {
