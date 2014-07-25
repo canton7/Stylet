@@ -104,7 +104,10 @@ namespace Stylet
         /// <param name="message">Additional message to add to the exception</param>
         public void Error(Exception exception, string message = null)
         {
-            Debug.WriteLine(String.Format("[{2}] ERROR {0}: {1}", exception, message, this.name), "Stylet");
+            if (message == null)
+                Debug.WriteLine(String.Format("[{1}] ERROR {0}", exception, this.name), "Stylet");
+            else
+                Debug.WriteLine(String.Format("[{2}] ERROR {0} {1}", message, exception, this.name), "Stylet");
         }
     }
 
