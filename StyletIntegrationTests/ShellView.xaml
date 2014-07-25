@@ -6,7 +6,7 @@
     <DockPanel LastChildFill="False">
         <GroupBox DockPanel.Dock="Top" Header="ShowDialog and DialogResult" Padding="10">
             <StackPanel Orientation="Horizontal">
-                <Button Command="{s:Action ShowDialogAndDialogResult, NullTarget=Throw}">Show Dialog</Button>
+                <Button Command="{s:Action ShowDialogAndDialogResult}">Show Dialog</Button>
                 <TextBlock Margin="50,0,0,0">Result: </TextBlock>
                 <TextBlock Margin="10,0,0,0" Text="{Binding ShowDialogAndDialogResultDialogResult}"/>
             </StackPanel>
