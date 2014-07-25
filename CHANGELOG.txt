@@ -1,6 +1,15 @@
 Stylet Changelog
 ================
 
+v0.9.10
+-------
+
+ - Add the concept of Channels to the EventAggregator
+ - Remove the WeakEventManager (as it was too complex), and replace with an easier to use (but less powerful) implementation
+ - Simplify IViewManager
+ - Add logging to important parts of Stylet
+ - Fix bug where Actions could throw exceptions when they shouldn't
+ 
 v0.9.9
 ------
 
