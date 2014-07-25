@@ -23,11 +23,6 @@ namespace StyletUnitTests
                 set { base.validator = value; }
             }
 
-            public IWeakEventManager WeakEventManager
-            {
-                get { return base.weakEventManager; }
-            }
-
             public MyScreen() { }
             public MyScreen(IModelValidator validator) : base(validator) { }
 
@@ -59,21 +54,6 @@ namespace StyletUnitTests
             protected override void OnViewLoaded()
             {
                 this.OnViewLoadedCalled = true;
-            }
-        }
-
-        private class WeakEventScreen : Screen
-        {
-            public IWeakEventManager WeakEventManager;
-            protected override IWeakEventManager weakEventManager
-            {
-                get { return this.WeakEventManager; }
-            }
-
-            public new IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
-                where TSource : class, INotifyPropertyChanged
-            {
-                return base.BindWeak(source, selector, handler);
             }
         }
 
@@ -221,6 +201,25 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void DoubleCloseDoesNotClose()
+        {
+            ((IClose)this.screen).Close();
+            this.screen.OnCloseCalled = false;
+            ((IClose)this.screen).Close();
+            Assert.IsFalse(this.screen.OnCloseCalled);
+        }
+
+        [Test]
+        public void ActivatingAllowsScreenToBeClosedAgain()
+        {
+            ((IClose)this.screen).Close();
+            this.screen.OnCloseCalled = false;
+            ((IActivate)this.screen).Activate();
+            ((IClose)this.screen).Close();
+            Assert.IsTrue(this.screen.OnCloseCalled);
+        }
+
+        [Test]
         public void AttachViewAttachesView()
         {
             var view = new UIElement();
@@ -233,7 +232,7 @@ namespace StyletUnitTests
         {
             var view = new UIElement();
             ((IViewAware)this.screen).AttachView(view);
-            Assert.Throws<Exception>(() => ((IViewAware)this.screen).AttachView(view));
+            Assert.Throws<InvalidOperationException>(() => ((IViewAware)this.screen).AttachView(view));
         }
 
         [Test]
@@ -278,29 +277,6 @@ namespace StyletUnitTests
             var adapter = new Mock<IModelValidator>();
             var screen = new MyScreen(adapter.Object);
             Assert.AreEqual(adapter.Object, screen.Validator);
-        }
-
-        [Test]
-        public void WeakEventManagerReturnsConsistentObject()
-        {
-            var w1 = screen.WeakEventManager;
-            var w2 = screen.WeakEventManager;
-            Assert.AreEqual(w1, w2);
-        }
-
-        [Test]
-        public void BindWeakProxies()
-        {
-            var s = new WeakEventScreen();
-            var m = new Mock<IWeakEventManager>();
-            s.WeakEventManager = m.Object;
-
-            var source = new LabelledValue<int>("test", 5);
-            Expression<Func<LabelledValue<int>, int>> selector = x => x.Value;
-            Action<int> handler = x => { };
-            s.BindWeak(source, selector, handler);
-
-            m.Verify(x => x.BindWeak(source, selector, handler));
         }
     }
 }

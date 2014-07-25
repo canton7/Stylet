@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StyletIoC
 {
@@ -144,17 +142,20 @@ namespace StyletIoC
     internal abstract class BuilderBindingBase : IInScopeOrWithKey, IWithKey
     {
         protected Type serviceType;
-        protected bool isSingleton;
+        protected Func<ICreator, IRegistration> registrationFactory;
         public string Key { get; protected set; }
 
         public BuilderBindingBase(Type serviceType)
         {
             this.serviceType = serviceType;
+
+            // Default is transient
+            this.registrationFactory = creator => new TransientRegistration(creator);
         }
 
         void IInScope.InSingletonScope()
         {
-            this.isSingleton = true;
+            this.registrationFactory = creator => new SingletonRegistration(creator);
         }
 
         IInScope IInScopeOrWithKey.WithKey(string key)
@@ -199,13 +200,13 @@ namespace StyletIoC
 
             if (serviceType.IsGenericTypeDefinition)
             {
-                var unboundGeneric = new UnboundGeneric(implementationType, container, this.isSingleton);
+                var unboundGeneric = new UnboundGeneric(implementationType, container, this.registrationFactory);
                 container.AddUnboundGeneric(new TypeKey(serviceType, this.Key), unboundGeneric);
             }
             else
             {
                 var creator = new TypeCreator(implementationType, container);
-                IRegistration registration = this.isSingleton ? (IRegistration)new SingletonRegistration(creator) : (IRegistration)new TransientRegistration(creator);
+                var registration = this.registrationFactory(creator);
 
                 container.AddRegistration(new TypeKey(serviceType, this.Key ?? creator.AttributeKey), registration);
             }
@@ -250,7 +251,7 @@ namespace StyletIoC
         public override void Build(StyletIoCContainer container)
         {
             var creator = new FactoryCreator<TImplementation>(this.factory, container);
-            IRegistration registration = this.isSingleton ? (IRegistration)new SingletonRegistration(creator) : (IRegistration)new TransientRegistration(creator);
+            var registration = this.registrationFactory(creator);
 
             container.AddRegistration(new TypeKey(this.serviceType, this.Key), registration);
         }

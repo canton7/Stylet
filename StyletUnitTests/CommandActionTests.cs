@@ -40,6 +40,12 @@ namespace StyletUnitTests
             public void DoSomethingWithManyArguments(object arg1, object arg2)
             {
             }
+
+            public object CanDoSomethingWithBadGuard
+            {
+                get { return false; }
+            }
+            public void DoSomethingWithBadGuard() { }
         }
 
         private class Target2
@@ -130,6 +136,13 @@ namespace StyletUnitTests
             this.target.CanDoSomethingWithGuard = false;
             var cmd = new CommandAction(this.subject, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             Assert.False(cmd.CanExecute(null));
+        }
+
+        [Test]
+        public void IgnoresGuardIfGuardDoesNotReturnBool()
+        {
+            var cmd = new CommandAction(this.subject, "DoSomethingWithBadGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            Assert.True(cmd.CanExecute(true));
         }
 
         [Test]

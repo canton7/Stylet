@@ -34,21 +34,28 @@ namespace StyletUnitTests
             public void Handle(M1 message) { throw new Exception("Should not be called. Ever"); }
         }
 
+        private EventAggregator ea;
+
         [TestFixtureSetUp]
         public void SetUpFixture()
         {
             Execute.TestExecuteSynchronously = true;
         }
 
+        [SetUp]
+        public void SetUp()
+        {
+            this.ea = new EventAggregator();
+        }
+
         [Test]
         public void SubscribesAndDeliversExactMessage()
         {
-            var ea = new EventAggregator();
             var target = new C1();
-            ea.Subscribe(target);
+            this.ea.Subscribe(target);
 
             var message = new M1();
-            ea.Publish(message);
+            this.ea.Publish(message);
 
             Assert.AreEqual(message, target.ReceivedMessage);
         }
@@ -56,12 +63,11 @@ namespace StyletUnitTests
         [Test]
         public void DeliversToAllHandlersIncludingDerived()
         {
-            var ea = new EventAggregator();
             var target = new C2();
-            ea.Subscribe(target);
+            this.ea.Subscribe(target);
 
             var message = new M2();
-            ea.Publish(message);
+            this.ea.Publish(message);
 
             Assert.AreEqual(message, target.ReceivedM1);
             Assert.AreEqual(message, target.ReceivedM2);
@@ -70,13 +76,12 @@ namespace StyletUnitTests
         [Test]
         public void UnsubscribeUnsubscribes()
         {
-            var ea = new EventAggregator();
             var target = new C1();
-            ea.Subscribe(target);
-            ea.Unsubscribe(target);
+            this.ea.Subscribe(target);
+            this.ea.Unsubscribe(target);
 
             var message = new M1();
-            ea.Publish(message);
+            this.ea.Publish(message);
 
             Assert.IsNull(target.ReceivedMessage);
         }
@@ -84,29 +89,27 @@ namespace StyletUnitTests
         [Test]
         public void TargetReferenceIsWeak()
         {
-            var ea = new EventAggregator();
             var target = new C3();
             var weaktarget = new WeakReference(target);
-            ea.Subscribe(target);
+            this.ea.Subscribe(target);
 
             // Ugly, but it's the only way to test a WeakReference...
             target = null;
             GC.Collect();
 
-            Assert.DoesNotThrow(() => ea.Publish(new M1()));
+            Assert.DoesNotThrow(() => this.ea.Publish(new M1()));
             Assert.IsNull(weaktarget.Target);
         }
 
         [Test]
         public void SubscribingTwiceDoesNothing()
         {
-            var ea = new EventAggregator();
             var target = new C1();
-            ea.Subscribe(target);
-            ea.Subscribe(target);
+            this.ea.Subscribe(target);
+            this.ea.Subscribe(target);
 
             var message = new M1();
-            ea.Publish(message);
+            this.ea.Publish(message);
 
             Assert.AreEqual(1, target.ReceivedMessageCount);
         }
@@ -114,14 +117,128 @@ namespace StyletUnitTests
         [Test]
         public void PublishOnUIThreadPublishedOnUIThread()
         {
-            var ea = new EventAggregator();
             var target = new C1();
-            ea.Subscribe(target);
+            this.ea.Subscribe(target);
 
             var message = new M1();
-            ea.PublishOnUIThread(message);
+            this.ea.PublishOnUIThread(message);
 
             Assert.AreEqual(message, target.ReceivedMessage);
+        }
+
+        [Test]
+        public void TargetReceivesMessagesOnTopicsItIsSubscribedTo()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target, "C1", "C2");
+
+            var message = new M1();
+            this.ea.Publish(message, "C1");
+            this.ea.Publish(message, "C2");
+
+            Assert.AreEqual(2, target.ReceivedMessageCount);
+        }
+
+        [Test]
+        public void TargetDoesNotReceiveMessagesOnTopicsItIsNotSubscribedTo()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target, "C1");
+
+            var message = new M1();
+            this.ea.Publish(message, "C2");
+
+            Assert.AreEqual(0, target.ReceivedMessageCount);
+        }
+
+        [Test]
+        public void SubscribesToDefaultChannelByDefault()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target);
+
+            var message = new M1();
+            this.ea.Publish(message, EventAggregator.DefaultChannel);
+
+            Assert.AreEqual(message, target.ReceivedMessage);
+        }
+
+        [Test]
+        public void DoesNotSubscribeToDefaultChannelIfAChannelIsGiven()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target, "C1");
+
+            var message = new M1();
+            this.ea.Publish(message);
+
+            Assert.AreEqual(0, target.ReceivedMessageCount);
+        }
+
+        [Test]
+        public void DoesNotPublishToDefaultChannelIfAChannelIsGiven()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target);
+
+            var message = new M1();
+            this.ea.Publish(message, "C1");
+
+            Assert.AreEqual(0, target.ReceivedMessageCount);
+        }
+
+        [Test]
+        public void AdditionalChannelsCanBeSubscribedTo()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target, "C1");
+            this.ea.Subscribe(target, "C2");
+
+            var message = new M1();
+            this.ea.Publish(message, "C1");
+            this.ea.Publish(message, "C2");
+
+            Assert.AreEqual(2, target.ReceivedMessageCount);
+        }
+
+        [Test]
+        public void IndividualChannelsCanBeUnsubscribedFrom()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target, "C1", "C2");
+            this.ea.Unsubscribe(target, "C1");
+
+            var message = new M1();
+            this.ea.Publish(message, "C1");
+            Assert.AreEqual(0, target.ReceivedMessageCount);
+
+            this.ea.Publish(message, "C2");
+            Assert.AreEqual(1, target.ReceivedMessageCount);
+        }
+
+        [Test]
+        public void UnsubscribeUnsubscribesFromEverythingIfNoChannelsGiven()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target, "C1", "C2");
+            this.ea.Unsubscribe(target);
+
+            var message = new M1();
+            this.ea.Publish(message, "C1", "C2");
+
+            Assert.AreEqual(0, target.ReceivedMessageCount);
+        }
+
+        [Test]
+        public void MessagePublishedToMultipleChannelsGetsDeliveredOnce()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target, "C1", "C2");
+
+            var message = new M1();
+            this.ea.Publish(message, "C1", "C2");
+
+            Assert.AreEqual(1, target.ReceivedMessageCount);
         }
     }
 }

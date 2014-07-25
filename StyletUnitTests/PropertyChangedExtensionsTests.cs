@@ -36,19 +36,21 @@ namespace StyletUnitTests
         class BindingClass
         {
             public string LastFoo;
-            private WeakEventManager weakEventManager = new WeakEventManager();
 
             public IEventBinding BindStrong(NotifyingClass notifying)
             {
                 // Must make sure the compiler doesn't generate an inner class for this, otherwise we're not testing the right thing
-                return notifying.Bind(x => x.Foo, x => this.LastFoo = x);
+                return notifying.Bind(x => x.Foo, (o, e) => this.LastFoo = e.NewValue);
             }
 
             public IEventBinding BindWeak(NotifyingClass notifying)
             {
-                return this.weakEventManager.BindWeak(notifying, x => x.Foo, x => this.LastFoo = x);
+                return notifying.BindWeak(x => x.Foo, (o, e) => this.LastFoo = e.NewValue);
             }
         }
+
+        private string newVal;
+        private object sender;
 
         [TestFixtureSetUp]
         public void SetUpFixture()
@@ -56,12 +58,19 @@ namespace StyletUnitTests
             Execute.TestExecuteSynchronously = true;
         }
 
+        [SetUp]
+        public void SetUp()
+        {
+            this.newVal = null;
+            this.sender = null;
+        }
+
         [Test]
         public void StrongBindingBinds()
         {
             string newVal = null;
             var c1 = new NotifyingClass();
-            c1.Bind(x => x.Foo, x => newVal = x);
+            c1.Bind(x => x.Foo, (o, e) => newVal = e.NewValue);
             c1.Foo = "bar";
 
             Assert.AreEqual("bar", newVal);
@@ -72,7 +81,7 @@ namespace StyletUnitTests
         {
             string newVal = null;
             var c1 = new NotifyingClass();
-            c1.Bind(x => x.Bar, x => newVal = x);
+            c1.Bind(x => x.Bar, (o, e) => newVal = e.NewValue);
             c1.Foo = "bar";
 
             Assert.AreEqual(null, newVal);
@@ -84,7 +93,7 @@ namespace StyletUnitTests
             string newVal = null;
             var c1 = new NotifyingClass();
             c1.Bar = "bar";
-            c1.Bind(x => x.Bar, x => newVal = x);
+            c1.Bind(x => x.Bar, (o, e) => newVal = e.NewValue);
             c1.NotifyAll();
 
             Assert.AreEqual("bar", newVal);
@@ -106,11 +115,21 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void StrongBindingPassesTarget()
+        {
+            var c1 = new NotifyingClass();
+            object sender = null;
+            c1.Bind(x => x.Foo, (o, e) => sender = o);
+            c1.Foo = "foo";
+            Assert.AreEqual(c1, sender);
+        }
+
+        [Test]
         public void StrongBindingUnbinds()
         {
             string newVal = null;
             var c1 = new NotifyingClass();
-            var binding = c1.Bind(x => x.Bar, x => newVal = x);
+            var binding = c1.Bind(x => x.Bar, (o, e) => newVal = e.NewValue);
             binding.Unbind();
             c1.Bar = "bar";
 
@@ -120,38 +139,32 @@ namespace StyletUnitTests
         [Test]
         public void WeakBindingBinds()
         {
-            var manager = new WeakEventManager();
-            string newVal = null;
             var c1 = new NotifyingClass();
-            manager.BindWeak(c1, x => x.Foo, x => newVal = x);
+            c1.BindWeak(x => x.Foo, (o, e) => this.newVal = e.NewValue);
             c1.Foo = "bar";
 
-            Assert.AreEqual("bar", newVal);
+            Assert.AreEqual("bar", this.newVal);
         }
 
         [Test]
         public void WeakBindingIgnoresOtherProperties()
         {
-            var manager = new WeakEventManager();
-            string newVal = null;
             var c1 = new NotifyingClass();
-            manager.BindWeak(c1, x => x.Bar, x => newVal = x);
+            c1.BindWeak(x => x.Bar, (o, e) => this.newVal = e.NewValue);
             c1.Foo = "bar";
 
-            Assert.AreEqual(null, newVal);
+            Assert.IsNull(this.newVal);
         }
 
         [Test]
         public void WeakBindingListensToEmptyString()
         {
-            var manager = new WeakEventManager();
-            string newVal = null;
             var c1 = new NotifyingClass();
             c1.Bar = "bar";
-            manager.BindWeak(c1, x => x.Bar, x => newVal = x);
+            c1.BindWeak(x => x.Bar, (o, e) => this.newVal = e.NewValue);
             c1.NotifyAll();
 
-            Assert.AreEqual("bar", newVal);
+            Assert.AreEqual("bar", this.newVal);
         }
 
         [Test]
@@ -165,6 +178,8 @@ namespace StyletUnitTests
             var notifying = new NotifyingClass();
             binding.BindWeak(notifying);
 
+            
+
             binding = null;
             GC.Collect();
             Assert.IsFalse(weakBinding.TryGetTarget(out binding));
@@ -177,7 +192,7 @@ namespace StyletUnitTests
             var notifying = new NotifyingClass();
             // Means of determining whether the class has been disposed
             var weakNotifying = new WeakReference<NotifyingClass>(notifying);
-            // Retain binder, in case that affects anything
+            // Retain binder, as that shouldn't affect anything
             var binder = binding.BindWeak(notifying);
 
             notifying = null;
@@ -188,14 +203,29 @@ namespace StyletUnitTests
         [Test]
         public void WeakBindingUnbinds()
         {
-            var manager = new WeakEventManager();
-            string newVal = null;
             var c1 = new NotifyingClass();
-            var binding = manager.BindWeak(c1, x => x.Bar, x => newVal = x);
+            var binding = c1.BindWeak(x => x.Bar, (o, e) => this.newVal = e.NewValue);
             binding.Unbind();
             c1.Bar = "bar";
 
-            Assert.AreEqual(null, newVal);
+            Assert.IsNull(this.newVal);
+        }
+        
+        [Test]
+        public void BindWeakPassesSender()
+        {
+            var c1 = new NotifyingClass();
+            c1.BindWeak(x => x.Foo, (o, e) => this.sender = o);
+            c1.Foo = "foo";
+            Assert.AreEqual(c1, this.sender);
+        }
+
+        [Test]
+        public void BindWeakThrowsIfTargetIsCompilerGenerated()
+        {
+            var c1 = new NotifyingClass();
+            string newVal = null;
+            Assert.Throws<InvalidOperationException>(() => c1.BindWeak(x => x.Foo, (o, e) => newVal = e.NewValue));
         }
     }
 }

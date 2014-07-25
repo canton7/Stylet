@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using Stylet;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,13 @@ namespace StyletUnitTests
     public class LambdaComparerTests
     {
         [Test]
-        public void CallsLambdaToCompareObjects()
+        public void ThrowsIfNullLambdaPassed()
+        {
+            Assert.Throws<ArgumentNullException>(() => new LambdaComparer<int>(null));
+        }
+
+        [Test]
+        public void UsesLambdaToCompareObjects()
         {
             int a = 0;
             int b = 0;
@@ -20,27 +27,47 @@ namespace StyletUnitTests
             {
                 a = x;
                 b = y;
-                return false;
+                return -1;
             });
 
-            var result = c.Equals(3, 4);
+            var result = c.Compare(3, 4);
 
             Assert.AreEqual(3, a);
             Assert.AreEqual(4, b);
-            Assert.IsFalse(result);
+            Assert.AreEqual(-1, result);
         }
 
         [Test]
-        public void ThrowsIfNullLambdaPassed()
+        public void NongenericThrowsIfXIsNotT()
         {
-            Assert.Throws<ArgumentNullException>(() => new LambdaComparer<int>(null));
+            var c = new LambdaComparer<int>((x, y) => -1);
+            Assert.Throws<ArgumentException>(() => ((IComparer)c).Compare("cheese", 3));
         }
 
         [Test]
-        public void ReturnsHashCodeOfPassedObject()
+        public void NongenericThrowsIfYIsNotT()
         {
-            var c = new LambdaComparer<int>((a, b) => false);
-            Assert.AreEqual(5.GetHashCode(), c.GetHashCode(5));
+            var c = new LambdaComparer<int>((x, y) => -1);
+            Assert.Throws<ArgumentException>(() => ((IComparer)c).Compare(3, "cheese"));
+        }
+
+        [Test]
+        public void NongenericUsesLambdaToCompareObjects()
+        {
+            int a = 0;
+            int b = 0;
+            var c = new LambdaComparer<int>((x, y) =>
+            {
+                a = x;
+                b = y;
+                return -1;
+            });
+
+            var result = ((IComparer)c).Compare(3, 4);
+
+            Assert.AreEqual(3, a);
+            Assert.AreEqual(4, b);
+            Assert.AreEqual(-1, result);
         }
     }
 }

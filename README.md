@@ -1,5 +1,5 @@
-StyletIoC
-=========
+Stylet
+======
 
 Introduction
 ------------
@@ -7,7 +7,7 @@ Introduction
 Stylet is a small but powerful ViewModel-first MVVM framework for WPF, which allows you to write maintainable and extensible code in a way which is easy to test.
 Stylet's aims to:
 
- - Solve the blockers, niggles, and annoyances which hamper MVVM development without a framework using simple but powerful concepts.
+ - Solve the blockers, niggles, and annoyances which hamper MVVM development without a framework, using simple but powerful concepts.
  - Be obvious to people picking up your project for the first time: there's very little magic
  - Be easy to verify/validate. The LOC count is low, and it comes with a very comprehensive test suite. The code is well-written and well-documented.
  - Be flexible while providing sensible defaults. Almost any part of the framework can be overridden if you wish, but you probably won't want to.
@@ -48,9 +48,12 @@ I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so
 
 In Visual Studio, go to Debug -> Options and Settings, and make the following changes:
 
- - Under General, turn **off** "Enable Just My Code"
- - Under General, turn **on** "Enable source server support". You may have to Ok a security warning.
- - Under Symbols, add "http://srv.symbolsource.org/pdb/Public" to the list. 
+ 1. In General
+   1. Turn **off** "Enable Just My Code"
+   2. Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
+   3. Turn **on** "Enable source server support". You may have to OK a security warning.
+ 2. In Symbols
+   1. Add "http://srv.symbolsource.org/pdb/Public" to the list. 
 
 ### Source
 

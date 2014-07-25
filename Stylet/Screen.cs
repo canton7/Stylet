@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls.Primitives;
 
 namespace Stylet
 {
@@ -16,6 +10,8 @@ namespace Stylet
     /// </summary>
     public class Screen : ValidatingModelBase, IScreen
     {
+        private readonly ILogger logger;
+
         /// <summary>
         /// Create a new Screen instance (without setting up a validator)
         /// </summary>
@@ -27,40 +23,10 @@ namespace Stylet
         /// <param name="validator">Validator to use</param>
         public Screen(IModelValidator validator) : base(validator)
         {
-            this.DisplayName = this.GetType().FullName;
+            var type = this.GetType();
+            this.DisplayName = type.FullName;
+            this.logger = LogManager.GetLogger(type);
         }
-
-        #region WeakEventManager
-
-        private IWeakEventManager _weakEventManager;
-        /// <summary>
-        /// WeakEventManager owned by this screen (lazy)
-        /// </summary>
-        protected virtual IWeakEventManager weakEventManager
-        {
-            get
-            {
-                if (this._weakEventManager == null)
-                    this._weakEventManager = new WeakEventManager();
-                return this._weakEventManager;
-            }
-        }
-
-        /// <summary>
-        /// Proxy around this.weakEventManager.BindWeak. Binds to an INotifyPropertyChanged source, in a way which doesn't cause us to be retained
-        /// </summary>
-        /// <example>this.BindWeak(objectToBindTo, x => x.PropertyToBindTo, newValue => handlerForNewValue)</example>
-        /// <param name="source">Object to observe for PropertyChanged events</param>
-        /// <param name="selector">Expression for selecting the property to observe, e.g. x => x.PropertyName</param>
-        /// <param name="handler">Handler to be called when that property changes</param>
-        /// <returns>A resource which can be used to undo the binding</returns>
-        protected virtual IEventBinding BindWeak<TSource, TProperty>(TSource source, Expression<Func<TSource, TProperty>> selector, Action<TProperty> handler)
-            where TSource : class, INotifyPropertyChanged
-        {
-            return this.weakEventManager.BindWeak(source, selector, handler);
-        }
-
-        #endregion
 
         #region IHaveDisplayName
 
@@ -103,6 +69,9 @@ namespace Stylet
                 return;
 
             this.IsActive = true;
+            this.isClosed = false;
+
+            logger.Info("Activating");
 
             if (!this.hasBeenActivatedEver)
                 this.OnInitialActivate();
@@ -141,6 +110,9 @@ namespace Stylet
                 return;
 
             this.IsActive = false;
+            this.isClosed = false;
+
+            logger.Info("Deactivating");
 
             this.OnDeactivate();
 
@@ -158,6 +130,8 @@ namespace Stylet
 
         #region IClose
 
+        private bool isClosed = false;
+
         /// <summary>
         /// Called whenever this Screen is closed
         /// </summary>
@@ -166,10 +140,16 @@ namespace Stylet
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IClose.Close()
         {
+            if (this.isClosed)
+                return;
+
             // This will early-exit if it's already deactive
             ((IDeactivate)this).Deactivate();
 
             this.View = null;
+            this.isClosed = true;
+
+            logger.Info("Closing");
 
             this.OnClose();
 
@@ -196,9 +176,11 @@ namespace Stylet
         void IViewAware.AttachView(UIElement view)
         {
             if (this.View != null)
-                throw new Exception(String.Format("Tried to attach View {0} to ViewModel {1}, but it already has a view attached", view.GetType().Name, this.GetType().Name));
+                throw new InvalidOperationException(String.Format("Tried to attach View {0} to ViewModel {1}, but it already has a view attached", view.GetType().Name, this.GetType().Name));
 
             this.View = view;
+
+            logger.Info("Attaching view {0}", view);
 
             var viewAsFrameworkElement = view as FrameworkElement;
             if (viewAsFrameworkElement != null)
@@ -252,9 +234,16 @@ namespace Stylet
         {
             var conductor = this.Parent as IChildDelegate;
             if (conductor != null)
+            {
+                logger.Info("TryClose called. Conductor: {0}; DialogResult: {1}", conductor, dialogResult);
                 conductor.CloseItem(this, dialogResult);
+            }
             else
-                throw new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent (note that windows and dialogs automatically have such a parent)", this.GetType().Name));
+            {
+                var e = new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent (note that windows and dialogs automatically have such a parent)", this.GetType()));
+                logger.Error(e);
+                throw e;
+            }
         }
     }
 }

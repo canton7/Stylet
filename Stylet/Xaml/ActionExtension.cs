@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -15,6 +11,11 @@ namespace Stylet.Xaml
     /// </summary>
     public enum ActionUnavailableBehaviour
     {
+        /// <summary>
+        /// The default behaviour. What this is depends on whether this applies to an action or target, and an event or ICommand
+        /// </summary>
+        Default,
+
         /// <summary>
         /// Enable the control anyway. Clicking/etc the control won't do anything
         /// </summary>
@@ -44,12 +45,12 @@ namespace Stylet.Xaml
         /// <summary>
         /// Behaviour if the View.ActionTarget is nulil
         /// </summary>
-        public ActionUnavailableBehaviour? NullTarget { get; set; }
+        public ActionUnavailableBehaviour NullTarget { get; set; }
 
         /// <summary>
         /// Behaviour if the action itself isn't found on the View.ActionTarget
         /// </summary>
-        public ActionUnavailableBehaviour? ActionNotFound { get; set; }
+        public ActionUnavailableBehaviour ActionNotFound { get; set; }
 
         /// <summary>
         /// Create a new ActionExtension
@@ -77,13 +78,17 @@ namespace Stylet.Xaml
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
-                return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, this.NullTarget.GetValueOrDefault(ActionUnavailableBehaviour.Disable), this.ActionNotFound.GetValueOrDefault(ActionUnavailableBehaviour.Throw));
+                var nullTarget = this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Disable : this.NullTarget;
+                var actionNotFound = this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
+                return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, nullTarget, actionNotFound);
             }
 
             var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
             if (propertyAsEventInfo != null)
             {
-                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo, this.Method, this.NullTarget.GetValueOrDefault(ActionUnavailableBehaviour.Enable), this.ActionNotFound.GetValueOrDefault(ActionUnavailableBehaviour.Throw));
+                var nullTarget = this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Enable : this.NullTarget;
+                var actionNotFound = this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
+                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo, this.Method, nullTarget, actionNotFound);
                 return ec.GetDelegate();
             }
                 

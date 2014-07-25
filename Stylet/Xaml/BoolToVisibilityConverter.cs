@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
@@ -57,16 +53,30 @@ namespace Stylet.Xaml
         {
             bool result;
             if (value == null)
+            {
                 result = false;
+            }
             else if (value is bool)
+            {
                 result = (bool)value;
+            }
             else if (value is IEnumerable)
+            {
                 result = ((IEnumerable)value).GetEnumerator().MoveNext();
-            else if (value.Equals(0) || value.Equals(0u) || value.Equals(0L) || value.Equals(0uL) ||
-                value.Equals(0.0f) || value.Equals(0.0) || value.Equals(0m))
-                result = false;
+            }
             else
-                result = true; // Not null, didn't meet any other falsy behaviour
+            {
+                // This fails if it an int can't be converter to it, or for many other reasons
+                // Easiest is just to try it and see
+                try
+                {
+                    result = !value.Equals(System.Convert.ChangeType((object)0, value.GetType()));
+                }
+                catch
+                {
+                    result = true; // Not null, didn't meet any other falsy behaviour
+                }
+            }
 
             return result ? this.TrueVisibility : this.FalseVisibility;
         }

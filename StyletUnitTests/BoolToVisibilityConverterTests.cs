@@ -67,6 +67,10 @@ namespace StyletUnitTests
             Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0m, null, null, null));
             Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0.0, null, null, null));
             Assert.AreEqual(Visibility.Collapsed, this.converter.Convert(0.0f, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert((short)0, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert((ushort)0, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert((byte)0, null, null, null));
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert((sbyte)0, null, null, null));
         }
 
         [Test]
@@ -79,6 +83,10 @@ namespace StyletUnitTests
             Assert.AreEqual(Visibility.Visible, this.converter.Convert(1m, null, null, null));
             Assert.AreEqual(Visibility.Visible, this.converter.Convert(1.0, null, null, null));
             Assert.AreEqual(Visibility.Visible, this.converter.Convert(1.0f, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert((short)1, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert((ushort)1, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert((byte)1, null, null, null));
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert((sbyte)1, null, null, null));
         }
 
         [Test]
@@ -107,6 +115,24 @@ namespace StyletUnitTests
             Assert.AreEqual(Visibility.Visible, this.converter.Convert(new int[1], null, null, null));
             Assert.AreEqual(Visibility.Visible, this.converter.Convert(new List<object>() { 3 }, null, null, null));
             Assert.AreEqual(Visibility.Visible, this.converter.Convert(new Dictionary<string, string>() { { "A", "B" } }, null, null, null));
+        }
+
+        [Test]
+        public void ConvertTreatsEmptyStringAsFalse()
+        {
+            Assert.AreEqual(Visibility.Collapsed, this.converter.Convert("", null, null, null));
+        }
+
+        [Test]
+        public void ConvertTreatsNonEmptyStringAsTrue()
+        {
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert("hello", null, null, null));
+        }
+
+        [Test]
+        public void ConvertTreatsRandomObjectAsTrue()
+        {
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(typeof(int), null, null, null));
         }
 
         [Test]
