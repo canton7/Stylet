@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Stylet
 {
     public partial class Conductor<T>
     {
-            /// <summary>
-            /// Stack-based navigation. A Conductor which has one active item, and a stack of previous items
-            /// </summary>
+        /// <summary>
+        /// Stack-based navigation. A Conductor which has one active item, and a stack of previous items
+        /// </summary>
         public class StackNavigation : ConductorBaseWithActiveItem<T>
         {
             // We need to remove arbitrary items, so no Stack<T> here!

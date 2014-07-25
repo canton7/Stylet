@@ -1,24 +1,22 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Stylet
 {
     /// <summary>
-    /// IEqualityComparer{T} implementation which uses a Lambda
+    /// IComparer{T} implementation which uses a lambda
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class LambdaComparer<T> : IEqualityComparer<T>
+    public class LambdaComparer<T> : IComparer<T>, IComparer
     {
-        Func<T, T, bool> comparer;
+        private Func<T, T, int> comparer;
 
         /// <summary>
-        /// Create a new LambdaComparer{T}
+        /// Create a new LambdaComparer{T} instance
         /// </summary>
-        /// <param name="comparer">Comparer, which takes two T instances and returns true if they are equal</param>
-        public LambdaComparer(Func<T, T, bool> comparer)
+        /// <param name="comparer">Comparer to use. Return less than 0 if arg1 is less than arg2, 0 if they're equal, greater than zero otherwise</param>
+        public LambdaComparer(Func<T, T, int> comparer)
         {
             if (comparer == null)
                 throw new ArgumentNullException("comparer");
@@ -26,24 +24,29 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Determines whether the specified objects are equal
+        /// Compares two objects and returns a value indicating whether one is less than, equal to, or greater than the other.
         /// </summary>
-        /// <param name="x">The first object of type T to compare.</param>
-        /// <param name="y">The second object of type T to compare.</param>
-        /// <returns>true if the specified objects are equal; otherwise, false.</returns>
-        public bool Equals(T x, T y)
+        /// <param name="x">The first object to compare.</param>
+        /// <param name="y">The second object to compare.</param>
+        /// <returns>A signed integer that indicates the relative values of x and y, as shown in the following table.Value Meaning Less
+        /// than zerox is less than y.Zerox equals y.Greater than zerox is greater than y.</returns>
+        public int Compare(T x, T y)
         {
             return this.comparer(x, y);
         }
 
         /// <summary>
-        /// Returns a hash code for the specified object
+        /// Compares two objects and returns a value indicating whether one is less than, equal to, or greater than the other.
         /// </summary>
-        /// <param name="obj">The System.Object for which a hash code is to be returned.</param>
-        /// <returns>A hash code for the specified object.</returns>
-        public int GetHashCode(T obj)
+        /// <param name="x">The first object to compare.</param>
+        /// <param name="y">The second object to compare.</param>
+        /// <returns>A signed integer that indicates the relative values of x and y, as shown in the following table.Value Meaning Less
+        /// than zerox is less than y.Zerox equals y.Greater than zerox is greater than y.</returns>
+        int IComparer.Compare(object x, object y)
         {
-            return obj.GetHashCode();
+            if (!(x is T) || !(y is T))
+                throw new ArgumentException("Either x or y isn't a T");
+            return this.comparer((T)x, (T)y);
         }
     }
 }

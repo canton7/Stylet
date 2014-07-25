@@ -55,10 +55,16 @@
     <Compile Include="LambdaComparer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LambdaEqualityComparer.cs" />
+    <Compile Include="LogManager.cs" />
     <Compile Include="MessageBox.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
+    <Compile Include="StyletIoC\IContainer.cs" />
+    <Compile Include="StyletIoC\IInjectionAware.cs" />
+    <Compile Include="StyletIoC\InjectAttribute.cs" />
+    <Compile Include="StyletIoC\StyletIoCException.cs" />
+    <Compile Include="StyletIoC\TypeExtensions.cs" />
     <Compile Include="ValidatingModelBase.cs" />
-    <Compile Include="WeakEventManager.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />
     <Compile Include="BindableCollection.cs" />

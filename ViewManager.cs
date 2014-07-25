@@ -1,12 +1,8 @@
 ﻿using Stylet.Xaml;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace Stylet
@@ -25,18 +21,11 @@ namespace Stylet
         void OnModelChanged(DependencyObject targetLocation, object oldValue, object newValue);
 
         /// <summary>
-        /// Given a ViewModel instance, locate its View type (using LocateViewForModel), instantiates and initializes it
+        /// Create a View for the given ViewModel, and bind the two together
         /// </summary>
-        /// <param name="model">ViewModel to locate and instantiate the View for</param>
-        /// <returns>Instantiated and setup view</returns>
-        UIElement CreateAndSetupViewForModel(object model);
-
-        /// <summary>
-        /// Given an instance of a ViewModel and an instance of its View, bind the two together
-        /// </summary>
-        /// <param name="view">View to bind to the ViewModel</param>
-        /// <param name="viewModel">ViewModel to bind the View to</param>
-        void BindViewToModel(UIElement view, object viewModel);
+        /// <param name="model">ViewModel to create a Veiw for</param>
+        /// <returns>Newly created View, bound to the given ViewModel</returns>
+        UIElement CreateAndBindViewForModel(object model);
     }
 
     /// <summary>
@@ -44,6 +33,8 @@ namespace Stylet
     /// </summary>
     public class ViewManager : IViewManager
     {
+        private static ILogger logger = LogManager.GetLogger(typeof(ViewManager));
+
         /// <summary>
         /// Called by View whenever its current View.Model changes. Will locate and instantiate the correct view, and set it as the target's Content
         /// </summary>
@@ -61,20 +52,36 @@ namespace Stylet
                 var viewModelAsViewAware = newValue as IViewAware;
                 if (viewModelAsViewAware != null && viewModelAsViewAware.View != null)
                 {
+                    logger.Info("View.Model changed for {0} from {1} to {2}. The new View was already stored the new ViewModel", targetLocation, oldValue, newValue);
                     view = viewModelAsViewAware.View;
                 }
                 else
                 {
-                    view = this.CreateAndSetupViewForModel(newValue);
-                    this.BindViewToModel(view, newValue);
+                    logger.Info("View.Model changed for {0} from {1} to {2}. Instantiating and binding a new View instance for the new ViewModel", targetLocation, oldValue, newValue);
+                    view = this.CreateAndBindViewForModel(newValue);
                 }
 
                 View.SetContentProperty(targetLocation, view);
             }
             else
             {
+                logger.Info("View.Model clear for {0}, from {1}", targetLocation, oldValue);
                 View.SetContentProperty(targetLocation, null);
             }
+        }
+
+        /// <summary>
+        /// Create a View for the given ViewModel, and bind the two together
+        /// </summary>
+        /// <param name="model">ViewModel to create a Veiw for</param>
+        /// <returns>Newly created View, bound to the given ViewModel</returns>
+        public virtual UIElement CreateAndBindViewForModel(object model)
+        {
+            // Need to bind before we initialize the view
+            // Otherwise e.g. the Command bindings get evaluated (by InitializeComponent) but the ActionTarget hasn't been set yet
+            var view = this.CreateViewForModel(model);
+            this.BindViewToModel(view, model);
+            return view;
         }
 
         /// <summary>
@@ -87,7 +94,13 @@ namespace Stylet
             // TODO: This might need some more thinking
             var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
             if (viewType == null)
-                throw new Exception(String.Format("Unable to find a View with type {0}", viewName));
+            {
+                var e = new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
+                logger.Error(e);
+                throw e;
+            }
+
+            logger.Info("Searching for a View with name {0}, and found {1}", viewName, viewType);
 
             return viewType;
         }
@@ -106,16 +119,20 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Given a ViewModel instance, locate its View type (using LocateViewForModel), instantiates and initializes it, and binds it to the ViewModel (using BindViewToModel)
+        /// Given a ViewModel instance, locate its View type (using LocateViewForModel), and instantiates it
         /// </summary>
         /// <param name="model">ViewModel to locate and instantiate the View for</param>
         /// <returns>Instantiated and setup view</returns>
-        public virtual UIElement CreateAndSetupViewForModel(object model)
+        protected virtual UIElement CreateViewForModel(object model)
         {
             var viewType = this.LocateViewForModel(model.GetType());
 
             if (viewType.IsInterface || viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
-                throw new Exception(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name));
+            {
+                var e = new StyletViewLocationException(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name), viewType.Name);
+                logger.Error(e);
+                throw e;
+            }
 
             var view = (UIElement)IoC.GetInstance(viewType, null);
 
@@ -127,22 +144,51 @@ namespace Stylet
             return view;
         }
 
-                /// <summary>
+        /// <summary>
         /// Given an instance of a ViewModel and an instance of its View, bind the two together
         /// </summary>
         /// <param name="view">View to bind to the ViewModel</param>
         /// <param name="viewModel">ViewModel to bind the View to</param>
-        public virtual void BindViewToModel(UIElement view, object viewModel)
+        protected virtual void BindViewToModel(UIElement view, object viewModel)
         {
+            logger.Info("Setting {0}'s ActionTarget to {1}", view, viewModel);
             View.SetActionTarget(view, viewModel);
 
             var viewAsFrameworkElement = view as FrameworkElement;
             if (viewAsFrameworkElement != null)
+            {
+                logger.Info("Setting {0}'s DataContext to {1}", view, viewModel);
                 viewAsFrameworkElement.DataContext = viewModel;
+            }
 
             var viewModelAsViewAware = viewModel as IViewAware;
             if (viewModelAsViewAware != null)
+            {
+                logger.Info("Setting {0}'s View to {1}", viewModel, view);
                 viewModelAsViewAware.AttachView(view);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Exception raised while attempting to locate a View for a ViewModel
+    /// </summary>
+    public class StyletViewLocationException : Exception
+    {
+        /// <summary>
+        /// Name of the View in question
+        /// </summary>
+        public readonly string ViewTypeName;
+
+        /// <summary>
+        /// Create a new StyletViewLocationException
+        /// </summary>
+        /// <param name="message">Message associated with the Exception</param>
+        /// <param name="viewTypeName">Name of the View this question was thrown for</param>
+        public StyletViewLocationException(string message, string viewTypeName)
+            : base(message)
+        {
+            this.ViewTypeName = viewTypeName;
         }
     }
 }

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
 
@@ -14,6 +10,12 @@ namespace Stylet.Xaml
     /// </summary>
     public class View : DependencyObject
     {
+        /// <summary>
+        /// Initial value of the ActionTarget property.
+        /// This can be used as a marker - if the property has this value, it hasn't yet been assigned to anything else.
+        /// </summary>
+        public static readonly object InitialActionTarget = new object();
+
         private static readonly ContentPropertyAttribute defaultContentProperty = new ContentPropertyAttribute("Content");
 
         /// <summary>
@@ -45,7 +47,7 @@ namespace Stylet.Xaml
         /// The object's ActionTarget. This is used to determine what object to call Actions on by the ActionExtension markup extension.
         /// </summary>
         public static readonly DependencyProperty ActionTargetProperty =
-            DependencyProperty.RegisterAttached("ActionTarget", typeof(object), typeof(View), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+            DependencyProperty.RegisterAttached("ActionTarget", typeof(object), typeof(View), new FrameworkPropertyMetadata(InitialActionTarget, FrameworkPropertyMetadataOptions.Inherits));
 
         /// <summary>
         /// Fetch the ViewModel currently associated with a given object

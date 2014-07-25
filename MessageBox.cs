@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Media;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
-using System.Windows.Interop;
-using System.Windows.Media.Imaging;
 
 namespace Stylet
 {
@@ -31,7 +25,7 @@ namespace Stylet
         /// <param name="options">Additional options</param>
         /// <param name="buttonLabels">You may override the text for individual buttons on a case-by-case basis</param>
         /// <returns>Which button the user clicked</returns>
-        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title = null,
+        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title = "",
             MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None,
             MessageBoxResult defaultButton = MessageBoxResult.None, MessageBoxResult cancelButton = MessageBoxResult.None,
             MessageBoxOptions options = MessageBoxOptions.None,
