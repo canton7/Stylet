@@ -33,6 +33,8 @@ namespace Stylet
     /// </summary>
     public class ViewManager : IViewManager
     {
+        private static ILogger logger = LogManager.GetLogger(typeof(ViewManager));
+
         /// <summary>
         /// Called by View whenever its current View.Model changes. Will locate and instantiate the correct view, and set it as the target's Content
         /// </summary>
@@ -50,10 +52,12 @@ namespace Stylet
                 var viewModelAsViewAware = newValue as IViewAware;
                 if (viewModelAsViewAware != null && viewModelAsViewAware.View != null)
                 {
+                    logger.Info("View.Model changed for {0} from {1} to {2}. The new View was already stored the new ViewModel", targetLocation, oldValue, newValue);
                     view = viewModelAsViewAware.View;
                 }
                 else
                 {
+                    logger.Info("View.Model changed for {0} from {1} to {2}. Instantiating and binding a new View instance for the new ViewModel", targetLocation, oldValue, newValue);
                     view = this.CreateAndBindViewForModel(newValue);
                 }
 
@@ -61,6 +65,7 @@ namespace Stylet
             }
             else
             {
+                logger.Info("View.Model clear for {0}, from {1}", targetLocation, oldValue);
                 View.SetContentProperty(targetLocation, null);
             }
         }
@@ -89,7 +94,13 @@ namespace Stylet
             // TODO: This might need some more thinking
             var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
             if (viewType == null)
-                throw new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
+            {
+                var e = new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
+                logger.Error(e);
+                throw e;
+            }
+
+            logger.Info("Searching for a View with name {0}, and found {1}", viewName, viewType);
 
             return viewType;
         }
@@ -117,7 +128,11 @@ namespace Stylet
             var viewType = this.LocateViewForModel(model.GetType());
 
             if (viewType.IsInterface || viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
-                throw new StyletViewLocationException(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name), viewType.Name);
+            {
+                var e = new StyletViewLocationException(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name), viewType.Name);
+                logger.Error(e);
+                throw e;
+            }
 
             var view = (UIElement)IoC.GetInstance(viewType, null);
 
@@ -136,15 +151,22 @@ namespace Stylet
         /// <param name="viewModel">ViewModel to bind the View to</param>
         protected virtual void BindViewToModel(UIElement view, object viewModel)
         {
+            logger.Info("Setting {0}'s ActionTarget to {1}", view, viewModel);
             View.SetActionTarget(view, viewModel);
 
             var viewAsFrameworkElement = view as FrameworkElement;
             if (viewAsFrameworkElement != null)
+            {
+                logger.Info("Setting {0}'s DataContext to {1}", view, viewModel);
                 viewAsFrameworkElement.DataContext = viewModel;
+            }
 
             var viewModelAsViewAware = viewModel as IViewAware;
             if (viewModelAsViewAware != null)
+            {
+                logger.Info("Setting {0}'s View to {1}", viewModel, view);
                 viewModelAsViewAware.AttachView(view);
+            }
         }
     }
 

@@ -78,7 +78,7 @@ namespace Stylet
         private static void EnsureDispatcher()
         {
             if (Dispatcher == null && !TestExecuteSynchronously)
-                throw new InvalidOperationException("Execute.SynchronizationContext must be set before this method can be called. This should normally have been done by the Bootstrapper");
+                throw new InvalidOperationException("Execute.Dispatcher must be set before this method can be called. This should normally have been done by the Bootstrapper");
         }
 
         /// <summary>

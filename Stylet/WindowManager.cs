@@ -30,6 +30,7 @@ namespace Stylet
     /// </summary>
     public class WindowManager : IWindowManager
     {
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(WindowManager));
         private IViewManager viewManager;
 
         /// <summary>
@@ -71,7 +72,11 @@ namespace Stylet
             var view = this.viewManager.CreateAndBindViewForModel(viewModel);
             var window = view as Window;
             if (window == null)
-                throw new ArgumentException(String.Format("Tried to show {0} as a window, but it isn't a Window", view == null ? "(null)" : view.GetType().Name));
+            {
+                var e = new ArgumentException(String.Format("Tried to show {0} as a window, but it isn't a Window", view == null ? "(null)" : view.GetType().Name));
+                logger.Error(e);
+                throw e;
+            }
 
             var haveDisplayName = viewModel as IHaveDisplayName;
             if (haveDisplayName != null && BindingOperations.GetBindingBase(window, Window.TitleProperty) == null)
@@ -85,8 +90,14 @@ namespace Stylet
                 var owner = this.InferOwnerOf(window);
                 if (owner != null)
                     window.Owner = owner;
+                logger.Info("Displaying ViewModel {0} with View {1} as a Dialog", viewModel, window);
+            }
+            else
+            {
+                logger.Info("Displaying ViewModel {0} with View {1} as a Window", viewModel, window);
             }
 
+            // This gets itself retained by the window, by registering events
             new WindowConductor(window, viewModel);
 
             return window;
@@ -135,10 +146,12 @@ namespace Stylet
                 {
                     case WindowState.Maximized:
                     case WindowState.Normal:
+                        logger.Info("Window {0} maximized/restored: activating", this.window);
                         ScreenExtensions.TryActivate(this.viewModel);
                         break;
 
                     case WindowState.Minimized:
+                        logger.Info("Window {1} minimized: deactivating", this.window);
                         ScreenExtensions.TryDeactivate(this.viewModel);
                         break;
                 }
@@ -146,6 +159,8 @@ namespace Stylet
 
             private void WindowClosed(object sender, EventArgs e)
             {
+                // Logging was done in the Closing handler
+
                 this.window.StateChanged -= this.WindowStateChanged;
                 this.window.Closed -= this.WindowClosed;
                 this.window.Closing -= this.WindowClosing; // Not sure this is required
@@ -161,20 +176,30 @@ namespace Stylet
                 if (e.Cancel)
                     return;
 
+                logger.Info("ViewModel {0} close requested because its View was closed", this.viewModel);
+
                 // See if the task completed synchronously
                 var task = ((IGuardClose)this.viewModel).CanCloseAsync();
                 if (task.IsCompleted)
                 {
+                    // The closed event handler will take things from here if we don't cancel
+                    if (!task.Result)
+                        logger.Info("Close of ViewModel {0} cancelled because CanCloseAsync returned false", this.viewModel);
                     e.Cancel = !task.Result;
                 }
                 else
                 {
                     e.Cancel = true;
+                    logger.Info("Delaying closing of ViewModel {0} because CanCloseAsync is completing asynchronously", this.viewModel);
                     if (await task)
                     {
                         this.window.Closing -= this.WindowClosing;
                         this.window.Close();
                         // The Closed event handler handles unregistering the events, and closing the ViewModel
+                    }
+                    else
+                    {
+                        logger.Info("Close of ViewModel {0} cancelled because CanCloseAsync returned false", this.viewModel);
                     }
                 }
             }
@@ -185,18 +210,28 @@ namespace Stylet
             async void IChildDelegate.CloseItem(object item, bool? dialogResult)
             {
                 if (item != this.viewModel)
+                {
+                    logger.Warn("IChildDelegate.CloseItem called with item {0} which is _not_ our ViewModel {1}", item, this.viewModel);
                     return;
+                }
 
                 var guardClose = this.viewModel as IGuardClose;
                 if (guardClose != null && !await guardClose.CanCloseAsync())
+                {
+                    logger.Info("Close of ViewModel {0} cancelled because CanCloseAsync returned false", this.viewModel);
                     return;
+                }
 
-                if (dialogResult != null)
-                    this.window.DialogResult = dialogResult;
+                logger.Info("ViewModel {0} close requested with DialogResult {1} because it called TryClose", this.viewModel, dialogResult);
 
                 this.window.StateChanged -= this.WindowStateChanged;
                 this.window.Closed -= this.WindowClosed;
                 this.window.Closing -= this.WindowClosing;
+
+                // Need to call this after unregistering the event handlers, as it causes the window
+                // to be closed
+                if (dialogResult != null)
+                    this.window.DialogResult = dialogResult;
 
                 ScreenExtensions.TryClose(this.viewModel);
 

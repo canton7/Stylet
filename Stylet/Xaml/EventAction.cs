@@ -10,6 +10,8 @@ namespace Stylet.Xaml
     /// </summary>
     public class EventAction
     {
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(EventAction));
+
         /// <summary>
         /// View whose View.ActionTarget we watch
         /// </summary>
@@ -77,7 +79,15 @@ namespace Stylet.Xaml
             if (newTarget == null)
             {
                 if (this.targetNullBehaviour == ActionUnavailableBehaviour.Throw)
-                    throw new ArgumentException(String.Format("Method {0} has a target set which is null", this.methodName));
+                {
+                    var e = new ArgumentException(String.Format("ActionTarget on element {0} is null (method name is {1})", this.subject, this.methodName));
+                    logger.Error(e);
+                    throw e;
+                }
+                else
+                {
+                    logger.Warn("ActionTarget on element {0} is null (method name is {1}), nut NullTarget is not Throw, so carrying on", this.subject, this.methodName);
+                }
             }
             else
             {
@@ -86,13 +96,25 @@ namespace Stylet.Xaml
                 if (targetMethodInfo == null)
                 {
                     if (this.actionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
-                        throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.methodName, newTargetType.Name));
+                    {
+                        var e = new ArgumentException(String.Format("Unable to find method {0} on {1}", this.methodName, newTargetType.Name));
+                        logger.Error(e);
+                        throw e;
+                    }
+                    else
+                    {
+                        logger.Warn("Unable to find method {0} on {1}, but ActionNotFound is not Throw, so carrying on", this.methodName, newTargetType.Name);
+                    }
                 }
                 else
                 {
                     var methodParameters = targetMethodInfo.GetParameters();
                     if (methodParameters.Length > 1 || (methodParameters.Length == 1 && !methodParameters[0].ParameterType.IsAssignableFrom(typeof(RoutedEventArgs))))
-                        throw new ArgumentException(String.Format("Method {0} on {1} must have zero parameters, or a single parameter accepting a RoutedEventArgs", this.methodName, newTargetType.Name));
+                    {
+                        var e = new ArgumentException(String.Format("Method {0} on {1} must have zero parameters, or a single parameter accepting a RoutedEventArgs", this.methodName, newTargetType.Name));
+                        logger.Error(e);
+                        throw e;
+                    }
                 }
             }
 
@@ -115,6 +137,9 @@ namespace Stylet.Xaml
                 return;
 
             var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new object[] { e } : null;
+
+            logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.methodName, this.target, parameters == null ? "none" : String.Join(", ", parameters));
+
             this.targetMethodInfo.Invoke(this.target, parameters);
         }
     }

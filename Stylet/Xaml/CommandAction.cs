@@ -18,6 +18,7 @@ namespace Stylet.Xaml
     /// </remarks>
     public class CommandAction : ICommand
     {
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(CommandAction));
         /// <summary>
         /// View to grab the View.ActionTarget from
         /// </summary>
@@ -85,31 +86,58 @@ namespace Stylet.Xaml
             {
                 // If it's Enable or Disable we don't do anything - CanExecute will handle this
                 if (this.targetNullBehaviour == ActionUnavailableBehaviour.Throw)
-                    throw new ArgumentException(String.Format("Method {0} has a target set which is null", this.MethodName));
+                {
+                    var e = new ArgumentException(String.Format("ActionTarget on element {0} is null (method name is {1})", this.Subject, this.MethodName));
+                    logger.Error(e);
+                    throw e;
+                }
+                else
+                {
+                    logger.Warn("ActionTarget on element {0} is null (method name is {1}), nut NullTarget is not Throw, so carrying on", this.Subject, this.MethodName);
+                }
             }
             else
             {
                 var newTargetType = newTarget.GetType();
 
                 var guardPropertyInfo = newTargetType.GetProperty(this.GuardName);
-                if (guardPropertyInfo != null && guardPropertyInfo.PropertyType == typeof(bool))
+                if (guardPropertyInfo != null)
                 {
-                    var targetExpression = Expressions.Expression.Constant(newTarget);
-                    var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
-                    this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
+                    if (guardPropertyInfo.PropertyType == typeof(bool))
+                    {
+                        var targetExpression = Expressions.Expression.Constant(newTarget);
+                        var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
+                        this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
+                    }
+                    else
+                    {
+                        logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
+                    }
                 }
 
                 targetMethodInfo = newTargetType.GetMethod(this.MethodName);
                 if (targetMethodInfo == null)
                 {
                     if (this.actionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
-                        throw new ArgumentException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
+                    {
+                        var e = new ArgumentException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
+                        logger.Error(e);
+                        throw e;
+                    }
+                    else
+                    {
+                        logger.Warn("Unable to find method {0} on {1}, but ActionNotFound is not Throw, so carrying on", this.MethodName, newTargetType.Name);
+                    }
                 }
                 else
                 {
                     var methodParameters = targetMethodInfo.GetParameters();
                     if (methodParameters.Length > 1)
-                        throw new ArgumentException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
+                    {
+                        var e = new ArgumentException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
+                        logger.Error(e);
+                        throw e;
+                    }
                 }
             }
 
@@ -188,6 +216,8 @@ namespace Stylet.Xaml
 
             // This is not going to be called very often, so don't bother to generate a delegate, in the way that we do for the method guard
             var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
+            logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.target, parameters == null ? "none" : String.Join(", ", parameters));
+
             this.targetMethodInfo.Invoke(this.target, parameters);
         }
     }

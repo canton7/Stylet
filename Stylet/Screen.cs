@@ -10,6 +10,8 @@ namespace Stylet
     /// </summary>
     public class Screen : ValidatingModelBase, IScreen
     {
+        private readonly ILogger logger;
+
         /// <summary>
         /// Create a new Screen instance (without setting up a validator)
         /// </summary>
@@ -21,7 +23,9 @@ namespace Stylet
         /// <param name="validator">Validator to use</param>
         public Screen(IModelValidator validator) : base(validator)
         {
-            this.DisplayName = this.GetType().FullName;
+            var type = this.GetType();
+            this.DisplayName = type.FullName;
+            this.logger = LogManager.GetLogger(type);
         }
 
         #region IHaveDisplayName
@@ -67,6 +71,8 @@ namespace Stylet
             this.IsActive = true;
             this.isClosed = false;
 
+            logger.Info("Activating");
+
             if (!this.hasBeenActivatedEver)
                 this.OnInitialActivate();
             this.hasBeenActivatedEver = true;
@@ -106,6 +112,8 @@ namespace Stylet
             this.IsActive = false;
             this.isClosed = false;
 
+            logger.Info("Deactivating");
+
             this.OnDeactivate();
 
             var handler = this.Deactivated;
@@ -141,6 +149,8 @@ namespace Stylet
             this.View = null;
             this.isClosed = true;
 
+            logger.Info("Closing");
+
             this.OnClose();
 
             var handler = this.Closed;
@@ -169,6 +179,8 @@ namespace Stylet
                 throw new InvalidOperationException(String.Format("Tried to attach View {0} to ViewModel {1}, but it already has a view attached", view.GetType().Name, this.GetType().Name));
 
             this.View = view;
+
+            logger.Info("Attaching view {0}", view);
 
             var viewAsFrameworkElement = view as FrameworkElement;
             if (viewAsFrameworkElement != null)
@@ -222,9 +234,16 @@ namespace Stylet
         {
             var conductor = this.Parent as IChildDelegate;
             if (conductor != null)
+            {
+                logger.Info("TryClose called. Conductor: {0}; DialogResult: {1}", conductor, dialogResult);
                 conductor.CloseItem(this, dialogResult);
+            }
             else
-                throw new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent (note that windows and dialogs automatically have such a parent)", this.GetType().Name));
+            {
+                var e = new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent (note that windows and dialogs automatically have such a parent)", this.GetType()));
+                logger.Error(e);
+                throw e;
+            }
         }
     }
 }

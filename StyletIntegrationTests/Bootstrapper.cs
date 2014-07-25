@@ -11,6 +11,11 @@ namespace StyletIntegrationTests
 {
     public class Bootstrapper : Bootstrapper<ShellViewModel>
     {
+        protected override void OnStart()
+        {
+            LogManager.Enabled = true;
+        }
+
         protected override void OnApplicationUnhandledExecption(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
             base.OnApplicationUnhandledExecption(sender, e); // Calling this just to trigger some code coverage
