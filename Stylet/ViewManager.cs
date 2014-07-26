@@ -33,7 +33,7 @@ namespace Stylet
     /// </summary>
     public class ViewManager : IViewManager
     {
-        private static ILogger logger = LogManager.GetLogger(typeof(ViewManager));
+        private static IStyletLogger logger = StyletLogManager.GetLogger(typeof(ViewManager));
 
         /// <summary>
         /// Called by View whenever its current View.Model changes. Will locate and instantiate the correct view, and set it as the target's Content

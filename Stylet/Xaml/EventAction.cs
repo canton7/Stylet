@@ -10,7 +10,7 @@ namespace Stylet.Xaml
     /// </summary>
     public class EventAction
     {
-        private static readonly ILogger logger = LogManager.GetLogger(typeof(EventAction));
+        private static readonly IStyletLogger logger = StyletLogManager.GetLogger(typeof(EventAction));
 
         /// <summary>
         /// View whose View.ActionTarget we watch

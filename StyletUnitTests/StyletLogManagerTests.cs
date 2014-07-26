@@ -10,46 +10,46 @@ using System.Threading.Tasks;
 namespace StyletUnitTests
 {
     [TestFixture]
-    public class LogManagerTests
+    public class StyletLogManagerTests
     {
-        private Func<string, ILogger> loggerFactory;
+        private Func<string, IStyletLogger> loggerFactory;
 
         [SetUp]
         public void SetUp()
         {
-            LogManager.Enabled = false;
-            this.loggerFactory = LogManager.LoggerFactory;
+            StyletLogManager.Enabled = false;
+            this.loggerFactory = StyletLogManager.LoggerFactory;
         }
 
         [TearDown]
         public void TearDown()
         {
-            LogManager.LoggerFactory = this.loggerFactory;
+            StyletLogManager.LoggerFactory = this.loggerFactory;
         }
 
         [Test]
         public void GetLoggerReturnsNullLoggerIfDisabled()
         {
-            var logger = LogManager.GetLogger("test");
+            var logger = StyletLogManager.GetLogger("test");
             Assert.IsInstanceOf<NullLogger>(logger);
         }
 
         [Test]
         public void GetLoggerReturnsDebugLoggerByDefaultIfEnabled()
         {
-            LogManager.Enabled = true;
-            var logger = LogManager.GetLogger("test");
+            StyletLogManager.Enabled = true;
+            var logger = StyletLogManager.GetLogger("test");
             Assert.IsInstanceOf<DebugLogger>(logger);
         }
 
         [Test]
         public void GetLoggerCallsFactoryToCreateLogger()
         {
-            var logger = new Mock<ILogger>();
+            var logger = new Mock<IStyletLogger>();
 
-            LogManager.Enabled = true;
-            LogManager.LoggerFactory = name => logger.Object;
-            Assert.AreEqual(logger.Object, LogManager.GetLogger("test"));
+            StyletLogManager.Enabled = true;
+            StyletLogManager.LoggerFactory = name => logger.Object;
+            Assert.AreEqual(logger.Object, StyletLogManager.GetLogger("test"));
         }
 
         [Test]
@@ -57,10 +57,10 @@ namespace StyletUnitTests
         {
             string loggerName = null;
 
-            LogManager.Enabled = true;
-            LogManager.LoggerFactory = name => { loggerName = name; return null; };
+            StyletLogManager.Enabled = true;
+            StyletLogManager.LoggerFactory = name => { loggerName = name; return null; };
 
-            LogManager.GetLogger("testy");
+            StyletLogManager.GetLogger("testy");
 
             Assert.AreEqual("testy", loggerName);
         }
@@ -70,10 +70,10 @@ namespace StyletUnitTests
         {
             string loggerName = null;
 
-            LogManager.Enabled = true;
-            LogManager.LoggerFactory = name => { loggerName = name; return null; };
+            StyletLogManager.Enabled = true;
+            StyletLogManager.LoggerFactory = name => { loggerName = name; return null; };
 
-            LogManager.GetLogger(typeof(int));
+            StyletLogManager.GetLogger(typeof(int));
 
             Assert.AreEqual("System.Int32", loggerName);
         }

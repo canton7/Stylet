@@ -47,7 +47,7 @@ namespace Stylet
                 this.Application.Exit += OnApplicationExit;
 
                 // Fetch this logger when needed. If we fetch it now, then no-one will have been given the change to enable the LogManager, and we'll get a NullLogger
-                this.Application.DispatcherUnhandledException += (o, e) => LogManager.GetLogger(typeof(BootstrapperBase<>)).Error(e.Exception, "Unhandled exception");
+                this.Application.DispatcherUnhandledException += (o, e) => StyletLogManager.GetLogger(typeof(BootstrapperBase<>)).Error(e.Exception, "Unhandled exception");
                 this.Application.DispatcherUnhandledException += OnApplicationUnhandledExecption;
             }
         }

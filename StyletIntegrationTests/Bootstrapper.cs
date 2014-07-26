@@ -13,7 +13,7 @@ namespace StyletIntegrationTests
     {
         protected override void OnStart()
         {
-            LogManager.Enabled = true;
+            StyletLogManager.Enabled = true;
         }
 
         protected override void OnApplicationUnhandledExecption(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

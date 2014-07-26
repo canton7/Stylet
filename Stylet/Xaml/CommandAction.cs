@@ -18,7 +18,7 @@ namespace Stylet.Xaml
     /// </remarks>
     public class CommandAction : ICommand
     {
-        private static readonly ILogger logger = LogManager.GetLogger(typeof(CommandAction));
+        private static readonly IStyletLogger logger = StyletLogManager.GetLogger(typeof(CommandAction));
         /// <summary>
         /// View to grab the View.ActionTarget from
         /// </summary>
