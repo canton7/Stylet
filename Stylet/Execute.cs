@@ -84,6 +84,7 @@ namespace Stylet
         /// <summary>
         /// Dispatches the given action to be run on the UI thread asynchronously, even if the current thread is the UI thread
         /// </summary>
+        /// <param name="action">Action to run on the UI thread</param>
         public static void PostToUIThread(Action action)
         {
             EnsureDispatcher();
@@ -94,8 +95,28 @@ namespace Stylet
         }
 
         /// <summary>
+        /// Dispatches the given action to be run on the UI thread asynchronously, and returns a task which completes when the action completes, even if the current thread is the UI thread
+        /// </summary>
+        /// <param name="action">Action to run on the UI thread</param>
+        /// <returns>Task which completes when the action has been run</returns>
+        public static Task PostToUIThreadAsync(Action action)
+        {
+            EnsureDispatcher();
+            if (!TestExecuteSynchronously)
+            {
+                return PostOnUIThreadInternalAsync(action);
+            }
+            else
+            {
+                action();
+                return Task.FromResult(false);
+            }
+        }
+
+        /// <summary>
         /// Dispatches the given action to be run on the UI thread asynchronously, or runs it synchronously if the current thread is the UI thread
         /// </summary>
+        /// <param name="action">Action to run on the UI thread</param>
         public static void OnUIThread(Action action)
         {
             EnsureDispatcher();
@@ -108,6 +129,7 @@ namespace Stylet
         /// <summary>
         /// Dispatches the given action to be run on the UI thread and blocks until it completes, or runs it synchronously if the current thread is the UI thread
         /// </summary>
+        /// <param name="action">Action to run on the UI thread</param>
         public static void OnUIThreadSync(Action action)
         {
             EnsureDispatcher();
@@ -138,31 +160,38 @@ namespace Stylet
         /// <summary>
         /// Dispatches the given action to be run on the UI thread and returns a task that completes when the action completes, or runs it synchronously if the current thread is the UI thread
         /// </summary>
+        /// <param name="action">Action to run on the UI thread</param>
+        /// <returns>Task which completes when the action has been run</returns>
         public static Task OnUIThreadAsync(Action action)
         {
             EnsureDispatcher();
             if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
             {
-                var tcs = new TaskCompletionSource<object>();
-                Dispatcher.Post(() =>
-                {
-                    try
-                    {
-                        action();
-                        tcs.SetResult(null);
-                    }
-                    catch (Exception e)
-                    {
-                        tcs.SetException(e);
-                    }
-                });
-                return tcs.Task;
+                return PostOnUIThreadInternalAsync(action);
             }
             else
             {
                 action();
                 return Task.FromResult(false);
             }
+        }
+
+        private static Task PostOnUIThreadInternalAsync(Action action)
+        {
+            var tcs = new TaskCompletionSource<object>();
+            Dispatcher.Post(() =>
+            {
+                try
+                {
+                    action();
+                    tcs.SetResult(null);
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+            return tcs.Task;
         }
 
         /// <summary>

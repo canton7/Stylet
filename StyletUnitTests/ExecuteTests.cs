@@ -21,7 +21,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void OnUIThreadExecutesUsingDispatcher()
+        public void OnUIThreadSyncExecutesUsingDispatcher()
         {
             var sync = new Mock<IDispatcher>();
             Execute.Dispatcher = sync.Object;
@@ -38,7 +38,22 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void BeginOnUIThreadExecutesUsingDispatcher()
+        public void OnUIThreadSyncExecutesSynchronouslyIfDispatcherIsCurrent()
+        {
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
+
+            sync.SetupGet(x => x.IsCurrent).Returns(true);
+
+            bool actionCalled = false;
+            Execute.OnUIThreadSync(() => actionCalled = true);
+
+            Assert.IsTrue(actionCalled);
+            sync.Verify(x => x.Send(It.IsAny<Action>()), Times.Never);
+        }
+
+        [Test]
+        public void PostToUIThreadExecutesUsingDispatcher()
         {
             var sync = new Mock<IDispatcher>();
             Execute.Dispatcher = sync.Object;
@@ -55,7 +70,26 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void BeginOnUIThreadOrSynchronousExecutesUsingDispatcherIfNotCurrent()
+        public void PostToUIThreadAsyncExecutesUsingDispatcher()
+        {
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
+
+            Action passedAction = null;
+            sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
+
+            bool actionCalled = false;
+            var task = Execute.PostToUIThreadAsync(() => actionCalled = true);
+
+            Assert.IsFalse(task.IsCompleted);
+            Assert.IsFalse(actionCalled);
+            passedAction();
+            Assert.IsTrue(actionCalled);
+            Assert.IsTrue(task.IsCompleted);
+        }
+
+        [Test]
+        public void OnUIThreadExecutesUsingDispatcherIfNotCurrent()
         {
             var sync = new Mock<IDispatcher>();
             Execute.Dispatcher = sync.Object;
@@ -91,7 +125,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void OnUIThreadPropagatesException()
+        public void OnUIThreadSyncPropagatesException()
         {
             var sync = new Mock<IDispatcher>();
             Execute.Dispatcher = sync.Object;
@@ -125,21 +159,45 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void ThrowsIfBeginOnUIThreadCalledWithNoDispatcher()
+        public void PostToUIThreadAsyncPrepagatesException()
+        {
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
+
+            Action passedAction = null;
+            sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
+
+            var ex = new Exception("test");
+            var task = Execute.PostToUIThreadAsync(() => { throw ex; });
+
+            passedAction();
+            Assert.IsTrue(task.IsFaulted);
+            Assert.AreEqual(ex, task.Exception.InnerExceptions[0]);
+        }
+
+        [Test]
+        public void ThrowsIfPostToUIThreadCalledWithNoDispatcher()
         {
             Execute.Dispatcher = null;
             Assert.Throws<InvalidOperationException>(() => Execute.PostToUIThread(() => { }));
         }
 
         [Test]
-        public void ThrowsIfBeginOnUIThreadOrSynchronousCalledWithNoDispatcher()
+        public void ThrowsIfPostToUIThreadAsyncCalledWithNoDispatcher()
+        {
+            Execute.Dispatcher = null;
+            Assert.Throws<InvalidOperationException>(() => Execute.PostToUIThreadAsync(() => { }));
+        }
+
+        [Test]
+        public void ThrowsIfOnUIThreadCalledWithNoDispatcher()
         {
             Execute.Dispatcher = null;
             Assert.Throws<InvalidOperationException>(() => Execute.OnUIThread(() => { }));
         }
 
         [Test]
-        public void ThrowsIfOnUIThreadCalledWithNoDispatcher()
+        public void ThrowsIfOnUIThreadSyncCalledWithNoDispatcher()
         {
             Execute.Dispatcher = null;
             Assert.Throws<InvalidOperationException>(() => Execute.OnUIThreadSync(() => { }));
@@ -153,7 +211,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void BeginOnUIThreadExecutesSynchronouslyIfTestExecuteSynchronouslySet()
+        public void PostToUIThreadExecutesSynchronouslyIfTestExecuteSynchronouslySet()
         {
             Execute.TestExecuteSynchronously = true;
 
@@ -164,7 +222,19 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void OnUIThreadExecutesSynchronouslyIfTestExecuteSynchronouslySet()
+        public void PostToUIThreadAsyncExecutesSynchronouslyIfTestExecuteSynchronouslySet()
+        {
+            Execute.TestExecuteSynchronously = true;
+
+            Execute.Dispatcher = null;
+            bool called = false;
+            var task = Execute.PostToUIThreadAsync(() => called = true);
+            Assert.True(called);
+            Assert.True(task.IsCompleted);
+        }
+
+        [Test]
+        public void OnUIThreadSyncExecutesSynchronouslyIfTestExecuteSynchronouslySet()
         {
             Execute.TestExecuteSynchronously = true;
 
