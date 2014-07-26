@@ -1,6 +1,12 @@
 Stylet Changelog
 ================
 
+v0.9.11
+-------
+
+ - Add Execute.PostToUIThreadAsync
+ - Rename ILogger and LogManager to not conflict in projects also using NLog
+
 v0.9.10
 -------
 
