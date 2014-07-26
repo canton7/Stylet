@@ -10,7 +10,7 @@ namespace Stylet
     /// </summary>
     public class Screen : ValidatingModelBase, IScreen
     {
-        private readonly ILogger logger;
+        private readonly IStyletLogger logger;
 
         /// <summary>
         /// Create a new Screen instance (without setting up a validator)
@@ -25,7 +25,7 @@ namespace Stylet
         {
             var type = this.GetType();
             this.DisplayName = type.FullName;
-            this.logger = LogManager.GetLogger(type);
+            this.logger = StyletLogManager.GetLogger(type);
         }
 
         #region IHaveDisplayName
