@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using Stylet;
+using Stylet.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

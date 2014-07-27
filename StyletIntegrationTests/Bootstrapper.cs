@@ -1,4 +1,5 @@
 ﻿using Stylet;
+using Stylet.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace StyletIntegrationTests
     {
         protected override void OnStart()
         {
-            StyletLogManager.Enabled = true;
+            LogManager.Enabled = true;
         }
 
         protected override void OnApplicationUnhandledExecption(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

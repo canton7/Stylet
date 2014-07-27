@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Stylet
+namespace Stylet.Logging
 {
     /// <summary>
     /// Logger used by Stylet for internal logging
     /// </summary>
-    public interface IStyletLogger
+    public interface ILogger
     {
         /// <summary>
         /// Log the message as info
@@ -33,7 +33,7 @@ namespace Stylet
     /// <summary>
     /// ILogger implementation which does nothing - used by default
     /// </summary>
-    public class NullLogger : IStyletLogger
+    public class NullLogger : ILogger
     {
         /// <summary>
         /// Log the message as info
@@ -60,7 +60,7 @@ namespace Stylet
     /// <summary>
     /// ILogger implementation which uses Debug.WriteLine
     /// </summary>
-    public class DebugLogger : IStyletLogger
+    public class DebugLogger : ILogger
     {
         private readonly string name;
 
@@ -110,9 +110,9 @@ namespace Stylet
     /// <summary>
     /// Manager for ILoggers. Used to create new ILoggers, and set up how ILoggers are created
     /// </summary>
-    public static class StyletLogManager
+    public static class LogManager
     {
-        private static readonly IStyletLogger nullLogger = new NullLogger();
+        private static readonly ILogger nullLogger = new NullLogger();
 
         /// <summary>
         /// Set to true to enable logging
@@ -129,14 +129,14 @@ namespace Stylet
         /// <remarks>
         /// e.g. LogManager.LoggerFactory = name => new MyLogger(name);
         /// </remarks>
-        public static Func<string, IStyletLogger> LoggerFactory = name => new DebugLogger(name);
+        public static Func<string, ILogger> LoggerFactory = name => new DebugLogger(name);
 
         /// <summary>
         /// Get a new ILogger for the given type
         /// </summary>
         /// <param name="type">Type which is using the ILogger</param>
         /// <returns>ILogger for use by the given type</returns>
-        public static IStyletLogger GetLogger(Type type)
+        public static ILogger GetLogger(Type type)
         {
             return GetLogger(type.FullName);
         }
@@ -146,7 +146,7 @@ namespace Stylet
         /// </summary>
         /// <param name="name">Name of the ILogger</param>
         /// <returns>ILogger with the given name</returns>
-        public static IStyletLogger GetLogger(string name)
+        public static ILogger GetLogger(string name)
         {
             return Enabled ? LoggerFactory(name) : nullLogger;
         }

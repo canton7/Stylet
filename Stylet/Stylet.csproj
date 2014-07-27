@@ -56,7 +56,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LambdaEqualityComparer.cs" />
-    <Compile Include="StyletLogManager.cs" />
+    <Compile Include="Logging\StyletLogManager.cs" />
     <Compile Include="MessageBox.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
     <Compile Include="StyletIoC\IContainer.cs" />

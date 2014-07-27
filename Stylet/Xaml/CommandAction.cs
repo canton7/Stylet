@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Stylet.Logging;
+using System;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
-
 using Expressions = System.Linq.Expressions;
 
 namespace Stylet.Xaml
@@ -18,7 +18,7 @@ namespace Stylet.Xaml
     /// </remarks>
     public class CommandAction : ICommand
     {
-        private static readonly IStyletLogger logger = StyletLogManager.GetLogger(typeof(CommandAction));
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(CommandAction));
         /// <summary>
         /// View to grab the View.ActionTarget from
         /// </summary>

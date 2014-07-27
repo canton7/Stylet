@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Stylet.Logging;
+using System;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
@@ -10,7 +11,7 @@ namespace Stylet.Xaml
     /// </summary>
     public class EventAction
     {
-        private static readonly IStyletLogger logger = StyletLogManager.GetLogger(typeof(EventAction));
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(EventAction));
 
         /// <summary>
         /// View whose View.ActionTarget we watch

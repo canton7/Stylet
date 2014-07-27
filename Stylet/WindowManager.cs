@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Stylet.Logging;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
@@ -30,7 +31,7 @@ namespace Stylet
     /// </summary>
     public class WindowManager : IWindowManager
     {
-        private static readonly IStyletLogger logger = StyletLogManager.GetLogger(typeof(WindowManager));
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(WindowManager));
         private IViewManager viewManager;
 
         /// <summary>
