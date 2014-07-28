@@ -75,9 +75,9 @@ namespace Stylet
             this.ConfigureResources();
             this.Configure();
 
-            View.ViewManager = IoC.Get<IViewManager>();
-
             this.OnStart();
+
+            View.ViewManager = IoC.Get<IViewManager>();
 
             if (autoLaunch && !Execute.InDesignMode)
                 this.Launch();
