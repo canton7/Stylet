@@ -93,7 +93,7 @@ namespace Stylet.Xaml
                 }
                 else
                 {
-                    logger.Warn("ActionTarget on element {0} is null (method name is {1}), nut NullTarget is not Throw, so carrying on", this.Subject, this.MethodName);
+                    logger.Info("ActionTarget on element {0} is null (method name is {1}), nut NullTarget is not Throw, so carrying on", this.Subject, this.MethodName);
                 }
             }
             else
