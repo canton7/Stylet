@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace StyletUnitTests
 {
     [TestFixture]
-    public class DebugLoggerTests
+    public class TraceLoggerTests
     {
         private class StringTraceListener : TraceListener
         {
@@ -34,14 +34,14 @@ namespace StyletUnitTests
         public void SetUp()
         {
             this.listener = new StringTraceListener();
-            Debug.Listeners.Clear();
-            Debug.Listeners.Add(this.listener);
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(this.listener);
         }
 
         [Test]
         public void InfoWritesAppropriateString()
         {
-            var logger = new DebugLogger("testName");
+            var logger = new TraceLogger("testName");
             logger.Info("{0} message", "test");
 
             Assert.AreEqual(1, this.listener.messages.Count);
@@ -56,7 +56,7 @@ namespace StyletUnitTests
         [Test]
         public void WarnWritesAppropriateString()
         {
-            var logger = new DebugLogger("loggerName");
+            var logger = new TraceLogger("loggerName");
             logger.Warn("this is a {0} message", "test");
 
             Assert.AreEqual(1, this.listener.messages.Count);
@@ -71,7 +71,7 @@ namespace StyletUnitTests
         [Test]
         public void ErrorWithMessageWritesAppropriateString()
         {
-            var logger = new DebugLogger("loggerWithErrorName");
+            var logger = new TraceLogger("loggerWithErrorName");
             var e = new Exception("exception message");
             logger.Error(e, "accompanying message");
 
@@ -88,7 +88,7 @@ namespace StyletUnitTests
         [Test]
         public void ErrorWithoutMessageWritesAppropriateString()
         {
-            var logger = new DebugLogger("loggerWithErrorName");
+            var logger = new TraceLogger("loggerWithErrorName");
             var e = new Exception("exception message");
             logger.Error(e);
 

@@ -40,7 +40,7 @@ namespace StyletUnitTests
         {
             LogManager.Enabled = true;
             var logger = LogManager.GetLogger("test");
-            Assert.IsInstanceOf<DebugLogger>(logger);
+            Assert.IsInstanceOf<TraceLogger>(logger);
         }
 
         [Test]

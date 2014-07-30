@@ -60,7 +60,7 @@ namespace Stylet.Logging
     /// <summary>
     /// ILogger implementation which uses Debug.WriteLine
     /// </summary>
-    public class DebugLogger : ILogger
+    public class TraceLogger : ILogger
     {
         private readonly string name;
 
@@ -68,7 +68,7 @@ namespace Stylet.Logging
         /// Create a new DebugLogger with the given name
         /// </summary>
         /// <param name="name">Name of the DebugLogger</param>
-        public DebugLogger(string name)
+        public TraceLogger(string name)
         {
             this.name = name;
         }
@@ -80,7 +80,7 @@ namespace Stylet.Logging
         /// <param name="args">format parameters</param>
         public void Info(string format, params object[] args)
         {
-            Debug.WriteLine(String.Format("[{1}] INFO {0}", String.Format(format, args), this.name), "Stylet");
+            Trace.WriteLine(String.Format("INFO [{1}] {0}", String.Format(format, args), this.name), "Stylet");
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace Stylet.Logging
         /// <param name="args">format parameters</param>
         public void Warn(string format, params object[] args)
         {
-            Debug.WriteLine(String.Format("[{1}] WARN {0}", String.Format(format, args), this.name), "Stylet");
+            Trace.WriteLine(String.Format("WARN [{1}] {0}", String.Format(format, args), this.name), "Stylet");
         }
 
         /// <summary>
@@ -101,9 +101,9 @@ namespace Stylet.Logging
         public void Error(Exception exception, string message = null)
         {
             if (message == null)
-                Debug.WriteLine(String.Format("[{1}] ERROR {0}", exception, this.name), "Stylet");
+                Trace.WriteLine(String.Format("ERROR [{1}] {0}", exception, this.name), "Stylet");
             else
-                Debug.WriteLine(String.Format("[{2}] ERROR {0} {1}", message, exception, this.name), "Stylet");
+                Trace.WriteLine(String.Format("ERROR [{2}] {0} {1}", message, exception, this.name), "Stylet");
         }
     }
 
@@ -129,7 +129,7 @@ namespace Stylet.Logging
         /// <remarks>
         /// e.g. LogManager.LoggerFactory = name => new MyLogger(name);
         /// </remarks>
-        public static Func<string, ILogger> LoggerFactory = name => new DebugLogger(name);
+        public static Func<string, ILogger> LoggerFactory = name => new TraceLogger(name);
 
         /// <summary>
         /// Get a new ILogger for the given type
