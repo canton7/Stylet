@@ -11,20 +11,14 @@ namespace Stylet
     public class Bootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
     {
         /// <summary>
-        /// Create a new Bootstrapper, which automatically starts and launches on application startup
+        /// Create a new Bootstrapper
         /// </summary>
         public Bootstrapper() : base() { }
 
         /// <summary>
-        /// Create a new Bootstrapper, and specify whether to auto-start and auto-launch
-        /// </summary>
-        /// <param name="autoStart">True to call this.Start() on Application.Startup. If false, call this.Start() in your OnStartup override</param>
-        public Bootstrapper(bool autoStart) : base(autoStart) { }
-
-        /// <summary>
         /// IoC container. This is created after ConfigureIoC has been run.
         /// </summary>
-        protected IContainer container;
+        protected IContainer Container;
 
         /// <summary>
         /// Overridden from BootstrapperBase, this sets up the IoC container
@@ -38,7 +32,7 @@ namespace Stylet
             this.DefaultConfigureIoC(builder);
             this.ConfigureIoC(builder);
 
-            this.container = builder.BuildContainer();
+            this.Container = builder.BuildContainer();
         }
 
         /// <summary>
@@ -67,7 +61,7 @@ namespace Stylet
         /// </summary>
         protected override object GetInstance(Type service, string key = null)
         {
-            return this.container.Get(service, key);
+            return this.Container.Get(service, key);
         }
 
         /// <summary>
@@ -75,7 +69,7 @@ namespace Stylet
         /// </summary>
         protected override IEnumerable<object> GetAllInstances(Type service)
         {
-            return this.container.GetAll(service);
+            return this.Container.GetAll(service);
         }
 
         /// <summary>
@@ -83,7 +77,7 @@ namespace Stylet
         /// </summary>
         protected override void BuildUp(object instance)
         {
-            this.container.BuildUp(instance);
+            this.Container.BuildUp(instance);
         }
     }
 }

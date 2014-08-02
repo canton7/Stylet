@@ -1,6 +1,7 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Stylet;
+using Stylet.Xaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,12 +22,17 @@ namespace StyletUnitTests
             private IViewManager viewManager;
             private IWindowManager windowManager;
 
-            public MyBootstrapperBase(IViewManager viewManager, IWindowManager windowManager) : base(false)
+            public MyBootstrapperBase(IViewManager viewManager, IWindowManager windowManager)
             {
                 this.viewManager = viewManager;
                 this.windowManager = windowManager;
 
                 this.Start();
+            }
+
+            public new Application Application
+            {
+                get { return base.Application; }
             }
 
             public bool GetInstanceCalled;
@@ -61,13 +67,6 @@ namespace StyletUnitTests
                 this.OnExitCalled = true;
             }
 
-            public bool ConfigureResourcesCalled;
-            protected override void ConfigureResources()
-            {
-                this.ConfigureResourcesCalled = true;
-                base.ConfigureResources();
-            }
-
             public bool ConfigureCalled;
             protected override void Configure()
             {
@@ -75,7 +74,7 @@ namespace StyletUnitTests
                 base.Configure();
             }
 
-            public void Start()
+            public new void Start()
             {
                 base.Start();
             }
@@ -99,15 +98,6 @@ namespace StyletUnitTests
             this.viewManager = new Mock<IViewManager>();
             this.windowManager = new Mock<IWindowManager>();
             this.bootstrapper = new MyBootstrapperBase<RootViewModel>(this.viewManager.Object, this.windowManager.Object);
-        }
-
-        [Test]
-        public void SetsUpOnExitHandler()
-        {
-            var ctor = typeof(ExitEventArgs).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)[0];
-            var ea = (ExitEventArgs)ctor.Invoke(new object[] { 3 });
-            //this.application.OnExit(ea);
-            //Assert.True(this.bootstrapper.OnExitCalled);
         }
 
         [Test]
@@ -148,17 +138,17 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void StartCallsConfigureResources()
-        {
-            this.bootstrapper.Start();
-            Assert.True(this.bootstrapper.ConfigureResourcesCalled);
-        }
-
-        [Test]
         public void StartCallsConfigure()
         {
             this.bootstrapper.Start();
             Assert.True(this.bootstrapper.ConfigureCalled);
+        }
+
+        [Test]
+        public void StartAssignsViewManager()
+        {
+            this.bootstrapper.Start();
+            Assert.AreEqual(View.ViewManager, this.viewManager.Object);
         }
     }
 }
