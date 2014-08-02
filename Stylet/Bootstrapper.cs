@@ -18,7 +18,7 @@ namespace Stylet
         /// <summary>
         /// IoC container. This is created after ConfigureIoC has been run.
         /// </summary>
-        protected IContainer Container { get; private set; }
+        protected IContainer Container;
 
         /// <summary>
         /// Overridden from BootstrapperBase, this sets up the IoC container

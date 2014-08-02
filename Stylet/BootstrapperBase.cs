@@ -28,22 +28,18 @@ namespace Stylet
         {
             this.Application = application;
 
-            // Allows for unit testing
-            if (this.Application != null)
+            this.Application.Startup += (o, e) =>
             {
-                this.Application.Startup += (o, e) =>
-                {
-                    this.OnApplicationStartup(o, e);
-                    this.Start();
-                };
+                this.OnApplicationStartup(o, e);
+                this.Start();
+            };
 
-                // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
-                this.Application.Exit += OnApplicationExit;
+            // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
+            this.Application.Exit += OnApplicationExit;
 
-                // Fetch this logger when needed. If we fetch it now, then no-one will have been given the change to enable the LogManager, and we'll get a NullLogger
-                this.Application.DispatcherUnhandledException += (o, e) => LogManager.GetLogger(typeof(BootstrapperBase<>)).Error(e.Exception, "Unhandled exception");
-                this.Application.DispatcherUnhandledException += OnApplicationUnhandledExecption;
-            }
+            // Fetch this logger when needed. If we fetch it now, then no-one will have been given the change to enable the LogManager, and we'll get a NullLogger
+            this.Application.DispatcherUnhandledException += (o, e) => LogManager.GetLogger(typeof(BootstrapperBase<>)).Error(e.Exception, "Unhandled exception");
+            this.Application.DispatcherUnhandledException += OnApplicationUnhandledExecption;
         }
 
         /// <summary>
