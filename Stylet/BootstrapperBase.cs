@@ -13,7 +13,7 @@ namespace Stylet
     /// Bootstrapper to be extended by applications which don't want to use StyletIoC as the IoC container.
     /// </summary>
     /// <typeparam name="TRootViewModel">Type of the root ViewModel. This will be instantiated and displayed</typeparam>
-    public abstract class BootstrapperBase<TRootViewModel> where TRootViewModel : class
+    public abstract class BootstrapperBase<TRootViewModel> : IBootstrapper where TRootViewModel : class
     {
         /// <summary>
         /// Reference to the current application
@@ -21,18 +21,12 @@ namespace Stylet
         protected Application Application { get; private set; }
 
         /// <summary>
-        /// Create a new BootstrapperBase, which automatically starts on application startup
+        /// Called by the ApplicationLoader when this bootstrapper is loaded
         /// </summary>
-        public BootstrapperBase() : this(true) { }
-
-        /// <summary>
-        /// Create a new BootstrapperBase, and specify whether to auto-start
-        /// </summary>
-        /// <param name="autoStart">True to call this.Start() at the end of this constructor</param>
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "We give the user the option to not call the virtual method, and call it themselves, if they want/need to")]
-        public BootstrapperBase(bool autoStart)
+        /// <param name="application"></param>
+        public void Setup(Application application)
         {
-            this.Application = Application.Current;
+            this.Application = application;
 
             // Allows for unit testing
             if (this.Application != null)
@@ -40,8 +34,7 @@ namespace Stylet
                 this.Application.Startup += (o, e) =>
                 {
                     this.OnApplicationStartup(o, e);
-                    if (autoStart)
-                        this.Start();
+                    this.Start();
                 };
 
                 // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
@@ -56,8 +49,7 @@ namespace Stylet
         /// <summary>
         /// Called from the constructor, this does everything necessary to start the application
         /// </summary>
-        /// <param name="autoLaunch">True to automatically launch the main window</param>
-        protected virtual void Start(bool autoLaunch = true)
+        protected virtual void Start()
         {
             // Stitch the IoC shell to us
             IoC.GetInstance = this.GetInstance;
@@ -72,14 +64,11 @@ namespace Stylet
             AssemblySource.Assemblies.Clear();
             AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
 
-            this.ConfigureResources();
             this.Configure();
-
-            this.OnStart();
 
             View.ViewManager = IoC.Get<IViewManager>();
 
-            if (autoLaunch && !Execute.InDesignMode)
+            if (!Execute.InDesignMode)
                 this.Launch();
         }
 
@@ -89,18 +78,6 @@ namespace Stylet
         protected virtual void Launch()
         {
             IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
-        }
-
-        /// <summary>
-        /// Add any application resources to the application. Override to add your own, or to avoid Stylet's default resources from being added
-        /// </summary>
-        protected virtual void ConfigureResources()
-        {
-            if (this.Application == null)
-                return;
-
-            var rc = new ResourceDictionary() { Source = new Uri("pack://application:,,,/Stylet;component/Xaml/StyletResourceDictionary.xaml", UriKind.Absolute) };
-            this.Application.Resources.MergedDictionaries.Add(rc);
         }
 
         /// <summary>
@@ -142,11 +119,6 @@ namespace Stylet
         /// Hook called on application startup. This occurs before Start() is called (if autoStart is true)
         /// </summary>
         protected virtual void OnApplicationStartup(object sender, StartupEventArgs e) { }
-
-        /// <summary>
-        /// Hook called when the application has started, and Stylet is fully initialised
-        /// </summary>
-        protected virtual void OnStart() { }
 
         /// <summary>
         /// Hook called on application exit
