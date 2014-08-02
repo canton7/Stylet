@@ -15,7 +15,11 @@ namespace Stylet.Samples.Hello
         public string Name
         {
             get { return this._name; }
-            set { SetAndNotify(ref this._name, value); this.NotifyOfPropertyChange(() => this.CanSayHello); }
+            set
+            {
+                SetAndNotify(ref this._name, value);
+                this.NotifyOfPropertyChange(() => this.CanSayHello);
+            }
         }
 
         public ShellViewModel(IWindowManager windowManager)
