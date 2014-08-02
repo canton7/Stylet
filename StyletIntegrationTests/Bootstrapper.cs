@@ -12,8 +12,9 @@ namespace StyletIntegrationTests
 {
     public class Bootstrapper : Bootstrapper<ShellViewModel>
     {
-        protected override void OnStart()
+        protected override void Configure()
         {
+            base.Configure();
             LogManager.Enabled = true;
         }
 
