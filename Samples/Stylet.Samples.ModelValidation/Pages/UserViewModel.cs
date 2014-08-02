@@ -17,10 +17,14 @@ namespace Stylet.Samples.ModelValidation.Pages
         public string PasswordConfirmation { get; set; }
         public Stringable<int> Age { get; set; }
 
-        public bool AutoValidate
+        public bool ShouldAutoValidate
         {
-            get { return this.autoValidate; }
-            set { this.autoValidate = value; this.NotifyOfPropertyChange(); }
+            get { return base.AutoValidate; }
+            set
+            {
+                base.AutoValidate = value;
+                this.NotifyOfPropertyChange();
+            }
         }
 
         public UserViewModel(IWindowManager windowManager, IModelValidator<UserViewModel> validator) : base(validator)
@@ -37,7 +41,7 @@ namespace Stylet.Samples.ModelValidation.Pages
 
         public bool CanSubmit
         {
-            get { return !this.AutoValidate || !this.HasErrors; }
+            get { return !this.ShouldAutoValidate || !this.HasErrors; }
         }
         public void Submit()
         {

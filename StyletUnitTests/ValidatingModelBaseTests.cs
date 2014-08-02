@@ -27,8 +27,8 @@ namespace StyletUnitTests
 
             public bool AutoValidate
             {
-                get { return base.autoValidate; }
-                set { base.autoValidate = value; }
+                get { return base.AutoValidate; }
+                set { base.AutoValidate = value; }
             }
 
             public IModelValidator Validator
