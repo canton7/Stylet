@@ -36,6 +36,7 @@ namespace Stylet.Samples.RedditBrowser.Pages
         {
             var item = this.postCommentsViewModelFactory.CreatePostCommentsViewModel();
             item.PostId36 = postId36;
+            item.Subreddit = this.Subreddit;
             this.ActivateItem(item);
         }
 
