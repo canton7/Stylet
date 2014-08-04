@@ -12,6 +12,9 @@ namespace StyletUnitTests
     [TestFixture]
     public class ConductorOneActiveTests
     {
+        public interface IMyScreen : IScreen, IDisposable
+        { }
+
         private Conductor<IScreen>.Collection.OneActive conductor;
 
         [TestFixtureSetUp]
@@ -137,11 +140,12 @@ namespace StyletUnitTests
         [Test]
         public void ClosingClosesAllItems()
         {
-            var screen = new Mock<IScreen>();
+            var screen = new Mock<IMyScreen>();
             ((IActivate)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
             ((IClose)this.conductor).Close();
             screen.Verify(x => x.Close());
+            screen.Verify(x => x.Dispose());
             Assert.AreEqual(0, this.conductor.Items.Count);
         }
 
@@ -195,20 +199,21 @@ namespace StyletUnitTests
         [Test]
         public void RemovingItemClosesAndRemovesParent()
         {
-            var screen = new Mock<IScreen>();
+            var screen = new Mock<IMyScreen>();
             screen.SetupGet(x => x.Parent).Returns(this.conductor);
             this.conductor.Items.Add(screen.Object);
             this.conductor.Items.Remove(screen.Object);
             screen.VerifySet(x => x.Parent = null);
             screen.Verify(x => x.Close());
+            screen.Verify(x => x.Dispose());
         }
 
         [Test]
         public void RemovingActiveItemActivatesAnotherItem()
         {
             ((IActivate)this.conductor).Activate();
-            var screen1 = new Mock<IScreen>();
-            var screen2 = new Mock<IScreen>();
+            var screen1 = new Mock<IMyScreen>();
+            var screen2 = new Mock<IMyScreen>();
             this.conductor.ActivateItem(screen1.Object);
             this.conductor.Items.Add(screen2.Object);
 
@@ -217,6 +222,7 @@ namespace StyletUnitTests
             Assert.AreEqual(this.conductor.ActiveItem, screen2.Object);
             screen2.Verify(x => x.Activate());
             screen1.Verify(x => x.Close());
+            screen1.Verify(x => x.Dispose());
         }
 
         [Test]
@@ -241,44 +247,48 @@ namespace StyletUnitTests
         [Test]
         public void CloseItemDoesNothingIfItemCanNotClose()
         {
-            var screen = new Mock<IScreen>();
+            var screen = new Mock<IMyScreen>();
             this.conductor.ActivateItem(screen.Object);
             this.conductor.CloseItem(screen.Object);
             screen.Verify(x => x.Close(), Times.Never);
+            screen.Verify(x => x.Dispose(), Times.Never);
             Assert.That(this.conductor.Items, Is.EquivalentTo(new[] { screen.Object }));
         }
 
         [Test]
         public void CloseItemDeactivatesItemAndRemovesFromItemsIfItemCanClose()
         {
-            var screen = new Mock<IScreen>();
+            var screen = new Mock<IMyScreen>();
             screen.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
             this.conductor.ActivateItem(screen.Object);
             this.conductor.CloseItem(screen.Object);
             screen.Verify(x => x.Close());
+            screen.Verify(x => x.Dispose());
             Assert.AreEqual(0, this.conductor.Items.Count);
         }
 
         [Test]
         public void ClosingConductorClosesActiveItem()
         {
-            var screen1 = new Mock<IScreen>();
+            var screen1 = new Mock<IMyScreen>();
             screen1.SetupGet(x => x.Parent).Returns(this.conductor);
             this.conductor.ActivateItem(screen1.Object);
             ((IClose)this.conductor).Close();
             screen1.Verify(x => x.Close());
+            screen1.Verify(x => x.Dispose());
             screen1.VerifySet(x => x.Parent = null);
         }
 
         [Test]
         public void ClosesItemIfItemRequestsClose()
         {
-            var screen = new Mock<IScreen>();
+            var screen = new Mock<IMyScreen>();
             this.conductor.ActivateItem(screen.Object);
             screen.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
             ((IChildDelegate)this.conductor).CloseItem(screen.Object);
 
             screen.Verify(x => x.Close());
+            screen.Verify(x => x.Dispose());
             Assert.Null(this.conductor.ActiveItem);
         }
     }

@@ -15,6 +15,9 @@ namespace StyletUnitTests
     [TestFixture, RequiresSTA]
     public class WindowManagerTests
     {
+        public interface IMyScreen : IScreen, IDisposable
+        { }
+
         private class MyWindowManager : WindowManager
         {
             public MyWindowManager(IViewManager viewManager) : base(viewManager) { }
@@ -200,7 +203,7 @@ namespace StyletUnitTests
         [Test]
         public void WindowClosingClosesWindowIfCanCloseAsyncCompletesTrue()
         {
-            var model = new Mock<IScreen>();
+            var model = new Mock<IMyScreen>();
             var window = new MyWindow();
             this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
@@ -208,8 +211,10 @@ namespace StyletUnitTests
             model.Setup(x => x.CanCloseAsync()).Returns(tcs.Task);
             window.OnClosing(new CancelEventArgs());
             model.Verify(x => x.Close(), Times.Never);
+            model.Verify(x => x.Dispose(), Times.Never);
             tcs.SetResult(true);
             model.Verify(x => x.Close(), Times.Once);
+            model.Verify(x => x.Dispose(), Times.Once);
 
             Assert.True(window.OnClosedCalled);
 
@@ -244,7 +249,7 @@ namespace StyletUnitTests
         [Test]
         public void CloseItemClosesAndWindowViewModelIfCanCloseReturnsTrue()
         {
-            var model = new Mock<IScreen>();
+            var model = new Mock<IMyScreen>();
             var window = new MyWindow();
             this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
             object parent = null;
@@ -255,6 +260,7 @@ namespace StyletUnitTests
             ((IChildDelegate)parent).CloseItem(model.Object);
 
             model.Verify(x => x.Close());
+            model.Verify(x => x.Dispose());
             Assert.True(window.OnClosedCalled);
         }
     }

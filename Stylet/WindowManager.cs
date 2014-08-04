@@ -166,7 +166,7 @@ namespace Stylet
                 this.window.Closed -= this.WindowClosed;
                 this.window.Closing -= this.WindowClosing; // Not sure this is required
 
-                ScreenExtensions.TryClose(this.viewModel);
+                ScreenExtensions.TryCloseAndDispose(this.viewModel);
             }
 
             /// <summary>
@@ -234,7 +234,7 @@ namespace Stylet
                 if (dialogResult != null)
                     this.window.DialogResult = dialogResult;
 
-                ScreenExtensions.TryClose(this.viewModel);
+                ScreenExtensions.TryCloseAndDispose(this.viewModel);
 
                 this.window.Close();
             }
