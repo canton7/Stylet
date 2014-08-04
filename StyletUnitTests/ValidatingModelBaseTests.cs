@@ -25,7 +25,7 @@ namespace StyletUnitTests
                 set { SetAndNotify(ref this._intProperty, value); }
             }
 
-            public bool AutoValidate
+            public new bool AutoValidate
             {
                 get { return base.AutoValidate; }
                 set { base.AutoValidate = value; }
