@@ -45,20 +45,6 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void NongenericThrowsIfXIsNotT()
-        {
-            var c = new LambdaEqualityComparer<int>((x, y) => x == y);
-            Assert.Throws<ArgumentException>(() => ((IEqualityComparer)c).Equals("test", 3));
-        }
-
-        [Test]
-        public void NongengericThrowsIfYIsNotT()
-        {
-            var c = new LambdaEqualityComparer<int>((x, y) => x == y);
-            Assert.Throws<ArgumentException>(() => ((IEqualityComparer)c).Equals(3, "test"));
-        }
-
-        [Test]
         public void NongenericCallsLambdaToCompareObjects()
         {
             int a = 0;
