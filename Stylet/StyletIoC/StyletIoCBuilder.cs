@@ -62,14 +62,15 @@ namespace StyletIoC
     }
 
     /// <summary>
-    /// Fluent interface on which InSingletonScope can be called
+    /// Fluent interface on which methods to modify the scope can be called
     /// </summary>
     public interface IInScope
     {
         /// <summary>
-        /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
+        /// Specify a factory that creates an IRegistration to use for this binding
         /// </summary>
-        void InSingletonScope();
+        /// <param name="registrationFactory">Registration factory to use</param>
+        void WithRegistrationFactory(RegistrationFactory registrationFactory);
     }
 
     /// <summary>
@@ -82,6 +83,20 @@ namespace StyletIoC
         /// </summary>
         /// <param name="key">Key to associate with this binding</param>
         IInScope WithKey(string key);
+    }
+
+    /// <summary>
+    /// Extension methods providing scopes other than transitnet
+    /// </summary>
+    public static class StyletIoCScopeExtensions
+    {
+        /// <summary>
+        /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
+        /// </summary>
+        public static void InSingletonScope(this IInScope builder)
+        {
+            builder.WithRegistrationFactory((creator, key) => new SingletonRegistration(creator));
+        }
     }
 
     internal class BuilderBindTo : IBindTo
@@ -142,7 +157,7 @@ namespace StyletIoC
     internal abstract class BuilderBindingBase : IInScopeOrWithKey, IWithKey
     {
         protected Type serviceType;
-        protected Func<ICreator, IRegistration> registrationFactory;
+        protected RegistrationFactory registrationFactory;
         public string Key { get; protected set; }
 
         public BuilderBindingBase(Type serviceType)
@@ -150,12 +165,14 @@ namespace StyletIoC
             this.serviceType = serviceType;
 
             // Default is transient
-            this.registrationFactory = creator => new TransientRegistration(creator);
+            this.registrationFactory = (creator, key) => new TransientRegistration(creator);
         }
 
-        void IInScope.InSingletonScope()
+        void IInScope.WithRegistrationFactory(RegistrationFactory registrationFactory)
         {
-            this.registrationFactory = creator => new SingletonRegistration(creator);
+            if (registrationFactory == null)
+                throw new ArgumentNullException("registrationFactory");
+            this.registrationFactory = registrationFactory;
         }
 
         IInScope IInScopeOrWithKey.WithKey(string key)
@@ -206,10 +223,16 @@ namespace StyletIoC
             else
             {
                 var creator = new TypeCreator(implementationType, container);
-                var registration = this.registrationFactory(creator);
+                var registration = this.CreateRegistration(creator);
 
                 container.AddRegistration(new TypeKey(serviceType, this.Key ?? creator.AttributeKey), registration);
             }
+        }
+
+        // Convenience...
+        protected IRegistration CreateRegistration(ICreator creator)
+        {
+            return this.registrationFactory(creator, this.Key);
         }
 
         void IWithKey.WithKey(string key)
@@ -251,7 +274,7 @@ namespace StyletIoC
         public override void Build(StyletIoCContainer container)
         {
             var creator = new FactoryCreator<TImplementation>(this.factory, container);
-            var registration = this.registrationFactory(creator);
+            var registration = this.CreateRegistration(creator);
 
             container.AddRegistration(new TypeKey(this.serviceType, this.Key), registration);
         }

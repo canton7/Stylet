@@ -212,6 +212,15 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void DoesNotThrowIfSameBindingAppearsMultipleTimesWithDifferentKeys()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<IC1>().To<C1>();
+            builder.Bind<IC1>().To<C1>().WithKey("key");
+            Assert.DoesNotThrow(() => builder.BuildContainer());
+        }
+
+        [Test]
         public void ThrowsIfTypeIsNull()
         {
             var builder = new StyletIoCBuilder();

@@ -12,6 +12,7 @@ namespace StyletUnitTests
     public class StyletIoCBindingChecksTests
     {
         interface I1 { }
+        class C1 : I1 { }
         class C2 { }
         interface I3 : I1 { }
         abstract class C4 : I1 { }
@@ -72,6 +73,13 @@ namespace StyletUnitTests
         {
             var builder = new StyletIoCBuilder();
             Assert.Throws<StyletIoCRegistrationException>(() => builder.Bind(typeof(I6<>)).ToFactory(x => new C6<int>()));
+        }
+
+        [Test]
+        public void ThrowsIfRegistrationFactoryIsNUll()
+        {
+            var builder = new StyletIoCBuilder();
+            Assert.Throws<ArgumentNullException>(() => builder.Bind<C1>().ToSelf().WithRegistrationFactory(null));
         }
     }
 }

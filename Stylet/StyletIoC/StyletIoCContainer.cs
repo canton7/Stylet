@@ -281,7 +281,7 @@ namespace StyletIoC
                 Debug.Assert(type.IsAssignableFrom(newType));
 
                 // Right! We've made a new generic type we can use
-                var registration = unboundGeneric.CreateRegistrationForType(newType);
+                var registration = unboundGeneric.CreateRegistrationForTypeKey(new TypeKey(newType, typeKey.Key));
 
                 // AddRegistration returns the IRegistrationCollection which was added/updated, so the one returned from the final
                 // call to AddRegistration is the final IRegistrationCollection for this key
