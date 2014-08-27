@@ -86,17 +86,6 @@ namespace StyletIoC
         }
 
         /// <summary>
-        /// Fetch a single instance of the specified type
-        /// </summary>
-        /// <typeparam name="T">Type of service to fetch an implementation for</typeparam>
-        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
-        /// <returns>An instance of the requested service</returns>
-        public T Get<T>(string key = null)
-        {
-            return (T)this.Get(typeof(T), key);
-        }
-
-        /// <summary>
         /// Fetch instances of all types which implement the specified service
         /// </summary>
         /// <param name="type">Type of the service to fetch implementations for</param>
@@ -116,17 +105,6 @@ namespace StyletIoC
         }
 
         /// <summary>
-        /// Fetch instances of all types which implement the specified service
-        /// </summary>
-        /// <typeparam name="T">Type of the service to fetch implementations for</typeparam>
-        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
-        /// <returns>All implementations of the requested service, with the requested key</returns>
-        public IEnumerable<T> GetAll<T>(string key = null)
-        {
-            return this.GetAll(typeof(T), key).Cast<T>();
-        }
-
-        /// <summary>
         /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
         /// </summary>
         /// <param name="type">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</param>
@@ -138,17 +116,6 @@ namespace StyletIoC
                 throw new ArgumentNullException("type");
             var generator = this.GetRegistrations(new TypeKey(type, key), true).GetSingle().GetGenerator();
             return generator();
-        }
-
-        /// <summary>
-        /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
-        /// </summary>
-        /// <typeparam name="T">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</typeparam>
-        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
-        /// <returns></returns>
-        public T GetTypeOrAll<T>(string key = null)
-        {
-            return (T)this.GetTypeOrAll(typeof(T), key);
         }
 
         /// <summary>
