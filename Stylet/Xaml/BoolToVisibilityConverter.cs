@@ -64,9 +64,14 @@ namespace Stylet.Xaml
             {
                 result = ((IEnumerable)value).GetEnumerator().MoveNext();
             }
+            else if (!(value is ValueType))
+            {
+                result = true; // Non-null non-enumerable reference type = true
+            }
+            // Value types from here on in
             else
             {
-                // This fails if it an int can't be converter to it, or for many other reasons
+                // This fails if an int can't be converted to it, or for many other reasons
                 // Easiest is just to try it and see
                 try
                 {
