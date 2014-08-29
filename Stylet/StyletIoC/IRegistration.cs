@@ -41,16 +41,28 @@ namespace StyletIoC
     {
         protected readonly ICreator creator;
         public Type Type { get { return this.creator.Type; } }
-        protected readonly object generatorLock = new object();
-        // Value type, so needs locked access
-        protected Func<object> generator { get; set; }
+
+        private readonly object generatorLock = new object();
+        private Func<object> generator;
 
         public RegistrationBase(ICreator creator)
         {
             this.creator = creator;
         }
 
-        public abstract Func<object> GetGenerator();
+        public virtual Func<object> GetGenerator()
+        {
+            if (this.generator != null)
+                return this.generator;
+
+            lock (this.generatorLock)
+            {
+                if (this.generator == null)
+                    this.generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression()).Compile();
+                return this.generator;
+            }
+        }
+
         public abstract Expression GetInstanceExpression();
     }
 
@@ -62,22 +74,6 @@ namespace StyletIoC
         public override Expression GetInstanceExpression()
         {
             return this.creator.GetInstanceExpression();
-        }
-
-        public override Func<object> GetGenerator()
-        {
-            // Compiling the generator might be expensive, but there's nothing to be gained from
-            // doing it outside of the lock - the altnerative is having two threads compiling it in parallel,
-            // while would take just as long and use more resources
-            lock (this.generatorLock)
-            {
-                if (this.generator != null)
-                    return this.generator;
-                var generator = Expression.Lambda<Func<object>>(this.GetInstanceExpression()).Compile();
-                if (this.generator == null)
-                    this.generator = generator;
-                return this.generator;
-            }
         }
     }
 
@@ -96,19 +92,6 @@ namespace StyletIoC
             // Ensure we don't end up creating two singletons, one used by each thread
             var instance = Expression.Lambda<Func<object>>(this.creator.GetInstanceExpression()).Compile()();
             Interlocked.CompareExchange(ref this.instance, instance, null);
-        }
-
-        public override Func<object> GetGenerator()
-        {
-            this.EnsureInstantiated();
-
-            // Cheap delegate creation, so doesn't need to be outside the lock
-            lock (this.generatorLock)
-            {
-                if (this.generator == null)
-                    this.generator = () => this.instance;
-                return this.generator;
-            }
         }
 
         public override Expression GetInstanceExpression()
@@ -148,6 +131,9 @@ namespace StyletIoC
 
         public Func<object> GetGenerator()
         {
+            if (this.generator != null)
+                return this.generator;
+
             lock (this.generatorLock)
             {
                 if (this.generator == null)
