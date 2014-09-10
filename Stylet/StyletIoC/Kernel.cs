@@ -9,29 +9,18 @@ using System.Reflection.Emit;
 
 namespace StyletIoC
 {
-    /// <summary>
-    /// Lightweight, very fast IoC container
-    /// </summary>
-    // Needs to be public, or FactoryAssemblyName isn't visible
-    public class StyletIoCContainer : IContainer, IRegistrationContext
+    internal class Kernel : IContainer
     {
-        /// <summary>
-        /// Name of the assembly in which abstract factories are built. Use in [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to allow factories created by .ToAbstractFactory() to access internal types
-        /// </summary>
-        public static readonly string FactoryAssemblyName = "StyletIoCFactory";
-
         /// <summary>
         /// Maps a [type, key] pair to a collection of registrations for that keypair. You can retrieve an instance of the type from the registration
         /// </summary>
-        private readonly IDelegatingDictionary<TypeKey, IRegistrationCollection> registrations;
+        private readonly ConcurrentDictionary<TypeKey, IRegistrationCollection> registrations = new ConcurrentDictionary<TypeKey, IRegistrationCollection>();
 
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is the T in IEnumerable{T}, to a registration which can create a List{T} implementing that IEnumerable.
         /// This is separate from 'registrations' as some code paths - e.g. Get() - won't search it (while things like constructor/property injection will).
         /// </summary>
         private readonly ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
-
-        private readonly Dictionary<TypeKey, List<UnboundGeneric>> parentUnboundGenerics;
 
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is an unbound generic (something like IValidator{}) to something which, given a type, can create an IRegistration for that type.
@@ -43,55 +32,21 @@ namespace StyletIoC
         /// <summary>
         /// Maps a type onto a BuilderUpper for that type, which can create an Expresson/Delegate to build up that type.
         /// </summary>
-        private readonly IDelegatingDictionary<Type, BuilderUpper> builderUppers;
+        private readonly ConcurrentDictionary<Type, BuilderUpper> builderUppers = new ConcurrentDictionary<Type, BuilderUpper>();
 
         /// <summary>
         /// Cached ModuleBuilder used for building factory implementations
         /// </summary>
         private ModuleBuilder factoryBuilder;
 
-        public event EventHandler Disposing;
-
-        internal StyletIoCContainer(StyletIoCContainer parent)
-        {
-            // If we're building from parent, there are a few considerations around state....
-            // 1. Registrations: These are a bit tricky. We have our own collection of registrations, which are created using the builder that created us.
-            //    Our parent doesn't share these. We can also access our parent's collection of registrations. However, when we do, we might copy the
-            //    registration to our collection, and give the registration a chance to intercept that request and return something else. For singleton
-            //    and transient registrations this means that we'll end up with a reference to the same registration as used by our parent. For
-            //    registrations whose scope changes in child containers, they'll typically return a registration which uses the same compiled expression but
-            //    a a different storage for cached instances.
-            // 2. GetAllRegistrations: We can't re-use these from our parent, sadly, because we might have extra service implementations which our parent doesn't.
-            //    So until (unless?) I figure out an efficient way of figuring out what can be used from the parent and what can't, we're starting over with thee.
-            // 3. Unbound generics: Like registrations, we need our own collection, but we'll also use ones from our parent. We can't modify our parent's
-            //    collection of unbound generics.
-            // 4. Builder Uppers: A Builder Upper has two parts: a method which generates an expression to build up a given instance, and a cached delegate
-            //    which builds up an arbitrary object (of the correct type). Like registrations, we can re-use builder uppers from our parent, but must
-            //    keep our own ones to ourself. There is a slight inefficiency here: builder uppers are created on demand (since they're used rarely in typical
-            //    code). This means that if our parent has all necessary registrations to create a builder upper, but it's never created on the parnet - instead
-            //    it's always created by a child, the parent will never get a cached copy. This might get addressed at some point, but the complexity might not
-            //    be worth it (especially for such a rarely-used feature).
-
-            this.registrations = DelegatingDictionary<TypeKey, IRegistrationCollection>.Create(parent.registrations, registration => registration.CloneToContext(this));
-            this.parentUnboundGenerics = parent.unboundGenerics;
-            this.builderUppers = DelegatingDictionary<Type, BuilderUpper>.Create(parent.builderUppers);
-        }
-
-        internal StyletIoCContainer()
-        {
-            this.registrations = DelegatingDictionary<TypeKey, IRegistrationCollection>.Create();
-            this.parentUnboundGenerics = null;
-            this.builderUppers = DelegatingDictionary<Type, BuilderUpper>.Create();
-        }
-
         /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
         /// </summary>
         public void Compile(bool throwOnError = true)
         {
-            foreach (var value in this.registrations.Values)
+            foreach (var kvp in this.registrations)
             {
-                foreach (var registration in value.GetAll())
+                foreach (var registration in kvp.Value.GetAll())
                 {
                     try
                     {
@@ -113,12 +68,12 @@ namespace StyletIoC
         /// <param name="type">Type of service to fetch an implementation for</param>
         /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
         /// <returns>An instance of the requested service</returns>
-        public object Get(Type type, string key = null)
+        public object Get(IScopeRepository scopes, Type type, string key = null)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
             var generator = this.GetRegistrations(new TypeKey(type, key), false).GetSingle().GetGenerator();
-            return generator(this);
+            return generator(new RegistrationContext(scopes));
         }
 
         /// <summary>
@@ -127,7 +82,7 @@ namespace StyletIoC
         /// <param name="type">Type of the service to fetch implementations for</param>
         /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
         /// <returns>All implementations of the requested service, with the requested key</returns>
-        public IEnumerable<object> GetAll(Type type, string key = null)
+        public IEnumerable<object> GetAll(IScopeRepository scopes, Type type, string key = null)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
@@ -137,7 +92,7 @@ namespace StyletIoC
             var result = this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration);
             Debug.Assert(result);
             var generator = registration.GetGenerator();
-            return (IEnumerable<object>)generator(this);
+            return (IEnumerable<object>)generator(new RegistrationContext(scopes));
         }
 
         /// <summary>
@@ -146,27 +101,22 @@ namespace StyletIoC
         /// <param name="type">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</param>
         /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
         /// <returns></returns>
-        public object GetTypeOrAll(Type type, string key = null)
+        public object GetTypeOrAll(IScopeRepository scopes, Type type, string key = null)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
             var generator = this.GetRegistrations(new TypeKey(type, key), true).GetSingle().GetGenerator();
-            return generator(this);
+            return generator(new RegistrationContext(scopes));
         }
 
         /// <summary>
         /// For each property/field with the [Inject] attribute, sets it to an instance of that type
         /// </summary>
         /// <param name="item">Item to build up</param>
-        public void BuildUp(object item)
+        public void BuildUp(IScopeRepository scopes, object item)
         {
             var builderUpper = this.GetBuilderUpper(item.GetType());
-            builderUpper.GetImplementor()(this, item);
-        }
-
-        public StyletIoCBuilder CreateChildBuilder()
-        {
-            return new StyletIoCBuilder(this);
+            builderUpper.GetImplementor()(item);
         }
 
         /// <summary>
@@ -174,12 +124,11 @@ namespace StyletIoC
         /// </summary>
         /// <param name="typeKey">TypeKey to see if we can resolve</param>
         /// <returns>Whether the given TypeKey can be resolved</returns>
-        public bool CanResolve(TypeKey typeKey)
+        internal bool CanResolve(TypeKey typeKey)
         {
             IRegistrationCollection registrations;
 
             if (this.registrations.TryGetValue(typeKey, out registrations) ||
-                this.TryCreateFuncFactory(typeKey, out registrations) ||
                 this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations))
             {
                 return true;
@@ -199,7 +148,7 @@ namespace StyletIoC
         {
             Type type = typeKey.Type;
             // Elements are never removed from this.registrations, so we're safe to make this ContainsKey query
-            if (!type.IsGenericType || type.GenericTypeArguments.Length != 1 || !this.CanResolve(new TypeKey(type.GenericTypeArguments[0], typeKey.Key)))
+            if (!type.IsGenericType || type.GenericTypeArguments.Length != 1 || !this.registrations.ContainsKey(new TypeKey(type.GenericTypeArguments[0], typeKey.Key)))
                 return null;
             return type.GenericTypeArguments[0];
         }
@@ -223,7 +172,7 @@ namespace StyletIoC
             if (collectionTypeOrNull != null && !collectionTypeOrNull.IsAssignableFrom(listType))
                 return false;
 
-            registration = this.getAllRegistrations.GetOrAdd(elementTypeKey, x => new GetAllRegistration(listType, this, elementTypeKey.Key));
+            registration = this.getAllRegistrations.GetOrAdd(elementTypeKey, x => new GetAllRegistration(listType) { Key = elementTypeKey.Key });
             return true;
         }
 
@@ -243,29 +192,6 @@ namespace StyletIoC
             return this.TryRetrieveGetAllRegistrationFromElementType(new TypeKey(elementType, typeKey.Key), typeKey.Type, out registration);
         }
 
-        private bool TryCreateFuncFactory(TypeKey typeKey, out IRegistrationCollection registrations)
-        {
-            registrations = null;
-            var type = typeKey.Type;
-
-            if (!type.IsGenericType)
-                return false;
-
-            var genericType = type.GetGenericTypeDefinition();
-            var genericArguments = type.GetGenericArguments();
-
-            IRegistration registration;
-            if (genericType == typeof(Func<>))
-                registration = new FuncRegistration(genericArguments[0], false);
-            else if (genericType == typeof(Func<,>) && genericArguments[0] == typeof(string))
-                registration = new FuncRegistration(genericArguments[1], true);
-            else
-                return false;
-
-            registrations = this.AddRegistration(typeKey, registration);
-            return true;
-        }
-
         /// <summary>
         /// Given a generic type (e.g. IValidator{T}), tries to create a collection of IRegistrations which can implement it from the unbound generic registrations.
         /// For example, if someone bound an IValidator{} to Validator{}, and this was called with Validator{T}, the IRegistrationCollection would contain a Validator{T}.
@@ -282,14 +208,10 @@ namespace StyletIoC
                 return false;
 
             Type unboundGenericType = type.GetGenericTypeDefinition();
-
-            var unboundGenerics = new List<UnboundGeneric>();
-            List<UnboundGeneric> outUnboundGenerics;
-            var unboundTypeKey = new TypeKey(unboundGenericType, typeKey.Key);
-            if (this.parentUnboundGenerics != null && this.parentUnboundGenerics.TryGetValue(unboundTypeKey, out outUnboundGenerics))
-                unboundGenerics.AddRange(outUnboundGenerics);
-            if (this.unboundGenerics.TryGetValue(unboundTypeKey, out outUnboundGenerics))
-                unboundGenerics.AddRange(outUnboundGenerics);
+            
+            List<UnboundGeneric> unboundGenerics;
+            if (!this.unboundGenerics.TryGetValue(new TypeKey(unboundGenericType, typeKey.Key), out unboundGenerics))
+                return false;
 
             foreach (var unboundGeneric in unboundGenerics)
             {
@@ -327,18 +249,17 @@ namespace StyletIoC
             return registrations != null;
         }
 
-        public Expression GetExpression(TypeKey typeKey, ParameterExpression registrationContext, bool searchGetAllTypes)
+        internal Expression GetExpression(TypeKey typeKey, bool searchGetAllTypes)
         {
-            return this.GetRegistrations(typeKey, searchGetAllTypes).GetSingle().GetInstanceExpression(registrationContext);
+            return this.GetRegistrations(typeKey, searchGetAllTypes).GetSingle().GetInstanceExpression();
         }
 
-        public IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
+        internal IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
         {
             IRegistrationCollection registrations;
 
             // Try to get registrations. If there are none, see if we can add some from unbound generics
             if (!this.registrations.TryGetValue(typeKey, out registrations) &&
-                !this.TryCreateFuncFactory(typeKey, out registrations) && 
                 !this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations))
             {
                 if (searchGetAllTypes)
@@ -397,7 +318,7 @@ namespace StyletIoC
 
             if (this.factoryBuilder == null)
             {
-                var assemblyName = new AssemblyName(FactoryAssemblyName);
+                var assemblyName = new AssemblyName(StyletIoCContainer.FactoryAssemblyName);
                 var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
                 var moduleBuilder = assemblyBuilder.DefineDynamicModule("StyletIoCFactoryModule");
                 this.factoryBuilder = moduleBuilder;
@@ -407,26 +328,25 @@ namespace StyletIoC
             var typeBuilder = this.factoryBuilder.DefineType(serviceType.Name.Substring(1), TypeAttributes.Public);
             typeBuilder.AddInterfaceImplementation(serviceType);
 
-            // Define a field which holds a reference to the registration context
-            var registrationContextField = typeBuilder.DefineField("registrationContext", typeof(IRegistrationContext), FieldAttributes.Private);
+            // Define a field which holds a reference to this ioc container
+            var containerField = typeBuilder.DefineField("container", typeof(IContainer), FieldAttributes.Private);
 
             // Add a constructor which takes one argument - the container - and sets the field
-            // public Name(IRegistrationContext registrationContext)
+            // public Name(IContainer container)
             // {
-            //    this.registrationContext = registrationContext;
+            //    this.container = container;
             // }
-            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { typeof(IRegistrationContext) });
+            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { typeof(IContainer) });
             var ilGenerator = ctorBuilder.GetILGenerator();
-            // Load 'this' and the registration context onto the stack
+            // Load 'this' and the IOC container onto the stack
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Ldarg_1);
-            // Store the registration context in this.registrationContext
-            ilGenerator.Emit(OpCodes.Stfld, registrationContextField);
+            // Store the IOC container in this.container
+            ilGenerator.Emit(OpCodes.Stfld, containerField);
             ilGenerator.Emit(OpCodes.Ret);
 
             // These are needed by all methods, so get them now
-            // IRegistrationContext.GetTypeOrAll(Type, string)
-            // IRegistrationContext extends ICreator, and it's ICreator that actually implements this
+            // IContainer.GetTypeOrAll(Type, string)
             var containerGetMethod = typeof(IContainer).GetMethod("GetTypeOrAll", new Type[] { typeof(Type), typeof(string) });
             // Type.GetTypeFromHandler(RuntimeTypeHandle)
             var typeFromHandleMethod = typeof(Type).GetMethod("GetTypeFromHandle");
@@ -448,20 +368,20 @@ namespace StyletIoC
                 // Load 'this' onto stack
                 // Stack: [this]
                 methodIlGenerator.Emit(OpCodes.Ldarg_0);
-                // Load value of 'registrationContext' field of 'this' onto stack
-                // Stack: [this.registrationContext]
-                methodIlGenerator.Emit(OpCodes.Ldfld, registrationContextField);
+                // Load value of 'container' field of 'this' onto stack
+                // Stack: [this.container]
+                methodIlGenerator.Emit(OpCodes.Ldfld, containerField);
                 // New local variable which represents type to load
                 LocalBuilder lb = methodIlGenerator.DeclareLocal(methodInfo.ReturnType);
                 // Load this onto the stack. This is a RuntimeTypeHandle
-                // Stack: [this.registrationContext, runtimeTypeHandleOfReturnType]
+                // Stack: [this.container, runtimeTypeHandleOfReturnType]
                 methodIlGenerator.Emit(OpCodes.Ldtoken, lb.LocalType);
                 // Invoke Type.GetTypeFromHandle with this
                 // This is equivalent to calling typeof(T)
-                // Stack: [this.registrationContext, typeof(returnType)]
+                // Stack: [this.container, typeof(returnType)]
                 methodIlGenerator.Emit(OpCodes.Call, typeFromHandleMethod);
                 // Load the given key (if it's a parameter), or the key from the attribute if given, or null, onto the stack
-                // Stack: [this.registrationContext, typeof(returnType), key]
+                // Stack: [this.container, typeof(returnType), key]
                 if (parameters.Length == 0)
                 {
                     if (attribute == null)
@@ -494,20 +414,13 @@ namespace StyletIoC
             return constructedType;
         }
 
-        public BuilderUpper GetBuilderUpper(Type type)
+        internal BuilderUpper GetBuilderUpper(Type type)
         {
             return this.builderUppers.GetOrAdd(type, x => new BuilderUpper(type, this));
         }
-
-        public void Dispose()
-        {
-            var handler = this.Disposing;
-            if (handler != null)
-                handler(this, EventArgs.Empty);
-        }
     }
 
-    public class TypeKey : IEquatable<TypeKey>
+    internal class TypeKey : IEquatable<TypeKey>
     {
         public readonly Type Type;
         public readonly string Key;

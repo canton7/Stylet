@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 
 namespace StyletIoC
@@ -140,6 +141,8 @@ namespace StyletIoC
         private object instance;
         private bool disposed = false;
 
+        private static readonly MethodInfo getMethod = typeof(IContainer).GetMethod("Get", new[] { typeof(Type), typeof(string) });
+
         public PerContainerRegistrations(IRegistrationContext parentContext, ICreator creator, Func<IRegistrationContext, object> instanceFactory = null)
             : base(creator)
         {
@@ -201,7 +204,6 @@ namespace StyletIoC
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             // Always synthesize into a method call onto the current context
-            var getMethod = typeof(IContainer).GetMethod("Get", new[] { typeof(Type), typeof(string) });
             var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.Type));
             var cast = Expression.Convert(call, this.Type);
             return cast;
@@ -215,11 +217,64 @@ namespace StyletIoC
         }
     }
 
+    // Returns a Func<object> or a Func<string, object> (depending on setup)
+    // Since the key is provided at runtime, we have to do a lookup on the context at runtime - we can't synthesize stuff in
+    // We're only created when we're needed, so no point in trying to be lazy
+    internal class FuncRegistration : IRegistration
+    {
+        private readonly bool hasKey;
+        private readonly Type resultType;
+        private readonly Type funcType;
+        private readonly Func<IRegistrationContext, object> generator;
+
+        private static readonly MethodInfo getMethod = typeof(IContainer).GetMethod("GetTypeOrAll", new[] { typeof(Type), typeof(string) });
+
+        public Type Type
+        {
+            get { return this.funcType; }
+        }
+
+        public FuncRegistration(Type resultType, bool hasKey)
+        {
+            this.hasKey = hasKey;
+            this.resultType = resultType;
+
+            this.funcType = this.hasKey ? Expression.GetFuncType(typeof(string), this.resultType) : Expression.GetFuncType(this.resultType);
+        }
+
+        public Func<IRegistrationContext, object> GetGenerator()
+        {
+            var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
+            return Expression.Lambda<Func<IRegistrationContext, object>>(this.GetInstanceExpression(registrationContext), registrationContext).Compile();
+        }
+
+        public Expression GetInstanceExpression(ParameterExpression registrationContext)
+        {
+            if (this.hasKey)
+            {
+                var input = Expression.Parameter(typeof(string), "key");
+                var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.resultType), input);
+                return Expression.Lambda(Expression.Convert(call, this.resultType), input);
+            }
+            else
+            {
+                var input = Expression.Constant(null, typeof(string));
+                var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.resultType), input);
+                return Expression.Lambda(Expression.Convert(call, this.resultType));
+            }
+        }
+
+        public IRegistration CloneToContext(IRegistrationContext context)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     internal class GetAllRegistration : IRegistration
     {
         private readonly IRegistrationContext parentContext;
 
-        public string Key { get; set; }
+        public string Key { get; private set; }
         private readonly Type _type;
         public Type Type
         {
@@ -230,7 +285,7 @@ namespace StyletIoC
         private readonly object generatorLock = new object();
         private Func<IRegistrationContext, object> generator;
 
-        public GetAllRegistration(Type type, IRegistrationContext parentContext)
+        public GetAllRegistration(Type type, IRegistrationContext parentContext, string key)
         {
             this._type = type;
             this.parentContext = parentContext;

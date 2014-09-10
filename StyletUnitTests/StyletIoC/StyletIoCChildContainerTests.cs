@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StyletUnitTests.StyletIoC
+namespace StyletUnitTests
 {
     [TestFixture]
     public class StyletIoCChildContainerTests

@@ -66,6 +66,7 @@
     <Compile Include="ConductorTests.cs" />
     <Compile Include="DebugConverterTests.cs" />
     <Compile Include="StyletIoC\StyletIoCChildContainerTests.cs" />
+    <Compile Include="StyletIoC\StyletIoCFuncFactoryTests.cs" />
     <Compile Include="TraceLoggerTests.cs" />
     <Compile Include="EqualityConverterTests.cs" />
     <Compile Include="EventActionTests.cs" />
