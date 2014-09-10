@@ -35,6 +35,8 @@ namespace StyletIoC
         /// </summary>
         /// <returns>An expression evaluating to an instance of type Type, which is supplied by the ICreator></returns>
         Expression GetInstanceExpression(ParameterExpression registrationContext);
+
+        IRegistration CloneToContext(IRegistrationContext context);
     }
 
     internal abstract class RegistrationBase : IRegistration
@@ -59,14 +61,24 @@ namespace StyletIoC
             {
                 if (this.generator == null)
                 {
-                    var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
-                    this.generator = Expression.Lambda<Func<IRegistrationContext, object>>(this.GetInstanceExpression(registrationContext), registrationContext).Compile();
+                    this.generator = this.GetGeneratorInternal();
                 }
                 return this.generator;
             }
         }
 
+        protected virtual Func<IRegistrationContext, object> GetGeneratorInternal()
+        {
+            var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
+            return Expression.Lambda<Func<IRegistrationContext, object>>(this.GetInstanceExpression(registrationContext), registrationContext).Compile();
+        }
+
         public abstract Expression GetInstanceExpression(ParameterExpression registrationContext);
+
+        public virtual IRegistration CloneToContext(IRegistrationContext context)
+        {
+            return this;
+        }
     }
 
     internal class TransientRegistration : RegistrationBase
@@ -120,6 +132,70 @@ namespace StyletIoC
         }
     }
 
+    internal class ChildContainerRegistration : RegistrationBase
+    {
+        private readonly IRegistrationContext parentContext;
+        private object instance;
+        private bool disposed = false;
+
+        public ChildContainerRegistration(IRegistrationContext parentContext, ICreator creator)
+            : base(creator)
+        {
+            this.parentContext = parentContext;
+
+            this.parentContext.Disposing += (o, e) =>
+            {
+                this.disposed = true;
+
+                var disposable = this.instance as IDisposable;
+                if (disposable != null)
+                    disposable.Dispose();
+
+                this.instance = null;
+                this.generator = null;
+            };
+        }
+
+        protected override Func<IRegistrationContext, object> GetGeneratorInternal()
+        {
+            // If the context is our parent context, then everything's fine and we can return our instance
+            // If not, we need to call Get on the current context, and a different instance of us will be invoked again by that
+            return ctx =>
+            {
+                if (ctx != this.parentContext)
+                {
+                    return ctx.Get(this.Type);
+                }
+                else
+                {
+                    if (this.disposed)
+                        throw new ObjectDisposedException(String.Format("ChildContainer registration for type {0}", this.Type.Description()));
+
+                    if (this.instance != null)
+                        return this.instance;
+                    var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
+                    var instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(ctx);
+                    Interlocked.CompareExchange(ref this.instance, instance, null);
+                    return this.instance;
+                }
+            };
+        }
+
+        public override Expression GetInstanceExpression(ParameterExpression registrationContext)
+        {
+            // Always synthesize into a method call onto the current context
+            var getMethod = typeof(IContainer).GetMethod("Get", new[] { typeof(Type), typeof(string) });
+            var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.Type));
+            var cast = Expression.Convert(call, this.Type);
+            return cast;
+        }
+
+        public override IRegistration CloneToContext(IRegistrationContext context)
+        {
+            return new ChildContainerRegistration(context, this.creator);
+        }
+    }
+
     internal class GetAllRegistration : IRegistration
     {
         private readonly IRegistrationContext parentContext;
@@ -167,6 +243,11 @@ namespace StyletIoC
 
             Interlocked.CompareExchange(ref this.expression, init, null);
             return this.expression;
+        }
+
+        public IRegistration CloneToContext(IRegistrationContext context)
+        {
+            return this;
         }
     }
 }

@@ -72,7 +72,7 @@ namespace StyletIoC
             //    it's always created by a child, the parent will never get a cached copy. This might get addressed at some point, but the complexity might not
             //    be worth it (especially for such a rarely-used feature).
 
-            this.registrations = DelegatingDictionary<TypeKey, IRegistrationCollection>.Create(parent.registrations);
+            this.registrations = DelegatingDictionary<TypeKey, IRegistrationCollection>.Create(parent.registrations, registration => registration.CloneToContext(this));
             this.parentUnboundGenerics = parent.unboundGenerics;
             this.builderUppers = DelegatingDictionary<Type, BuilderUpper>.Create(parent.builderUppers);
         }

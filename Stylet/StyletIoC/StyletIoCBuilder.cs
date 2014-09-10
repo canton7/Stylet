@@ -97,6 +97,11 @@ namespace StyletIoC
         {
             builder.WithRegistrationFactory((ctx, creator, key) => new SingletonRegistration(ctx, creator));
         }
+
+        public static void InChildContainerScope(this IInScope builder)
+        {
+            builder.WithRegistrationFactory((ctx, creator, key) => new ChildContainerRegistration(ctx, creator));
+        }
     }
 
     internal class BuilderBindTo : IBindTo

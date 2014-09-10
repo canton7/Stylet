@@ -228,5 +228,37 @@ namespace StyletUnitTests.StyletIoC
 
             Assert.False(parent.Get<C5>().Disposed);
         }
+
+        [Test]
+        public void ChildContainerScopeHasOneInstancePerScope()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf().InChildContainerScope();
+            var parent = builder.BuildContainer();
+
+            var child = parent.CreateChildBuilder().BuildContainer();
+
+            Assert.AreEqual(parent.Get<C1>(), parent.Get<C1>());
+            Assert.AreEqual(child.Get<C1>(), child.Get<C1>());
+            Assert.AreNotEqual(parent.Get<C1>(), child.Get<C1>());
+        }
+
+        [Test]
+        public void ChildContainerScopeDisposalDisposesCorrectThing()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C5>().ToSelf().InChildContainerScope();
+            var parent = builder.BuildContainer();
+
+            var child = parent.CreateChildBuilder().BuildContainer();
+
+            var parents = parent.Get<C5>();
+            var childs = child.Get<C5>();
+
+            child.Dispose();
+
+            Assert.True(childs.Disposed);
+            Assert.False(parents.Disposed);
+        }
     }
 }

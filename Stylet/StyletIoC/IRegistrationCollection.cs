@@ -10,6 +10,7 @@ namespace StyletIoC
         IRegistration GetSingle();
         List<IRegistration> GetAll();
         IRegistrationCollection AddRegistration(IRegistration registration);
+        IRegistrationCollection CloneToContext(IRegistrationContext context);
     }
 
     internal class SingleRegistration : IRegistrationCollection
@@ -36,6 +37,11 @@ namespace StyletIoC
             if (this.registration.Type == registration.Type)
                 throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.Description()));
             return new RegistrationCollection(new List<IRegistration>() { this.registration, registration });
+        }
+
+        public IRegistrationCollection CloneToContext(IRegistrationContext context)
+        {
+            return new SingleRegistration(this.registration.CloneToContext(context));
         }
     }
 
@@ -71,6 +77,11 @@ namespace StyletIoC
                 this.registrations.Add(registration);
                 return this;
             }
+        }
+
+        public IRegistrationCollection CloneToContext(IRegistrationContext context)
+        {
+            return new RegistrationCollection(this.registrations.Select(x => x.CloneToContext(context)).ToList());
         }
     }
 }
