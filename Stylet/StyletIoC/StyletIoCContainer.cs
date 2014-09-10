@@ -13,7 +13,7 @@ namespace StyletIoC
     /// Lightweight, very fast IoC container
     /// </summary>
     // Needs to be public, or FactoryAssemblyName isn't visible
-    public class StyletIoCContainer : IContainer
+    public class StyletIoCContainer : IContainer, IRegistrationContext
     {
         /// <summary>
         /// Name of the assembly in which abstract factories are built. Use in [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to allow factories created by .ToAbstractFactory() to access internal types
@@ -82,7 +82,7 @@ namespace StyletIoC
             if (type == null)
                 throw new ArgumentNullException("type");
             var generator = this.GetRegistrations(new TypeKey(type, key), false).GetSingle().GetGenerator();
-            return generator();
+            return generator(this);
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace StyletIoC
             var result = this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration);
             Debug.Assert(result);
             var generator = registration.GetGenerator();
-            return (IEnumerable<object>)generator();
+            return (IEnumerable<object>)generator(this);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace StyletIoC
             if (type == null)
                 throw new ArgumentNullException("type");
             var generator = this.GetRegistrations(new TypeKey(type, key), true).GetSingle().GetGenerator();
-            return generator();
+            return generator(this);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace StyletIoC
         public void BuildUp(object item)
         {
             var builderUpper = this.GetBuilderUpper(item.GetType());
-            builderUpper.GetImplementor()(item);
+            builderUpper.GetImplementor()(this, item);
         }
 
         /// <summary>
@@ -258,9 +258,9 @@ namespace StyletIoC
             return registrations != null;
         }
 
-        internal Expression GetExpression(TypeKey typeKey, bool searchGetAllTypes)
+        internal Expression GetExpression(TypeKey typeKey, ParameterExpression registrationContext, bool searchGetAllTypes)
         {
-            return this.GetRegistrations(typeKey, searchGetAllTypes).GetSingle().GetInstanceExpression();
+            return this.GetRegistrations(typeKey, searchGetAllTypes).GetSingle().GetInstanceExpression(registrationContext);
         }
 
         internal IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)

@@ -10,7 +10,7 @@ namespace StyletIoC
         private readonly Type type;
         private readonly StyletIoCContainer container;
         private readonly object implementorLock = new object();
-        private Action<object> implementor;
+        private Action<IRegistrationContext, object> implementor;
 
         public BuilderUpper(Type type, StyletIoCContainer container)
         {
@@ -18,10 +18,10 @@ namespace StyletIoC
             this.container = container;
         }
 
-        public Expression GetExpression(Expression inputParameterExpression)
+        public Expression GetExpression(Expression inputParameterExpression, ParameterExpression registrationContext)
         {
-            var expressions = this.type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.FieldType))
-                .Concat(this.type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.PropertyType)))
+            var expressions = this.type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.FieldType, registrationContext))
+                .Concat(this.type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.PropertyType, registrationContext)))
                 .Where(x => x != null);
 
             // Sadly, we can't cache this expression (I think), as it relies on the inputParameterExpression
@@ -33,20 +33,20 @@ namespace StyletIoC
             return Expression.Block(expressions);
         }
 
-        private Expression ExpressionForMember(Expression objExpression, MemberInfo member, Type memberType)
+        private Expression ExpressionForMember(Expression objExpression, MemberInfo member, Type memberType, ParameterExpression registrationContext)
         {
             var attribute = member.GetCustomAttribute<InjectAttribute>(true);
             if (attribute == null)
                 return null;
 
             var memberAccess = Expression.MakeMemberAccess(objExpression, member);
-            var memberValue = this.container.GetExpression(new TypeKey(memberType, attribute.Key), true);
+            var memberValue = this.container.GetExpression(new TypeKey(memberType, attribute.Key), registrationContext, true);
             var assign = Expression.Assign(memberAccess, memberValue);
             // Only actually do the assignment if the field/property is currently null
             return Expression.IfThen(Expression.Equal(memberAccess, Expression.Constant(null, memberType)), assign);
         }
 
-        public Action<object> GetImplementor()
+        public Action<IRegistrationContext, object> GetImplementor()
         {
             lock (this.implementorLock)
             {
@@ -54,9 +54,10 @@ namespace StyletIoC
                     return this.implementor;
 
                 var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
+                var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
                 var typedParameterExpression = Expression.Convert(parameterExpression, this.type);
-                var expression = this.GetExpression(typedParameterExpression);
-                this.implementor = Expression.Lambda<Action<object>>(this.GetExpression(typedParameterExpression), parameterExpression).Compile();
+                var expression = this.GetExpression(typedParameterExpression, registrationContext);
+                this.implementor = Expression.Lambda<Action<IRegistrationContext, object>>(this.GetExpression(typedParameterExpression, registrationContext), registrationContext, parameterExpression).Compile();
 
                 return this.implementor;
             }

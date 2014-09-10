@@ -21,14 +21,13 @@ namespace StyletIoC
         /// Fetches an expression evaluating to an instance on demand
         /// </summary>
         /// <returns>An expression evaluating to an instance of the specified Type</returns>
-        Expression GetInstanceExpression();
+        Expression GetInstanceExpression(ParameterExpression registrationContext);
     }
 
     internal abstract class CreatorBase : ICreator
     {
         public virtual Type Type { get; protected set; }
         protected StyletIoCContainer container;
-        public abstract Expression GetInstanceExpression();
 
         public CreatorBase(StyletIoCContainer container)
         {
@@ -36,12 +35,12 @@ namespace StyletIoC
         }
 
         // Common utility method
-        protected Expression CompleteExpressionFromCreator(Expression creator)
+        protected Expression CompleteExpressionFromCreator(Expression creator, ParameterExpression registrationContext)
         {
             var instanceVar = Expression.Variable(this.Type, "instance");
             var assignment = Expression.Assign(instanceVar, creator);
 
-            var buildUpExpression = this.container.GetBuilderUpper(this.Type).GetExpression(instanceVar);
+            var buildUpExpression = this.container.GetBuilderUpper(this.Type).GetExpression(instanceVar, registrationContext);
 
             // We always start with:
             // var instance = new Class(.....)
@@ -57,6 +56,8 @@ namespace StyletIoC
             var completeExpression = Expression.Block(new[] { instanceVar }, blockItems);
             return completeExpression;
         }
+
+        public abstract Expression GetInstanceExpression(ParameterExpression registrationContext);
     }
 
     // Sealed so Code Analysis doesn't moan about us setting the virtual Type property
@@ -88,7 +89,7 @@ namespace StyletIoC
             return attribute == null ? null : attribute.Key;
         }
 
-        public override Expression GetInstanceExpression()
+        public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             if (this.creationExpression != null)
                 return this.creationExpression;
@@ -131,7 +132,7 @@ namespace StyletIoC
                 {
                     try
                     {
-                        return this.container.GetExpression(new TypeKey(x.ParameterType, key), true);
+                        return this.container.GetExpression(new TypeKey(x.ParameterType, key), registrationContext, true);
                     }
                     catch (StyletIoCRegistrationException e)
                     {
@@ -164,7 +165,7 @@ namespace StyletIoC
             this.factory = factory;
         }
 
-        public override Expression GetInstanceExpression()
+        public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             if (this.instanceExpression != null)
                 return this.instanceExpression;
@@ -172,7 +173,7 @@ namespace StyletIoC
             var expr = (Expression<Func<T>>)(() => this.factory(this.container));
             var invoked = Expression.Invoke(expr, null);
 
-            var completeExpression = this.CompleteExpressionFromCreator(invoked);
+            var completeExpression = this.CompleteExpressionFromCreator(invoked, registrationContext);
 
             Interlocked.CompareExchange(ref this.instanceExpression, completeExpression, null);
             return this.instanceExpression;
