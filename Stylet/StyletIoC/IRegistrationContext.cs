@@ -13,5 +13,7 @@ namespace StyletIoC
         bool CanResolve(TypeKey typeKey);
         Expression GetExpression(TypeKey typeKey, ParameterExpression registrationContext, bool searchGetAllTypes);
         IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes);
+
+        event EventHandler Disposing;
     }
 }

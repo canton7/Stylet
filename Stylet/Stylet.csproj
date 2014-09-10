@@ -47,6 +47,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="StyletIoC\DelegatingDictionary.cs" />
     <Compile Include="StyletIoC\IRegistrationContext.cs" />
     <Compile Include="Xaml\ApplicationLoader.cs" />
     <Compile Include="ConductorNavigating.cs" />

@@ -370,7 +370,15 @@ namespace StyletIoC
     /// </summary>
     public class StyletIoCBuilder : IStyletIoCBuilder
     {
+        private readonly StyletIoCContainer parent;
         private List<BuilderBindTo> bindings = new List<BuilderBindTo>();
+
+        public StyletIoCBuilder() : this(null) { }
+
+        internal StyletIoCBuilder(StyletIoCContainer parent)
+        {
+            this.parent = parent;
+        }
 
         /// <summary>
         /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
@@ -441,7 +449,7 @@ namespace StyletIoC
         /// <returns>An IContainer, which should be used from now on</returns>
         public IContainer BuildContainer()
         {
-            var container = new StyletIoCContainer();
+            var container = this.parent == null ? new StyletIoCContainer() : new StyletIoCContainer(this.parent);
             container.AddRegistration(new TypeKey(typeof(IContainer), null), new SingletonRegistration(container, new FactoryCreator<StyletIoCContainer>(c => container, container)));
             //container.AddRegistration(new TypeKey(typeof(StyletIoCContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
 

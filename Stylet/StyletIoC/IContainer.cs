@@ -7,7 +7,7 @@ namespace StyletIoC
     /// <summary>
     /// Describes an IoC container, specifically StyletIoC
     /// </summary>
-    public interface IContainer
+    public interface IContainer : IDisposable
     {
         /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
@@ -44,6 +44,8 @@ namespace StyletIoC
         /// </summary>
         /// <param name="item">Item to build up</param>
         void BuildUp(object item);
+
+        StyletIoCBuilder CreateChildBuilder();
     }
 
     /// <summary>
