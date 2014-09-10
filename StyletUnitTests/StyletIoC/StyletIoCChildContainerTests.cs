@@ -254,7 +254,7 @@ namespace StyletUnitTests.StyletIoC
         public void ChildContainerScopeHasOneInstancePerScope()
         {
             var builder = new StyletIoCBuilder();
-            builder.Bind<C1>().ToSelf().InChildContainerScope();
+            builder.Bind<C1>().ToSelf().InPerContainerScope();
             var parent = builder.BuildContainer();
 
             var child = parent.CreateChildBuilder().BuildContainer();
@@ -268,7 +268,7 @@ namespace StyletUnitTests.StyletIoC
         public void ChildContainerScopeDisposalDisposesCorrectThing()
         {
             var builder = new StyletIoCBuilder();
-            builder.Bind<C5>().ToSelf().InChildContainerScope();
+            builder.Bind<C5>().ToSelf().InPerContainerScope();
             var parent = builder.BuildContainer();
 
             var child = parent.CreateChildBuilder().BuildContainer();

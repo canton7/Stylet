@@ -98,9 +98,9 @@ namespace StyletIoC
             builder.WithRegistrationFactory((ctx, creator, key) => new SingletonRegistration(ctx, creator));
         }
 
-        public static void InChildContainerScope(this IInScope builder)
+        public static void InPerContainerScope(this IInScope builder)
         {
-            builder.WithRegistrationFactory((ctx, creator, key) => new ChildContainerRegistration(ctx, creator));
+            builder.WithRegistrationFactory((ctx, creator, key) => new PerContainerRegistrations(ctx, creator));
         }
     }
 

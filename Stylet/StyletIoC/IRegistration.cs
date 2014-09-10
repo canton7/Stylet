@@ -132,7 +132,7 @@ namespace StyletIoC
         }
     }
 
-    internal class ChildContainerRegistration : RegistrationBase
+    internal class PerContainerRegistrations : RegistrationBase
     {
         private readonly IRegistrationContext parentContext;
         private readonly object instanceFactoryLock = new object();
@@ -140,7 +140,7 @@ namespace StyletIoC
         private object instance;
         private bool disposed = false;
 
-        public ChildContainerRegistration(IRegistrationContext parentContext, ICreator creator, Func<IRegistrationContext, object> instanceFactory = null)
+        public PerContainerRegistrations(IRegistrationContext parentContext, ICreator creator, Func<IRegistrationContext, object> instanceFactory = null)
             : base(creator)
         {
             this.parentContext = parentContext;
@@ -211,7 +211,7 @@ namespace StyletIoC
         {
             // Ensure the factory's created, and pass it down. This means the work of compiling the creation expression is done once, ever
             this.EnsureInstanceFactoryCreated();
-            return new ChildContainerRegistration(context, this.creator, this.instanceFactory);
+            return new PerContainerRegistrations(context, this.creator, this.instanceFactory);
         }
     }
 
