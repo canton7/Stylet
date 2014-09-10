@@ -116,7 +116,7 @@ namespace StyletIoC
 
     internal class GetAllRegistration : IRegistration
     {
-        private readonly StyletIoCContainer container;
+        private readonly IRegistrationContext parentContext;
 
         public string Key { get; set; }
         private readonly Type _type;
@@ -129,10 +129,10 @@ namespace StyletIoC
         private readonly object generatorLock = new object();
         private Func<IRegistrationContext, object> generator;
 
-        public GetAllRegistration(Type type, StyletIoCContainer container)
+        public GetAllRegistration(Type type, IRegistrationContext parentContext)
         {
             this._type = type;
-            this.container = container;
+            this.parentContext = parentContext;
         }
 
         public Func<IRegistrationContext, object> GetGenerator()
@@ -157,7 +157,7 @@ namespace StyletIoC
                 return this.expression;
 
             var list = Expression.New(this.Type);
-            var init = Expression.ListInit(list, this.container.GetRegistrations(new TypeKey(this.Type.GenericTypeArguments[0], this.Key), false).GetAll().Select(x => x.GetInstanceExpression(registrationContext)));
+            var init = Expression.ListInit(list, this.parentContext.GetRegistrations(new TypeKey(this.Type.GenericTypeArguments[0], this.Key), false).GetAll().Select(x => x.GetInstanceExpression(registrationContext)));
 
             Interlocked.CompareExchange(ref this.expression, init, null);
             return this.expression;

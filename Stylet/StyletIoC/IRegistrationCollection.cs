@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace StyletIoC
 {
-    internal interface IRegistrationCollection
+    public interface IRegistrationCollection
     {
         IRegistration GetSingle();
         List<IRegistration> GetAll();

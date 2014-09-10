@@ -133,7 +133,7 @@ namespace StyletIoC
         /// </summary>
         /// <param name="typeKey">TypeKey to see if we can resolve</param>
         /// <returns>Whether the given TypeKey can be resolved</returns>
-        internal bool CanResolve(TypeKey typeKey)
+        public bool CanResolve(TypeKey typeKey)
         {
             IRegistrationCollection registrations;
 
@@ -258,12 +258,12 @@ namespace StyletIoC
             return registrations != null;
         }
 
-        internal Expression GetExpression(TypeKey typeKey, ParameterExpression registrationContext, bool searchGetAllTypes)
+        public Expression GetExpression(TypeKey typeKey, ParameterExpression registrationContext, bool searchGetAllTypes)
         {
             return this.GetRegistrations(typeKey, searchGetAllTypes).GetSingle().GetInstanceExpression(registrationContext);
         }
 
-        internal IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
+        public IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
         {
             IRegistrationCollection registrations;
 
@@ -337,25 +337,26 @@ namespace StyletIoC
             var typeBuilder = this.factoryBuilder.DefineType(serviceType.Name.Substring(1), TypeAttributes.Public);
             typeBuilder.AddInterfaceImplementation(serviceType);
 
-            // Define a field which holds a reference to this ioc container
-            var containerField = typeBuilder.DefineField("container", typeof(IContainer), FieldAttributes.Private);
+            // Define a field which holds a reference to the registration context
+            var registrationContextField = typeBuilder.DefineField("registrationContext", typeof(IRegistrationContext), FieldAttributes.Private);
 
             // Add a constructor which takes one argument - the container - and sets the field
-            // public Name(IContainer container)
+            // public Name(IRegistrationContext registrationContext)
             // {
-            //    this.container = container;
+            //    this.registrationContext = registrationContext;
             // }
-            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { typeof(IContainer) });
+            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { typeof(IRegistrationContext) });
             var ilGenerator = ctorBuilder.GetILGenerator();
-            // Load 'this' and the IOC container onto the stack
+            // Load 'this' and the registration context onto the stack
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Ldarg_1);
-            // Store the IOC container in this.container
-            ilGenerator.Emit(OpCodes.Stfld, containerField);
+            // Store the registration context in this.registrationContext
+            ilGenerator.Emit(OpCodes.Stfld, registrationContextField);
             ilGenerator.Emit(OpCodes.Ret);
 
             // These are needed by all methods, so get them now
-            // IContainer.GetTypeOrAll(Type, string)
+            // IRegistrationContext.GetTypeOrAll(Type, string)
+            // IRegistrationContext extends ICreator, and it's ICreator that actually implements this
             var containerGetMethod = typeof(IContainer).GetMethod("GetTypeOrAll", new Type[] { typeof(Type), typeof(string) });
             // Type.GetTypeFromHandler(RuntimeTypeHandle)
             var typeFromHandleMethod = typeof(Type).GetMethod("GetTypeFromHandle");
@@ -377,20 +378,20 @@ namespace StyletIoC
                 // Load 'this' onto stack
                 // Stack: [this]
                 methodIlGenerator.Emit(OpCodes.Ldarg_0);
-                // Load value of 'container' field of 'this' onto stack
-                // Stack: [this.container]
-                methodIlGenerator.Emit(OpCodes.Ldfld, containerField);
+                // Load value of 'registrationContext' field of 'this' onto stack
+                // Stack: [this.registrationContext]
+                methodIlGenerator.Emit(OpCodes.Ldfld, registrationContextField);
                 // New local variable which represents type to load
                 LocalBuilder lb = methodIlGenerator.DeclareLocal(methodInfo.ReturnType);
                 // Load this onto the stack. This is a RuntimeTypeHandle
-                // Stack: [this.container, runtimeTypeHandleOfReturnType]
+                // Stack: [this.registrationContext, runtimeTypeHandleOfReturnType]
                 methodIlGenerator.Emit(OpCodes.Ldtoken, lb.LocalType);
                 // Invoke Type.GetTypeFromHandle with this
                 // This is equivalent to calling typeof(T)
-                // Stack: [this.container, typeof(returnType)]
+                // Stack: [this.registrationContext, typeof(returnType)]
                 methodIlGenerator.Emit(OpCodes.Call, typeFromHandleMethod);
                 // Load the given key (if it's a parameter), or the key from the attribute if given, or null, onto the stack
-                // Stack: [this.container, typeof(returnType), key]
+                // Stack: [this.registrationContext, typeof(returnType), key]
                 if (parameters.Length == 0)
                 {
                     if (attribute == null)
@@ -423,13 +424,13 @@ namespace StyletIoC
             return constructedType;
         }
 
-        internal BuilderUpper GetBuilderUpper(Type type)
+        public BuilderUpper GetBuilderUpper(Type type)
         {
             return this.builderUppers.GetOrAdd(type, x => new BuilderUpper(type, this));
         }
     }
 
-    internal class TypeKey : IEquatable<TypeKey>
+    public class TypeKey : IEquatable<TypeKey>
     {
         public readonly Type Type;
         public readonly string Key;

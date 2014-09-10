@@ -5,17 +5,17 @@ using System.Reflection;
 
 namespace StyletIoC
 {
-    internal class BuilderUpper
+    public class BuilderUpper
     {
         private readonly Type type;
-        private readonly StyletIoCContainer container;
+        private readonly IRegistrationContext parentContext;
         private readonly object implementorLock = new object();
         private Action<IRegistrationContext, object> implementor;
 
-        public BuilderUpper(Type type, StyletIoCContainer container)
+        public BuilderUpper(Type type, IRegistrationContext parentContext)
         {
             this.type = type;
-            this.container = container;
+            this.parentContext = parentContext;
         }
 
         public Expression GetExpression(Expression inputParameterExpression, ParameterExpression registrationContext)
@@ -40,7 +40,7 @@ namespace StyletIoC
                 return null;
 
             var memberAccess = Expression.MakeMemberAccess(objExpression, member);
-            var memberValue = this.container.GetExpression(new TypeKey(memberType, attribute.Key), registrationContext, true);
+            var memberValue = this.parentContext.GetExpression(new TypeKey(memberType, attribute.Key), registrationContext, true);
             var assign = Expression.Assign(memberAccess, memberValue);
             // Only actually do the assignment if the field/property is currently null
             return Expression.IfThen(Expression.Equal(memberAccess, Expression.Constant(null, memberType)), assign);

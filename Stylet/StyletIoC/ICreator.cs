@@ -27,11 +27,11 @@ namespace StyletIoC
     internal abstract class CreatorBase : ICreator
     {
         public virtual Type Type { get; protected set; }
-        protected StyletIoCContainer container;
+        protected IRegistrationContext parentContext;
 
-        public CreatorBase(StyletIoCContainer container)
+        public CreatorBase(IRegistrationContext parentContext)
         {
-            this.container = container;
+            this.parentContext = parentContext;
         }
 
         // Common utility method
@@ -40,7 +40,7 @@ namespace StyletIoC
             var instanceVar = Expression.Variable(this.Type, "instance");
             var assignment = Expression.Assign(instanceVar, creator);
 
-            var buildUpExpression = this.container.GetBuilderUpper(this.Type).GetExpression(instanceVar, registrationContext);
+            var buildUpExpression = this.parentContext.GetBuilderUpper(this.Type).GetExpression(instanceVar, registrationContext);
 
             // We always start with:
             // var instance = new Class(.....)
@@ -70,7 +70,7 @@ namespace StyletIoC
         }
         private Expression creationExpression;
 
-        public TypeCreator(Type type, StyletIoCContainer container) : base(container)
+        public TypeCreator(Type type, IRegistrationContext parentContext) : base(parentContext)
         {
             this.Type = type;
 
@@ -105,14 +105,14 @@ namespace StyletIoC
             {
                 ctor = ctorsWithAttribute[0];
                 var key = ((InjectAttribute)ctorsWithAttribute[0].GetCustomAttribute(typeof(InjectAttribute), false)).Key;
-                var cantResolve = ctor.GetParameters().Where(p => !this.container.CanResolve(new TypeKey(p.ParameterType, key)) && !p.HasDefaultValue).FirstOrDefault();
+                var cantResolve = ctor.GetParameters().Where(p => !this.parentContext.CanResolve(new TypeKey(p.ParameterType, key)) && !p.HasDefaultValue).FirstOrDefault();
                 if (cantResolve != null)
                     throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", this.Type.Description(), cantResolve.Name, cantResolve.ParameterType.Description()));
             }
             else
             {
                 ctor = this.Type.GetConstructors()
-                    .Where(c => c.GetParameters().All(p => this.container.CanResolve(new TypeKey(p.ParameterType, this.KeyForParameter(p))) || p.HasDefaultValue))
+                    .Where(c => c.GetParameters().All(p => this.parentContext.CanResolve(new TypeKey(p.ParameterType, this.KeyForParameter(p))) || p.HasDefaultValue))
                     .OrderByDescending(c => c.GetParameters().Count(p => !p.HasDefaultValue))
                     .FirstOrDefault();
 
@@ -128,11 +128,11 @@ namespace StyletIoC
             var ctorParams = ctor.GetParameters().Select(x =>
             {
                 var key = this.KeyForParameter(x);
-                if (this.container.CanResolve(new TypeKey(x.ParameterType, key)))
+                if (this.parentContext.CanResolve(new TypeKey(x.ParameterType, key)))
                 {
                     try
                     {
-                        return this.container.GetExpression(new TypeKey(x.ParameterType, key), registrationContext, true);
+                        return this.parentContext.GetExpression(new TypeKey(x.ParameterType, key), registrationContext, true);
                     }
                     catch (StyletIoCRegistrationException e)
                     {
@@ -145,7 +145,7 @@ namespace StyletIoC
 
             var creator = Expression.New(ctor, ctorParams);
 
-            var completeExpression = this.CompleteExpressionFromCreator(creator);
+            var completeExpression = this.CompleteExpressionFromCreator(creator, registrationContext);
 
             Interlocked.CompareExchange(ref this.creationExpression, completeExpression, null);
             return this.creationExpression;
@@ -155,28 +155,45 @@ namespace StyletIoC
     // Sealed for consistency with TypeCreator
     internal sealed class FactoryCreator<T> : CreatorBase
     {
-        private readonly Func<StyletIoCContainer, T> factory;
-        private Expression instanceExpression;
+        private readonly Func<IRegistrationContext, T> factory;
 
         public override Type Type { get { return typeof(T); } }
 
-        public FactoryCreator(Func<StyletIoCContainer, T> factory, StyletIoCContainer container) : base(container)
+        public FactoryCreator(Func<IRegistrationContext, T> factory, IRegistrationContext parentContext)
+            : base(parentContext)
         {
             this.factory = factory;
         }
 
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
-            if (this.instanceExpression != null)
-                return this.instanceExpression;
-
-            var expr = (Expression<Func<T>>)(() => this.factory(this.container));
-            var invoked = Expression.Invoke(expr, null);
+            // Unfortunately we can't cache the result of this, as it relies on registrationContext
+            var expr = (Expression<Func<IRegistrationContext, T>>)(ctx => this.factory(ctx));
+            var invoked = Expression.Invoke(expr, registrationContext);
 
             var completeExpression = this.CompleteExpressionFromCreator(invoked, registrationContext);
+            return completeExpression;
+        }
+    }
 
-            Interlocked.CompareExchange(ref this.instanceExpression, completeExpression, null);
-            return this.instanceExpression;
+    internal sealed class AbstractFactoryCreator : ICreator
+    {
+        private readonly Type abstractFactoryType;
+        public Type Type
+        {
+            get { return this.abstractFactoryType; }
+        }
+
+        public AbstractFactoryCreator(Type abstractFactoryType)
+        {
+            this.abstractFactoryType = abstractFactoryType;
+        }
+
+        public Expression GetInstanceExpression(ParameterExpression registrationContext)
+        {
+            var ctor = this.abstractFactoryType.GetConstructor(new[] { typeof(IRegistrationContext) });
+            var construction = Expression.New(ctor, registrationContext);
+            return construction;
         }
     }
 }

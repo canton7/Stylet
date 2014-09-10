@@ -4,20 +4,20 @@ namespace StyletIoC
 {
     internal class UnboundGeneric
     {
-        private StyletIoCContainer container;
+        private IRegistrationContext parentContext;
         public Type Type { get; private set; }
         public RegistrationFactory RegistrationFactory { get; private set; }
 
-        public UnboundGeneric(Type type, StyletIoCContainer container, RegistrationFactory registrationFactory)
+        public UnboundGeneric(Type type, IRegistrationContext parentContext, RegistrationFactory registrationFactory)
         {
             this.Type = type;
-            this.container = container;
+            this.parentContext = parentContext;
             this.RegistrationFactory = registrationFactory;
         }
 
         public IRegistration CreateRegistrationForTypeKey(TypeKey boundTypeKey)
         {
-            return this.RegistrationFactory(new TypeCreator(boundTypeKey.Type, this.container), boundTypeKey.Key);
+            return this.RegistrationFactory(this.parentContext, new TypeCreator(boundTypeKey.Type, this.parentContext), boundTypeKey.Key);
         }
     }
 }

@@ -95,7 +95,7 @@ namespace StyletIoC
         /// </summary>
         public static void InSingletonScope(this IInScope builder)
         {
-            builder.WithRegistrationFactory((creator, key) => new SingletonRegistration(creator));
+            builder.WithRegistrationFactory((ctx, creator, key) => new SingletonRegistration(ctx, creator));
         }
     }
 
@@ -165,7 +165,7 @@ namespace StyletIoC
             this.serviceType = serviceType;
 
             // Default is transient
-            this.registrationFactory = (creator, key) => new TransientRegistration(creator);
+            this.registrationFactory = (ctx, creator, key) => new TransientRegistration(creator);
         }
 
         void IInScope.WithRegistrationFactory(RegistrationFactory registrationFactory)
@@ -223,16 +223,16 @@ namespace StyletIoC
             else
             {
                 var creator = new TypeCreator(implementationType, container);
-                var registration = this.CreateRegistration(creator);
+                var registration = this.CreateRegistration(container, creator);
 
                 container.AddRegistration(new TypeKey(serviceType, this.Key ?? creator.AttributeKey), registration);
             }
         }
 
         // Convenience...
-        protected IRegistration CreateRegistration(ICreator creator)
+        protected IRegistration CreateRegistration(IRegistrationContext registrationContext, ICreator creator)
         {
-            return this.registrationFactory(creator, this.Key);
+            return this.registrationFactory(registrationContext, creator, this.Key);
         }
 
         void IWithKey.WithKey(string key)
@@ -274,7 +274,7 @@ namespace StyletIoC
         public override void Build(StyletIoCContainer container)
         {
             var creator = new FactoryCreator<TImplementation>(this.factory, container);
-            var registration = this.CreateRegistration(creator);
+            var registration = this.CreateRegistration(container, creator);
 
             container.AddRegistration(new TypeKey(this.serviceType, this.Key), registration);
         }
@@ -322,8 +322,8 @@ namespace StyletIoC
         public override void Build(StyletIoCContainer container)
         {
             var factoryType = container.GetFactoryForType(this.serviceType);
-            var creator = new TypeCreator(factoryType, container);
-            var registration = new SingletonRegistration(creator);
+            var creator = new AbstractFactoryCreator(factoryType);
+            var registration = new TransientRegistration(creator);
 
             container.AddRegistration(new TypeKey(this.serviceType, this.Key), registration);
         }
@@ -442,7 +442,7 @@ namespace StyletIoC
         public IContainer BuildContainer()
         {
             var container = new StyletIoCContainer();
-            container.AddRegistration(new TypeKey(typeof(IContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
+            container.AddRegistration(new TypeKey(typeof(IContainer), null), new SingletonRegistration(container, new FactoryCreator<StyletIoCContainer>(c => container, container)));
             //container.AddRegistration(new TypeKey(typeof(StyletIoCContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
 
             // For each TypeKey, we remove any weak bindings if there are any strong bindings
