@@ -35,7 +35,7 @@ namespace StyletIoC
         /// </summary>
         /// <typeparam name="TImplementation">Type returned by the factory delegate. Must implement the service</typeparam>
         /// <param name="factory">Factory delegate to bind got</param>
-        IInScopeOrWithKey ToFactory<TImplementation>(Func<IContainer, TImplementation> factory);
+        IInScopeOrWithKey ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory);
 
         /// <summary>
         /// If the service is an interface with a number of methods which return other types, generate an implementation of that abstract factory and bind it to the interface.
@@ -128,7 +128,7 @@ namespace StyletIoC
             return this.builderBinding;
         }
 
-        public IInScopeOrWithKey ToFactory<TImplementation>(Func<IContainer, TImplementation> factory)
+        public IInScopeOrWithKey ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory)
         {
             this.builderBinding = new BuilderFactoryBinding<TImplementation>(this.ServiceType, factory);
             return this.builderBinding;
@@ -261,9 +261,9 @@ namespace StyletIoC
 
     internal class BuilderFactoryBinding<TImplementation> : BuilderBindingBase
     {
-        private Func<IContainer, TImplementation> factory;
+        private Func<IRegistrationContext, TImplementation> factory;
 
-        public BuilderFactoryBinding(Type serviceType, Func<IContainer, TImplementation> factory) : base(serviceType)
+        public BuilderFactoryBinding(Type serviceType, Func<IRegistrationContext, TImplementation> factory) : base(serviceType)
         {
             if (this.serviceType.IsGenericTypeDefinition)
                 throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Description()));

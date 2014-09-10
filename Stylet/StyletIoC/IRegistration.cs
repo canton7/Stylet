@@ -81,7 +81,6 @@ namespace StyletIoC
 
     internal class SingletonRegistration : RegistrationBase
     {
-        private object instance;
         private Expression instanceExpression;
         private readonly IRegistrationContext parentContext;
 
@@ -90,25 +89,15 @@ namespace StyletIoC
             this.parentContext = parentContext;
         }
 
-        private void EnsureInstantiated(ParameterExpression registrationContext)
-        {
-            if (this.instance != null)
-                return;
-
-            // Ensure we don't end up creating two singletons, one used by each thread
-            var instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(this.parentContext);
-            Interlocked.CompareExchange(ref this.instance, instance, null);
-        }
-
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             if (this.instanceExpression != null)
                 return this.instanceExpression;
 
-            this.EnsureInstantiated(registrationContext);
+            var instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(this.parentContext);
 
             // This expression yields the actual type of instance, not 'object'
-            var instanceExpression = Expression.Constant(this.instance);
+            var instanceExpression = Expression.Constant(instance);
             Interlocked.CompareExchange(ref this.instanceExpression, instanceExpression, null);
             return this.instanceExpression;
         }

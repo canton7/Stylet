@@ -60,7 +60,8 @@ namespace StyletIoC
             if (!this.parentDictionary.TryGetValue(key, out tempValue))
                 return false;
 
-            this.ourDictionary.TryAdd(key, this.translator(tempValue));
+            value = this.translator(tempValue);
+            this.ourDictionary.TryAdd(key, value);
             return true;
         }
 
