@@ -135,13 +135,16 @@ namespace StyletIoC
     internal class ChildContainerRegistration : RegistrationBase
     {
         private readonly IRegistrationContext parentContext;
+        private readonly object instanceFactoryLock = new object();
+        private Func<IRegistrationContext, object> instanceFactory;
         private object instance;
         private bool disposed = false;
 
-        public ChildContainerRegistration(IRegistrationContext parentContext, ICreator creator)
+        public ChildContainerRegistration(IRegistrationContext parentContext, ICreator creator, Func<IRegistrationContext, object> instanceFactory = null)
             : base(creator)
         {
             this.parentContext = parentContext;
+            this.instanceFactory = instanceFactory;
 
             this.parentContext.Disposing += (o, e) =>
             {
@@ -154,6 +157,18 @@ namespace StyletIoC
                 this.instance = null;
                 this.generator = null;
             };
+        }
+
+        private void EnsureInstanceFactoryCreated()
+        {
+            if (this.instanceFactory == null)
+            {
+                lock (this.instanceFactoryLock)
+                {
+                    var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
+                    this.instanceFactory = Expression.Lambda<Func<IRegistrationContext, object>>(this.creator.GetInstanceExpression(registrationContext), registrationContext).Compile();
+                }
+            }
         }
 
         protected override Func<IRegistrationContext, object> GetGeneratorInternal()
@@ -173,8 +188,10 @@ namespace StyletIoC
 
                     if (this.instance != null)
                         return this.instance;
-                    var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
-                    var instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(ctx);
+
+                    this.EnsureInstanceFactoryCreated();
+                    
+                    var instance = this.instanceFactory(ctx);
                     Interlocked.CompareExchange(ref this.instance, instance, null);
                     return this.instance;
                 }
@@ -192,7 +209,9 @@ namespace StyletIoC
 
         public override IRegistration CloneToContext(IRegistrationContext context)
         {
-            return new ChildContainerRegistration(context, this.creator);
+            // Ensure the factory's created, and pass it down. This means the work of compiling the creation expression is done once, ever
+            this.EnsureInstanceFactoryCreated();
+            return new ChildContainerRegistration(context, this.creator, this.instanceFactory);
         }
     }
 
