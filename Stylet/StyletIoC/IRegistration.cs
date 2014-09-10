@@ -43,7 +43,7 @@ namespace StyletIoC
         public Type Type { get { return this.creator.Type; } }
 
         private readonly object generatorLock = new object();
-        private Func<IRegistrationContext, object> generator;
+        protected Func<IRegistrationContext, object> generator;
 
         public RegistrationBase(ICreator creator)
         {
@@ -82,22 +82,39 @@ namespace StyletIoC
     internal class SingletonRegistration : RegistrationBase
     {
         private Expression instanceExpression;
+        private object instance;
         private readonly IRegistrationContext parentContext;
+        private bool disposed = false;
 
         public SingletonRegistration(IRegistrationContext parentContext, ICreator creator) : base(creator)
         {
             this.parentContext = parentContext;
+            this.parentContext.Disposing += (o, e) =>
+            {
+                this.disposed = true;
+
+                var disposable = this.instance as IDisposable;
+                if (disposable != null)
+                    disposable.Dispose();
+
+                this.instance = null;
+                this.instanceExpression = null;
+                this.generator = null;
+            };
         }
 
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
+            if (this.disposed)
+                throw new ObjectDisposedException(String.Format("Singleton registration for type {0}", this.Type.Description()));
+
             if (this.instanceExpression != null)
                 return this.instanceExpression;
 
-            var instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(this.parentContext);
+            this.instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(this.parentContext);
 
             // This expression yields the actual type of instance, not 'object'
-            var instanceExpression = Expression.Constant(instance);
+            var instanceExpression = Expression.Constant(this.instance);
             Interlocked.CompareExchange(ref this.instanceExpression, instanceExpression, null);
             return this.instanceExpression;
         }

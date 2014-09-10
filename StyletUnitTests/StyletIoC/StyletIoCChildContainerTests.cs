@@ -35,6 +35,11 @@ namespace StyletUnitTests.StyletIoC
         interface IValidator<T> { }
         class StringValidator : IValidator<string> { }
         class IntValidator : IValidator<int> { }
+        class C5 : IDisposable
+        {
+            public bool Disposed;
+            public void Dispose() { this.Disposed = true; }
+        }
 
         [Test]
         public void ChildContainerCanAccessRegistrationsOnParent()
@@ -190,6 +195,38 @@ namespace StyletUnitTests.StyletIoC
             Assert.Throws<StyletIoCRegistrationException>(() => parent.Get<IValidator<int>>());
             Assert.DoesNotThrow(() => child.Get<IValidator<int>>());
             Assert.Throws<StyletIoCRegistrationException>(() => parent.Get<IValidator<int>>());
+        }
+
+        [Test]
+        public void ContainerDisposesItsSingletonsWhenRequested()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C5>().ToSelf().InSingletonScope();
+            var parent = builder.BuildContainer();
+
+            var c5 = parent.Get<C5>();
+            Assert.False(c5.Disposed);
+
+            parent.Dispose();
+            Assert.True(c5.Disposed);
+            Assert.Throws<ObjectDisposedException>(() => parent.Get<C5>());
+        }
+
+        [Test]
+        public void DisposingContainerDoesNotDisposeParentSingletons()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C5>().ToSelf().InSingletonScope();
+            var parent = builder.BuildContainer();
+
+            var child = parent.CreateChildBuilder().BuildContainer();
+
+            // Make sure it actually gets built
+            var c5 = parent.Get<C5>();
+
+            child.Dispose();
+
+            Assert.False(parent.Get<C5>().Disposed);
         }
     }
 }
