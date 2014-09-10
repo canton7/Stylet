@@ -40,6 +40,10 @@ namespace StyletUnitTests.StyletIoC
             public bool Disposed;
             public void Dispose() { this.Disposed = true; }
         }
+        interface I1 { }
+        class C11 : I1 { }
+        class C12 : I1 { }
+        class C13 : I1 { }
 
         [Test]
         public void ChildContainerCanAccessRegistrationsOnParent()
@@ -130,19 +134,20 @@ namespace StyletUnitTests.StyletIoC
         }
 
         [Test]
-        public void RecreatingSingletonBindingIntroducedNewScope()
+        public void CreatingSameBindingOnParentAndChildCausesMultipleRegistrations()
         {
             var builder = new StyletIoCBuilder();
-            builder.Bind<C1>().ToSelf().InSingletonScope();
+            builder.Bind<I1>().To<C11>();
             var parent = builder.BuildContainer();
 
             var childBuilder = parent.CreateChildBuilder();
-            childBuilder.Bind<C1>().ToSelf().InSingletonScope();
+            childBuilder.Bind<I1>().To<C12>();
             var child = childBuilder.BuildContainer();
 
-            Assert.AreNotEqual(parent.Get<C1>(), child.Get<C1>());
-            Assert.AreEqual(parent.Get<C1>(), parent.Get<C1>());
-            Assert.AreEqual(child.Get<C1>(), child.Get<C1>());
+            var r = child.GetAll<I1>();
+
+            Assert.AreEqual(2, child.GetAll<I1>().Count());
+            Assert.AreEqual(1, parent.GetAll<I1>().Count());
         }
 
         [Test]
@@ -195,6 +200,22 @@ namespace StyletUnitTests.StyletIoC
             Assert.Throws<StyletIoCRegistrationException>(() => parent.Get<IValidator<int>>());
             Assert.DoesNotThrow(() => child.Get<IValidator<int>>());
             Assert.Throws<StyletIoCRegistrationException>(() => parent.Get<IValidator<int>>());
+        }
+
+        [Test]
+        public void ChildExtendsButDoesNotModifyGetAllRegistrations()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().To<C11>();
+            builder.Bind<I1>().To<C12>();
+            var parent = builder.BuildContainer();
+
+            var childBuilder = parent.CreateChildBuilder();
+            childBuilder.Bind<I1>().To<C13>();
+            var child = childBuilder.BuildContainer();
+
+            Assert.AreEqual(3, child.GetAll<I1>().Count());
+            Assert.AreEqual(2, parent.GetAll<I1>().Count());
         }
 
         [Test]

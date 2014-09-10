@@ -76,7 +76,36 @@ namespace StyletIoC
 
         public TValue AddOrUpdate(TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory)
         {
-            return this.ourDictionary.AddOrUpdate(key, addValueFactory, updateValueFactory);
+            // This is true for all of the current applications in StyletIoC, but may not be true for other applications
+            // If it's in our dictionary, update
+            // If it's in our parent dictionary, run it through the translator then the updateValueFactory
+            // If it's in neither, add it to our dictionary
+
+            TValue returnValue;
+            bool success;
+
+            do
+            {
+                TValue outValue;
+                if (this.ourDictionary.TryGetValue(key, out outValue))
+                {
+                    returnValue = updateValueFactory(key, outValue);
+                    success = this.ourDictionary.TryUpdate(key, returnValue, outValue);
+                }
+                else if (this.parentDictionary.TryGetValue(key, out outValue))
+                {
+                    returnValue = updateValueFactory(key, this.translator(outValue));
+                    success = this.ourDictionary.TryAdd(key, returnValue);
+                }
+                else
+                {
+                    returnValue = addValueFactory(key);
+                    success = this.ourDictionary.TryAdd(key, returnValue);
+                }
+            }
+            while (!success);
+
+            return returnValue;
         }
 
         public ICollection<TValue> Values

@@ -455,8 +455,6 @@ namespace StyletIoC
         public IContainer BuildContainer()
         {
             var container = this.parent == null ? new StyletIoCContainer() : new StyletIoCContainer(this.parent);
-            container.AddRegistration(new TypeKey(typeof(IContainer), null), new SingletonRegistration(container, new FactoryCreator<StyletIoCContainer>(c => container, container)));
-            //container.AddRegistration(new TypeKey(typeof(StyletIoCContainer), null), new SingletonRegistration(new FactoryCreator<StyletIoCContainer>(c => container, container)));
 
             // For each TypeKey, we remove any weak bindings if there are any strong bindings
             var groups = this.bindings.GroupBy(x =>  new { Key = x.Key, Type = x.ServiceType });
