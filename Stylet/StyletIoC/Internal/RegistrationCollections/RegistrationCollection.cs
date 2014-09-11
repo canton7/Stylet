@@ -1,50 +1,13 @@
-﻿using System;
+﻿using StyletIoC.Builder;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace StyletIoC
+namespace StyletIoC.Internal.RegistrationCollections
 {
-    public interface IRegistrationCollection
-    {
-        IRegistration GetSingle();
-        List<IRegistration> GetAll();
-        IRegistrationCollection AddRegistration(IRegistration registration);
-        IRegistrationCollection CloneToContext(IRegistrationContext context);
-    }
-
-    internal class SingleRegistration : IRegistrationCollection
-    {
-        private readonly IRegistration registration;
-
-        public SingleRegistration(IRegistration registration)
-        {
-            this.registration = registration;
-        }
-
-        public IRegistration GetSingle()
-        {
-            return this.registration;
-        }
-
-        public List<IRegistration> GetAll()
-        {
-            return new List<IRegistration>() { this.registration };
-        }
-
-        public IRegistrationCollection AddRegistration(IRegistration registration)
-        {
-            if (this.registration.Type == registration.Type)
-                throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.Description()));
-            return new RegistrationCollection(new List<IRegistration>() { this.registration, registration });
-        }
-
-        public IRegistrationCollection CloneToContext(IRegistrationContext context)
-        {
-            return new SingleRegistration(this.registration.CloneToContext(context));
-        }
-    }
-
     internal class RegistrationCollection : IRegistrationCollection
     {
         private readonly object registrationsLock = new object();

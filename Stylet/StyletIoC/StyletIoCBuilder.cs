@@ -1,4 +1,8 @@
-﻿using System;
+﻿using StyletIoC.Builder;
+using StyletIoC.Internal;
+using StyletIoC.Internal.Creators;
+using StyletIoC.Internal.Registrations;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -153,7 +157,7 @@ namespace StyletIoC
             return this.builderBinding;
         }
 
-        internal void Build(StyletIoCContainer container)
+        internal void Build(Container container)
         {
             this.builderBinding.Build(container);
         }
@@ -216,7 +220,7 @@ namespace StyletIoC
         }
 
         // Convenience...
-        protected void BindImplementationToService(StyletIoCContainer container, Type implementationType, Type serviceType = null)
+        protected void BindImplementationToService(Container container, Type implementationType, Type serviceType = null)
         {
             serviceType = serviceType ?? this.serviceType;
 
@@ -245,7 +249,7 @@ namespace StyletIoC
             this.Key = key;
         }
 
-        public abstract void Build(StyletIoCContainer container);
+        public abstract void Build(Container container);
     }
 
     internal class BuilderTypeBinding : BuilderBindingBase
@@ -258,7 +262,7 @@ namespace StyletIoC
             this.implementationType = implementationType;
         }
 
-        public override void Build(StyletIoCContainer container)
+        public override void Build(Container container)
         {
             this.BindImplementationToService(container, this.implementationType);
         }
@@ -276,7 +280,7 @@ namespace StyletIoC
             this.factory = factory;
         }
 
-        public override void Build(StyletIoCContainer container)
+        public override void Build(Container container)
         {
             var creator = new FactoryCreator<TImplementation>(this.factory, container);
             var registration = this.CreateRegistration(container, creator);
@@ -294,7 +298,7 @@ namespace StyletIoC
             this.assemblies = assemblies;
         }
 
-        public override void Build(StyletIoCContainer container)
+        public override void Build(Container container)
         {
             var candidates = from type in assemblies.Distinct().SelectMany(x => x.GetTypes())
                              let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x == this.serviceType || x.IsGenericType && x.GetGenericTypeDefinition() == this.serviceType)
@@ -324,7 +328,7 @@ namespace StyletIoC
                 throw new StyletIoCRegistrationException(String.Format("Unbound generic type {0} can't be used as an abstract factory", serviceType.Description()));
         }
 
-        public override void Build(StyletIoCContainer container)
+        public override void Build(Container container)
         {
             var factoryType = container.GetFactoryForType(this.serviceType);
             var creator = new AbstractFactoryCreator(factoryType);
@@ -375,12 +379,12 @@ namespace StyletIoC
     /// </summary>
     public class StyletIoCBuilder : IStyletIoCBuilder
     {
-        private readonly StyletIoCContainer parent;
+        private readonly Container parent;
         private List<BuilderBindTo> bindings = new List<BuilderBindTo>();
 
         public StyletIoCBuilder() : this(null) { }
 
-        internal StyletIoCBuilder(StyletIoCContainer parent)
+        internal StyletIoCBuilder(Container parent)
         {
             this.parent = parent;
         }
@@ -454,7 +458,7 @@ namespace StyletIoC
         /// <returns>An IContainer, which should be used from now on</returns>
         public IContainer BuildContainer()
         {
-            var container = this.parent == null ? new StyletIoCContainer() : new StyletIoCContainer(this.parent);
+            var container = this.parent == null ? new Container() : new Container(this.parent);
 
             // For each TypeKey, we remove any weak bindings if there are any strong bindings
             var groups = this.bindings.GroupBy(x =>  new { Key = x.Key, Type = x.ServiceType });

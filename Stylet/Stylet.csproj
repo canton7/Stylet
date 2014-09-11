@@ -47,8 +47,26 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="StyletIoC\DelegatingDictionary.cs" />
-    <Compile Include="StyletIoC\IRegistrationContext.cs" />
+    <Compile Include="StyletIoC\Builder\ICreator.cs" />
+    <Compile Include="StyletIoC\Builder\IRegistration.cs" />
+    <Compile Include="StyletIoC\Builder\IRegistrationCollection.cs" />
+    <Compile Include="StyletIoC\Internal\Creators\AbstractFactoryCreator.cs" />
+    <Compile Include="StyletIoC\Internal\Creators\CreatorBase.cs" />
+    <Compile Include="StyletIoC\Internal\Creators\FactoryCreator.cs" />
+    <Compile Include="StyletIoC\Internal\Creators\TypeCreator.cs" />
+    <Compile Include="StyletIoC\Internal\DelegatingDictionary.cs" />
+    <Compile Include="StyletIoC\Builder\IRegistrationContext.cs" />
+    <Compile Include="StyletIoC\Internal\RegistrationCollections\RegistrationCollection.cs" />
+    <Compile Include="StyletIoC\Internal\RegistrationCollections\SingleRegistration.cs" />
+    <Compile Include="StyletIoC\Internal\Registrations\FuncNoKeyRegistration.cs" />
+    <Compile Include="StyletIoC\Internal\Registrations\FuncWithKeyRegistration.cs" />
+    <Compile Include="StyletIoC\Internal\Registrations\GetAllRegistration.cs" />
+    <Compile Include="StyletIoC\Internal\Registrations\PerContainerRegistration.cs" />
+    <Compile Include="StyletIoC\Internal\Registrations\RegistrationBase.cs" />
+    <Compile Include="StyletIoC\Internal\Registrations\SingletonRegistration.cs" />
+    <Compile Include="StyletIoC\Internal\Registrations\TransientRegistration.cs" />
+    <Compile Include="StyletIoC\Internal\TypeKey.cs" />
+    <Compile Include="StyletIoC\StyletIoCContainer.cs" />
     <Compile Include="Xaml\ApplicationLoader.cs" />
     <Compile Include="ConductorNavigating.cs" />
     <Compile Include="GlobalSuppressions.cs" />
@@ -67,7 +85,7 @@
     <Compile Include="StyletIoC\IInjectionAware.cs" />
     <Compile Include="StyletIoC\InjectAttribute.cs" />
     <Compile Include="StyletIoC\StyletIoCException.cs" />
-    <Compile Include="StyletIoC\TypeExtensions.cs" />
+    <Compile Include="StyletIoC\Internal\TypeExtensions.cs" />
     <Compile Include="ValidatingModelBase.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="AssemblySource.cs" />
@@ -95,13 +113,10 @@
     <Compile Include="PropertyChangedExtensions.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="ScreenExtensions.cs" />
-    <Compile Include="StyletIoC\BuilderUpper.cs" />
-    <Compile Include="StyletIoC\ICreator.cs" />
-    <Compile Include="StyletIoC\IRegistration.cs" />
-    <Compile Include="StyletIoC\IRegistrationCollection.cs" />
+    <Compile Include="StyletIoC\Builder\BuilderUpper.cs" />
     <Compile Include="StyletIoC\StyletIoCBuilder.cs" />
-    <Compile Include="StyletIoC\StyletIoCContainer.cs" />
-    <Compile Include="StyletIoC\UnboundGeneric.cs" />
+    <Compile Include="StyletIoC\Internal\Container.cs" />
+    <Compile Include="StyletIoC\Internal\UnboundGeneric.cs" />
     <Compile Include="Xaml\IconToBitmapSourceConverter.cs" />
     <Compile Include="Xaml\View.cs" />
     <Compile Include="ViewManager.cs" />

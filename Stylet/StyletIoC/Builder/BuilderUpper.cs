@@ -1,9 +1,11 @@
-﻿using System;
+﻿using StyletIoC.Builder;
+using StyletIoC.Internal;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace StyletIoC
+namespace StyletIoC.Builder
 {
     public class BuilderUpper
     {
@@ -40,7 +42,7 @@ namespace StyletIoC
                 return null;
 
             var memberAccess = Expression.MakeMemberAccess(objExpression, member);
-            var memberValue = this.parentContext.GetExpression(new TypeKey(memberType, attribute.Key), registrationContext, true);
+            var memberValue = this.parentContext.GetExpression(memberType, attribute.Key, registrationContext, true);
             var assign = Expression.Assign(memberAccess, memberValue);
             // Only actually do the assignment if the field/property is currently null
             return Expression.IfThen(Expression.Equal(memberAccess, Expression.Constant(null, memberType)), assign);

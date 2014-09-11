@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StyletIoC
+namespace StyletIoC.Internal
 {
     internal interface IDelegatingDictionary<TKey, TValue>
     {

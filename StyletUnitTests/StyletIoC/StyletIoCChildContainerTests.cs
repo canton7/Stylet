@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using StyletIoC;
+using StyletIoC.Builder;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,6 +1,9 @@
-﻿using System;
+﻿using StyletIoC.Builder;
+using StyletIoC.Internal.Creators;
+using StyletIoC.Internal.Registrations;
+using System;
 
-namespace StyletIoC
+namespace StyletIoC.Internal
 {
     internal class UnboundGeneric
     {

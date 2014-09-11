@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace StyletIoC
+namespace StyletIoC.Internal
 {
     internal static class TypeExtensions
     {
