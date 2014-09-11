@@ -98,28 +98,42 @@ end
 
 desc "Extract StyletIoC as a standalone file"
 task :"extract-stylet-ioc" do
-  files = Dir['Stylet/StyletIoC/*.cs']
+  filenames = Dir['Stylet/StyletIoC/**/*.cs']
   usings = Set.new
-  merged_contents = ""
+  files = []
 
-  files.each do |file|
+  filenames.each do |file|
     contents = File.read(file)
     file_usings = contents.scan(/using .*?;$/)
     usings.merge(file_usings)
     
-    file_contents = contents[/namespace .+?{\n(.+)}.*/m, 1]
-    merged_contents << "    // Originally from #{file}\n\n" << file_contents << "\n"
+    matches = contents.match(/namespace (.+?)\n{\n(.+)}.*/m)
+    namespace, file_contents = matches.captures
+
+    files << {
+      :from => file,
+      :contents => file_contents,
+      :namespace => namespace
+    }
+    # merged_contents << "    // Originally from #{file}\n\n" << file_contents << "\n"
   end
 
   File.open('StyletIoC.cs', 'w') do |outf|
-    outf.write(usings.to_a.join("\n"))
+    outf.write(usings.reject{ |x| x.start_with?('using StyletIoC') }.join("\n"))
 
-    outf.puts("\n\n")
+    outf.puts
 
-    outf.puts("namespace StyletIoC")
-    outf.puts("{")
-    outf.puts(merged_contents)
-    outf.puts("}")
+    files.group_by{ |x| x[:namespace ] }.each do |namespace, ns_files|
+      outf.puts("\nnamespace #{namespace}")
+      outf.puts("{")
+      
+      ns_files.each do |file|
+        outf.puts("\n    // Originally from #{file[:from]}\n\n")
+        outf.puts(file[:contents])
+      end
+
+      outf.puts("}\n")
+    end
   end
 
   # puts merged_contents
