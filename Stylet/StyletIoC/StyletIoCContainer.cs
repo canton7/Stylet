@@ -12,7 +12,7 @@ namespace StyletIoC
     public class StyletIoCContainer
     {
         /// <summary>
-        /// Name of the assembly in which abstract factories are built. Use in [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to allow factories created by .ToAbstractFactory() to access internal types
+        /// Name of the assembly in which abstract factories are built. Use in [assembly: InternalsVisibleTo(StyletIoCContainer.FactoryAssemblyName)] to allow factories created by .ToAbstractFactory() to access internal types
         /// </summary>
         public static readonly string FactoryAssemblyName = "StyletIoCFactory";
     }
