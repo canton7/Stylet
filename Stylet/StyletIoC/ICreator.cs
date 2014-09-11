@@ -82,10 +82,7 @@ namespace StyletIoC
 
         private string KeyForParameter(ParameterInfo parameter)
         {
-            var attributes = parameter.GetCustomAttributes(typeof(InjectAttribute));
-            if (attributes == null)
-                return null;
-            var attribute = (InjectAttribute)attributes.FirstOrDefault();
+            var attribute = parameter.GetCustomAttributes(typeof(InjectAttribute)).FirstOrDefault() as InjectAttribute;
             return attribute == null ? null : attribute.Key;
         }
 

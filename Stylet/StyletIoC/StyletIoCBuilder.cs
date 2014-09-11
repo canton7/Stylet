@@ -100,7 +100,7 @@ namespace StyletIoC
 
         public static void InPerContainerScope(this IInScope builder)
         {
-            builder.WithRegistrationFactory((ctx, creator, key) => new PerContainerRegistrations(ctx, creator));
+            builder.WithRegistrationFactory((ctx, creator, key) => new PerContainerRegistration(ctx, creator, key));
         }
     }
 

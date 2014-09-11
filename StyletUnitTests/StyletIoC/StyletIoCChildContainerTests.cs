@@ -134,7 +134,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void CreatingSameBindingOnParentAndChildCausesMultipleRegistrations()
+        public void CreatingSameBindingOnParentAndChildCausesMultipleRegistrations_1()
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().To<C11>();
@@ -146,8 +146,8 @@ namespace StyletUnitTests
 
             var r = child.GetAll<I1>();
 
-            Assert.AreEqual(2, child.GetAll<I1>().Count());
             Assert.AreEqual(1, parent.GetAll<I1>().Count());
+            Assert.AreEqual(2, child.GetAll<I1>().Count());
         }
 
         [Test]
@@ -265,6 +265,20 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void KeyedChildContainerScopeHasOneInstancePerScope()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf().WithKey("foo").InPerContainerScope();
+            var parent = builder.BuildContainer();
+
+            var child = parent.CreateChildBuilder().BuildContainer();
+
+            Assert.AreEqual(parent.Get<C1>("foo"), parent.Get<C1>("foo"));
+            Assert.AreEqual(child.Get<C1>("foo"), child.Get<C1>("foo"));
+            Assert.AreNotEqual(parent.Get<C1>("foo"), child.Get<C1>("foo"));
+        }
+
+        [Test]
         public void ChildContainerScopeDisposalDisposesCorrectThing()
         {
             var builder = new StyletIoCBuilder();
@@ -280,6 +294,49 @@ namespace StyletUnitTests
 
             Assert.True(childs.Disposed);
             Assert.False(parents.Disposed);
+        }
+
+        [Test]
+        public void UsingPerContainerRegistrationAfterDisposalPromptsException()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf().InPerContainerScope();
+            var ioc = builder.BuildContainer();
+
+            ioc.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => ioc.Get<C1>());
+        }
+
+        [Test]
+        public void FuncFactoryFetchesInstanceFromCorrectChild()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf().InPerContainerScope();
+            var parent = builder.BuildContainer();
+
+            var child = parent.CreateChildBuilder().BuildContainer();
+
+            var funcFromParent = parent.Get<Func<C1>>();
+            var funcFromChild = child.Get<Func<C1>>();
+
+            Assert.AreEqual(parent.Get<C1>(), funcFromParent());
+            Assert.AreEqual(child.Get<C1>(), funcFromChild());
+        }
+
+        [Test]
+        public void FuncFactoryWithKeyFetchesInstanceFromCorrectChild()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf().WithKey("foo").InPerContainerScope();
+            var parent = builder.BuildContainer();
+
+            var child = parent.CreateChildBuilder().BuildContainer();
+
+            var funcFromParent = parent.Get<Func<string, C1>>();
+            var funcFromChild = child.Get<Func<string, C1>>();
+
+            Assert.AreEqual(parent.Get<C1>("foo"), funcFromParent("foo"));
+            Assert.AreEqual(child.Get<C1>("foo"), funcFromChild("foo"));
         }
     }
 }

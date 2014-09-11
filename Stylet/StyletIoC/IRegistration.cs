@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -133,9 +134,10 @@ namespace StyletIoC
         }
     }
 
-    internal class PerContainerRegistrations : RegistrationBase
+    internal class PerContainerRegistration : RegistrationBase
     {
         private readonly IRegistrationContext parentContext;
+        private readonly string key;
         private readonly object instanceFactoryLock = new object();
         private Func<IRegistrationContext, object> instanceFactory;
         private object instance;
@@ -143,10 +145,11 @@ namespace StyletIoC
 
         private static readonly MethodInfo getMethod = typeof(IContainer).GetMethod("Get", new[] { typeof(Type), typeof(string) });
 
-        public PerContainerRegistrations(IRegistrationContext parentContext, ICreator creator, Func<IRegistrationContext, object> instanceFactory = null)
+        public PerContainerRegistration(IRegistrationContext parentContext, ICreator creator, string key, Func<IRegistrationContext, object> instanceFactory = null)
             : base(creator)
         {
             this.parentContext = parentContext;
+            this.key = key;
             this.instanceFactory = instanceFactory;
 
             this.parentContext.Disposing += (o, e) =>
@@ -177,34 +180,28 @@ namespace StyletIoC
         protected override Func<IRegistrationContext, object> GetGeneratorInternal()
         {
             // If the context is our parent context, then everything's fine and we can return our instance
-            // If not, we need to call Get on the current context, and a different instance of us will be invoked again by that
+            // If not, well, this should never happen. When we're cloned to the new context, we set ourselves up with the new parent
             return ctx =>
             {
-                if (ctx != this.parentContext)
-                {
-                    return ctx.Get(this.Type);
-                }
-                else
-                {
-                    if (this.disposed)
-                        throw new ObjectDisposedException(String.Format("ChildContainer registration for type {0}", this.Type.Description()));
+                Debug.Assert(ctx == this.parentContext);
+                if (this.disposed)
+                    throw new ObjectDisposedException(String.Format("ChildContainer registration for type {0}", this.Type.Description()));
 
-                    if (this.instance != null)
-                        return this.instance;
-
-                    this.EnsureInstanceFactoryCreated();
-                    
-                    var instance = this.instanceFactory(ctx);
-                    Interlocked.CompareExchange(ref this.instance, instance, null);
+                if (this.instance != null)
                     return this.instance;
-                }
+
+                this.EnsureInstanceFactoryCreated();
+                    
+                var instance = this.instanceFactory(ctx);
+                Interlocked.CompareExchange(ref this.instance, instance, null);
+                return this.instance;
             };
         }
 
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             // Always synthesize into a method call onto the current context
-            var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.Type));
+            var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.Type), Expression.Constant(this.key, typeof(string)));
             var cast = Expression.Convert(call, this.Type);
             return cast;
         }
@@ -213,7 +210,7 @@ namespace StyletIoC
         {
             // Ensure the factory's created, and pass it down. This means the work of compiling the creation expression is done once, ever
             this.EnsureInstanceFactoryCreated();
-            return new PerContainerRegistrations(context, this.creator, this.instanceFactory);
+            return new PerContainerRegistration(context, this.creator, this.key, this.instanceFactory);
         }
     }
 
@@ -346,7 +343,7 @@ namespace StyletIoC
 
         public IRegistration CloneToContext(IRegistrationContext context)
         {
-            return this;
+            throw new InvalidOperationException("should not be cloned");
         }
     }
 }
