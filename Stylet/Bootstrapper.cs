@@ -42,10 +42,10 @@ namespace Stylet
         protected virtual void DefaultConfigureIoC(StyletIoCBuilder builder)
         {
             // Mark these as auto-bindings, so the user can replace them if they want
-            builder.BindWeak(typeof(IWindowManager)).To<WindowManager>().InSingletonScope();
-            builder.BindWeak(typeof(IEventAggregator)).To<EventAggregator>().InSingletonScope();
-            builder.BindWeak(typeof(IViewManager)).To<ViewManager>().InSingletonScope();
-            builder.BindWeak(typeof(IMessageBoxViewModel)).To<MessageBoxViewModel>();
+            builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
+            builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();
+            builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope().AsWeakBinding();
+            builder.Bind<IMessageBoxViewModel>().To<MessageBoxViewModel>().AsWeakBinding();
 
             builder.Autobind(AssemblySource.Assemblies);
         }

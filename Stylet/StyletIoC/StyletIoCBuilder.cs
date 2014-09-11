@@ -20,26 +20,26 @@ namespace StyletIoC
         /// Bind the specified service to itself - if you self-bind MyClass, and request an instance of MyClass, you'll get an instance of MyClass.
         /// </summary>
         /// <returns></returns>
-        IInScopeOrWithKey ToSelf();
+        IInScopeOrWithKeyOrAsWeakBinding ToSelf();
 
         /// <summary>
         /// Bind the specified service to another type which implements that service. E.g. builder.Bind{IMyClass}().To{MyClass}(), and request an IMyClass: you'll get a MyClass.
         /// </summary>
         /// <typeparam name="TImplementation">Type to bind the service to</typeparam>
-        IInScopeOrWithKey To<TImplementation>();
+        IInScopeOrWithKeyOrAsWeakBinding To<TImplementation>();
 
         /// <summary>
         /// Bind the specified service to another type which implements that service. E.g. builder.Bind{IMyClass}().To(typeof(MyClass)), and request an IMyClass: you'll get a MyClass.
         /// </summary>
         /// <param name="implementationType">Type to bind the service to</param>
-        IInScopeOrWithKey To(Type implementationType);
+        IInScopeOrWithKeyOrAsWeakBinding To(Type implementationType);
 
         /// <summary>
         /// Bind the specified service to a factory delegate, which will be called when an instance is required. E.g. ...ToFactory(c => new MyClass(c.Get{Dependency}(), "foo"))
         /// </summary>
         /// <typeparam name="TImplementation">Type returned by the factory delegate. Must implement the service</typeparam>
         /// <param name="factory">Factory delegate to bind got</param>
-        IInScopeOrWithKey ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory);
+        IInScopeOrWithKeyOrAsWeakBinding ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory);
 
         /// <summary>
         /// If the service is an interface with a number of methods which return other types, generate an implementation of that abstract factory and bind it to the interface.
@@ -50,7 +50,29 @@ namespace StyletIoC
         /// Discover all implementations of the service in the specified assemblies / the current assembly, and bind those to the service
         /// </summary>
         /// <param name="assemblies">Assemblies to search. If empty / null, searches the current assembly</param>
-        IInScopeOrWithKey ToAllImplementations(params Assembly[] assemblies);
+        IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies);
+    }
+
+    /// <summary>
+    /// Fluent interface on which AsWeakBinding can be called
+    /// </summary>
+    public interface IAsWeakBinding
+    {
+        /// <summary>
+        /// Mark the binding as weak
+        /// </summary>
+        /// <remarks>
+        /// When the container is built, each collection of registrations for each Type+key combination is examined.
+        /// If only weak bindings exist, then all bindings are built into the container.
+        /// If any normal bindings exist, then all weak bindings are ignored, and only the normal bindings are built into the container.
+        /// 
+        /// This is very useful for integration StyletIoC into a framework. The framework can add default bindings for services as
+        /// weak bindings, and the user can use normal bindings. If the user does specify a binding, then this will override
+        /// the binding set by the framework.
+        /// 
+        /// This is also used by AutoBind when self-binding concrete types, for the sme reason.
+        /// </remarks>
+        void AsWeakBinding();
     }
 
     /// <summary>
@@ -68,25 +90,25 @@ namespace StyletIoC
     /// <summary>
     /// Fluent interface on which methods to modify the scope can be called
     /// </summary>
-    public interface IInScope
+    public interface IInScopeOrAsWeakBinding : IAsWeakBinding
     {
         /// <summary>
         /// Specify a factory that creates an IRegistration to use for this binding
         /// </summary>
         /// <param name="registrationFactory">Registration factory to use</param>
-        void WithRegistrationFactory(RegistrationFactory registrationFactory);
+        IAsWeakBinding WithRegistrationFactory(RegistrationFactory registrationFactory);
     }
 
     /// <summary>
-    /// Fluent interface on which InSingletonScope or WithKey can be called
+    /// Fluent interface on which WithKey, or the scoping extensions can be called
     /// </summary>
-    public interface IInScopeOrWithKey : IInScope
+    public interface IInScopeOrWithKeyOrAsWeakBinding : IInScopeOrAsWeakBinding
     {
         /// <summary>
         /// Associate a key with this binding. Requests for the service will have to specify this key to retrieve the result of this binding
         /// </summary>
         /// <param name="key">Key to associate with this binding</param>
-        IInScope WithKey(string key);
+        IInScopeOrAsWeakBinding WithKey(string key);
     }
 
     /// <summary>
@@ -97,17 +119,17 @@ namespace StyletIoC
         /// <summary>
         /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
         /// </summary>
-        public static void InSingletonScope(this IInScope builder)
+        public static IAsWeakBinding InSingletonScope(this IInScopeOrAsWeakBinding builder)
         {
-            builder.WithRegistrationFactory((ctx, creator, key) => new SingletonRegistration(ctx, creator));
+            return builder.WithRegistrationFactory((ctx, creator, key) => new SingletonRegistration(ctx, creator));
         }
 
         /// <summary>
         /// Modify the scope binding to Per Container. One instance of this implementation will be generated per container / child container.
         /// </summary>
-        public static void InPerContainerScope(this IInScope builder)
+        public static IAsWeakBinding InPerContainerScope(this IInScopeOrAsWeakBinding builder)
         {
-            builder.WithRegistrationFactory((ctx, creator, key) => new PerContainerRegistration(ctx, creator, key));
+            return builder.WithRegistrationFactory((ctx, creator, key) => new PerContainerRegistration(ctx, creator, key));
         }
     }
 
@@ -115,32 +137,31 @@ namespace StyletIoC
     {
         public Type ServiceType { get; private set; }
         private BuilderBindingBase builderBinding;
-        public bool IsWeak { get; private set; }
+        public bool IsWeak { get { return this.builderBinding.IsWeak; } }
         public string Key { get { return this.builderBinding.Key; } }
 
-        public BuilderBindTo(Type serviceType, bool isWeak)
+        public BuilderBindTo(Type serviceType)
         {
             this.ServiceType = serviceType;
-            this.IsWeak = isWeak;
         }
 
-        public IInScopeOrWithKey ToSelf()
+        public IInScopeOrWithKeyOrAsWeakBinding ToSelf()
         {
             return this.To(this.ServiceType);
         }
 
-        public IInScopeOrWithKey To<TImplementation>()
+        public IInScopeOrWithKeyOrAsWeakBinding To<TImplementation>()
         {
             return this.To(typeof(TImplementation));
         }
 
-        public IInScopeOrWithKey To(Type implementationType)
+        public IInScopeOrWithKeyOrAsWeakBinding To(Type implementationType)
         {
             this.builderBinding = new BuilderTypeBinding(this.ServiceType, implementationType);
             return this.builderBinding;
         }
 
-        public IInScopeOrWithKey ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory)
+        public IInScopeOrWithKeyOrAsWeakBinding ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory)
         {
             this.builderBinding = new BuilderFactoryBinding<TImplementation>(this.ServiceType, factory);
             return this.builderBinding;
@@ -152,7 +173,7 @@ namespace StyletIoC
             return this.builderBinding;
         }
 
-        public IInScopeOrWithKey ToAllImplementations(params Assembly[] assemblies)
+        public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies)
         {
             if (assemblies == null || assemblies.Length == 0)
                 assemblies = new[] { Assembly.GetCallingAssembly() };
@@ -166,11 +187,12 @@ namespace StyletIoC
         }
     }
 
-    internal abstract class BuilderBindingBase : IInScopeOrWithKey, IWithKey
+    internal abstract class BuilderBindingBase : IInScopeOrWithKeyOrAsWeakBinding, IWithKey
     {
         protected Type serviceType;
         protected RegistrationFactory registrationFactory;
         public string Key { get; protected set; }
+        public bool IsWeak { get; protected set; }
 
         public BuilderBindingBase(Type serviceType)
         {
@@ -180,14 +202,15 @@ namespace StyletIoC
             this.registrationFactory = (ctx, creator, key) => new TransientRegistration(creator);
         }
 
-        void IInScope.WithRegistrationFactory(RegistrationFactory registrationFactory)
+        IAsWeakBinding IInScopeOrAsWeakBinding.WithRegistrationFactory(RegistrationFactory registrationFactory)
         {
             if (registrationFactory == null)
                 throw new ArgumentNullException("registrationFactory");
             this.registrationFactory = registrationFactory;
+            return this;
         }
 
-        IInScope IInScopeOrWithKey.WithKey(string key)
+        IInScopeOrAsWeakBinding IInScopeOrWithKeyOrAsWeakBinding.WithKey(string key)
         {
             this.Key = key;
             return this;
@@ -250,6 +273,11 @@ namespace StyletIoC
         void IWithKey.WithKey(string key)
         {
             this.Key = key;
+        }
+
+        void IAsWeakBinding.AsWeakBinding()
+        {
+            this.IsWeak = true;
         }
 
         public abstract void Build(Container container);
@@ -349,12 +377,6 @@ namespace StyletIoC
         /// <summary>
         /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
         /// </summary>
-        /// <typeparam name="TService">Service to bind</typeparam>
-        IBindTo Bind<TService>();
-
-        /// <summary>
-        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
-        /// </summary>
         /// <param name="serviceType">Service to bind</param>
         IBindTo Bind(Type serviceType);
 
@@ -401,28 +423,9 @@ namespace StyletIoC
         /// <param name="serviceType">Service to bind</param>
         public IBindTo Bind(Type serviceType)
         {
-            return this.BindInternal(serviceType, false);
-        }
-
-        internal IBindTo BindWeak(Type serviceType)
-        {
-            return this.BindInternal(serviceType, true);
-        }
-
-        internal IBindTo BindInternal(Type serviceType, bool isWeak)
-        {
-            var builderBindTo = new BuilderBindTo(serviceType, isWeak);
+            var builderBindTo = new BuilderBindTo(serviceType);
             this.bindings.Add(builderBindTo);
             return builderBindTo;
-        }
-
-        /// <summary>
-        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
-        /// </summary>
-        /// <typeparam name="TService">Service to bind</typeparam>
-        public IBindTo Bind<TService>()
-        {
-            return this.Bind(typeof(TService));
         }
 
         /// <summary>
@@ -441,8 +444,7 @@ namespace StyletIoC
             {
                 // It's not actually possible for this to fail with a StyletIoCRegistrationException (at least currently)
                 // It's a self-binding, and those are always safe (at this stage - it could fall over when the containing's actually build)
-                
-                this.BindWeak(cls).To(cls);
+                this.Bind(cls).To(cls).AsWeakBinding();
             }
         }
 
@@ -474,6 +476,21 @@ namespace StyletIoC
                 binding.Build(container);
             }
             return container;
+        }
+    }
+
+    /// <summary>
+    /// Extra methods on IStyletIoCBuilder which are useful
+    /// </summary>
+    public static class StyletIoCBuilderExtensions
+    {
+        /// <summary>
+        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
+        /// </summary>
+        /// <typeparam name="TService">Service to bind</typeparam>
+        public static IBindTo Bind<TService>(this IStyletIoCBuilder builder)
+        {
+            return builder.Bind(typeof(TService));
         }
     }
 }

@@ -33,6 +33,7 @@ namespace StyletUnitTests
         public void NongenericInterfaceToAllImplementations()
         {
             var builder = new StyletIoCBuilder();
+
             builder.Bind<I1>().ToAllImplementations();
             var ioc = builder.BuildContainer();
 
