@@ -232,14 +232,15 @@ namespace StyletIoC
         public FuncNoKeyRegistration(IRegistration delegateRegistration)
         {
             this.delegateRegistration = delegateRegistration;
-
             this.funcType = Expression.GetFuncType(this.delegateRegistration.Type);
+
+            var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
+            this.generator = Expression.Lambda<Func<IRegistrationContext, object>>(this.GetInstanceExpression(registrationContext), registrationContext).Compile();
         }
 
         public Func<IRegistrationContext, object> GetGenerator()
         {
-            var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
-            return Expression.Lambda<Func<IRegistrationContext, object>>(this.GetInstanceExpression(registrationContext), registrationContext).Compile();
+            return this.generator;
         }
 
         public Expression GetInstanceExpression(ParameterExpression registrationContext)
@@ -249,6 +250,12 @@ namespace StyletIoC
 
         public IRegistration CloneToContext(IRegistrationContext context)
         {
+            // I *think* this is right....
+            // What happens if our registration delegate changes itself? Then we're no longer relevant or correct
+            // However, we don't know what our registration delegate changed themselves into.... They were requested
+            // separately. We don't want to call .CloneToContext on our registration delegate, otherwise this will end
+            // up being called twice (or more), and there will be lots of instances of the cloned registration delegate.
+            // Hrm...
             throw new NotImplementedException();
         }
     }
