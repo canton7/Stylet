@@ -15,6 +15,8 @@ namespace StyletIoC
     // Needs to be public, or FactoryAssemblyName isn't visible
     public class StyletIoCContainer : IContainer, IRegistrationContext
     {
+        private readonly StyletIoCContainer parent;
+
         /// <summary>
         /// Name of the assembly in which abstract factories are built. Use in [assembly: InternalsVisibleTo(StyletIoC.FactoryAssemblyName)] to allow factories created by .ToAbstractFactory() to access internal types
         /// </summary>
@@ -30,8 +32,6 @@ namespace StyletIoC
         /// This is separate from 'registrations' as some code paths - e.g. Get() - won't search it (while things like constructor/property injection will).
         /// </summary>
         private readonly ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
-
-        private readonly Dictionary<TypeKey, List<UnboundGeneric>> parentUnboundGenerics;
 
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is an unbound generic (something like IValidator{}) to something which, given a type, can create an IRegistration for that type.
@@ -72,15 +72,15 @@ namespace StyletIoC
             //    it's always created by a child, the parent will never get a cached copy. This might get addressed at some point, but the complexity might not
             //    be worth it (especially for such a rarely-used feature).
 
+            this.parent = parent;
             this.registrations = DelegatingDictionary<TypeKey, IRegistrationCollection>.Create(parent.registrations, registration => registration.CloneToContext(this));
-            this.parentUnboundGenerics = parent.unboundGenerics;
             this.builderUppers = DelegatingDictionary<Type, BuilderUpper>.Create(parent.builderUppers);
         }
 
         internal StyletIoCContainer()
         {
+            this.parent = null;
             this.registrations = DelegatingDictionary<TypeKey, IRegistrationCollection>.Create();
-            this.parentUnboundGenerics = null;
             this.builderUppers = DelegatingDictionary<Type, BuilderUpper>.Create();
         }
 
@@ -273,6 +273,22 @@ namespace StyletIoC
             return true;
         }
 
+        private List<UnboundGeneric> UnboundGenericsFromSelfAndParent(TypeKey typeKey)
+        {
+            List<UnboundGeneric> unboundGenerics;
+            if (this.parent != null)
+                unboundGenerics = this.parent.UnboundGenericsFromSelfAndParent(typeKey);
+            else
+                unboundGenerics = new List<UnboundGeneric>();
+
+            List<UnboundGeneric> outUnboundGenerics;
+            if (this.unboundGenerics.TryGetValue(typeKey, out outUnboundGenerics))
+                unboundGenerics.AddRange(outUnboundGenerics);
+
+            return unboundGenerics;
+
+        }
+
         /// <summary>
         /// Given a generic type (e.g. IValidator{T}), tries to create a collection of IRegistrations which can implement it from the unbound generic registrations.
         /// For example, if someone bound an IValidator{} to Validator{}, and this was called with Validator{T}, the IRegistrationCollection would contain a Validator{T}.
@@ -290,13 +306,8 @@ namespace StyletIoC
 
             Type unboundGenericType = type.GetGenericTypeDefinition();
 
-            var unboundGenerics = new List<UnboundGeneric>();
-            List<UnboundGeneric> outUnboundGenerics;
             var unboundTypeKey = new TypeKey(unboundGenericType, typeKey.Key);
-            if (this.parentUnboundGenerics != null && this.parentUnboundGenerics.TryGetValue(unboundTypeKey, out outUnboundGenerics))
-                unboundGenerics.AddRange(outUnboundGenerics);
-            if (this.unboundGenerics.TryGetValue(unboundTypeKey, out outUnboundGenerics))
-                unboundGenerics.AddRange(outUnboundGenerics);
+            var unboundGenerics = this.UnboundGenericsFromSelfAndParent(unboundTypeKey);
 
             foreach (var unboundGeneric in unboundGenerics)
             {
