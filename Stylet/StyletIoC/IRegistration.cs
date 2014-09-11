@@ -217,29 +217,23 @@ namespace StyletIoC
         }
     }
 
-    // Returns a Func<object> or a Func<string, object> (depending on setup)
-    // Since the key is provided at runtime, we have to do a lookup on the context at runtime - we can't synthesize stuff in
     // We're only created when we're needed, so no point in trying to be lazy
-    internal class FuncRegistration : IRegistration
+    internal class FuncNoKeyRegistration : IRegistration
     {
-        private readonly bool hasKey;
-        private readonly Type resultType;
+        private IRegistration delegateRegistration;
         private readonly Type funcType;
         private readonly Func<IRegistrationContext, object> generator;
-
-        private static readonly MethodInfo getMethod = typeof(IContainer).GetMethod("GetTypeOrAll", new[] { typeof(Type), typeof(string) });
 
         public Type Type
         {
             get { return this.funcType; }
         }
 
-        public FuncRegistration(Type resultType, bool hasKey)
+        public FuncNoKeyRegistration(IRegistration delegateRegistration)
         {
-            this.hasKey = hasKey;
-            this.resultType = resultType;
+            this.delegateRegistration = delegateRegistration;
 
-            this.funcType = this.hasKey ? Expression.GetFuncType(typeof(string), this.resultType) : Expression.GetFuncType(this.resultType);
+            this.funcType = Expression.GetFuncType(this.delegateRegistration.Type);
         }
 
         public Func<IRegistrationContext, object> GetGenerator()
@@ -250,18 +244,7 @@ namespace StyletIoC
 
         public Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
-            if (this.hasKey)
-            {
-                var input = Expression.Parameter(typeof(string), "key");
-                var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.resultType), input);
-                return Expression.Lambda(Expression.Convert(call, this.resultType), input);
-            }
-            else
-            {
-                var input = Expression.Constant(null, typeof(string));
-                var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.resultType), input);
-                return Expression.Lambda(Expression.Convert(call, this.resultType));
-            }
+            return Expression.Lambda(this.delegateRegistration.GetInstanceExpression(registrationContext));
         }
 
         public IRegistration CloneToContext(IRegistrationContext context)
@@ -287,6 +270,7 @@ namespace StyletIoC
 
         public GetAllRegistration(Type type, IRegistrationContext parentContext, string key)
         {
+            this.Key = key;
             this._type = type;
             this.parentContext = parentContext;
         }

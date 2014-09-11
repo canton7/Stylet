@@ -256,13 +256,19 @@ namespace StyletIoC
 
             IRegistration registration;
             if (genericType == typeof(Func<>))
-                registration = new FuncRegistration(genericArguments[0], false);
-            else if (genericType == typeof(Func<,>) && genericArguments[0] == typeof(string))
-                registration = new FuncRegistration(genericArguments[1], true);
+            {
+                foreach (var indvRegistration in this.GetRegistrations(new TypeKey(genericArguments[0], typeKey.Key), true).GetAll())
+                {
+                    registrations = this.AddRegistration(typeKey, new FuncNoKeyRegistration(indvRegistration));
+                }
+            }
+                
+            //else if (genericType == typeof(Func<,>) && genericArguments[0] == typeof(string))
+            //    registration = new FuncRegistration(genericArguments[1], true);
             else
                 return false;
 
-            registrations = this.AddRegistration(typeKey, registration);
+            //registrations = this.AddRegistration(typeKey, registration);
             return true;
         }
 
