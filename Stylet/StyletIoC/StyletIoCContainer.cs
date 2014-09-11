@@ -254,21 +254,22 @@ namespace StyletIoC
             var genericType = type.GetGenericTypeDefinition();
             var genericArguments = type.GetGenericArguments();
 
-            IRegistration registration;
             if (genericType == typeof(Func<>))
             {
-                foreach (var indvRegistration in this.GetRegistrations(new TypeKey(genericArguments[0], typeKey.Key), true).GetAll())
+                foreach (var registration in this.GetRegistrations(new TypeKey(genericArguments[0], typeKey.Key), true).GetAll())
                 {
-                    registrations = this.AddRegistration(typeKey, new FuncNoKeyRegistration(indvRegistration));
+                    registrations = this.AddRegistration(typeKey, new FuncNoKeyRegistration(registration));
                 }
             }
-                
-            //else if (genericType == typeof(Func<,>) && genericArguments[0] == typeof(string))
-            //    registration = new FuncRegistration(genericArguments[1], true);
+            else if (genericType == typeof(Func<,>) && genericArguments[0] == typeof(string))
+            {
+                registrations = this.AddRegistration(typeKey, new FuncWithKeyRegistration(genericArguments[1]));
+            }
             else
+            {
                 return false;
+            }
 
-            //registrations = this.AddRegistration(typeKey, registration);
             return true;
         }
 
