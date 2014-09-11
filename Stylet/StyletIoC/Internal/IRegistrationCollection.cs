@@ -1,12 +1,13 @@
-﻿using System;
+﻿using StyletIoC.Builder;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StyletIoC.Builder
+namespace StyletIoC.Internal
 {
-    public interface IRegistrationCollection
+    internal interface IRegistrationCollection
     {
         IRegistration GetSingle();
         List<IRegistration> GetAll();

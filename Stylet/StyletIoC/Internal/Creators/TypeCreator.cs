@@ -80,7 +80,7 @@ namespace StyletIoC.Internal.Creators
                 {
                     try
                     {
-                        return this.parentContext.GetExpression(x.ParameterType, key, registrationContext, true);
+                        return this.parentContext.GetSingleRegistration(x.ParameterType, key, true).GetInstanceExpression(registrationContext);
                     }
                     catch (StyletIoCRegistrationException e)
                     {

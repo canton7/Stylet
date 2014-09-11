@@ -7,6 +7,9 @@ using System.Reflection;
 
 namespace StyletIoC.Builder
 {
+    /// <summary>
+    /// A BuilderUpper knows how to build up an object - that is, populate all parameters decorated with [Inject]
+    /// </summary>
     public class BuilderUpper
     {
         private readonly Type type;
@@ -14,12 +17,23 @@ namespace StyletIoC.Builder
         private readonly object implementorLock = new object();
         private Action<IRegistrationContext, object> implementor;
 
+        /// <summary>
+        /// Instantiate a new BuilderUpper
+        /// </summary>
+        /// <param name="type">Type of object that the BuilderUpper will work on</param>
+        /// <param name="parentContext">IRegistrationContext on which this BuilderUpper is registered</param>
         public BuilderUpper(Type type, IRegistrationContext parentContext)
         {
             this.type = type;
             this.parentContext = parentContext;
         }
 
+        /// <summary>
+        /// Get an expression which takes an object represented by inputParameterExpression, and returns an expression which builds it up
+        /// </summary>
+        /// <param name="inputParameterExpression">Expression representing the object instance to build up</param>
+        /// <param name="registrationContext">Context which calls this method</param>
+        /// <returns>Expression which will build up inputParameterExpression</returns>
         public Expression GetExpression(Expression inputParameterExpression, ParameterExpression registrationContext)
         {
             var expressions = this.type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.FieldType, registrationContext))
@@ -42,12 +56,16 @@ namespace StyletIoC.Builder
                 return null;
 
             var memberAccess = Expression.MakeMemberAccess(objExpression, member);
-            var memberValue = this.parentContext.GetExpression(memberType, attribute.Key, registrationContext, true);
+            var memberValue = this.parentContext.GetSingleRegistration(memberType, attribute.Key, true).GetInstanceExpression(registrationContext);
             var assign = Expression.Assign(memberAccess, memberValue);
             // Only actually do the assignment if the field/property is currently null
             return Expression.IfThen(Expression.Equal(memberAccess, Expression.Constant(null, memberType)), assign);
         }
 
+        /// <summary>
+        /// Get a delegate which, given an object, will build it up
+        /// </summary>
+        /// <returns>Delegate which, when given an object, will build it up</returns>
         public Action<IRegistrationContext, object> GetImplementor()
         {
             lock (this.implementorLock)

@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Include="StyletIoC\Builder\ICreator.cs" />
     <Compile Include="StyletIoC\Builder\IRegistration.cs" />
-    <Compile Include="StyletIoC\Builder\IRegistrationCollection.cs" />
+    <Compile Include="StyletIoC\Internal\IRegistrationCollection.cs" />
     <Compile Include="StyletIoC\Internal\Creators\AbstractFactoryCreator.cs" />
     <Compile Include="StyletIoC\Internal\Creators\CreatorBase.cs" />
     <Compile Include="StyletIoC\Internal\Creators\FactoryCreator.cs" />

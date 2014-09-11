@@ -53,7 +53,7 @@ namespace StyletIoC.Internal.Registrations
                 return this.expression;
 
             var list = Expression.New(this.Type);
-            var init = Expression.ListInit(list, this.parentContext.GetRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).GetAll().Select(x => x.GetInstanceExpression(registrationContext)));
+            var init = Expression.ListInit(list, this.parentContext.GetAllRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(registrationContext)));
 
             Interlocked.CompareExchange(ref this.expression, init, null);
             return this.expression;

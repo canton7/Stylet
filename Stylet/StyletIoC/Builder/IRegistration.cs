@@ -10,6 +10,7 @@ namespace StyletIoC.Builder
     /// <summary>
     /// Delegate used to create an IRegistration
     /// </summary>
+    /// <param name="parentContext">Context on which this registration will be created</param>
     /// <param name="creator">ICreator used by the IRegistration to create new instances</param>
     /// <param name="key">Key associated with the registration</param>
     /// <returns>A new IRegistration</returns>
@@ -38,6 +39,19 @@ namespace StyletIoC.Builder
         /// <returns>An expression evaluating to an instance of type Type, which is supplied by the ICreator></returns>
         Expression GetInstanceExpression(ParameterExpression registrationContext);
 
+        /// <summary>
+        /// When a child container is created, and a registration is needed, this method is called allowing the registration to do any transformations it needs
+        /// </summary>
+        /// <remarks>
+        /// The registration should probably not mutate itself here, but return a new version of itself with the appropriate
+        /// state set in an appropriate way.
+        /// A good example is the PerChildRequestContainer, which uses this method to return a copy of itself which
+        /// does not retain the instances that its parent does.
+        /// 
+        /// Most registrations simply return themselves here
+        /// </remarks>
+        /// <param name="context">New child container which needs this registration</param>
+        /// <returns>Original registration, or modified copy</returns>
         IRegistration CloneToContext(IRegistrationContext context);
     }
 }

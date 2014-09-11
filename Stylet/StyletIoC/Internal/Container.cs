@@ -167,7 +167,8 @@ namespace StyletIoC.Internal
         /// <summary>
         /// Determine whether we can resolve a particular typeKey
         /// </summary>
-        /// <param name="typeKey">TypeKey to see if we can resolve</param>
+        /// <param name="type">Type to see if we can resolve</param>
+        /// <param name="key">Key to see if we can resolve</param>
         /// <returns>Whether the given TypeKey can be resolved</returns>
         public bool CanResolve(Type type, string key)
         {
@@ -355,9 +356,14 @@ namespace StyletIoC.Internal
             return this.GetRegistrations(typeKey, searchGetAllTypes).GetSingle().GetInstanceExpression(registrationContext);
         }
 
-        public IRegistrationCollection GetRegistrations(Type type, string key, bool searchGetAllTypes)
+        IRegistration IRegistrationContext.GetSingleRegistration(Type type, string key, bool searchGetAllTypes)
         {
-            return this.GetRegistrations(new TypeKey(type, key), searchGetAllTypes);
+            return this.GetRegistrations(new TypeKey(type, key), searchGetAllTypes).GetSingle();
+        }
+
+        IReadOnlyList<IRegistration> IRegistrationContext.GetAllRegistrations(Type type, string key, bool searchGetAllTypes)
+        {
+            return this.GetRegistrations(new TypeKey(type, key), searchGetAllTypes).GetAll();
         }
 
         internal IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)

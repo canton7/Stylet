@@ -102,6 +102,9 @@ namespace StyletIoC
             builder.WithRegistrationFactory((ctx, creator, key) => new SingletonRegistration(ctx, creator));
         }
 
+        /// <summary>
+        /// Modify the scope binding to Per Container. One instance of this implementation will be generated per container / child container.
+        /// </summary>
         public static void InPerContainerScope(this IInScope builder)
         {
             builder.WithRegistrationFactory((ctx, creator, key) => new PerContainerRegistration(ctx, creator, key));
@@ -382,6 +385,9 @@ namespace StyletIoC
         private readonly Container parent;
         private List<BuilderBindTo> bindings = new List<BuilderBindTo>();
 
+        /// <summary>
+        /// Create a new StyletIoC buidler instance
+        /// </summary>
         public StyletIoCBuilder() : this(null) { }
 
         internal StyletIoCBuilder(Container parent)
