@@ -40,7 +40,7 @@ namespace StyletIoC.Creation
         IRegistration GetSingleRegistration(Type type, string key, bool searchGetAllTypes);
 
         /// <summary>
-        /// Retrieve all IRegistrations for the type+key combination, or throw an exception if there are none
+        /// Retrieve all IRegistrations for the type+key combination
         /// </summary>
         /// <remarks>If a single registration exists, then the returned list will contain a single entry</remarks>
         /// <param name="type">Type to search for</param>

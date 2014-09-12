@@ -18,7 +18,7 @@ namespace StyletIoC.Internal.Builders
             this.serviceType = serviceType;
 
             // Default is transient
-            this.registrationFactory = (ctx, creator, key) => new TransientRegistration(creator);
+            this.registrationFactory = (ctx, service, creator, key) => new TransientRegistration(creator);
         }
 
         IAsWeakBinding IInScopeOrAsWeakBinding.WithRegistrationFactory(RegistrationFactory registrationFactory)
@@ -71,7 +71,7 @@ namespace StyletIoC.Internal.Builders
 
             if (serviceType.IsGenericTypeDefinition)
             {
-                var unboundGeneric = new UnboundGeneric(implementationType, container, this.registrationFactory);
+                var unboundGeneric = new UnboundGeneric(serviceType, implementationType, container, this.registrationFactory);
                 container.AddUnboundGeneric(new TypeKey(serviceType, this.Key), unboundGeneric);
             }
             else
@@ -86,7 +86,7 @@ namespace StyletIoC.Internal.Builders
         // Convenience...
         protected IRegistration CreateRegistration(IRegistrationContext registrationContext, ICreator creator)
         {
-            return this.registrationFactory(registrationContext, creator, this.Key);
+            return this.registrationFactory(registrationContext, this.serviceType, creator, this.Key);
         }
 
         IAsWeakBinding IWithKeyOrAsWeakBinding.WithKey(string key)

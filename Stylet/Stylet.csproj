@@ -64,6 +64,7 @@
     <Compile Include="StyletIoC\Internal\Creators\TypeCreator.cs" />
     <Compile Include="StyletIoC\Internal\DelegatingDictionary.cs" />
     <Compile Include="StyletIoC\Creation\IRegistrationContext.cs" />
+    <Compile Include="StyletIoC\Internal\RegistrationCollections\EmptyRegistrationCollection.cs" />
     <Compile Include="StyletIoC\Internal\RegistrationCollections\RegistrationCollection.cs" />
     <Compile Include="StyletIoC\Internal\RegistrationCollections\SingleRegistration.cs" />
     <Compile Include="StyletIoC\Internal\Registrations\FuncNoKeyRegistration.cs" />

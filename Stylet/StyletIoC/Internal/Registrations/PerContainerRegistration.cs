@@ -13,6 +13,7 @@ namespace StyletIoC.Internal.Registrations
     internal class PerContainerRegistration : RegistrationBase
     {
         private readonly IRegistrationContext parentContext;
+        private readonly Type serviceType;
         private readonly string key;
         private readonly object instanceFactoryLock = new object();
         private Func<IRegistrationContext, object> instanceFactory;
@@ -20,10 +21,11 @@ namespace StyletIoC.Internal.Registrations
 
         private static readonly MethodInfo getMethod = typeof(IContainer).GetMethod("Get", new[] { typeof(Type), typeof(string) });
 
-        public PerContainerRegistration(IRegistrationContext parentContext, ICreator creator, string key, Func<IRegistrationContext, object> instanceFactory = null)
+        public PerContainerRegistration(IRegistrationContext parentContext, Type serviceType, ICreator creator, string key, Func<IRegistrationContext, object> instanceFactory = null)
             : base(creator)
         {
             this.parentContext = parentContext;
+            this.serviceType = serviceType;
             this.key = key;
             this.instanceFactory = instanceFactory;
 
@@ -71,7 +73,7 @@ namespace StyletIoC.Internal.Registrations
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             // Always synthesize into a method call onto the current context
-            var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.Type), Expression.Constant(this.key, typeof(string)));
+            var call = Expression.Call(registrationContext, getMethod, Expression.Constant(this.serviceType), Expression.Constant(this.key, typeof(string)));
             var cast = Expression.Convert(call, this.Type);
             return cast;
         }
@@ -80,7 +82,7 @@ namespace StyletIoC.Internal.Registrations
         {
             // Ensure the factory's created, and pass it down. This means the work of compiling the creation expression is done once, ever
             this.EnsureInstanceFactoryCreated();
-            return new PerContainerRegistration(context, this.creator, this.key, this.instanceFactory);
+            return new PerContainerRegistration(context, this.serviceType, this.creator, this.key, this.instanceFactory);
         }
     }
 }

@@ -45,6 +45,7 @@ namespace StyletIoC.Internal
         public static bool Implements(this Type implementationType, Type serviceType)
         {
             return serviceType.IsAssignableFrom(implementationType) ||
+                (implementationType.IsGenericType && serviceType.IsGenericTypeDefinition && serviceType.IsAssignableFrom(implementationType.GetGenericTypeDefinition())) ||
                 implementationType.GetBaseTypesAndInterfaces().Any(x => x == serviceType || (x.IsGenericType && x.GetGenericTypeDefinition() == serviceType));
         }
 

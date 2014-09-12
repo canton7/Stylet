@@ -180,6 +180,8 @@ namespace StyletIoC.Internal
                 return true;
             }
 
+            
+
             // Is it a 'get all' request?
             IRegistration registration;
             return this.TryRetrieveGetAllRegistration(typeKey, out registration);
@@ -192,7 +194,7 @@ namespace StyletIoC.Internal
         {
             Type type = typeKey.Type;
             // Elements are never removed from this.registrations, so we're safe to make this ContainsKey query
-            if (!type.IsGenericType || type.GenericTypeArguments.Length != 1 || !this.CanResolve(new TypeKey(type.GenericTypeArguments[0], typeKey.Key)))
+            if (!type.IsGenericType || !typeKey.Type.Implements(typeof(IEnumerable<>)))
                 return null;
             return type.GenericTypeArguments[0];
         }
@@ -379,7 +381,8 @@ namespace StyletIoC.Internal
                 }
                 else
                 {
-                    throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.GetDescription()));
+                    // This will throw a StyletIoCRegistrationException is GetSingle is requested
+                    registrations = new EmptyRegistrationCollection(typeKey.Type);
                 }
             }
 

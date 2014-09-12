@@ -52,10 +52,11 @@ namespace StyletIoC.Internal.Registrations
             if (this.expression != null)
                 return this.expression;
 
-            var list = Expression.New(this.Type);
-            var init = Expression.ListInit(list, this.parentContext.GetAllRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(registrationContext)));
+            var listNew = Expression.New(this.Type);
+            var instanceExpressions = this.parentContext.GetAllRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(registrationContext));
+            Expression list = instanceExpressions.Any() ? (Expression)Expression.ListInit(listNew, instanceExpressions) : listNew;
 
-            Interlocked.CompareExchange(ref this.expression, init, null);
+            Interlocked.CompareExchange(ref this.expression, list, null);
             return this.expression;
         }
 
