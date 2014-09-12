@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StyletIoC.Builder
+namespace StyletIoC.Creation
 {
     /// <summary>
     /// Delegate used to create an IRegistration

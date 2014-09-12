@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StyletIoC.Builder
+namespace StyletIoC.Creation
 {
     /// <summary>
     /// Context used by IRegistration and ICreator to get things needed to create instances, etc

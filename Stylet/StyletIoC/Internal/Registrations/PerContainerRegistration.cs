@@ -1,4 +1,4 @@
-﻿using StyletIoC.Builder;
+﻿using StyletIoC.Creation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -62,7 +62,7 @@ namespace StyletIoC.Internal.Registrations
             {
                 Debug.Assert(ctx == this.parentContext);
                 if (this.disposed)
-                    throw new ObjectDisposedException(String.Format("ChildContainer registration for type {0}", this.Type.Description()));
+                    throw new ObjectDisposedException(String.Format("ChildContainer registration for type {0}", this.Type.GetDescription()));
 
                 if (this.instance != null)
                     return this.instance;

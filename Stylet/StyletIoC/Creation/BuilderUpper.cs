@@ -1,11 +1,11 @@
-﻿using StyletIoC.Builder;
+﻿using StyletIoC.Creation;
 using StyletIoC.Internal;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace StyletIoC.Builder
+namespace StyletIoC.Creation
 {
     /// <summary>
     /// A BuilderUpper knows how to build up an object - that is, populate all parameters decorated with [Inject]

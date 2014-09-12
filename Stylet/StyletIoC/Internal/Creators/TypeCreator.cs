@@ -1,4 +1,4 @@
-﻿using StyletIoC.Builder;
+﻿using StyletIoC.Creation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +47,7 @@ namespace StyletIoC.Internal.Creators
             var ctorsWithAttribute = this.Type.GetConstructors().Where(x => x.GetCustomAttributes(typeof(InjectAttribute), false).Any()).ToList();
             if (ctorsWithAttribute.Count > 1)
             {
-                throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", this.Type.Description()));
+                throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", this.Type.GetDescription()));
             }
             else if (ctorsWithAttribute.Count == 1)
             {
@@ -55,7 +55,7 @@ namespace StyletIoC.Internal.Creators
                 var key = ((InjectAttribute)ctorsWithAttribute[0].GetCustomAttribute(typeof(InjectAttribute), false)).Key;
                 var cantResolve = ctor.GetParameters().Where(p => !this.parentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue).FirstOrDefault();
                 if (cantResolve != null)
-                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", this.Type.Description(), cantResolve.Name, cantResolve.ParameterType.Description()));
+                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", this.Type.GetDescription(), cantResolve.Name, cantResolve.ParameterType.GetDescription()));
             }
             else
             {
@@ -66,7 +66,7 @@ namespace StyletIoC.Internal.Creators
 
                 if (ctor == null)
                 {
-                    throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call.", this.Type.Description()));
+                    throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call.", this.Type.GetDescription()));
                 }
             }
 
@@ -84,7 +84,7 @@ namespace StyletIoC.Internal.Creators
                     }
                     catch (StyletIoCRegistrationException e)
                     {
-                        throw new StyletIoCRegistrationException(String.Format("{0} Required by parameter '{1}' of type {2} (which is a {3}).", e.Message, x.Name, this.Type.Description(), x.ParameterType.Description()), e);
+                        throw new StyletIoCRegistrationException(String.Format("{0} Required by parameter '{1}' of type {2} (which is a {3}).", e.Message, x.Name, this.Type.GetDescription(), x.ParameterType.GetDescription()), e);
                     }
                 }
                 // For some reason we need this cast...

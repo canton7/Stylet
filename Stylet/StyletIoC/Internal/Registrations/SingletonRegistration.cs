@@ -1,4 +1,4 @@
-﻿using StyletIoC.Builder;
+﻿using StyletIoC.Creation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +37,7 @@ namespace StyletIoC.Internal.Registrations
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             if (this.disposed)
-                throw new ObjectDisposedException(String.Format("Singleton registration for type {0}", this.Type.Description()));
+                throw new ObjectDisposedException(String.Format("Singleton registration for type {0}", this.Type.GetDescription()));
 
             if (this.instanceExpression != null)
                 return this.instanceExpression;

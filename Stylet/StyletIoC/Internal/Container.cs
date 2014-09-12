@@ -1,4 +1,4 @@
-﻿using StyletIoC.Builder;
+﻿using StyletIoC.Creation;
 using StyletIoC.Internal;
 using StyletIoC.Internal.Registrations;
 using StyletIoC.Internal.RegistrationCollections;
@@ -380,14 +380,14 @@ namespace StyletIoC.Internal
                     // Couldn't find this type - is it a 'get all' collection type? (i.e. they've put IEnumerable<TypeWeCanResolve> in a ctor param)
                     IRegistration registration;
                     if (!this.TryRetrieveGetAllRegistration(typeKey, out registration))
-                        throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.Description()));
+                        throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.GetDescription()));
 
                     // Got this far? Good. There's actually a 'get all' collection type. Proceed with that
                     registrations = new SingleRegistration(registration);
                 }
                 else
                 {
-                    throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.Description()));
+                    throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.GetDescription()));
                 }
             }
 
@@ -402,7 +402,7 @@ namespace StyletIoC.Internal
             }
             catch (StyletIoCRegistrationException e)
             {
-                throw new StyletIoCRegistrationException(String.Format("{0} Service type: {1}, key: '{2}'", e.Message, typeKey.Type.Description(), typeKey.Key), e);
+                throw new StyletIoCRegistrationException(String.Format("{0} Service type: {1}, key: '{2}'", e.Message, typeKey.Type.GetDescription(), typeKey.Key), e);
             }
         }
 
@@ -418,7 +418,7 @@ namespace StyletIoC.Internal
             }
             // Is there an existing registration for this type?
             if (unboundGenerics.Any(x => x.Type == unboundGeneric.Type))
-                throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.Description()));
+                throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", typeKey.Type.GetDescription()));
 
             unboundGenerics.Add(unboundGeneric);
         }
@@ -427,7 +427,7 @@ namespace StyletIoC.Internal
         {
             // Not thread-safe, as it's only called from the builder
             if (!serviceType.IsInterface)
-                throw new StyletIoCCreateFactoryException(String.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.Description()));
+                throw new StyletIoCCreateFactoryException(String.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.GetDescription()));
 
             if (this.factoryBuilder == null)
             {
@@ -522,7 +522,7 @@ namespace StyletIoC.Internal
             }
             catch (TypeLoadException e)
             {
-                throw new StyletIoCCreateFactoryException(String.Format("Unable to create factory type for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(StyletIoCContainer.FactoryAssemblyName)] to your AssemblyInfo.cs", serviceType.Description()), e);
+                throw new StyletIoCCreateFactoryException(String.Format("Unable to create factory type for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(StyletIoCContainer.FactoryAssemblyName)] to your AssemblyInfo.cs", serviceType.GetDescription()), e);
             }
 
             return constructedType;

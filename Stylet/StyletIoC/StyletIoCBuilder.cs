@@ -1,5 +1,6 @@
-﻿using StyletIoC.Builder;
+﻿using StyletIoC.Creation;
 using StyletIoC.Internal;
+using StyletIoC.Internal.Builders;
 using StyletIoC.Internal.Creators;
 using StyletIoC.Internal.Registrations;
 using System;
@@ -23,12 +24,6 @@ namespace StyletIoC
         IInScopeOrWithKeyOrAsWeakBinding ToSelf();
 
         /// <summary>
-        /// Bind the specified service to another type which implements that service. E.g. builder.Bind{IMyClass}().To{MyClass}(), and request an IMyClass: you'll get a MyClass.
-        /// </summary>
-        /// <typeparam name="TImplementation">Type to bind the service to</typeparam>
-        IInScopeOrWithKeyOrAsWeakBinding To<TImplementation>();
-
-        /// <summary>
         /// Bind the specified service to another type which implements that service. E.g. builder.Bind{IMyClass}().To(typeof(MyClass)), and request an IMyClass: you'll get a MyClass.
         /// </summary>
         /// <param name="implementationType">Type to bind the service to</param>
@@ -50,7 +45,7 @@ namespace StyletIoC
         /// Discover all implementations of the service in the specified assemblies / the current assembly, and bind those to the service
         /// </summary>
         /// <param name="assemblies">Assemblies to search. If empty / null, searches the current assembly</param>
-        IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies);
+        IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(IEnumerable<Assembly> assemblies);
     }
 
     /// <summary>
@@ -112,264 +107,6 @@ namespace StyletIoC
     }
 
     /// <summary>
-    /// Extension methods providing scopes other than transitnet
-    /// </summary>
-    public static class StyletIoCScopeExtensions
-    {
-        /// <summary>
-        /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
-        /// </summary>
-        public static IAsWeakBinding InSingletonScope(this IInScopeOrAsWeakBinding builder)
-        {
-            return builder.WithRegistrationFactory((ctx, creator, key) => new SingletonRegistration(ctx, creator));
-        }
-
-        /// <summary>
-        /// Modify the scope binding to Per Container. One instance of this implementation will be generated per container / child container.
-        /// </summary>
-        public static IAsWeakBinding InPerContainerScope(this IInScopeOrAsWeakBinding builder)
-        {
-            return builder.WithRegistrationFactory((ctx, creator, key) => new PerContainerRegistration(ctx, creator, key));
-        }
-    }
-
-    internal class BuilderBindTo : IBindTo
-    {
-        public Type ServiceType { get; private set; }
-        private BuilderBindingBase builderBinding;
-        public bool IsWeak { get { return this.builderBinding.IsWeak; } }
-        public string Key { get { return this.builderBinding.Key; } }
-
-        public BuilderBindTo(Type serviceType)
-        {
-            this.ServiceType = serviceType;
-        }
-
-        public IInScopeOrWithKeyOrAsWeakBinding ToSelf()
-        {
-            return this.To(this.ServiceType);
-        }
-
-        public IInScopeOrWithKeyOrAsWeakBinding To<TImplementation>()
-        {
-            return this.To(typeof(TImplementation));
-        }
-
-        public IInScopeOrWithKeyOrAsWeakBinding To(Type implementationType)
-        {
-            this.builderBinding = new BuilderTypeBinding(this.ServiceType, implementationType);
-            return this.builderBinding;
-        }
-
-        public IInScopeOrWithKeyOrAsWeakBinding ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory)
-        {
-            this.builderBinding = new BuilderFactoryBinding<TImplementation>(this.ServiceType, factory);
-            return this.builderBinding;
-        }
-
-        public IWithKey ToAbstractFactory()
-        {
-            this.builderBinding = new AbstractFactoryBinding(this.ServiceType);
-            return this.builderBinding;
-        }
-
-        public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies)
-        {
-            if (assemblies == null || assemblies.Length == 0)
-                assemblies = new[] { Assembly.GetCallingAssembly() };
-            this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceType, assemblies);
-            return this.builderBinding;
-        }
-
-        internal void Build(Container container)
-        {
-            this.builderBinding.Build(container);
-        }
-    }
-
-    internal abstract class BuilderBindingBase : IInScopeOrWithKeyOrAsWeakBinding, IWithKey
-    {
-        protected Type serviceType;
-        protected RegistrationFactory registrationFactory;
-        public string Key { get; protected set; }
-        public bool IsWeak { get; protected set; }
-
-        public BuilderBindingBase(Type serviceType)
-        {
-            this.serviceType = serviceType;
-
-            // Default is transient
-            this.registrationFactory = (ctx, creator, key) => new TransientRegistration(creator);
-        }
-
-        IAsWeakBinding IInScopeOrAsWeakBinding.WithRegistrationFactory(RegistrationFactory registrationFactory)
-        {
-            if (registrationFactory == null)
-                throw new ArgumentNullException("registrationFactory");
-            this.registrationFactory = registrationFactory;
-            return this;
-        }
-
-        IInScopeOrAsWeakBinding IInScopeOrWithKeyOrAsWeakBinding.WithKey(string key)
-        {
-            this.Key = key;
-            return this;
-        }
-
-        protected void EnsureType(Type implementationType, Type serviceType = null)
-        {
-            serviceType = serviceType ?? this.serviceType;
-
-            if (!implementationType.IsClass || implementationType.IsAbstract)
-                throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.Description(), serviceType.Description()));
-
-            // Test this first, as it's a bit clearer than hitting 'type doesn't implement service'
-            if (implementationType.IsGenericTypeDefinition)
-            {
-                if (!serviceType.IsGenericTypeDefinition)
-                    throw new StyletIoCRegistrationException(String.Format("You can't use an unbound generic type to implement anything that isn't an unbound generic service. Service: {0}, Type: {1}", serviceType.Description(), implementationType.Description()));
-
-                // This restriction may change when I figure out how to pass down the correct type argument
-                if (serviceType.GetTypeInfo().GenericTypeParameters.Length != implementationType.GetTypeInfo().GenericTypeParameters.Length)
-                    throw new StyletIoCRegistrationException(String.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have the same number of type parameters. Service: {0}, Type: {1}", serviceType.Description(), implementationType.Description()));
-            }
-            else if (serviceType.IsGenericTypeDefinition)
-            {
-                if (implementationType.GetGenericArguments().Length > 0)
-                    throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic type {0} to the unbound generic service {1}", implementationType.Description(), serviceType.Description()));
-                else
-                    throw new StyletIoCRegistrationException(String.Format("You cannot bind the non-generic type {0} to the unbound generic service {1}", implementationType.Description(), serviceType.Description()));
-            }
-
-            if (!implementationType.Implements(this.serviceType))
-                throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.Description(), serviceType.Description()));
-        }
-
-        // Convenience...
-        protected void BindImplementationToService(Container container, Type implementationType, Type serviceType = null)
-        {
-            serviceType = serviceType ?? this.serviceType;
-
-            if (serviceType.IsGenericTypeDefinition)
-            {
-                var unboundGeneric = new UnboundGeneric(implementationType, container, this.registrationFactory);
-                container.AddUnboundGeneric(new TypeKey(serviceType, this.Key), unboundGeneric);
-            }
-            else
-            {
-                var creator = new TypeCreator(implementationType, container);
-                var registration = this.CreateRegistration(container, creator);
-
-                container.AddRegistration(new TypeKey(serviceType, this.Key ?? creator.AttributeKey), registration);
-            }
-        }
-
-        // Convenience...
-        protected IRegistration CreateRegistration(IRegistrationContext registrationContext, ICreator creator)
-        {
-            return this.registrationFactory(registrationContext, creator, this.Key);
-        }
-
-        void IWithKey.WithKey(string key)
-        {
-            this.Key = key;
-        }
-
-        void IAsWeakBinding.AsWeakBinding()
-        {
-            this.IsWeak = true;
-        }
-
-        public abstract void Build(Container container);
-    }
-
-    internal class BuilderTypeBinding : BuilderBindingBase
-    {
-        private Type implementationType;
-
-        public BuilderTypeBinding(Type serviceType, Type implementationType) : base(serviceType)
-        {
-            this.EnsureType(implementationType);
-            this.implementationType = implementationType;
-        }
-
-        public override void Build(Container container)
-        {
-            this.BindImplementationToService(container, this.implementationType);
-        }
-    }
-
-    internal class BuilderFactoryBinding<TImplementation> : BuilderBindingBase
-    {
-        private Func<IRegistrationContext, TImplementation> factory;
-
-        public BuilderFactoryBinding(Type serviceType, Func<IRegistrationContext, TImplementation> factory) : base(serviceType)
-        {
-            if (this.serviceType.IsGenericTypeDefinition)
-                throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.Description()));
-            this.EnsureType(typeof(TImplementation));
-            this.factory = factory;
-        }
-
-        public override void Build(Container container)
-        {
-            var creator = new FactoryCreator<TImplementation>(this.factory, container);
-            var registration = this.CreateRegistration(container, creator);
-
-            container.AddRegistration(new TypeKey(this.serviceType, this.Key), registration);
-        }
-    }
-
-    internal class BuilderToAllImplementationsBinding : BuilderBindingBase
-    {
-        private IEnumerable<Assembly> assemblies;
-
-        public BuilderToAllImplementationsBinding(Type serviceType, IEnumerable<Assembly> assemblies) : base(serviceType)
-        {
-            this.assemblies = assemblies;
-        }
-
-        public override void Build(Container container)
-        {
-            var candidates = from type in assemblies.Distinct().SelectMany(x => x.GetTypes())
-                             let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x == this.serviceType || x.IsGenericType && x.GetGenericTypeDefinition() == this.serviceType)
-                             where baseType != null
-                             select new { Type = type, Base = baseType.ContainsGenericParameters ? baseType.GetGenericTypeDefinition() : baseType };
-
-            foreach (var candidate in candidates)
-            {
-                try
-                {
-                    this.EnsureType(candidate.Type, candidate.Base);
-                    this.BindImplementationToService(container, candidate.Type, candidate.Base);
-                }
-                catch (StyletIoCRegistrationException e)
-                {
-                    Debug.WriteLine(String.Format("Unable to auto-bind type {0} to {1}: {2}", candidate.Base.Name, candidate.Type.Description(), e.Message), "StyletIoC");
-                }
-            }
-        }
-    }
-
-    internal class AbstractFactoryBinding : BuilderBindingBase
-    {
-        public AbstractFactoryBinding(Type serviceType) : base(serviceType)
-        {
-            if (serviceType.IsGenericTypeDefinition)
-                throw new StyletIoCRegistrationException(String.Format("Unbound generic type {0} can't be used as an abstract factory", serviceType.Description()));
-        }
-
-        public override void Build(Container container)
-        {
-            var factoryType = container.GetFactoryForType(this.serviceType);
-            var creator = new AbstractFactoryCreator(factoryType);
-            var registration = new TransientRegistration(creator);
-
-            container.AddRegistration(new TypeKey(this.serviceType, this.Key), registration);
-        }
-    }
-
-    /// <summary>
     /// This IStyletIoCBuilder is the only way to create an IContainer. Binding are registered using the builder, than an IContainer generated.
     /// </summary>
     public interface IStyletIoCBuilder
@@ -379,12 +116,6 @@ namespace StyletIoC
         /// </summary>
         /// <param name="serviceType">Service to bind</param>
         IBindTo Bind(Type serviceType);
-
-        /// <summary>
-        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
-        /// </summary>
-        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
-        void Autobind(params Assembly[] assemblies);
 
         /// <summary>
         /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
@@ -449,18 +180,6 @@ namespace StyletIoC
         }
 
         /// <summary>
-        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
-        /// </summary>
-        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
-        public void Autobind(params Assembly[] assemblies)
-        {
-            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
-            if (assemblies == null || assemblies.Length == 0)
-                assemblies = new[] { Assembly.GetCallingAssembly() };
-            this.Autobind(assemblies.AsEnumerable());
-        }
-
-        /// <summary>
         /// Once all bindings have been set, build an IContainer from which instances can be fetches
         /// </summary>
         /// <returns>An IContainer, which should be used from now on</returns>
@@ -485,12 +204,63 @@ namespace StyletIoC
     public static class StyletIoCBuilderExtensions
     {
         /// <summary>
+        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
+        /// </summary>
+        /// <param name="builder">Builder to call on</param>
+        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
+        public static void Autobind(this IStyletIoCBuilder builder, params Assembly[] assemblies)
+        {
+            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
+            if (assemblies == null || assemblies.Length == 0)
+                assemblies = new[] { Assembly.GetCallingAssembly() };
+            builder.Autobind(assemblies.AsEnumerable());
+        }
+
+        /// <summary>
         /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
         /// </summary>
         /// <typeparam name="TService">Service to bind</typeparam>
         public static IBindTo Bind<TService>(this IStyletIoCBuilder builder)
         {
             return builder.Bind(typeof(TService));
+        }
+
+        /// <summary>
+        /// Bind the specified service to another type which implements that service. E.g. builder.Bind{IMyClass}().To{MyClass}(), and request an IMyClass: you'll get a MyClass.
+        /// </summary>
+        /// <typeparam name="TImplementation">Type to bind the service to</typeparam>
+        public static IInScopeOrWithKeyOrAsWeakBinding To<TImplementation>(this IBindTo bindTo)
+        {
+            return bindTo.To(typeof(TImplementation));
+        }
+
+        /// <summary>
+        /// Discover all implementations of the service in the specified assemblies / the current assembly, and bind those to the service
+        /// </summary>
+        /// <param name="bindTo">Binder to call on</param>
+        /// <param name="assemblies">Assemblies to search. If empty / null, searches the current assembly</param>
+        public static IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(this IBindTo bindTo, params Assembly[] assemblies)
+        {
+            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
+            if (assemblies == null || assemblies.Length == 0)
+                assemblies = new[] { Assembly.GetCallingAssembly() };
+            return bindTo.ToAllImplementations(assemblies.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
+        /// </summary>
+        public static IAsWeakBinding InSingletonScope(this IInScopeOrAsWeakBinding builder)
+        {
+            return builder.WithRegistrationFactory((ctx, creator, key) => new SingletonRegistration(ctx, creator));
+        }
+
+        /// <summary>
+        /// Modify the scope binding to Per Container. One instance of this implementation will be generated per container / child container.
+        /// </summary>
+        public static IAsWeakBinding InPerContainerScope(this IInScopeOrAsWeakBinding builder)
+        {
+            return builder.WithRegistrationFactory((ctx, creator, key) => new PerContainerRegistration(ctx, creator, key));
         }
     }
 }

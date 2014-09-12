@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StyletIoC.Builder
+namespace StyletIoC.Creation
 {
     /// <summary>
     /// An ICreator is responsible for creating an instance of an object on demand

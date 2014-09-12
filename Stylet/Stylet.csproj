@@ -47,15 +47,21 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="StyletIoC\Builder\ICreator.cs" />
-    <Compile Include="StyletIoC\Builder\IRegistration.cs" />
+    <Compile Include="StyletIoC\Creation\ICreator.cs" />
+    <Compile Include="StyletIoC\Creation\IRegistration.cs" />
+    <Compile Include="StyletIoC\Internal\Builders\AbstractFactoryBinding.cs" />
+    <Compile Include="StyletIoC\Internal\Builders\BuilderBindingBase.cs" />
+    <Compile Include="StyletIoC\Internal\Builders\BuilderBindTo.cs" />
+    <Compile Include="StyletIoC\Internal\Builders\BuilderFactoryBinding.cs" />
+    <Compile Include="StyletIoC\Internal\Builders\BuilderToAllImplementationsBinding.cs" />
+    <Compile Include="StyletIoC\Internal\Builders\BuilderTypeBinding.cs" />
     <Compile Include="StyletIoC\Internal\IRegistrationCollection.cs" />
     <Compile Include="StyletIoC\Internal\Creators\AbstractFactoryCreator.cs" />
     <Compile Include="StyletIoC\Internal\Creators\CreatorBase.cs" />
     <Compile Include="StyletIoC\Internal\Creators\FactoryCreator.cs" />
     <Compile Include="StyletIoC\Internal\Creators\TypeCreator.cs" />
     <Compile Include="StyletIoC\Internal\DelegatingDictionary.cs" />
-    <Compile Include="StyletIoC\Builder\IRegistrationContext.cs" />
+    <Compile Include="StyletIoC\Creation\IRegistrationContext.cs" />
     <Compile Include="StyletIoC\Internal\RegistrationCollections\RegistrationCollection.cs" />
     <Compile Include="StyletIoC\Internal\RegistrationCollections\SingleRegistration.cs" />
     <Compile Include="StyletIoC\Internal\Registrations\FuncNoKeyRegistration.cs" />
@@ -113,7 +119,7 @@
     <Compile Include="PropertyChangedExtensions.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="ScreenExtensions.cs" />
-    <Compile Include="StyletIoC\Builder\BuilderUpper.cs" />
+    <Compile Include="StyletIoC\Creation\BuilderUpper.cs" />
     <Compile Include="StyletIoC\StyletIoCBuilder.cs" />
     <Compile Include="StyletIoC\Internal\Container.cs" />
     <Compile Include="StyletIoC\Internal\UnboundGeneric.cs" />
@@ -132,6 +138,7 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
