@@ -256,7 +256,7 @@ namespace StyletIoC
         /// </summary>
         public static IAsWeakBinding InSingletonScope(this IInScopeOrAsWeakBinding builder)
         {
-            return builder.WithRegistrationFactory((ctx, creator, key) => new SingletonRegistration(ctx, creator));
+            return builder.WithRegistrationFactory((ctx, serviceType, creator, key) => new SingletonRegistration(ctx, creator));
         }
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace StyletIoC
         /// </summary>
         public static IAsWeakBinding InPerContainerScope(this IInScopeOrAsWeakBinding builder)
         {
-            return builder.WithRegistrationFactory((ctx, creator, key) => new PerContainerRegistration(ctx, creator, key));
+            return builder.WithRegistrationFactory((ctx, serviceType, creator, key) => new PerContainerRegistration(ctx, serviceType, creator, key));
         }
     }
 }

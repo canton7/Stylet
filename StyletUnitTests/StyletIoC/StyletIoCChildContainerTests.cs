@@ -45,6 +45,10 @@ namespace StyletUnitTests
         class C11 : I1 { }
         class C12 : I1 { }
         class C13 : I1 { }
+        class C6
+        {
+            public C6(I1 i1) { }
+        }
 
         [Test]
         public void ChildContainerCanAccessRegistrationsOnParent()
@@ -351,6 +355,17 @@ namespace StyletUnitTests
 
             Assert.AreEqual(parent.Get<C1>("foo"), funcFromParent("foo"));
             Assert.AreEqual(child.Get<C1>("foo"), funcFromChild("foo"));
+        }
+
+        [Test]
+        public void PerRequestRegistrationRequestsServiceTypeNotImplementationType()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C6>().ToSelf();
+            builder.Bind<I1>().To<C11>().InPerContainerScope();
+            var ioc = builder.BuildContainer();
+
+            Assert.DoesNotThrow(() => ioc.Get<C6>());
         }
     }
 }

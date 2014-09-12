@@ -7,10 +7,11 @@ namespace StyletIoC.Creation
     /// Delegate used to create an IRegistration
     /// </summary>
     /// <param name="parentContext">Context on which this registration will be created</param>
+    /// <param name="serviceType">Service type for this registration</param>
     /// <param name="creator">ICreator used by the IRegistration to create new instances</param>
     /// <param name="key">Key associated with the registration</param>
     /// <returns>A new IRegistration</returns>
-    public delegate IRegistration RegistrationFactory(IRegistrationContext parentContext, ICreator creator, string key);
+    public delegate IRegistration RegistrationFactory(IRegistrationContext parentContext, Type serviceType, ICreator creator, string key);
 
     /// <summary>
     /// An IRegistration is responsible to returning an appropriate (new or cached) instanced of a type, or an expression doing the same.
