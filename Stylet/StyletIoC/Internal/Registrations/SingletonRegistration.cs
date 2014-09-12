@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Registrations
 {
+    /// <summary>
+    /// Registration which generates a single instance, and returns that instance thereafter
+    /// </summary>
     internal class SingletonRegistration : RegistrationBase
     {
         private Expression instanceExpression;
         private object instance;
         private readonly IRegistrationContext parentContext;
-        private bool disposed = false;
 
         public SingletonRegistration(IRegistrationContext parentContext, ICreator creator)
             : base(creator)
@@ -22,23 +24,17 @@ namespace StyletIoC.Internal.Registrations
             this.parentContext = parentContext;
             this.parentContext.Disposing += (o, e) =>
             {
-                this.disposed = true;
-
                 var disposable = this.instance as IDisposable;
                 if (disposable != null)
                     disposable.Dispose();
 
-                this.instance = null;
-                this.instanceExpression = null;
+                this.instance = this.instanceExpression = null;
                 this.generator = null;
             };
         }
 
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
-            if (this.disposed)
-                throw new ObjectDisposedException(String.Format("Singleton registration for type {0}", this.Type.GetDescription()));
-
             if (this.instanceExpression != null)
                 return this.instanceExpression;
 

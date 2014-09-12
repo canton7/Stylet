@@ -15,6 +15,9 @@ namespace StyletIoC.Internal
 {
     internal class Container : IContainer, IRegistrationContext
     {
+        /// <summary>
+        /// Our parent container, or null if there is none
+        /// </summary>
         private readonly Container parent;
 
         /// <summary>
@@ -45,7 +48,12 @@ namespace StyletIoC.Internal
         /// </summary>
         private ModuleBuilder factoryBuilder;
 
+        /// <summary>
+        /// Fired when this container is asked to dispose
+        /// </summary>
         public event EventHandler Disposing;
+
+        private bool disposed = false;
 
         internal Container(Container parent)
         {
@@ -105,9 +113,6 @@ namespace StyletIoC.Internal
         /// <summary>
         /// Fetch a single instance of the specified type
         /// </summary>
-        /// <param name="type">Type of service to fetch an implementation for</param>
-        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
-        /// <returns>An instance of the requested service</returns>
         public object Get(Type type, string key = null)
         {
             if (type == null)
@@ -119,9 +124,6 @@ namespace StyletIoC.Internal
         /// <summary>
         /// Fetch instances of all types which implement the specified service
         /// </summary>
-        /// <param name="type">Type of the service to fetch implementations for</param>
-        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
-        /// <returns>All implementations of the requested service, with the requested key</returns>
         public IEnumerable<object> GetAll(Type type, string key = null)
         {
             if (type == null)
@@ -138,9 +140,6 @@ namespace StyletIoC.Internal
         /// <summary>
         /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
         /// </summary>
-        /// <param name="type">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</param>
-        /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
-        /// <returns></returns>
         public object GetTypeOrAll(Type type, string key = null)
         {
             if (type == null)
@@ -152,7 +151,6 @@ namespace StyletIoC.Internal
         /// <summary>
         /// For each property/field with the [Inject] attribute, sets it to an instance of that type
         /// </summary>
-        /// <param name="item">Item to build up</param>
         public void BuildUp(object item)
         {
             var builderUpper = this.GetBuilderUpper(item.GetType());
@@ -167,10 +165,7 @@ namespace StyletIoC.Internal
         /// <summary>
         /// Determine whether we can resolve a particular typeKey
         /// </summary>
-        /// <param name="type">Type to see if we can resolve</param>
-        /// <param name="key">Key to see if we can resolve</param>
-        /// <returns>Whether the given TypeKey can be resolved</returns>
-        public bool CanResolve(Type type, string key)
+        bool IRegistrationContext.CanResolve(Type type, string key)
         {
             return this.CanResolve(new TypeKey(type, key));
         }
@@ -194,8 +189,6 @@ namespace StyletIoC.Internal
         /// <summary>
         /// Given a collection type (IEnumerable{T}, etc) extracts the T, or null if we couldn't, or if we can't resolve that [T, key]
         /// </summary>
-        /// <param name="typeKey"></param>
-        /// <returns></returns>
         private Type GetElementTypeFromCollectionType(TypeKey typeKey)
         {
             Type type = typeKey.Type;
@@ -244,6 +237,9 @@ namespace StyletIoC.Internal
             return this.TryRetrieveGetAllRegistrationFromElementType(new TypeKey(elementType, typeKey.Key), typeKey.Type, out registration);
         }
 
+        /// <summary>
+        /// If the given type is a Func{T} or a Func{string, T}, get a registration which can create an instance of it
+        /// </summary>
         private bool TryCreateFuncFactory(TypeKey typeKey, out IRegistrationCollection registrations)
         {
             registrations = null;
@@ -274,6 +270,9 @@ namespace StyletIoC.Internal
             return true;
         }
 
+        /// <summary>
+        /// Find all UnboundGenerics for a given TypeKey, by querying both our own unboundGenerics collection, and our parent's (and our parent's parent's, etc)
+        /// </summary>
         private List<UnboundGeneric> UnboundGenericsFromSelfAndParent(TypeKey typeKey)
         {
             List<UnboundGeneric> unboundGenerics;
@@ -294,9 +293,6 @@ namespace StyletIoC.Internal
         /// Given a generic type (e.g. IValidator{T}), tries to create a collection of IRegistrations which can implement it from the unbound generic registrations.
         /// For example, if someone bound an IValidator{} to Validator{}, and this was called with Validator{T}, the IRegistrationCollection would contain a Validator{T}.
         /// </summary>
-        /// <param name="typeKey"></param>
-        /// <param name="registrations"></param>
-        /// <returns></returns>
         private bool TryCreateGenericTypesForUnboundGeneric(TypeKey typeKey, out IRegistrationCollection registrations)
         {
             registrations = null;
@@ -346,11 +342,6 @@ namespace StyletIoC.Internal
             return registrations != null;
         }
 
-        public Expression GetExpression(Type type, string key, ParameterExpression registrationContext, bool searchGetAllTypes)
-        {
-            return this.GetExpression(new TypeKey(type, key), registrationContext, searchGetAllTypes);
-        }
-
         internal Expression GetExpression(TypeKey typeKey, ParameterExpression registrationContext, bool searchGetAllTypes)
         {
             return this.GetRegistrations(typeKey, searchGetAllTypes).GetSingle().GetInstanceExpression(registrationContext);
@@ -368,6 +359,8 @@ namespace StyletIoC.Internal
 
         internal IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
         {
+            this.CheckDisposed();
+
             IRegistrationCollection registrations;
 
             // Try to get registrations. If there are none, see if we can add some from unbound generics
@@ -535,9 +528,16 @@ namespace StyletIoC.Internal
 
         public void Dispose()
         {
+            this.disposed = true;
             var handler = this.Disposing;
             if (handler != null)
                 handler(this, EventArgs.Empty);
+        }
+
+        private void CheckDisposed()
+        {
+            if (this.disposed)
+                throw new ObjectDisposedException("IContainer");
         }
     }
 }

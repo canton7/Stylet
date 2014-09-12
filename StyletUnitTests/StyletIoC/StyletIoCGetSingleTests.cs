@@ -192,6 +192,19 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void DisposedSingletonRegistrationDoesNotRetainInstance()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf().InSingletonScope();
+            var ioc = builder.BuildContainer();
+
+            var weakRef = new WeakReference(ioc.Get<C1>());
+            ioc.Dispose();
+            GC.Collect();
+            Assert.IsFalse(weakRef.IsAlive);
+        }
+
+        [Test]
         public void ThrowsIfMoreThanOneRegistrationFound()
         {
             var builder = new StyletIoCBuilder();

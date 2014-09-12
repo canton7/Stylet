@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Creators
 {
+    /// <summary>
+    /// Creator which knows how to create an instance of a type, by finding a suitable constructor and calling it
+    /// </summary>
     // Sealed so Code Analysis doesn't moan about us setting the virtual Type property
     internal sealed class TypeCreator : CreatorBase
     {

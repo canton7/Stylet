@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Registrations
 {
+    /// <summary>
+    /// Knows how to create a Func{T}, using a given IRegistration
+    /// </summary>
     // We're only created when we're needed, so no point in trying to be lazy
     internal class FuncNoKeyRegistration : IRegistration
     {

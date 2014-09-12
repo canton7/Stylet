@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal
 {
+    /// <summary>
+    /// Type + key tuple, used as a dictionary key
+    /// </summary>
     internal class TypeKey : IEquatable<TypeKey>
     {
         public readonly Type Type;

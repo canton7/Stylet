@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Registrations
 {
+    /// <summary>
+    /// Knows how to generate a Func{string, T}, by querying the container for an instance with that type and key
+    /// </summary>
+    // We're only created when we're needed, so no point in trying to be lazy
     internal class FuncWithKeyRegistration : IRegistration
     {
         private readonly Type resultType;

@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Registrations
 {
+    /// <summary>
+    /// Knows how to generate an IEnumerable{T}, which contains all implementations of T
+    /// </summary>
     internal class GetAllRegistration : IRegistration
     {
         private readonly IRegistrationContext parentContext;

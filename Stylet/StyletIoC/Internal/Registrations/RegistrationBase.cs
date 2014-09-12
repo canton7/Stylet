@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Registrations
 {
+    /// <summary>
+    /// Convenience base class for all IRegistrations which want it
+    /// </summary>
     internal abstract class RegistrationBase : IRegistration
     {
         protected readonly ICreator creator;

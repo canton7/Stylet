@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Creators
 {
+    /// <summary>
+    /// Base class for all ICreators (which want to use it). Provides convenience
+    /// </summary>
     internal abstract class CreatorBase : ICreator
     {
         public virtual Type Type { get; protected set; }
@@ -32,7 +35,7 @@ namespace StyletIoC.Internal.Creators
             // instance.Property2 = new ....
             var blockItems = new List<Expression>() { assignment, buildUpExpression };
             // If it implements IInjectionAware, follow that up with:
-            // instance.ParametersInjected
+            // instance.ParametersInjected()
             if (typeof(IInjectionAware).IsAssignableFrom(this.Type))
                 blockItems.Add(Expression.Call(instanceVar, typeof(IInjectionAware).GetMethod("ParametersInjected")));
             // Final appearance of instanceVar, as this sets the return value of the block

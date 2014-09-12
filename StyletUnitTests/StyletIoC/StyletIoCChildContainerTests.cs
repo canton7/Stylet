@@ -252,6 +252,19 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void DisposesPerChildRegistrationDoesNotRetainInstance()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>().ToSelf().InPerContainerScope();
+            var ioc = builder.BuildContainer();
+
+            var weakRef = new WeakReference(ioc.Get<C1>());
+            ioc.Dispose();
+            GC.Collect();
+            Assert.IsFalse(weakRef.IsAlive);
+        }
+
+        [Test]
         public void ChildContainerScopeHasOneInstancePerScope()
         {
             var builder = new StyletIoCBuilder();

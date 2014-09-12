@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Registrations
 {
+    /// <summary>
+    /// Knows how to generate an instance which has per-container scope
+    /// </summary>
     internal class PerContainerRegistration : RegistrationBase
     {
         private readonly IRegistrationContext parentContext;
@@ -18,7 +21,6 @@ namespace StyletIoC.Internal.Registrations
         private readonly object instanceFactoryLock = new object();
         private Func<IRegistrationContext, object> instanceFactory;
         private object instance;
-        private bool disposed = false;
 
         private static readonly MethodInfo getMethod = typeof(IContainer).GetMethod("Get", new[] { typeof(Type), typeof(string) });
 
@@ -31,14 +33,11 @@ namespace StyletIoC.Internal.Registrations
 
             this.parentContext.Disposing += (o, e) =>
             {
-                this.disposed = true;
-
                 var disposable = this.instance as IDisposable;
                 if (disposable != null)
                     disposable.Dispose();
 
                 this.instance = null;
-                this.generator = null;
             };
         }
 
@@ -61,8 +60,6 @@ namespace StyletIoC.Internal.Registrations
             return ctx =>
             {
                 Debug.Assert(ctx == this.parentContext);
-                if (this.disposed)
-                    throw new ObjectDisposedException(String.Format("ChildContainer registration for type {0}", this.Type.GetDescription()));
 
                 if (this.instance != null)
                     return this.instance;

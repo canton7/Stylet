@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Creators
 {
-    // Sealed for consistency with TypeCreator
-    internal sealed class FactoryCreator<T> : CreatorBase
+    /// <summary>
+    /// Knows how to create an instance of a type, by using a Func{IRegistration, T} passed by the user during building
+    /// </summary>
+    internal class FactoryCreator<T> : CreatorBase
     {
         private readonly Func<IRegistrationContext, T> factory;
 
