@@ -35,15 +35,15 @@ namespace StyletIoC.Internal.Builders
             return this;
         }
 
-        protected void EnsureType(Type implementationType, Type serviceType = null)
+        protected void EnsureType(Type implementationType, Type serviceType = null, bool assertImplementation = true)
         {
             serviceType = serviceType ?? this.serviceType;
 
-            if (!implementationType.IsClass || implementationType.IsAbstract)
+            if (assertImplementation && (!implementationType.IsClass || implementationType.IsAbstract))
                 throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
 
             // Test this first, as it's a bit clearer than hitting 'type doesn't implement service'
-            if (implementationType.IsGenericTypeDefinition)
+            if (assertImplementation && implementationType.IsGenericTypeDefinition)
             {
                 if (!serviceType.IsGenericTypeDefinition)
                     throw new StyletIoCRegistrationException(String.Format("You can't use an unbound generic type to implement anything that isn't an unbound generic service. Service: {0}, Type: {1}", serviceType.GetDescription(), implementationType.GetDescription()));

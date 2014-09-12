@@ -81,5 +81,20 @@ namespace StyletUnitTests
             var builder = new StyletIoCBuilder();
             Assert.Throws<ArgumentNullException>(() => builder.Bind<C1>().ToSelf().WithRegistrationFactory(null));
         }
+
+        [Test]
+        public void AllowsFactoryToProvideInterfaceType()
+        {
+            var builder = new StyletIoCBuilder();
+            Assert.DoesNotThrow(() => builder.Bind<I1>().ToFactory<I1>(c =>new C1()));
+        }
+
+        [Test]
+        public void AllowsInstanceTobeInterfaceType()
+        {
+            var builder = new StyletIoCBuilder();
+            I1 i1 = new C1();
+            Assert.DoesNotThrow(() => builder.Bind<I1>().ToInstance(i1));
+        }
     }
 }

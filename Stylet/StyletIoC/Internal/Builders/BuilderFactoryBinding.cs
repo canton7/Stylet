@@ -13,7 +13,7 @@ namespace StyletIoC.Internal.Builders
         {
             if (this.serviceType.IsGenericTypeDefinition)
                 throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.GetDescription()));
-            this.EnsureType(typeof(TImplementation));
+            this.EnsureType(typeof(TImplementation), assertImplementation: false);
             this.factory = factory;
         }
 

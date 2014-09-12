@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace StyletIoC.Internal.Builders
 {
-    internal class InstanceBinding : BuilderBindingBase
+    internal class BuilderInstanceBinding : BuilderBindingBase
     {
         private readonly object instance;
 
-        public InstanceBinding(Type serviceType, object instance)
+        public BuilderInstanceBinding(Type serviceType, object instance)
             : base(serviceType)
         {
-            this.EnsureType(instance.GetType());
+            this.EnsureType(instance.GetType(), assertImplementation: false);
             this.instance = instance;
         }
 

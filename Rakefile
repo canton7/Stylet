@@ -119,7 +119,7 @@ task :"extract-stylet-ioc" do
   end
 
   File.open('StyletIoC.cs', 'w') do |outf|
-    outf.write(usings.reject{ |x| x.start_with?('using StyletIoC') }.join("\n"))
+    outf.write(usings.to_a.join("\n"))
 
     outf.puts
 

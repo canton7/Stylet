@@ -37,7 +37,7 @@ namespace StyletIoC.Internal.Builders
 
         public IWithKeyOrAsWeakBinding ToInstance(object instance)
         {
-            this.builderBinding = new InstanceBinding(this.ServiceType, instance);
+            this.builderBinding = new BuilderInstanceBinding(this.ServiceType, instance);
             return this.builderBinding;
         }
 
