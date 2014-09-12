@@ -6,7 +6,7 @@ namespace StyletIoC.Internal.Builders
 {
     internal class BuilderFactoryBinding<TImplementation> : BuilderBindingBase
     {
-        private Func<IRegistrationContext, TImplementation> factory;
+        private readonly Func<IRegistrationContext, TImplementation> factory;
 
         public BuilderFactoryBinding(Type serviceType, Func<IRegistrationContext, TImplementation> factory)
             : base(serviceType)

@@ -35,9 +35,15 @@ namespace StyletIoC
         IInScopeOrWithKeyOrAsWeakBinding ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory);
 
         /// <summary>
+        /// Bind the specified service to the given untyped instance
+        /// </summary>
+        /// <param name="instance">Instance to use</param>
+        IWithKeyOrAsWeakBinding ToInstance(object instance);
+
+        /// <summary>
         /// If the service is an interface with a number of methods which return other types, generate an implementation of that abstract factory and bind it to the interface.
         /// </summary>
-        IWithKey ToAbstractFactory();
+        IWithKeyOrAsWeakBinding ToAbstractFactory();
 
         /// <summary>
         /// Discover all implementations of the service in the specified assemblies / the current assembly, and bind those to the service
@@ -69,15 +75,15 @@ namespace StyletIoC
     }
 
     /// <summary>
-    /// Fluent interface on which WithKey can be called
+    /// Fluent interface on which WithKey or AsWeakBinding can be called
     /// </summary>
-    public interface IWithKey
+    public interface IWithKeyOrAsWeakBinding : IAsWeakBinding
     {
         /// <summary>
         /// Associate a key with this binding. Requests for the service will have to specify this key to retrieve the result of this binding
         /// </summary>
         /// <param name="key">Key to associate with this binding</param>
-        void WithKey(string key);
+        IAsWeakBinding WithKey(string key);
     }
 
     /// <summary>
@@ -93,7 +99,7 @@ namespace StyletIoC
     }
 
     /// <summary>
-    /// Fluent interface on which WithKey, or the scoping extensions can be called
+    /// Fluent interface on which WithKey, AsWeakBinding, or the scoping extensions can be called
     /// </summary>
     public interface IInScopeOrWithKeyOrAsWeakBinding : IInScopeOrAsWeakBinding
     {

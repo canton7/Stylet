@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace StyletIoC.Internal.Builders
 {
-    internal abstract class BuilderBindingBase : IInScopeOrWithKeyOrAsWeakBinding, IWithKey
+    internal abstract class BuilderBindingBase : IInScopeOrWithKeyOrAsWeakBinding, IWithKeyOrAsWeakBinding
     {
         protected Type serviceType;
         protected RegistrationFactory registrationFactory;
@@ -89,9 +89,10 @@ namespace StyletIoC.Internal.Builders
             return this.registrationFactory(registrationContext, creator, this.Key);
         }
 
-        void IWithKey.WithKey(string key)
+        IAsWeakBinding IWithKeyOrAsWeakBinding.WithKey(string key)
         {
             this.Key = key;
+            return this;
         }
 
         void IAsWeakBinding.AsWeakBinding()
