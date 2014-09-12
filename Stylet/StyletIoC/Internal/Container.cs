@@ -1,7 +1,6 @@
 ﻿using StyletIoC.Creation;
-using StyletIoC.Internal;
-using StyletIoC.Internal.Registrations;
 using StyletIoC.Internal.RegistrationCollections;
+using StyletIoC.Internal.Registrations;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
