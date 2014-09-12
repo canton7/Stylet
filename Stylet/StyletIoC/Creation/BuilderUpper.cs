@@ -74,7 +74,6 @@ namespace StyletIoC.Creation
                 var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
                 var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
                 var typedParameterExpression = Expression.Convert(parameterExpression, this.type);
-                var expression = this.GetExpression(typedParameterExpression, registrationContext);
                 this.implementor = Expression.Lambda<Action<IRegistrationContext, object>>(this.GetExpression(typedParameterExpression, registrationContext), registrationContext, parameterExpression).Compile();
 
                 return this.implementor;
