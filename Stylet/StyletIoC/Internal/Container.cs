@@ -343,11 +343,6 @@ namespace StyletIoC.Internal
             return registrations != null;
         }
 
-        internal Expression GetExpression(TypeKey typeKey, ParameterExpression registrationContext, bool searchGetAllTypes)
-        {
-            return this.GetRegistrations(typeKey, searchGetAllTypes).GetSingle().GetInstanceExpression(registrationContext);
-        }
-
         IRegistration IRegistrationContext.GetSingleRegistration(Type type, string key, bool searchGetAllTypes)
         {
             return this.GetRegistrations(new TypeKey(type, key), searchGetAllTypes).GetSingle();
