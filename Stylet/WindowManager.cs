@@ -152,7 +152,7 @@ namespace Stylet
                         break;
 
                     case WindowState.Minimized:
-                        logger.Info("Window {1} minimized: deactivating", this.window);
+                        logger.Info("Window {0} minimized: deactivating", this.window);
                         ScreenExtensions.TryDeactivate(this.viewModel);
                         break;
                 }
