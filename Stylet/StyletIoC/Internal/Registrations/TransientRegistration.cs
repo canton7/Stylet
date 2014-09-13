@@ -10,7 +10,7 @@ namespace StyletIoC.Internal.Registrations
     {
         public TransientRegistration(ICreator creator) : base(creator) { }
 
-        public override Expression GetInstanceExpression(System.Linq.Expressions.ParameterExpression registrationContext)
+        public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             return this.creator.GetInstanceExpression(registrationContext);
         }

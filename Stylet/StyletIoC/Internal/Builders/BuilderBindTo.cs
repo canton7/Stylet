@@ -43,7 +43,7 @@ namespace StyletIoC.Internal.Builders
 
         public IWithKeyOrAsWeakBinding ToAbstractFactory()
         {
-            this.builderBinding = new AbstractFactoryBinding(this.ServiceType);
+            this.builderBinding = new BuilderAbstractFactoryBinding(this.ServiceType);
             return this.builderBinding;
         }
 

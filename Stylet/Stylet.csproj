@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Include="StyletIoC\Creation\ICreator.cs" />
     <Compile Include="StyletIoC\Creation\IRegistration.cs" />
-    <Compile Include="StyletIoC\Internal\Builders\AbstractFactoryBinding.cs" />
+    <Compile Include="StyletIoC\Internal\Builders\BuilderAbstractFactoryBinding.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderBindingBase.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderBindTo.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderFactoryBinding.cs" />

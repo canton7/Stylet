@@ -4,9 +4,9 @@ using System;
 
 namespace StyletIoC.Internal.Builders
 {
-    internal class AbstractFactoryBinding : BuilderBindingBase
+    internal class BuilderAbstractFactoryBinding : BuilderBindingBase
     {
-        public AbstractFactoryBinding(Type serviceType)
+        public BuilderAbstractFactoryBinding(Type serviceType)
             : base(serviceType)
         {
             if (serviceType.IsGenericTypeDefinition)
