@@ -76,6 +76,7 @@
     <Compile Include="StyletIoC\Internal\Registrations\TransientRegistration.cs" />
     <Compile Include="StyletIoC\Internal\TypeKey.cs" />
     <Compile Include="StyletIoC\StyletIoCContainer.cs" />
+    <Compile Include="StyletIoC\StyletIoCModule.cs" />
     <Compile Include="Xaml\ApplicationLoader.cs" />
     <Compile Include="ConductorNavigating.cs" />
     <Compile Include="GlobalSuppressions.cs" />

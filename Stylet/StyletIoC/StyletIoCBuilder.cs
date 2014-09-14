@@ -140,12 +140,22 @@ namespace StyletIoC
     public class StyletIoCBuilder : IStyletIoCBuilder
     {
         private readonly Container parent;
-        private List<BuilderBindTo> bindings = new List<BuilderBindTo>();
+        private readonly List<BuilderBindTo> bindings = new List<BuilderBindTo>();
+        private readonly List<StyletIoCModule> modules = new List<StyletIoCModule>();
 
         /// <summary>
-        /// Create a new StyletIoC buidler instance
+        /// Create a new StyletIoC builder instance
         /// </summary>
-        public StyletIoCBuilder() : this(null) { }
+        public StyletIoCBuilder() { }
+
+        /// <summary>
+        /// Create a new StyletIoC builder instanc, which contains the given modules
+        /// </summary>
+        /// <param name="modules">Modules to add to the builder</param>
+        public StyletIoCBuilder(params StyletIoCModule[] modules)
+        {
+            this.modules.AddRange(modules);
+        }
 
         internal StyletIoCBuilder(Container parent)
         {
@@ -184,11 +194,34 @@ namespace StyletIoC
         }
 
         /// <summary>
+        /// Add a single module to this builder
+        /// </summary>
+        /// <param name="module">Module to add</param>
+        public void AddModule(StyletIoCModule module)
+        {
+            this.modules.Add(module);
+        }
+
+        /// <summary>
+        /// Add many modules to this builder
+        /// </summary>
+        /// <param name="modules">Modules to add</param>
+        public void AddModules(params StyletIoCModule[] modules)
+        {
+            this.modules.AddRange(modules);
+        }
+
+        /// <summary>
         /// Once all bindings have been set, build an IContainer from which instances can be fetches
         /// </summary>
         /// <returns>An IContainer, which should be used from now on</returns>
         public IContainer BuildContainer()
         {
+            foreach (var module in this.modules)
+            {
+                module.AddToBuilder(this);
+            }
+
             var container = this.parent == null ? new Container() : new Container(this.parent);
 
             // For each TypeKey, we remove any weak bindings if there are any strong bindings
@@ -199,6 +232,11 @@ namespace StyletIoC
                 binding.Build(container);
             }
             return container;
+        }
+
+        internal void AddBinding(BuilderBindTo binding)
+        {
+            this.bindings.Add(binding);
         }
     }
 
