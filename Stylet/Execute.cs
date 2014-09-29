@@ -73,7 +73,7 @@ namespace Stylet
         /// <summary>
         /// Default dispatcher used by PropertyChangedBase instances. Defaults to OnUIThread
         /// </summary>
-        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.OnUIThread;
+        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.OnUIThreadSync;
 
         private static void EnsureDispatcher()
         {
