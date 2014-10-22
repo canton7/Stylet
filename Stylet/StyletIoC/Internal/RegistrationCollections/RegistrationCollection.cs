@@ -38,10 +38,5 @@ namespace StyletIoC.Internal.RegistrationCollections
                 return this;
             }
         }
-
-        public IRegistrationCollection CloneToContext(IRegistrationContext context)
-        {
-            return new RegistrationCollection(this.registrations.Select(x => x.CloneToContext(context)).ToList());
-        }
     }
 }

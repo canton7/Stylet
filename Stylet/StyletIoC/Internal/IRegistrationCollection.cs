@@ -8,6 +8,5 @@ namespace StyletIoC.Internal
         IRegistration GetSingle();
         List<IRegistration> GetAll();
         IRegistrationCollection AddRegistration(IRegistration registration);
-        IRegistrationCollection CloneToContext(IRegistrationContext context);
     }
 }

@@ -42,10 +42,5 @@ namespace StyletIoC.Internal.Registrations
         }
 
         public abstract Expression GetInstanceExpression(ParameterExpression registrationContext);
-
-        public virtual IRegistration CloneToContext(IRegistrationContext context)
-        {
-            return this;
-        }
     }
 }

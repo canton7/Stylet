@@ -37,10 +37,5 @@ namespace StyletIoC.Internal.Registrations
         {
             return Expression.Lambda(this.delegateRegistration.GetInstanceExpression(registrationContext));
         }
-
-        public IRegistration CloneToContext(IRegistrationContext context)
-        {
-            return this;
-        }
     }
 }

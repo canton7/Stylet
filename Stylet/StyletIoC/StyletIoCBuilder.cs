@@ -290,13 +290,5 @@ namespace StyletIoC
         {
             return builder.WithRegistrationFactory((ctx, serviceType, creator, key) => new SingletonRegistration(ctx, creator));
         }
-
-        /// <summary>
-        /// Modify the scope binding to Per Container. One instance of this implementation will be generated per container / child container.
-        /// </summary>
-        public static IAsWeakBinding InPerContainerScope(this IInScopeOrAsWeakBinding builder)
-        {
-            return builder.WithRegistrationFactory((ctx, serviceType, creator, key) => new PerContainerRegistration(ctx, serviceType, creator, key));
-        }
     }
 }

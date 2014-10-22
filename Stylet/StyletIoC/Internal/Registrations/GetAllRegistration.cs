@@ -59,10 +59,5 @@ namespace StyletIoC.Internal.Registrations
             Interlocked.CompareExchange(ref this.expression, list, null);
             return this.expression;
         }
-
-        public IRegistration CloneToContext(IRegistrationContext context)
-        {
-            throw new InvalidOperationException("should not be cloned");
-        }
     }
 }

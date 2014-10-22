@@ -29,10 +29,5 @@ namespace StyletIoC.Internal.RegistrationCollections
                 throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found.", registration.Type.GetDescription()));
             return new RegistrationCollection(new List<IRegistration>() { this.registration, registration });
         }
-
-        public IRegistrationCollection CloneToContext(IRegistrationContext context)
-        {
-            return new SingleRegistration(this.registration.CloneToContext(context));
-        }
     }
 }

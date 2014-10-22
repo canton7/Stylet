@@ -30,10 +30,5 @@ namespace StyletIoC.Internal.RegistrationCollections
         {
             return new SingleRegistration(registration);
         }
-
-        public IRegistrationCollection CloneToContext(IRegistrationContext context)
-        {
-            return this;
-        }
     }
 }
