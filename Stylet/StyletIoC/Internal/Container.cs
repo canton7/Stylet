@@ -15,14 +15,9 @@ namespace StyletIoC.Internal
     internal class Container : IContainer, IRegistrationContext
     {
         /// <summary>
-        /// Our parent container, or null if there is none
-        /// </summary>
-        private readonly Container parent;
-
-        /// <summary>
         /// Maps a [type, key] pair to a collection of registrations for that keypair. You can retrieve an instance of the type from the registration
         /// </summary>
-        private readonly IDelegatingDictionary<TypeKey, IRegistrationCollection> registrations;
+        private readonly ConcurrentDictionary<TypeKey, IRegistrationCollection> registrations = new ConcurrentDictionary<TypeKey, IRegistrationCollection>();
 
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is the T in IEnumerable{T}, to a registration which can create a List{T} implementing that IEnumerable.
@@ -40,7 +35,7 @@ namespace StyletIoC.Internal
         /// <summary>
         /// Maps a type onto a BuilderUpper for that type, which can create an Expresson/Delegate to build up that type.
         /// </summary>
-        private readonly IDelegatingDictionary<Type, BuilderUpper> builderUppers;
+        private readonly ConcurrentDictionary<Type, BuilderUpper> builderUppers = new ConcurrentDictionary<Type, BuilderUpper>();
 
         /// <summary>
         /// Cached ModuleBuilder used for building factory implementations
@@ -53,38 +48,6 @@ namespace StyletIoC.Internal
         public event EventHandler Disposing;
 
         private bool disposed = false;
-
-        internal Container(Container parent)
-        {
-            // If we're building from parent, there are a few considerations around state....
-            // 1. Registrations: These are a bit tricky. We have our own collection of registrations, which are created using the builder that created us.
-            //    Our parent doesn't share these. We can also access our parent's collection of registrations. However, when we do, we might copy the
-            //    registration to our collection, and give the registration a chance to intercept that request and return something else. For singleton
-            //    and transient registrations this means that we'll end up with a reference to the same registration as used by our parent. For
-            //    registrations whose scope changes in child containers, they'll typically return a registration which uses the same compiled expression but
-            //    a a different storage for cached instances.
-            // 2. GetAllRegistrations: We can't re-use these from our parent, sadly, because we might have extra service implementations which our parent doesn't.
-            //    So until (unless?) I figure out an efficient way of figuring out what can be used from the parent and what can't, we're starting over with thee.
-            // 3. Unbound generics: Like registrations, we need our own collection, but we'll also use ones from our parent. We can't modify our parent's
-            //    collection of unbound generics.
-            // 4. Builder Uppers: A Builder Upper has two parts: a method which generates an expression to build up a given instance, and a cached delegate
-            //    which builds up an arbitrary object (of the correct type). Like registrations, we can re-use builder uppers from our parent, but must
-            //    keep our own ones to ourself. There is a slight inefficiency here: builder uppers are created on demand (since they're used rarely in typical
-            //    code). This means that if our parent has all necessary registrations to create a builder upper, but it's never created on the parnet - instead
-            //    it's always created by a child, the parent will never get a cached copy. This might get addressed at some point, but the complexity might not
-            //    be worth it (especially for such a rarely-used feature).
-
-            this.parent = parent;
-            this.registrations = DelegatingDictionary<TypeKey, IRegistrationCollection>.Create(parent.registrations, registration => registration.CloneToContext(this));
-            this.builderUppers = DelegatingDictionary<Type, BuilderUpper>.Create(parent.builderUppers);
-        }
-
-        internal Container()
-        {
-            this.parent = null;
-            this.registrations = DelegatingDictionary<TypeKey, IRegistrationCollection>.Create();
-            this.builderUppers = DelegatingDictionary<Type, BuilderUpper>.Create();
-        }
 
         /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
@@ -154,11 +117,6 @@ namespace StyletIoC.Internal
         {
             var builderUpper = this.GetBuilderUpper(item.GetType());
             builderUpper.GetImplementor()(this, item);
-        }
-
-        public StyletIoCBuilder CreateChildBuilder()
-        {
-            return new StyletIoCBuilder(this);
         }
 
         /// <summary>
@@ -272,25 +230,6 @@ namespace StyletIoC.Internal
         }
 
         /// <summary>
-        /// Find all UnboundGenerics for a given TypeKey, by querying both our own unboundGenerics collection, and our parent's (and our parent's parent's, etc)
-        /// </summary>
-        private List<UnboundGeneric> UnboundGenericsFromSelfAndParent(TypeKey typeKey)
-        {
-            List<UnboundGeneric> unboundGenerics;
-            if (this.parent != null)
-                unboundGenerics = this.parent.UnboundGenericsFromSelfAndParent(typeKey);
-            else
-                unboundGenerics = new List<UnboundGeneric>();
-
-            List<UnboundGeneric> outUnboundGenerics;
-            if (this.unboundGenerics.TryGetValue(typeKey, out outUnboundGenerics))
-                unboundGenerics.AddRange(outUnboundGenerics);
-
-            return unboundGenerics;
-
-        }
-
-        /// <summary>
         /// Given a generic type (e.g. IValidator{T}), tries to create a collection of IRegistrations which can implement it from the unbound generic registrations.
         /// For example, if someone bound an IValidator{} to Validator{}, and this was called with Validator{T}, the IRegistrationCollection would contain a Validator{T}.
         /// </summary>
@@ -304,8 +243,9 @@ namespace StyletIoC.Internal
 
             Type unboundGenericType = type.GetGenericTypeDefinition();
 
-            var unboundTypeKey = new TypeKey(unboundGenericType, typeKey.Key);
-            var unboundGenerics = this.UnboundGenericsFromSelfAndParent(unboundTypeKey);
+            List<UnboundGeneric> unboundGenerics;
+            if (!this.unboundGenerics.TryGetValue(new TypeKey(unboundGenericType, typeKey.Key), out unboundGenerics))
+                return false;
 
             foreach (var unboundGeneric in unboundGenerics)
             {

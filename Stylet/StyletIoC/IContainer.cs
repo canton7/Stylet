@@ -44,12 +44,6 @@ namespace StyletIoC
         /// </summary>
         /// <param name="item">Item to build up</param>
         void BuildUp(object item);
-
-        /// <summary>
-        /// Create a builder, which can create a child container (one which can have its own registrations and scope, but also shares everything from this container)
-        /// </summary>
-        /// <returns>A builder which can create a child container</returns>
-        StyletIoCBuilder CreateChildBuilder();
     }
 
     /// <summary>

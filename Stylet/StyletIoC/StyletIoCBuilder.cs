@@ -139,7 +139,6 @@ namespace StyletIoC
     /// </summary>
     public class StyletIoCBuilder : IStyletIoCBuilder
     {
-        private readonly Container parent;
         private readonly List<BuilderBindTo> bindings = new List<BuilderBindTo>();
         private readonly List<StyletIoCModule> modules = new List<StyletIoCModule>();
 
@@ -155,11 +154,6 @@ namespace StyletIoC
         public StyletIoCBuilder(params StyletIoCModule[] modules)
         {
             this.modules.AddRange(modules);
-        }
-
-        internal StyletIoCBuilder(Container parent)
-        {
-            this.parent = parent;
         }
 
         /// <summary>
@@ -222,7 +216,7 @@ namespace StyletIoC
                 module.AddToBuilder(this);
             }
 
-            var container = this.parent == null ? new Container() : new Container(this.parent);
+            var container = new Container();
 
             // For each TypeKey, we remove any weak bindings if there are any strong bindings
             var groups = this.bindings.GroupBy(x =>  new { Key = x.Key, Type = x.ServiceType });
