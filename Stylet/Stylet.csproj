@@ -67,7 +67,6 @@
     <Compile Include="StyletIoC\Internal\RegistrationCollections\RegistrationCollection.cs" />
     <Compile Include="StyletIoC\Internal\RegistrationCollections\SingleRegistration.cs" />
     <Compile Include="StyletIoC\Internal\Registrations\FuncNoKeyRegistration.cs" />
-    <Compile Include="StyletIoC\Internal\Registrations\FuncWithKeyRegistration.cs" />
     <Compile Include="StyletIoC\Internal\Registrations\GetAllRegistration.cs" />
     <Compile Include="StyletIoC\Internal\Registrations\PerContainerRegistration.cs" />
     <Compile Include="StyletIoC\Internal\Registrations\RegistrationBase.cs" />

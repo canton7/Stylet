@@ -217,10 +217,6 @@ namespace StyletIoC.Internal
                     registrations = this.AddRegistration(typeKey, new FuncNoKeyRegistration(registration));
                 }
             }
-            else if (genericType == typeof(Func<,>) && genericArguments[0] == typeof(string))
-            {
-                registrations = this.AddRegistration(typeKey, new FuncWithKeyRegistration(genericArguments[1]));
-            }
             else
             {
                 return false;

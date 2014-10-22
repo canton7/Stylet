@@ -37,18 +37,6 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void FuncFactoryWorksForGetWithKey()
-        {
-            var builder = new StyletIoCBuilder();
-            builder.Bind<C1>().ToSelf().WithKey("test");
-            var ioc = builder.BuildContainer();
-
-            var func = ioc.Get<Func<string, C1>>();
-            var result = func("test");
-            Assert.IsNotNull(result);
-        }
-
-        [Test]
         public void FuncFactoryWorksConstructorInjection()
         {
             var builder = new StyletIoCBuilder();
