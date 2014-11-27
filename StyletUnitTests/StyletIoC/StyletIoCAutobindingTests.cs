@@ -135,5 +135,16 @@ namespace StyletUnitTests
             var c31 = ioc.Get<I3<int>>();
             Assert.IsInstanceOf<C31>(c31);
         }
+
+        [Test]
+        public void ToAllImplementationsEnumerableWithNoAssembliesLooksInCallingAssembly()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().ToAllImplementations((IEnumerable<Assembly>)null);
+            var ioc = builder.BuildContainer();
+
+            var results = ioc.GetAll<I1>().ToList();
+            Assert.AreEqual(2, results.Count);
+        }
     }
 }

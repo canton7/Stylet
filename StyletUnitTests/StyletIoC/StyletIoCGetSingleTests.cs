@@ -22,6 +22,14 @@ namespace StyletUnitTests
                 this.C1 = c1;
             }
         }
+        public class C3 : IDisposable
+        {
+            public bool Disposed;
+            public void Dispose()
+            {
+                this.Disposed = true;
+            }
+        }
 
         [Test]
         public void SelfTransientBindingResolvesGeneric()
@@ -255,6 +263,33 @@ namespace StyletUnitTests
 
             Assert.NotNull(c2.C1);
             Assert.AreNotEqual(c1, c2.C1);
+        }
+
+        [Test]
+        public void SingletonRegistrationDisposesDisposableInstanceWhenParentDisposed()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C3>().ToSelf().InSingletonScope();
+            var ioc = builder.BuildContainer();
+
+            var c3 = ioc.Get<C3>();
+            ioc.Dispose();
+            Assert.IsTrue(c3.Disposed);
+        }
+
+        [Test]
+        public void ContainerThrowsIfDisposedThenMethodCalled()
+        {
+            var builder = new StyletIoCBuilder();
+            var ioc = builder.BuildContainer();
+
+            ioc.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => ioc.Get<C1>());
+            Assert.Throws<ObjectDisposedException>(() => ioc.Get(typeof(C1)));
+            Assert.Throws<ObjectDisposedException>(() => ioc.GetTypeOrAll<C1>());
+            Assert.Throws<ObjectDisposedException>(() => ioc.GetTypeOrAll(typeof(C1)));
+
         }
     }
 }

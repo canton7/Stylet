@@ -69,5 +69,14 @@ namespace StyletUnitTests
             var c = new LambdaEqualityComparer<int>((a, b) => false);
             Assert.AreEqual(5.GetHashCode(), ((IEqualityComparer)c).GetHashCode(5));
         }
+
+        [Test]
+        public void ReturnsFalseIfOneArgumentIsNotAT()
+        {
+            var c = new LambdaEqualityComparer<int>((a, b) => true);
+
+            Assert.IsFalse(((IEqualityComparer)c).Equals(5, true));
+            Assert.IsFalse(((IEqualityComparer)c).Equals(true, 5));
+        }
     }
 }
