@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Stylet.Logging;
+using System;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
-
 using Expressions = System.Linq.Expressions;
 
 namespace Stylet.Xaml
@@ -18,7 +18,7 @@ namespace Stylet.Xaml
     /// </remarks>
     public class CommandAction : ICommand
     {
-        private static readonly IStyletLogger logger = StyletLogManager.GetLogger(typeof(CommandAction));
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(CommandAction));
         /// <summary>
         /// View to grab the View.ActionTarget from
         /// </summary>
@@ -93,7 +93,7 @@ namespace Stylet.Xaml
                 }
                 else
                 {
-                    logger.Warn("ActionTarget on element {0} is null (method name is {1}), nut NullTarget is not Throw, so carrying on", this.Subject, this.MethodName);
+                    logger.Info("ActionTarget on element {0} is null (method name is {1}), nut NullTarget is not Throw, so carrying on", this.Subject, this.MethodName);
                 }
             }
             else

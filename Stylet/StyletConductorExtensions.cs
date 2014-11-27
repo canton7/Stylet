@@ -32,7 +32,7 @@ namespace Stylet
         /// <param name="item">Item to close and clean up</param>
         public static void CloseAndCleanUp<T>(this IConductor<T> parent, T item)
         {
-            ScreenExtensions.TryClose(item);
+            ScreenExtensions.TryCloseAndDispose(item);
 
             var itemAsChild = item as IChild;
             if (itemAsChild != null && itemAsChild.Parent == parent)

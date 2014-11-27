@@ -1,6 +1,15 @@
 Stylet Changelog
 ================
 
+v1.0.0
+------
+
+ - Logging improvements
+ - ViewManager improvements
+ - Revamp how the bootloader is added to the Application - it's a lot cleaner now
+ - Conductors will dispose their children if they're IDisposable
+ - StyletIoC updates: automatic Func registrations, refactoring, bug fixes, instance binding
+
 v0.9.11
 -------
 

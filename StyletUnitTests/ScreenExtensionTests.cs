@@ -12,14 +12,17 @@ namespace StyletUnitTests
     [TestFixture]
     public class ScreenExtensionTests
     {
+        public interface IMyScreen : IScreen, IDisposable
+        { }
+
         private Screen parent;
-        private Mock<IScreen> child;
+        private Mock<IMyScreen> child;
 
         [SetUp]
         public void SetUp()
         {
             this.parent = new Screen();
-            this.child = new Mock<IScreen>();
+            this.child = new Mock<IMyScreen>();
         }
 
         [Test]
@@ -53,18 +56,26 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void TryCloseClosesIClose()
+        public void TryCloseAndDisposeClosesIClose()
         {
             var screen = new Mock<IClose>();
-            ScreenExtensions.TryClose(screen.Object);
+            ScreenExtensions.TryCloseAndDispose(screen.Object);
             screen.Verify(x => x.Close());
         }
 
         [Test]
-        public void TryCloseDoesNothingToNonIClose()
+        public void TryCloseAndDisposeDisposesIDisposable()
+        {
+            var screen = new Mock<IDisposable>();
+            ScreenExtensions.TryCloseAndDispose(screen.Object);
+            screen.Verify(x => x.Dispose());
+        }
+
+        [Test]
+        public void TryCloseAndDisposeDoesNothingToNonIClose()
         {
             var screen = new Mock<IActivate>(MockBehavior.Strict);
-            ScreenExtensions.TryClose(screen.Object);
+            ScreenExtensions.TryCloseAndDispose(screen.Object);
         }
 
         [Test]
@@ -91,6 +102,7 @@ namespace StyletUnitTests
             this.child.Object.ConductWith(this.parent);
             ((IClose)this.parent).Close();
             this.child.Verify(x => x.Close());
+            this.child.Verify(x => x.Dispose());
         }
 
         [Test]

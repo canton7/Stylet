@@ -67,7 +67,7 @@
         <Label Grid.Row="4" Grid.Column="0" Target="{Binding ElementName=PasswordConfirmation}">Password Confirmation:</Label>
         <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="PasswordConfirmation" xaml:Secure.Password="{Binding PasswordConfirmation}"/>
         
-        <CheckBox Grid.Row="5" Grid.Column="0" IsChecked="{Binding AutoValidate}">Auto-Validate</CheckBox>
+        <CheckBox Grid.Row="5" Grid.Column="0" IsChecked="{Binding ShouldAutoValidate}">Auto-Validate</CheckBox>
         <Button Grid.Row="5" Grid.Column="1" Command="{s:Action Submit}" HorizontalAlignment="Left">Submit</Button>
     </Grid>
 </UserControl>

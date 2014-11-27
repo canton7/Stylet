@@ -17,10 +17,14 @@ namespace Stylet.Samples.ModelValidation.Pages
         public string PasswordConfirmation { get; set; }
         public Stringable<int> Age { get; set; }
 
-        public bool AutoValidate
+        public bool ShouldAutoValidate
         {
-            get { return this.autoValidate; }
-            set { this.autoValidate = value; this.NotifyOfPropertyChange(); }
+            get { return base.AutoValidate; }
+            set
+            {
+                base.AutoValidate = value;
+                this.NotifyOfPropertyChange();
+            }
         }
 
         public UserViewModel(IWindowManager windowManager, IModelValidator<UserViewModel> validator) : base(validator)
@@ -37,7 +41,7 @@ namespace Stylet.Samples.ModelValidation.Pages
 
         public bool CanSubmit
         {
-            get { return !this.AutoValidate || !this.HasErrors; }
+            get { return !this.ShouldAutoValidate || !this.HasErrors; }
         }
         public void Submit()
         {
@@ -54,8 +58,8 @@ namespace Stylet.Samples.ModelValidation.Pages
             RuleFor(x => x.Email).NotEmpty().EmailAddress();
             RuleFor(x => x.Password).NotEmpty().Matches("[0-9]").WithMessage("{PropertyName} must contain a number");
             RuleFor(x => x.PasswordConfirmation).Equal(s => s.Password).WithMessage("{PropertyName} should match Password");
-            RuleFor(x => x.Age).Must(x => x != null && x.IsValid).WithMessage("{PropertyName} must be a valid number");
-            When(x => x.Age != null && x.Age.IsValid, () =>
+            RuleFor(x => x.Age).Must(x => x.IsValid).WithMessage("{PropertyName} must be a valid number");
+            When(x => x.Age.IsValid, () =>
             {
                 RuleFor(x => x.Age.Value).GreaterThan(0).WithName("Age");
             });

@@ -130,11 +130,11 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void GetAllThrowsIfNoRegistrationsFound()
+        public void GetAllDoesNotThrowIfNoRegistrationsFound()
         {
             var builder = new StyletIoCBuilder();
             var ioc = builder.BuildContainer();
-            Assert.Throws<StyletIoCRegistrationException>(() => ioc.GetAll<IC1>());
+            Assert.DoesNotThrow(() => ioc.GetAll<IC1>());
         }
 
         [Test]

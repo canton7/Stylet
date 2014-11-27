@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Reflection;
 
 namespace Stylet.Samples.OverridingViewManager
 {
@@ -31,9 +32,9 @@ namespace Stylet.Samples.OverridingViewManager
         public CustomViewManager()
         {
             var mappings = from type in AssemblySource.Assemblies.SelectMany(x => x.GetTypes())
-                           let attributes = (ViewModelAttribute[])type.GetCustomAttributes(typeof(ViewModelAttribute), false)
-                           where attributes.Length == 1 && typeof(UIElement).IsAssignableFrom(type)
-                           select new { View = type, ViewModel = attributes[0].ViewModel };
+                           let attribute = type.GetCustomAttribute<ViewModelAttribute>()
+                           where attribute != null && typeof(UIElement).IsAssignableFrom(type)
+                           select new { View = type, ViewModel = attribute.ViewModel };
 
             this.viewModelToViewMapping = mappings.ToDictionary(x => x.ViewModel, x => x.View);
         }

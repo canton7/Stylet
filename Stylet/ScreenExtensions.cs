@@ -34,11 +34,15 @@ namespace Stylet
         /// Try to close the screen, if it implements IClose
         /// </summary>
         /// <param name="screen">Screen to close</param>
-        public static void TryClose(object screen)
+        public static void TryCloseAndDispose(object screen)
         {
             var screenAsClose = screen as IClose;
             if (screenAsClose != null)
                 screenAsClose.Close();
+
+            var screenAsDispose = screen as IDisposable;
+            if (screenAsDispose != null)
+                screenAsDispose.Dispose();
         }
 
         /// <summary>
@@ -65,7 +69,8 @@ namespace Stylet
         /// <example>child.CloseWith(this)</example>
         public static void CloseWith(this IClose child, IClose parent)
         {
-            WeakEventManager<IClose, CloseEventArgs>.AddHandler(parent, "Closed", (o, e) => child.Close());
+            // Using TryCloseAndDispose ensures that Dispose is called if necessary
+            WeakEventManager<IClose, CloseEventArgs>.AddHandler(parent, "Closed", (o, e) => ScreenExtensions.TryCloseAndDispose(child));
         }
 
         /// <summary>

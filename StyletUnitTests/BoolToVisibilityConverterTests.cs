@@ -136,6 +136,12 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void ConvertTreatsRandomValueTypeAsTrue()
+        {
+            Assert.AreEqual(Visibility.Visible, this.converter.Convert(new KeyValuePair<int, int>(5, 5), null, null, null));
+        }
+
+        [Test]
         public void ConvertBackThrowsIfTargetTypeIsNotBool()
         {
             Assert.Throws<ArgumentException>(() => this.converter.ConvertBack(null, null, null, null));

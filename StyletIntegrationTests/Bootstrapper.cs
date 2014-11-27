@@ -1,4 +1,5 @@
 ﻿using Stylet;
+using Stylet.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +12,10 @@ namespace StyletIntegrationTests
 {
     public class Bootstrapper : Bootstrapper<ShellViewModel>
     {
-        protected override void OnStart()
+        protected override void Configure()
         {
-            StyletLogManager.Enabled = true;
+            base.Configure();
+            LogManager.Enabled = true;
         }
 
         protected override void OnApplicationUnhandledExecption(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

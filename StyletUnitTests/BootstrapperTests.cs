@@ -21,15 +21,10 @@ namespace StyletUnitTests
 
         private class MyBootstrapper<T> : Bootstrapper<T> where T : class
         {
-            public MyBootstrapper() : base(false)
+            public new IContainer Container
             {
-                this.Start(false);
-            }
-
-            public IContainer Container
-            {
-                get { return base.container; }
-                set { base.container = value;  }
+                get { return base.Container; }
+                set { base.Container = value; }
             }
 
             public new void Configure()
@@ -134,7 +129,7 @@ namespace StyletUnitTests
 
             var instance = new object();
             container.Setup(x => x.BuildUp(instance)).Verifiable();
-             this.bootstrapper.BuildUp(instance);
+            this.bootstrapper.BuildUp(instance);
             container.Verify();
         }
     }

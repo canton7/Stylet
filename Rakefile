@@ -96,4 +96,46 @@ def coverage(coverage_files)
   sh REPORT_GENERATOR, %Q{-reports:"#{coverage_files.join(';')}" "-targetdir:#{COVERAGE_DIR}"}
 end
 
+desc "Extract StyletIoC as a standalone file"
+task :"extract-stylet-ioc" do
+  filenames = Dir['Stylet/StyletIoC/**/*.cs']
+  usings = Set.new
+  files = []
 
+  filenames.each do |file|
+    contents = File.read(file)
+    file_usings = contents.scan(/using .*?;$/)
+    usings.merge(file_usings)
+    
+    matches = contents.match(/namespace (.+?)\n{\n(.+)}.*/m)
+    namespace, file_contents = matches.captures
+
+    files << {
+      :from => file,
+      :contents => file_contents,
+      :namespace => namespace
+    }
+    # merged_contents << "    // Originally from #{file}\n\n" << file_contents << "\n"
+  end
+
+  File.open('StyletIoC.cs', 'w') do |outf|
+    outf.write(usings.to_a.join("\n"))
+
+    outf.puts
+
+    files.group_by{ |x| x[:namespace ] }.each do |namespace, ns_files|
+      outf.puts("\nnamespace #{namespace}")
+      outf.puts("{")
+      
+      ns_files.each do |file|
+        outf.puts("\n    // Originally from #{file[:from]}\n\n")
+        outf.puts(file[:contents])
+      end
+
+      outf.puts("}\n")
+    end
+  end
+
+  # puts merged_contents
+
+end

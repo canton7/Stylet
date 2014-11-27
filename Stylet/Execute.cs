@@ -7,7 +7,7 @@ using System.Windows.Threading;
 namespace Stylet
 {
     /// <summary>
-    /// Generalised dispatcher, which can post and end
+    /// Generalised dispatcher, which can post and send
     /// </summary>
     public interface IDispatcher
     {
@@ -73,7 +73,7 @@ namespace Stylet
         /// <summary>
         /// Default dispatcher used by PropertyChangedBase instances. Defaults to OnUIThread
         /// </summary>
-        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.OnUIThread;
+        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.OnUIThreadSync;
 
         private static void EnsureDispatcher()
         {
@@ -97,6 +97,7 @@ namespace Stylet
         /// <summary>
         /// Dispatches the given action to be run on the UI thread asynchronously, and returns a task which completes when the action completes, even if the current thread is the UI thread
         /// </summary>
+        /// <remarks>DO NOT BLOCK waiting for this Task - you'll cause a deadlock. Use PostToUIThread instead</remarks>
         /// <param name="action">Action to run on the UI thread</param>
         /// <returns>Task which completes when the action has been run</returns>
         public static Task PostToUIThreadAsync(Action action)

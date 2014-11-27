@@ -53,7 +53,7 @@ namespace Stylet
         bool IEqualityComparer.Equals(object x, object y)
         {
             if (!(x is T) || !(y is T))
-                throw new ArgumentException("Either x or y isn't a T");
+                return false;
             return this.equalityComparer((T)x, (T)y);
         }
 

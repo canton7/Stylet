@@ -20,9 +20,9 @@ namespace Stylet.Samples.ModelValidation
     /// 
     /// This type has an associated TypeConverter, StringableConverter, which will be used by WPF to convert this Stringable{T} to and from a string. 
     /// </remarks>
-    // I would make this a struct, but it will have to be boxed to go through the TypeConverter, so there's no point
+    // If this is a struct, we avoid null issues
     [TypeConverter(typeof(StringableConverter))]
-    public class Stringable<T> : IEquatable<Stringable<T>>
+    public struct Stringable<T> : IEquatable<Stringable<T>>
     {
         private readonly string _stringValue;
 
@@ -104,20 +104,18 @@ namespace Stylet.Samples.ModelValidation
 
         public override bool Equals(object obj)
         {
-            return base.Equals(obj as Stringable<T>);
+            if (!(obj is Stringable<T>))
+                return false;
+            return base.Equals((Stringable<T>)obj);
         }
 
         public bool Equals(Stringable<T> other)
         {
-            return other != null && EqualityComparer<T>.Default.Equals(this.Value, other.Value) && this.StringValue == other.StringValue;
+            return EqualityComparer<T>.Default.Equals(this.Value, other.Value) && this.StringValue == other.StringValue;
         }
 
         public static bool operator ==(Stringable<T> o1, Stringable<T> o2)
         {
-            if (Object.ReferenceEquals(o1, o2))
-                return true;
-            if ((object)o1 == null || (object)o2 == null)
-                return false;
             return o1.Equals(o2);
         }
 
@@ -161,7 +159,7 @@ namespace Stylet.Samples.ModelValidation
             // WPF instantiates us once, then uses us lots, so the overhead of doing this here is worth it
             var fromMethod = type.GetMethod("FromString", BindingFlags.Static | BindingFlags.Public);
             var param = Expression.Parameter(typeof(string));
-            this.generator = Expression.Lambda<Func<string, object>>(Expression.Call(fromMethod, param), param).Compile();
+            this.generator = Expression.Lambda<Func<string, object>>(Expression.TypeAs(Expression.Call(fromMethod, param), typeof(object)), param).Compile();
         }
 
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
