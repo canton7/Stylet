@@ -1,4 +1,5 @@
-﻿using Stylet.Xaml;
+﻿using Stylet.Logging;
+using Stylet.Xaml;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -33,7 +34,7 @@ namespace Stylet
     /// </summary>
     public class ViewManager : IViewManager
     {
-        private static IStyletLogger logger = StyletLogManager.GetLogger(typeof(ViewManager));
+        private static ILogger logger = LogManager.GetLogger(typeof(ViewManager));
 
         /// <summary>
         /// Called by View whenever its current View.Model changes. Will locate and instantiate the correct view, and set it as the target's Content

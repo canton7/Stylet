@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Stylet
+namespace Stylet.Logging
 {
     /// <summary>
     /// Logger used by Stylet for internal logging
     /// </summary>
-    public interface IStyletLogger
+    public interface ILogger
     {
         /// <summary>
         /// Log the message as info
@@ -33,7 +33,7 @@ namespace Stylet
     /// <summary>
     /// ILogger implementation which does nothing - used by default
     /// </summary>
-    public class NullLogger : IStyletLogger
+    public class NullLogger : ILogger
     {
         /// <summary>
         /// Log the message as info
@@ -60,7 +60,7 @@ namespace Stylet
     /// <summary>
     /// ILogger implementation which uses Debug.WriteLine
     /// </summary>
-    public class DebugLogger : IStyletLogger
+    public class TraceLogger : ILogger
     {
         private readonly string name;
 
@@ -68,7 +68,7 @@ namespace Stylet
         /// Create a new DebugLogger with the given name
         /// </summary>
         /// <param name="name">Name of the DebugLogger</param>
-        public DebugLogger(string name)
+        public TraceLogger(string name)
         {
             this.name = name;
         }
@@ -80,7 +80,7 @@ namespace Stylet
         /// <param name="args">format parameters</param>
         public void Info(string format, params object[] args)
         {
-            Debug.WriteLine(String.Format("[{1}] INFO {0}", String.Format(format, args), this.name), "Stylet");
+            Trace.WriteLine(String.Format("INFO [{1}] {0}", String.Format(format, args), this.name), "Stylet");
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace Stylet
         /// <param name="args">format parameters</param>
         public void Warn(string format, params object[] args)
         {
-            Debug.WriteLine(String.Format("[{1}] WARN {0}", String.Format(format, args), this.name), "Stylet");
+            Trace.WriteLine(String.Format("WARN [{1}] {0}", String.Format(format, args), this.name), "Stylet");
         }
 
         /// <summary>
@@ -101,18 +101,18 @@ namespace Stylet
         public void Error(Exception exception, string message = null)
         {
             if (message == null)
-                Debug.WriteLine(String.Format("[{1}] ERROR {0}", exception, this.name), "Stylet");
+                Trace.WriteLine(String.Format("ERROR [{1}] {0}", exception, this.name), "Stylet");
             else
-                Debug.WriteLine(String.Format("[{2}] ERROR {0} {1}", message, exception, this.name), "Stylet");
+                Trace.WriteLine(String.Format("ERROR [{2}] {0} {1}", message, exception, this.name), "Stylet");
         }
     }
 
     /// <summary>
     /// Manager for ILoggers. Used to create new ILoggers, and set up how ILoggers are created
     /// </summary>
-    public static class StyletLogManager
+    public static class LogManager
     {
-        private static readonly IStyletLogger nullLogger = new NullLogger();
+        private static readonly ILogger nullLogger = new NullLogger();
 
         /// <summary>
         /// Set to true to enable logging
@@ -129,14 +129,14 @@ namespace Stylet
         /// <remarks>
         /// e.g. LogManager.LoggerFactory = name => new MyLogger(name);
         /// </remarks>
-        public static Func<string, IStyletLogger> LoggerFactory = name => new DebugLogger(name);
+        public static Func<string, ILogger> LoggerFactory = name => new TraceLogger(name);
 
         /// <summary>
         /// Get a new ILogger for the given type
         /// </summary>
         /// <param name="type">Type which is using the ILogger</param>
         /// <returns>ILogger for use by the given type</returns>
-        public static IStyletLogger GetLogger(Type type)
+        public static ILogger GetLogger(Type type)
         {
             return GetLogger(type.FullName);
         }
@@ -146,7 +146,7 @@ namespace Stylet
         /// </summary>
         /// <param name="name">Name of the ILogger</param>
         /// <returns>ILogger with the given name</returns>
-        public static IStyletLogger GetLogger(string name)
+        public static ILogger GetLogger(string name)
         {
             return Enabled ? LoggerFactory(name) : nullLogger;
         }

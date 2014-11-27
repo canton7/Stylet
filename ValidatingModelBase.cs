@@ -43,14 +43,14 @@ namespace Stylet
         /// <summary>
         /// Whether to run validation for a property automatically every time that property changes
         /// </summary>
-        protected bool autoValidate { get; set; }
+        protected bool AutoValidate { get; set; }
 
         /// <summary>
         /// Instantiate, without using an IValidatorAdapter
         /// </summary>
         public ValidatingModelBase()
         {
-            this.autoValidate = true;
+            this.AutoValidate = true;
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace Stylet
 
             // Save ourselves a little bit of work every time HasErrors is fired as the result of 
             // the validation results changing.
-            if (this.validator != null && this.autoValidate && propertyName != "HasErrors")
+            if (this.validator != null && this.AutoValidate && propertyName != "HasErrors")
                 await this.ValidatePropertyAsync(propertyName);
         }
 

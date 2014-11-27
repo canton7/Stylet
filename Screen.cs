@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Stylet.Logging;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,7 +11,7 @@ namespace Stylet
     /// </summary>
     public class Screen : ValidatingModelBase, IScreen
     {
-        private readonly IStyletLogger logger;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Create a new Screen instance (without setting up a validator)
@@ -21,11 +22,12 @@ namespace Stylet
         /// Create a new screen instance, which can validate properties using the given validator
         /// </summary>
         /// <param name="validator">Validator to use</param>
+        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "Can be safely called from the Ctor, as it doesn't depend on state being set")]
         public Screen(IModelValidator validator) : base(validator)
         {
             var type = this.GetType();
             this.DisplayName = type.FullName;
-            this.logger = StyletLogManager.GetLogger(type);
+            this.logger = LogManager.GetLogger(type);
         }
 
         #region IHaveDisplayName
@@ -35,7 +37,7 @@ namespace Stylet
         /// <summary>
         /// Name associated with this ViewModel. Shown e.g. in a window's title bar, or as a tab's displayName
         /// </summary>
-        public virtual string DisplayName
+        public string DisplayName
         {
             get { return this._displayName; }
             set { SetAndNotify(ref this._displayName, value); }

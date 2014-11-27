@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Stylet.Logging;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
@@ -30,7 +31,7 @@ namespace Stylet
     /// </summary>
     public class WindowManager : IWindowManager
     {
-        private static readonly IStyletLogger logger = StyletLogManager.GetLogger(typeof(WindowManager));
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(WindowManager));
         private IViewManager viewManager;
 
         /// <summary>
@@ -151,7 +152,7 @@ namespace Stylet
                         break;
 
                     case WindowState.Minimized:
-                        logger.Info("Window {1} minimized: deactivating", this.window);
+                        logger.Info("Window {0} minimized: deactivating", this.window);
                         ScreenExtensions.TryDeactivate(this.viewModel);
                         break;
                 }
@@ -165,7 +166,7 @@ namespace Stylet
                 this.window.Closed -= this.WindowClosed;
                 this.window.Closing -= this.WindowClosing; // Not sure this is required
 
-                ScreenExtensions.TryClose(this.viewModel);
+                ScreenExtensions.TryCloseAndDispose(this.viewModel);
             }
 
             /// <summary>
@@ -233,7 +234,7 @@ namespace Stylet
                 if (dialogResult != null)
                     this.window.DialogResult = dialogResult;
 
-                ScreenExtensions.TryClose(this.viewModel);
+                ScreenExtensions.TryCloseAndDispose(this.viewModel);
 
                 this.window.Close();
             }
