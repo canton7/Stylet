@@ -10,8 +10,10 @@ namespace Stylet.Samples.TabNavigation
     {
         public ShellViewModel(Page1ViewModel page1, Page2ViewModel page2)
         {
-            this.ActivateItem(page1);
+            this.Items.Add(page1);
             this.Items.Add(page2);
+
+            this.ActiveItem = page1;
         }
     }
 }
