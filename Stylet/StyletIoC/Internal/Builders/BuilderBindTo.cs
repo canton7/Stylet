@@ -29,6 +29,11 @@ namespace StyletIoC.Internal.Builders
             return this.builderBinding;
         }
 
+        public IInScopeOrWithKeyOrAsWeakBinding To<TImplementation>()
+        {
+            return this.To(typeof(TImplementation));
+        }
+
         public IInScopeOrWithKeyOrAsWeakBinding ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory)
         {
             this.builderBinding = new BuilderFactoryBinding<TImplementation>(this.ServiceType, factory);
@@ -53,6 +58,14 @@ namespace StyletIoC.Internal.Builders
                 assemblies = new[] { Assembly.GetCallingAssembly() };
             this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceType, assemblies);
             return this.builderBinding;
+        }
+
+        public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies)
+        {
+            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
+            if (assemblies == null || assemblies.Length == 0)
+                assemblies = new[] { Assembly.GetCallingAssembly() };
+            return this.ToAllImplementations(assemblies.AsEnumerable());
         }
 
         internal void Build(Container container)

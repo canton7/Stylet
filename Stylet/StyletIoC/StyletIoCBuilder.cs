@@ -28,6 +28,12 @@ namespace StyletIoC
         IInScopeOrWithKeyOrAsWeakBinding To(Type implementationType);
 
         /// <summary>
+        /// Bind the specified service to another type which implements that service. E.g. builder.Bind{IMyClass}().To{MyClass}(), and request an IMyClass: you'll get a MyClass.
+        /// </summary>
+        /// <typeparam name="TImplementation">Type to bind the service to</typeparam>
+        IInScopeOrWithKeyOrAsWeakBinding To<TImplementation>();
+
+        /// <summary>
         /// Bind the specified service to a factory delegate, which will be called when an instance is required. E.g. ...ToFactory(c => new MyClass(c.Get{Dependency}(), "foo"))
         /// </summary>
         /// <typeparam name="TImplementation">Type returned by the factory delegate. Must implement the service</typeparam>
@@ -50,6 +56,12 @@ namespace StyletIoC
         /// </summary>
         /// <param name="assemblies">Assemblies to search. If empty / null, searches the current assembly</param>
         IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(IEnumerable<Assembly> assemblies);
+
+        /// <summary>
+        /// Discover all implementations of the service in the specified assemblies / the current assembly, and bind those to the service
+        /// </summary>
+        /// <param name="assemblies">Assemblies to search. If empty / null, searches the current assembly</param>
+        IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies);
     }
 
     /// <summary>
@@ -96,6 +108,11 @@ namespace StyletIoC
         /// </summary>
         /// <param name="registrationFactory">Registration factory to use</param>
         IAsWeakBinding WithRegistrationFactory(RegistrationFactory registrationFactory);
+
+        /// <summary>
+        /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
+        /// </summary>
+        IAsWeakBinding InSingletonScope();
     }
 
     /// <summary>
@@ -122,10 +139,22 @@ namespace StyletIoC
         IBindTo Bind(Type serviceType);
 
         /// <summary>
+        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
+        /// </summary>
+        /// <typeparam name="TService">Service to bind</typeparam>
+        IBindTo Bind<TService>();
+
+        /// <summary>
         /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
         /// </summary>
         /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
         void Autobind(IEnumerable<Assembly> assemblies);
+
+        /// <summary>
+        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
+        /// </summary>
+        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
+        void Autobind(params Assembly[] assemblies);
 
         /// <summary>
         /// Once all bindings have been set, build an IContainer from which instances can be fetches
@@ -168,6 +197,15 @@ namespace StyletIoC
         }
 
         /// <summary>
+        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
+        /// </summary>
+        /// <typeparam name="TService">Service to bind</typeparam>
+        public IBindTo Bind<TService>()
+        {
+            return this.Bind(typeof(TService));
+        }
+
+        /// <summary>
         /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
         /// </summary>
         /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
@@ -185,6 +223,18 @@ namespace StyletIoC
                 // It's a self-binding, and those are always safe (at this stage - it could fall over when the containing's actually build)
                 this.Bind(cls).To(cls).AsWeakBinding();
             }
+        }
+
+        /// <summary>
+        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
+        /// </summary>
+        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
+        public void Autobind(params Assembly[] assemblies)
+        {
+            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
+            if (assemblies == null || assemblies.Length == 0)
+                assemblies = new[] { Assembly.GetCallingAssembly() };
+            this.Autobind(assemblies.AsEnumerable());
         }
 
         /// <summary>
@@ -231,64 +281,6 @@ namespace StyletIoC
         internal void AddBinding(BuilderBindTo binding)
         {
             this.bindings.Add(binding);
-        }
-    }
-
-    /// <summary>
-    /// Extra methods on IStyletIoCBuilder which are useful
-    /// </summary>
-    public static class StyletIoCBuilderExtensions
-    {
-        /// <summary>
-        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
-        /// </summary>
-        /// <param name="builder">Builder to call on</param>
-        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
-        public static void Autobind(this IStyletIoCBuilder builder, params Assembly[] assemblies)
-        {
-            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
-            if (assemblies == null || assemblies.Length == 0)
-                assemblies = new[] { Assembly.GetCallingAssembly() };
-            builder.Autobind(assemblies.AsEnumerable());
-        }
-
-        /// <summary>
-        /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
-        /// </summary>
-        /// <typeparam name="TService">Service to bind</typeparam>
-        public static IBindTo Bind<TService>(this IStyletIoCBuilder builder)
-        {
-            return builder.Bind(typeof(TService));
-        }
-
-        /// <summary>
-        /// Bind the specified service to another type which implements that service. E.g. builder.Bind{IMyClass}().To{MyClass}(), and request an IMyClass: you'll get a MyClass.
-        /// </summary>
-        /// <typeparam name="TImplementation">Type to bind the service to</typeparam>
-        public static IInScopeOrWithKeyOrAsWeakBinding To<TImplementation>(this IBindTo bindTo)
-        {
-            return bindTo.To(typeof(TImplementation));
-        }
-
-        /// <summary>
-        /// Discover all implementations of the service in the specified assemblies / the current assembly, and bind those to the service
-        /// </summary>
-        /// <param name="bindTo">Binder to call on</param>
-        /// <param name="assemblies">Assemblies to search. If empty / null, searches the current assembly</param>
-        public static IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(this IBindTo bindTo, params Assembly[] assemblies)
-        {
-            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
-            if (assemblies == null || assemblies.Length == 0)
-                assemblies = new[] { Assembly.GetCallingAssembly() };
-            return bindTo.ToAllImplementations(assemblies.AsEnumerable());
-        }
-
-        /// <summary>
-        /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
-        /// </summary>
-        public static IAsWeakBinding InSingletonScope(this IInScopeOrAsWeakBinding builder)
-        {
-            return builder.WithRegistrationFactory((ctx, serviceType, creator, key) => new SingletonRegistration(ctx, creator));
         }
     }
 }

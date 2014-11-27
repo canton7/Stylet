@@ -21,7 +21,7 @@ namespace StyletIoC.Internal.Builders
             this.registrationFactory = (ctx, service, creator, key) => new TransientRegistration(creator);
         }
 
-        IAsWeakBinding IInScopeOrAsWeakBinding.WithRegistrationFactory(RegistrationFactory registrationFactory)
+        public IAsWeakBinding WithRegistrationFactory(RegistrationFactory registrationFactory)
         {
             if (registrationFactory == null)
                 throw new ArgumentNullException("registrationFactory");
@@ -29,7 +29,15 @@ namespace StyletIoC.Internal.Builders
             return this;
         }
 
-        IInScopeOrAsWeakBinding IInScopeOrWithKeyOrAsWeakBinding.WithKey(string key)
+        /// <summary>
+        /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
+        /// </summary>
+        public IAsWeakBinding InSingletonScope()
+        {
+            return this.WithRegistrationFactory((ctx, serviceType, creator, key) => new SingletonRegistration(ctx, creator));
+        }
+
+        public IInScopeOrAsWeakBinding WithKey(string key)
         {
             this.Key = key;
             return this;
