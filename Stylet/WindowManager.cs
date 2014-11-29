@@ -141,7 +141,7 @@ namespace Stylet
                     window.StateChanged += WindowStateChanged;
             }
 
-            void WindowStateChanged(object sender, EventArgs e)
+            private void WindowStateChanged(object sender, EventArgs e)
             {
                 switch (this.window.WindowState)
                 {
