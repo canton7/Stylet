@@ -1,5 +1,6 @@
 ﻿using Stylet.Logging;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
@@ -24,6 +25,14 @@ namespace Stylet
         /// <param name="viewModel">ViewModel to show the View for</param>
         /// <returns>DialogResult of the View</returns>
         bool? ShowDialog(object viewModel);
+
+        /// <summary>
+        /// Setup the MessageBoxViewModel with the information it needs
+        /// </summary>
+        /// <param name="text">Text to display in the body of the MessageBox</param>
+        /// <param name="title">Title to display in the titlebar of the MessageBox</param>
+        /// <param name="config">Other configuration. Optional</param>
+        MessageBoxResult ShowMessageBox(string text, string title = "", MessageBoxConfig config = null);
     }
 
     /// <summary>
@@ -32,15 +41,18 @@ namespace Stylet
     public class WindowManager : IWindowManager
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(WindowManager));
-        private IViewManager viewManager;
+        private readonly IViewManager viewManager;
+        private readonly Func<IMessageBoxViewModel> messageBoxViewModelFactory;
 
         /// <summary>
         /// Create a new WindowManager instance, using the given IViewManager
         /// </summary>
         /// <param name="viewManager">IViewManager to use when creating views</param>
-        public WindowManager(IViewManager viewManager)
+        /// <param name="messageBoxViewModelFactory">Delegate which returns a new IMessageBoxViewModel instance when invoked</param>
+        public WindowManager(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory)
         {
             this.viewManager = viewManager;
+            this.messageBoxViewModelFactory = messageBoxViewModelFactory;
         }
 
         /// <summary>
@@ -60,6 +72,20 @@ namespace Stylet
         public bool? ShowDialog(object viewModel)
         {
             return this.CreateWindow(viewModel, true).ShowDialog();
+        }
+
+        /// <summary>
+        /// Setup the MessageBoxViewModel with the information it needs
+        /// </summary>
+        /// <param name="text">Text to display in the body of the MessageBox</param>
+        /// <param name="title">Title to display in the titlebar of the MessageBox</param>
+        /// <param name="config">Other configuration. Optional</param>
+        public MessageBoxResult ShowMessageBox(string text, string title = "", MessageBoxConfig config = null)
+        {
+            var vm = this.messageBoxViewModelFactory();
+            vm.Setup(text, title, config);
+            this.ShowDialog(vm);
+            return vm.ClickedButton;
         }
 
         /// <summary>

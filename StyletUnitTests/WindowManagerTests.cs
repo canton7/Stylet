@@ -18,13 +18,25 @@ namespace StyletUnitTests
         public interface IMyScreen : IScreen, IDisposable
         { }
 
+        private class TestException : Exception { }
+
         private class MyWindowManager : WindowManager
         {
-            public MyWindowManager(IViewManager viewManager) : base(viewManager) { }
+            public MyWindowManager(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory) : base(viewManager, messageBoxViewModelFactory) { }
 
             public new Window CreateWindow(object viewModel, bool isDialog)
             {
                 return base.CreateWindow(viewModel, isDialog);
+            }
+        }
+
+        private class WindowManagerWithoutCreateWindow : WindowManager
+        {
+            public WindowManagerWithoutCreateWindow(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory) : base(viewManager, messageBoxViewModelFactory) { }
+
+            protected override Window CreateWindow(object viewModel, bool isDialog)
+            {
+                throw new TestException(); // ABORT! ABORT!
             }
         }
 
@@ -49,13 +61,15 @@ namespace StyletUnitTests
         }
 
         private Mock<IViewManager> viewManager;
+        private Mock<IMessageBoxViewModel> messageBoxViewModel;
         private MyWindowManager windowManager;
 
         [SetUp]
         public void SetUp()
         {
             this.viewManager = new Mock<IViewManager>();
-            this.windowManager = new MyWindowManager(this.viewManager.Object);
+            this.messageBoxViewModel = new Mock<IMessageBoxViewModel>();
+            this.windowManager = new MyWindowManager(this.viewManager.Object, () => this.messageBoxViewModel.Object);
 
             IoC.GetInstance = (service, key) => this.viewManager.Object;
         }
@@ -262,6 +276,18 @@ namespace StyletUnitTests
             model.Verify(x => x.Close());
             model.Verify(x => x.Dispose());
             Assert.True(window.OnClosedCalled);
+        }
+
+        [Test]
+        public void ShowMessageBoxShowsMessageBox()
+        {
+            var config = new MessageBoxConfig();
+            var wm = new WindowManagerWithoutCreateWindow(this.viewManager.Object, () => this.messageBoxViewModel.Object);
+
+            try { wm.ShowMessageBox("text", "title", config); }
+            catch (TestException) { }
+
+            this.messageBoxViewModel.Verify(x => x.Setup("text", "title", config));
         }
     }
 }
