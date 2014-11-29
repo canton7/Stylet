@@ -43,7 +43,7 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Called from the constructor, this does everything necessary to start the application
+        /// Called on Application.Startup, this does everything necessary to start the application
         /// </summary>
         protected virtual void Start()
         {
