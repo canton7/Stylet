@@ -61,10 +61,14 @@ namespace Stylet
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            var handler = this.PropertyChanged;
-            if (handler != null)
+            if (this.PropertyChanged != null)
             {
-                this.PropertyChangedDispatcher(() => handler(this, new PropertyChangedEventArgs(propertyName)));
+                this.PropertyChangedDispatcher(() => 
+                {
+                    var handler = this.PropertyChanged;
+                    if (handler != null)
+                        handler(this, new PropertyChangedEventArgs(propertyName));
+                });
             }
         }
 
