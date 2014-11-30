@@ -84,6 +84,14 @@ namespace StyletIoC.Internal
         }
 
         /// <summary>
+        /// Generic form of Get
+        /// </summary>
+        public T Get<T>(string key = null)
+        {
+            return (T)this.Get(typeof(T), key);
+        }
+
+        /// <summary>
         /// Fetch instances of all types which implement the specified service
         /// </summary>
         public IEnumerable<object> GetAll(Type type, string key = null)
@@ -100,6 +108,14 @@ namespace StyletIoC.Internal
         }
 
         /// <summary>
+        /// Generic form of GetAll
+        /// </summary>
+        public IEnumerable<T> GetAll<T>(string key = null)
+        {
+            return this.GetAll(typeof(T), key).Cast<T>();
+        }
+
+        /// <summary>
         /// If type is an IEnumerable{T} or similar, is equivalent to calling GetAll{T}. Else, is equivalent to calling Get{T}.
         /// </summary>
         public object GetTypeOrAll(Type type, string key = null)
@@ -108,6 +124,14 @@ namespace StyletIoC.Internal
                 throw new ArgumentNullException("type");
             var generator = this.GetRegistrations(new TypeKey(type, key), true).GetSingle().GetGenerator();
             return generator(this);
+        }
+
+        /// <summary>
+        /// Generic form of GetTypeOrAll
+        /// </summary>
+        public T GetTypeOrAll<T>(string key = null)
+        {
+            return (T)this.GetTypeOrAll(typeof(T), key);
         }
 
         /// <summary>
