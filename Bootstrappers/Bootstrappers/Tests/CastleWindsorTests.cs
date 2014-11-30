@@ -1,4 +1,4 @@
-﻿using Autofac;
+﻿using Castle.Windsor;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Bootstrappers.Tests
 {
-    public class MyAutofacBootstrapper : AutofacBootstrapper<TestRootViewModel>, ITestBootstrapper
+    public class MyCastleWindsorBootstrapper : CastleWindsorBootstrapper<TestRootViewModel>, ITestBootstrapper
     {
         public List<string> ConfigureLog { get; set; }
 
-        public MyAutofacBootstrapper()
+        public MyCastleWindsorBootstrapper()
         {
             this.ConfigureLog = new List<string>();
         }
@@ -23,15 +23,15 @@ namespace Bootstrappers.Tests
             this.ConfigureLog.Add("Configure");
         }
 
-        protected override void DefaultConfigureIoC(ContainerBuilder builder)
+        protected override void DefaultConfigureIoC(IWindsorContainer container)
         {
-            base.DefaultConfigureIoC(builder);
+            base.DefaultConfigureIoC(container);
             this.ConfigureLog.Add("DefaultConfigureIoC");
         }
 
-        protected override void ConfigureIoC(ContainerBuilder builder)
+        protected override void ConfigureIoC(IWindsorContainer container)
         {
-            base.ConfigureIoC(builder);
+            base.ConfigureIoC(container);
             this.ConfigureLog.Add("ConfigureIoC");
         }
 
@@ -46,17 +46,17 @@ namespace Bootstrappers.Tests
         }
     }
 
-    [TestFixture(Category = "Autofac")]
-    public class AutofacTests : BootstrapperTests<MyAutofacBootstrapper>
+    [TestFixture(Category = "Castle Windsor")]
+    public class CastleWindsorTests : BootstrapperTests<MyCastleWindsorBootstrapper>
     {
-        public AutofacTests()
+        public CastleWindsorTests()
         {
             this.Autobinds = true;
         }
 
-        public override MyAutofacBootstrapper CreateBootstrapper()
+        public override MyCastleWindsorBootstrapper CreateBootstrapper()
         {
-            return new MyAutofacBootstrapper();
+            return new MyCastleWindsorBootstrapper();
         }
     }
 }

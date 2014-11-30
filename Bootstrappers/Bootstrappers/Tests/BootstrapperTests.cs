@@ -22,6 +22,7 @@ namespace Bootstrappers.Tests
         protected TBootstrapper bootstrapper;
 
         public abstract TBootstrapper CreateBootstrapper();
+        protected virtual bool Autobinds { get; set; }
 
         [SetUp]
         public void SetUp()
@@ -49,12 +50,6 @@ namespace Bootstrappers.Tests
             var vm1 = this.bootstrapper.GetInstance<IViewManager>();
             var vm2 = this.bootstrapper.GetInstance<IViewManager>();
             Assert.AreEqual(vm1, vm2);
-        }
-
-        [Test]
-        public void ViewManagerHasCorrectAssemblyList()
-        {
-
         }
 
         [Test]
@@ -100,6 +95,35 @@ namespace Bootstrappers.Tests
             var mb1 = this.bootstrapper.GetInstance<IMessageBoxViewModel>();
             var mb2 = this.bootstrapper.GetInstance<IMessageBoxViewModel>();
             Assert.AreNotEqual(mb1, mb2);
+        }
+
+        [Test]
+        public void ResolvesAutoSelfBoundTypesFromCallingAssemblyAsTransient()
+        {
+            if (!this.Autobinds)
+                Assert.Ignore("Autobinding not supported");
+
+            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance<TestRootViewModel>());
+            var vm1 = this.bootstrapper.GetInstance<TestRootViewModel>();
+            var vm2 = this.bootstrapper.GetInstance<TestRootViewModel>();
+
+            Assert.NotNull(vm1);
+            Assert.AreNotEqual(vm1, vm2); 
+        }
+
+        [Test]
+        public void ResolvesAutoSelfBoundTypesFromOwnAssemblyAsTransient()
+        {
+            if (!this.Autobinds)
+                Assert.Ignore("Autobinding not supported");
+
+            // Pick a random class with no dependencies...
+            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance<StyletIoC.StyletIoCBuilder>());
+            var vm1 = this.bootstrapper.GetInstance<StyletIoC.StyletIoCBuilder>();
+            var vm2 = this.bootstrapper.GetInstance<StyletIoC.StyletIoCBuilder>();
+
+            Assert.NotNull(vm1);
+            Assert.AreNotEqual(vm1, vm2);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using Ninject;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,13 +23,13 @@ namespace Bootstrappers.Tests
             this.ConfigureLog.Add("Configure");
         }
 
-        protected override void DefaultConfigureIoC(Ninject.IKernel kernel)
+        protected override void DefaultConfigureIoC(IKernel kernel)
         {
             base.DefaultConfigureIoC(kernel);
             this.ConfigureLog.Add("DefaultConfigureIoC");
         }
 
-        protected override void ConfigureIoC(Ninject.IKernel kernel)
+        protected override void ConfigureIoC(IKernel kernel)
         {
             base.ConfigureIoC(kernel);
             this.ConfigureLog.Add("ConfigureIoC");
@@ -48,6 +49,11 @@ namespace Bootstrappers.Tests
     [TestFixture(Category="Ninject")]
     public class NinjectTests : BootstrapperTests<MyNinjectBootstrapper>
     {
+        public NinjectTests()
+        {
+            this.Autobinds = true;
+        }
+
         public override MyNinjectBootstrapper CreateBootstrapper()
         {
             return new MyNinjectBootstrapper();

@@ -1,5 +1,5 @@
-﻿using Autofac;
-using NUnit.Framework;
+﻿using NUnit.Framework;
+using StructureMap;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Bootstrappers.Tests
 {
-    public class MyAutofacBootstrapper : AutofacBootstrapper<TestRootViewModel>, ITestBootstrapper
+    public class MyStructureMapBootstrapper : StructureMapBootstrapper<TestRootViewModel>, ITestBootstrapper
     {
         public List<string> ConfigureLog { get; set; }
 
-        public MyAutofacBootstrapper()
+        public MyStructureMapBootstrapper()
         {
             this.ConfigureLog = new List<string>();
         }
@@ -23,15 +23,15 @@ namespace Bootstrappers.Tests
             this.ConfigureLog.Add("Configure");
         }
 
-        protected override void DefaultConfigureIoC(ContainerBuilder builder)
+        protected override void DefaultConfigureIoC(ConfigurationExpression config)
         {
-            base.DefaultConfigureIoC(builder);
+            base.DefaultConfigureIoC(config);
             this.ConfigureLog.Add("DefaultConfigureIoC");
         }
 
-        protected override void ConfigureIoC(ContainerBuilder builder)
+        protected override void ConfigureIoC(ConfigurationExpression config)
         {
-            base.ConfigureIoC(builder);
+            base.ConfigureIoC(config);
             this.ConfigureLog.Add("ConfigureIoC");
         }
 
@@ -46,17 +46,17 @@ namespace Bootstrappers.Tests
         }
     }
 
-    [TestFixture(Category = "Autofac")]
-    public class AutofacTests : BootstrapperTests<MyAutofacBootstrapper>
+    [TestFixture(Category = "StructureMap")]
+    public class StructureMapTests : BootstrapperTests<MyStructureMapBootstrapper>
     {
-        public AutofacTests()
+        public StructureMapTests()
         {
             this.Autobinds = true;
         }
 
-        public override MyAutofacBootstrapper CreateBootstrapper()
+        public override MyStructureMapBootstrapper CreateBootstrapper()
         {
-            return new MyAutofacBootstrapper();
+            return new MyStructureMapBootstrapper();
         }
     }
 }

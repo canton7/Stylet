@@ -1,4 +1,4 @@
-﻿using Autofac;
+﻿using Microsoft.Practices.Unity;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Bootstrappers.Tests
 {
-    public class MyAutofacBootstrapper : AutofacBootstrapper<TestRootViewModel>, ITestBootstrapper
+    public class MyUnityBootstrapper : UnityBootstrapper<TestRootViewModel>, ITestBootstrapper
     {
         public List<string> ConfigureLog { get; set; }
 
-        public MyAutofacBootstrapper()
+        public MyUnityBootstrapper()
         {
             this.ConfigureLog = new List<string>();
         }
@@ -23,15 +23,15 @@ namespace Bootstrappers.Tests
             this.ConfigureLog.Add("Configure");
         }
 
-        protected override void DefaultConfigureIoC(ContainerBuilder builder)
+        protected override void DefaultConfigureIoC(IUnityContainer container)
         {
-            base.DefaultConfigureIoC(builder);
+            base.DefaultConfigureIoC(container);
             this.ConfigureLog.Add("DefaultConfigureIoC");
         }
 
-        protected override void ConfigureIoC(ContainerBuilder builder)
+        protected override void ConfigureIoC(IUnityContainer container)
         {
-            base.ConfigureIoC(builder);
+            base.ConfigureIoC(container);
             this.ConfigureLog.Add("ConfigureIoC");
         }
 
@@ -46,17 +46,17 @@ namespace Bootstrappers.Tests
         }
     }
 
-    [TestFixture(Category = "Autofac")]
-    public class AutofacTests : BootstrapperTests<MyAutofacBootstrapper>
+    [TestFixture(Category = "Unity")]
+    public class UnityTests : BootstrapperTests<MyUnityBootstrapper>
     {
-        public AutofacTests()
+        public UnityTests()
         {
             this.Autobinds = true;
         }
 
-        public override MyAutofacBootstrapper CreateBootstrapper()
+        public override MyUnityBootstrapper CreateBootstrapper()
         {
-            return new MyAutofacBootstrapper();
+            return new MyUnityBootstrapper();
         }
     }
 }

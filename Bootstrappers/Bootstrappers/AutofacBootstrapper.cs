@@ -36,6 +36,7 @@ namespace Bootstrappers
             builder.RegisterType<WindowManager>().As<IWindowManager>().SingleInstance();
             builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
             builder.RegisterType<MessageBoxViewModel>().As<IMessageBoxViewModel>(); // Not singleton!
+            builder.RegisterAssemblyTypes(this.Assemblies.ToArray());
         }
 
         /// <summary>
