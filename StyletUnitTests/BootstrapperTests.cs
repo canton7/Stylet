@@ -40,19 +40,9 @@ namespace StyletUnitTests
                 base.ConfigureIoC(builder);
             }
 
-            public new object GetInstance(Type service, string key)
+            public new TInstance GetInstance<TInstance>()
             {
-                return base.GetInstance(service, key);
-            }
-
-            public new IEnumerable<object> GetAllInstances(Type service)
-            {
-                return base.GetAllInstances(service);
-            }
-
-            public new void BuildUp(object instance)
-            {
-                base.BuildUp(instance);
+                return base.GetInstance<TInstance>();
             }
         }
 
@@ -103,33 +93,9 @@ namespace StyletUnitTests
             var container = new Mock<IContainer>();
             this.bootstrapper.Container = container.Object;
 
-            container.Setup(x => x.Get(typeof(string), "test")).Returns("hello").Verifiable();
-            var result = this.bootstrapper.GetInstance(typeof(string), "test");
+            container.Setup(x => x.Get<string>(null)).Returns("hello").Verifiable();
+            var result = this.bootstrapper.GetInstance<string>();
             Assert.AreEqual("hello", result);
-            container.Verify();
-        }
-
-        [Test]
-        public void GetAllInstancesMappedToContainer()
-        {
-            var container = new Mock<IContainer>();
-            this.bootstrapper.Container = container.Object;
-
-            container.Setup(x => x.GetAll(typeof(int), null)).Returns(new object[] { 1, 2, 3 }).Verifiable();
-            var result = this.bootstrapper.GetAllInstances(typeof(int));
-            Assert.That(result, Is.EquivalentTo(new[] { 1, 2, 3 }));
-            container.Verify();
-        }
-
-        [Test]
-        public void BuildUpMappedToContainer()
-        {
-            var container = new Mock<IContainer>();
-            this.bootstrapper.Container = container.Object;
-
-            var instance = new object();
-            container.Setup(x => x.BuildUp(instance)).Verifiable();
-            this.bootstrapper.BuildUp(instance);
             container.Verify();
         }
     }

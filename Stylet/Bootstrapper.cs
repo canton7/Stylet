@@ -53,27 +53,13 @@ namespace Stylet
         protected virtual void ConfigureIoC(IStyletIoCBuilder builder) { }
 
         /// <summary>
-        /// Override which uses StyletIoC as the implementation for IoC.Get
+        /// Given a type, use the IoC container to fetch an instance of it
         /// </summary>
-        protected override object GetInstance(Type service, string key = null)
+        /// <typeparam name="T">Instance of type to fetch</typeparam>
+        /// <returns>Fetched instance</returns>
+        protected override T GetInstance<T>()
         {
-            return this.Container.Get(service, key);
-        }
-
-        /// <summary>
-        /// Override which uses StyletIoC as the implementation for IoC.GetAll
-        /// </summary>
-        protected override IEnumerable<object> GetAllInstances(Type service)
-        {
-            return this.Container.GetAll(service);
-        }
-
-        /// <summary>
-        /// Override which uses StyletIoC as the implementation for IoC.BuildUp
-        /// </summary>
-        protected override void BuildUp(object instance)
-        {
-            this.Container.BuildUp(instance);
+            return this.Container.Get<T>();
         }
     }
 }

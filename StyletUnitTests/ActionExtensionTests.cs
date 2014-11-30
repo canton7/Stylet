@@ -43,8 +43,6 @@ namespace StyletUnitTests
         [Test]
         public void ReturnsCommandActionIfTargetObjectPropertyTypeIsICommand()
         {
-            // This will be asked for the IViewManager, which we don't care about for now
-            IoC.GetInstance = (t, k) => null;
             this.provideValueTarget.Setup(x => x.TargetProperty).Returns(Button.CommandProperty);
 
             object value = this.actionExtension.ProvideValue(this.serviceProvider.Object);

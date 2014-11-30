@@ -36,29 +36,17 @@ namespace StyletUnitTests
             }
 
             public bool GetInstanceCalled;
-            protected override object GetInstance(Type service, string key = null)
+            protected override TInstance GetInstance<TInstance>()
             {
+                var service = typeof(TInstance);
                 this.GetInstanceCalled = true;
                 if (service == typeof(IViewManager))
-                    return this.viewManager;
+                    return (TInstance)this.viewManager;
                 if (service == typeof(IWindowManager))
-                    return this.windowManager;
+                    return (TInstance)this.windowManager;
                 if (service == typeof(RootViewModel))
-                    return new RootViewModel();
-                return new object();
-            }
-
-            public bool GetAllInstancesCalled;
-            protected override IEnumerable<object> GetAllInstances(Type service)
-            {
-                this.GetAllInstancesCalled = true;
-                return Enumerable.Empty<object>();
-            }
-
-            public bool BuildUpCalled;
-            protected override void BuildUp(object instance)
-            {
-                this.BuildUpCalled = true;
+                    return (TInstance)(object)new RootViewModel();
+                return default(TInstance);
             }
 
             public bool OnExitCalled;
@@ -98,27 +86,6 @@ namespace StyletUnitTests
             this.viewManager = new Mock<IViewManager>();
             this.windowManager = new Mock<IWindowManager>();
             this.bootstrapper = new MyBootstrapperBase<RootViewModel>(this.viewManager.Object, this.windowManager.Object);
-        }
-
-        [Test]
-        public void AssignsIoCGetInstanceToGetInstance()
-        {
-            IoC.GetInstance(typeof(string), null);
-            Assert.True(this.bootstrapper.GetInstanceCalled);
-        }
-
-        [Test]
-        public void AssignsIoCGetAllInstancesToGetAllInstances()
-        {
-            IoC.GetAllInstances(typeof(string));
-            Assert.True(this.bootstrapper.GetAllInstancesCalled);
-        }
-
-        [Test]
-        public void AssignsIoCBuildUpToBuildUp()
-        {
-            IoC.BuildUp(new object());
-            Assert.True(this.bootstrapper.BuildUpCalled);
         }
 
         [Test]

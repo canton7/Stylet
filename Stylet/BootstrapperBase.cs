@@ -47,11 +47,6 @@ namespace Stylet
         /// </summary>
         protected virtual void Start()
         {
-            // Stitch the IoC shell to us
-            IoC.GetInstance = this.GetInstance;
-            IoC.GetAllInstances = this.GetAllInstances;
-            IoC.BuildUp = this.BuildUp;
-
             // Use the current SynchronizationContext for the Execute helper
             Execute.Dispatcher = new DispatcherWrapper(Dispatcher.CurrentDispatcher);
 
@@ -62,7 +57,7 @@ namespace Stylet
 
             this.Configure();
 
-            View.ViewManager = IoC.Get<IViewManager>();
+            View.ViewManager = this.GetInstance<IViewManager>();
 
             if (!Execute.InDesignMode)
                 this.Launch();
@@ -73,7 +68,9 @@ namespace Stylet
         /// </summary>
         protected virtual void Launch()
         {
-            IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
+            var windowManager = this.GetInstance<IWindowManager>();
+            var rootViewModel = this.GetInstance<TRootViewModel>();
+            windowManager.ShowWindow(rootViewModel);
         }
 
         /// <summary>
@@ -82,25 +79,11 @@ namespace Stylet
         protected virtual void Configure() { }
 
         /// <summary>
-        /// Override this to fetch an implementation of a service from your IoC container. Used by IoC.Get.
+        /// Given a type, use the IoC container to fetch an instance of it
         /// </summary>
-        /// <param name="service">Service type to fetch an implementation of</param>
-        /// <param name="key">String key passed to IoC.Get</param>
-        /// <returns>An instance implementing the service</returns>
-        protected abstract object GetInstance(Type service, string key = null);
-
-        /// <summary>
-        /// Override this to fetch all implementations of a service from your IoC container. Used by IoC.GetAll.
-        /// </summary>
-        /// <param name="service">Service type to fetch all implementations for</param>
-        /// <returns>All instances implementing the service</returns>
-        protected abstract IEnumerable<object> GetAllInstances(Type service);
-
-        /// <summary>
-        /// Override this to build up an instance using your IoC container. Used by IoC.BuildUp
-        /// </summary>
-        /// <param name="instance">Instance to build up</param>
-        protected abstract void BuildUp(object instance);
+        /// <typeparam name="T">Instance of type to fetch</typeparam>
+        /// <returns>Fetched instance</returns>
+        protected abstract T GetInstance<T>();
 
         /// <summary>
         /// Initial contents of AssemblySource.Assemblies, defaults to the entry assembly

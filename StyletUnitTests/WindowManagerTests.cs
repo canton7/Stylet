@@ -70,8 +70,6 @@ namespace StyletUnitTests
             this.viewManager = new Mock<IViewManager>();
             this.messageBoxViewModel = new Mock<IMessageBoxViewModel>();
             this.windowManager = new MyWindowManager(this.viewManager.Object, () => this.messageBoxViewModel.Object);
-
-            IoC.GetInstance = (service, key) => this.viewManager.Object;
         }
 
         [Test]

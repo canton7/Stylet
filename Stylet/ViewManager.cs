@@ -37,6 +37,10 @@ namespace Stylet
         private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
         private readonly Func<Type, UIElement> viewFactory;
 
+        /// <summary>
+        /// Create a new ViewManager, with the given viewFactory
+        /// </summary>
+        /// <param name="viewFactory">Delegate used to create view instances from their type</param>
         public ViewManager(Func<Type, UIElement> viewFactory)
         {
             this.viewFactory = viewFactory;
