@@ -34,7 +34,13 @@ namespace Stylet
     /// </summary>
     public class ViewManager : IViewManager
     {
-        private static ILogger logger = LogManager.GetLogger(typeof(ViewManager));
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
+        private readonly Func<Type, UIElement> viewFactory;
+
+        public ViewManager(Func<Type, UIElement> viewFactory)
+        {
+            this.viewFactory = viewFactory;
+        }
 
         /// <summary>
         /// Called by View whenever its current View.Model changes. Will locate and instantiate the correct view, and set it as the target's Content
@@ -135,7 +141,7 @@ namespace Stylet
                 throw e;
             }
 
-            var view = (UIElement)IoC.GetInstance(viewType, null);
+            var view = this.viewFactory(viewType);
 
             // If it doesn't have a code-behind, this won't be called
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);

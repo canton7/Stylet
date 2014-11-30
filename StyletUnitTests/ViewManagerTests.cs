@@ -30,6 +30,8 @@ namespace StyletUnitTests
 
         private class AccessibleViewManager : ViewManager
         {
+            public AccessibleViewManager() : base(null) { }
+
             public new UIElement CreateViewForModel(object model)
             {
                 return base.CreateViewForModel(model);
@@ -45,6 +47,9 @@ namespace StyletUnitTests
         {
             public UIElement View;
             public object RequestedModel;
+
+            public CreatingAndBindingViewManager() : base(null) { }
+
             protected override UIElement CreateViewForModel(object model)
             {
                 this.RequestedModel = model;
@@ -62,6 +67,8 @@ namespace StyletUnitTests
 
         private class LocatingViewManager : ViewManager
         {
+            public LocatingViewManager(Func<Type, UIElement> viewFactory) : base(viewFactory) { }
+
             public Type LocatedViewType;
             protected override Type LocateViewForModel(Type modelType)
             {
@@ -81,6 +88,8 @@ namespace StyletUnitTests
 
         private class MyViewManager : ViewManager
         {
+            public MyViewManager() : base(null) { }
+
             public new Type LocateViewForModel(Type modelType)
             {
                 return base.LocateViewForModel(modelType);
@@ -166,7 +175,7 @@ namespace StyletUnitTests
         [Test]
         public void CreateViewForModelThrowsIfViewIsNotConcreteUIElement()
         {
-            var viewManager = new LocatingViewManager();
+            var viewManager = new LocatingViewManager(null);
 
             viewManager.LocatedViewType = typeof(I1);
             Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndBindViewForModel(new object()));
@@ -182,13 +191,11 @@ namespace StyletUnitTests
         public void CreateViewForModelCallsFetchesViewAndCallsInitializeComponent()
         {
             var view = new TestView();
-            IoC.GetInstance = (t, k) =>
+            var viewManager = new LocatingViewManager(type =>
             {
-                Assert.AreEqual(typeof(TestView), t);
-                Assert.Null(k);
+                Assert.AreEqual(typeof(TestView), type);
                 return view;
-            };
-            var viewManager = new LocatingViewManager();
+            });
             viewManager.LocatedViewType = typeof(TestView);
 
             var returnedView = viewManager.CreateAndBindViewForModel(new object());
@@ -201,13 +208,11 @@ namespace StyletUnitTests
         public void CreateViewForModelDoesNotComplainIfNoInitializeComponentMethod()
         {
             var view = new UIElement();
-            IoC.GetInstance = (t, k) =>
+            var viewManager = new LocatingViewManager(type =>
             {
-                Assert.AreEqual(typeof(UIElement), t);
-                Assert.Null(k);
+                Assert.AreEqual(typeof(UIElement), type);
                 return view;
-            };
-            var viewManager = new LocatingViewManager();
+            });
             viewManager.LocatedViewType = typeof(UIElement);
 
             var returnedView = viewManager.CreateAndBindViewForModel(new object());

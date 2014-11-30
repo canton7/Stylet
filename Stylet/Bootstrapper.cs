@@ -1,6 +1,7 @@
 ﻿using StyletIoC;
 using System;
 using System.Collections.Generic;
+using System.Windows;
 
 namespace Stylet
 {
@@ -37,9 +38,9 @@ namespace Stylet
         protected virtual void DefaultConfigureIoC(StyletIoCBuilder builder)
         {
             // Mark these as auto-bindings, so the user can replace them if they want
+            builder.Bind<IViewManager>().ToInstance(new ViewManager(type => this.Container.Get(type) as UIElement)).AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();
-            builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IMessageBoxViewModel>().To<MessageBoxViewModel>().AsWeakBinding();
 
             builder.Autobind(AssemblySource.Assemblies);
