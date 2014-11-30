@@ -95,7 +95,6 @@
     <Compile Include="StyletIoC\Internal\TypeExtensions.cs" />
     <Compile Include="ValidatingModelBase.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
-    <Compile Include="AssemblySource.cs" />
     <Compile Include="BindableCollection.cs" />
     <Compile Include="BootstrapperBase.cs" />
     <Compile Include="Xaml\BoolToVisibilityConverter.cs" />

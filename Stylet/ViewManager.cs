@@ -1,6 +1,7 @@
 ﻿using Stylet.Logging;
 using Stylet.Xaml;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -35,14 +36,17 @@ namespace Stylet
     public class ViewManager : IViewManager
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
-        private readonly Func<Type, UIElement> viewFactory;
+        private readonly List<Assembly> assemblies;
+        private readonly Func<Type, object> viewFactory;
 
         /// <summary>
         /// Create a new ViewManager, with the given viewFactory
         /// </summary>
+        /// <param name="assemblies">Assemblies to search for View types in</param>
         /// <param name="viewFactory">Delegate used to create view instances from their type</param>
-        public ViewManager(Func<Type, UIElement> viewFactory)
+        public ViewManager(List<Assembly> assemblies, Func<Type, object> viewFactory)
         {
+            this.assemblies = assemblies;
             this.viewFactory = viewFactory;
         }
 
@@ -103,7 +107,7 @@ namespace Stylet
         protected virtual Type ViewTypeForViewName(string viewName)
         {
             // TODO: This might need some more thinking
-            var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+            var viewType = this.assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
             if (viewType == null)
             {
                 var e = new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
@@ -145,7 +149,7 @@ namespace Stylet
                 throw e;
             }
 
-            var view = this.viewFactory(viewType);
+            var view = this.viewFactory(viewType) as UIElement;
 
             // If it doesn't have a code-behind, this won't be called
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);

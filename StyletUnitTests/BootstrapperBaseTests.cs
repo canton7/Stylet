@@ -56,10 +56,10 @@ namespace StyletUnitTests
             }
 
             public bool ConfigureCalled;
-            protected override void Configure()
+            protected override void ConfigureBootstrapper()
             {
                 this.ConfigureCalled = true;
-                base.Configure();
+                base.ConfigureBootstrapper();
             }
 
             public new void Start()
@@ -77,7 +77,6 @@ namespace StyletUnitTests
         public void FixtureSetUp()
         {
             Execute.TestExecuteSynchronously = true;
-            AssemblySource.Assemblies.Clear();
         }
 
         [SetUp]
@@ -94,14 +93,6 @@ namespace StyletUnitTests
             Execute.Dispatcher = null;
             this.bootstrapper.Start();
             Assert.NotNull(Execute.Dispatcher); // Can't test any further, unfortunately
-        }
-
-        [Test]
-        public void StartSetsUpAssemblySource()
-        {
-            AssemblySource.Assemblies.Add(null);
-            this.bootstrapper.Start();
-            Assert.That(AssemblySource.Assemblies, Is.EquivalentTo(new[] { typeof(BootstrapperBase<>).Assembly, this.bootstrapper.GetType().Assembly }));
         }
 
         [Test]

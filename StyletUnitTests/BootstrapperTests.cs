@@ -29,7 +29,7 @@ namespace StyletUnitTests
 
             public new void Configure()
             {
-                base.Configure();
+                base.ConfigureBootstrapper();
             }
 
             public bool ConfigureIoCCalled;
@@ -52,7 +52,6 @@ namespace StyletUnitTests
         public void FixtureSetUp()
         {
             Execute.TestExecuteSynchronously = true;
-            AssemblySource.Assemblies.Clear();
         }
 
         [SetUp]
@@ -64,7 +63,6 @@ namespace StyletUnitTests
         [Test]
         public void ConfigureBindsRequiredTypes()
         {
-            AssemblySource.Assemblies.Add(this.GetType().Assembly);
             this.bootstrapper.Configure();
             var ioc = this.bootstrapper.Container;
 
@@ -79,7 +77,6 @@ namespace StyletUnitTests
         [Test]
         public void ConfigureCallsConfigureIoCWithCorrectBuilder()
         {
-            AssemblySource.Assemblies.Add(this.GetType().Assembly);
             this.bootstrapper.Configure();
             var ioc = this.bootstrapper.Container;
 

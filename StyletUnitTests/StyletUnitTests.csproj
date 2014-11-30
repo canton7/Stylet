@@ -54,7 +54,6 @@
   <ItemGroup>
     <Compile Include="ActionExtensionTests.cs" />
     <Compile Include="ApplicationLoaderTests.cs" />
-    <Compile Include="AssemblySourceTests.cs" />
     <Compile Include="BindableCollectionTests.cs" />
     <Compile Include="BoolToVisibilityConverterTests.cs" />
     <Compile Include="BootstrapperBaseTests.cs" />

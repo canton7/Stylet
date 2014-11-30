@@ -14,7 +14,6 @@ namespace StyletIntegrationTests
     {
         protected override void Configure()
         {
-            base.Configure();
             LogManager.Enabled = true;
         }
 

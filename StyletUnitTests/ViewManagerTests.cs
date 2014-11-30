@@ -30,7 +30,7 @@ namespace StyletUnitTests
 
         private class AccessibleViewManager : ViewManager
         {
-            public AccessibleViewManager() : base(null) { }
+            public AccessibleViewManager() : base(new List<Assembly>(), null) { }
 
             public new UIElement CreateViewForModel(object model)
             {
@@ -48,7 +48,7 @@ namespace StyletUnitTests
             public UIElement View;
             public object RequestedModel;
 
-            public CreatingAndBindingViewManager() : base(null) { }
+            public CreatingAndBindingViewManager() : base(new List<Assembly>(), null) { }
 
             protected override UIElement CreateViewForModel(object model)
             {
@@ -67,7 +67,7 @@ namespace StyletUnitTests
 
         private class LocatingViewManager : ViewManager
         {
-            public LocatingViewManager(Func<Type, UIElement> viewFactory) : base(viewFactory) { }
+            public LocatingViewManager(Func<Type, UIElement> viewFactory) : base(new List<Assembly>(), viewFactory) { }
 
             public Type LocatedViewType;
             protected override Type LocateViewForModel(Type modelType)
@@ -88,7 +88,7 @@ namespace StyletUnitTests
 
         private class MyViewManager : ViewManager
         {
-            public MyViewManager() : base(null) { }
+            public MyViewManager(List<Assembly> assemblies) : base(assemblies, null) { }
 
             public new Type LocateViewForModel(Type modelType)
             {
@@ -102,13 +102,12 @@ namespace StyletUnitTests
         public void FixtureSetUp()
         {
             Execute.TestExecuteSynchronously = true;
-            AssemblySource.Assemblies.Clear();
         }
 
         [SetUp]
         public void SetUp()
         {
-            this.viewManager = new MyViewManager();
+            this.viewManager = new MyViewManager(new List<Assembly>());
         }
 
         [Test]
@@ -166,9 +165,9 @@ namespace StyletUnitTests
         [Test]
         public void LocateViewForModelFindsViewForModel()
         {
+            var viewManager = new MyViewManager(new List<Assembly>() { Assembly.GetExecutingAssembly() });
             Execute.TestExecuteSynchronously = true;
-            AssemblySource.Assemblies.Add(Assembly.GetExecutingAssembly());
-            var viewType = this.viewManager.LocateViewForModel(typeof(ViewManagerTestsViewModel));
+            var viewType = viewManager.LocateViewForModel(typeof(ViewManagerTestsViewModel));
             Assert.AreEqual(typeof(ViewManagerTestsView), viewType);
         }
 
