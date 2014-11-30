@@ -86,7 +86,7 @@
     </Compile>
     <Compile Include="LambdaEqualityComparer.cs" />
     <Compile Include="Logging\LogManager.cs" />
-    <Compile Include="MessageBox.cs" />
+    <Compile Include="MessageBoxViewModel.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
     <Compile Include="StyletIoC\IContainer.cs" />
     <Compile Include="StyletIoC\IInjectionAware.cs" />
