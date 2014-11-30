@@ -11,11 +11,6 @@ namespace Stylet
     public class Bootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
     {
         /// <summary>
-        /// Create a new Bootstrapper
-        /// </summary>
-        public Bootstrapper() : base() { }
-
-        /// <summary>
         /// IoC container. This is created after ConfigureIoC has been run.
         /// </summary>
         protected IContainer Container;
