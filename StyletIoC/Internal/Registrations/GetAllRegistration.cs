@@ -52,8 +52,9 @@ namespace StyletIoC.Internal.Registrations
             if (this.expression != null)
                 return this.expression;
 
-            var listNew = Expression.New(this.Type);
-            var instanceExpressions = this.parentContext.GetAllRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(registrationContext));
+            var instanceExpressions = this.parentContext.GetAllRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(registrationContext)).ToArray();
+            var listCtor = this.Type.GetConstructor(new[] { typeof(int) }); // ctor which takes capacity
+            var listNew = Expression.New(listCtor, Expression.Constant(instanceExpressions.Length));
             Expression list = instanceExpressions.Any() ? (Expression)Expression.ListInit(listNew, instanceExpressions) : listNew;
 
             Interlocked.CompareExchange(ref this.expression, list, null);

@@ -61,9 +61,7 @@ namespace Stylet
             {
                 INotifyPropertyChanged inpc;
                 if (this.inpc.TryGetTarget(out inpc))
-                {
                     inpc.PropertyChanged -= handler;
-                }
             }
         }
 

@@ -54,7 +54,10 @@ namespace Stylet
         /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
         public bool Equals(LabelledValue<T> other)
         {
-            return other == null ? false : this.Label == other.Label && EqualityComparer<T>.Default.Equals(this.Value, other.Value);
+            if (other == null)
+                return false;
+
+           return this.Label == other.Label && EqualityComparer<T>.Default.Equals(this.Value, other.Value);
         }
 
         /// <summary>

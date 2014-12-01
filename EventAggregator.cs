@@ -95,12 +95,8 @@ namespace Stylet
             lock (this.handlersLock)
             {
                 var existingHandler = this.handlers.FirstOrDefault(x => x.IsHandlerForInstance(handler));
-                if (existingHandler != null)
-                {
-                    if (existingHandler.UnsubscribeFromChannels(channels)) // Handles default topic appropriately
-                        this.handlers.Remove(existingHandler);
-                }
-                    
+                if (existingHandler != null && existingHandler.UnsubscribeFromChannels(channels)) // Handles default topic appropriately
+                    this.handlers.Remove(existingHandler);
             }
         }
 

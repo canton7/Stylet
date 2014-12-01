@@ -11,11 +11,6 @@ namespace Stylet
     public class Bootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
     {
         /// <summary>
-        /// Create a new Bootstrapper
-        /// </summary>
-        public Bootstrapper() : base() { }
-
-        /// <summary>
         /// IoC container. This is created after ConfigureIoC has been run.
         /// </summary>
         protected IContainer Container;
@@ -23,9 +18,10 @@ namespace Stylet
         /// <summary>
         /// Overridden from BootstrapperBase, this sets up the IoC container
         /// </summary>
-        protected override void Configure()
+        protected override sealed void ConfigureBootstrapper()
         {
-            base.Configure();
+            // This needs to be called before the container is set up, as it might affect the assemblies
+            this.Configure();
 
             var builder = new StyletIoCBuilder();
 
@@ -36,18 +32,23 @@ namespace Stylet
         }
 
         /// <summary>
+        /// Override to configure your IoC container, and anything else
+        /// </summary>
+        protected virtual void Configure() { }
+
+        /// <summary>
         /// Carries out default configuration of StyletIoC. Override if you don't want to do this
         /// </summary>
         /// <param name="builder">StyletIoC builder to use to configure the container</param>
         protected virtual void DefaultConfigureIoC(StyletIoCBuilder builder)
         {
             // Mark these as auto-bindings, so the user can replace them if they want
+            builder.Bind<IViewManager>().ToInstance(new ViewManager(this.Assemblies, type => this.Container.Get(type))).AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();
-            builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IMessageBoxViewModel>().To<MessageBoxViewModel>().AsWeakBinding();
 
-            builder.Autobind(AssemblySource.Assemblies);
+            builder.Autobind(this.Assemblies);
         }
 
         /// <summary>
@@ -57,27 +58,13 @@ namespace Stylet
         protected virtual void ConfigureIoC(IStyletIoCBuilder builder) { }
 
         /// <summary>
-        /// Override which uses StyletIoC as the implementation for IoC.Get
+        /// Given a type, use the IoC container to fetch an instance of it
         /// </summary>
-        protected override object GetInstance(Type service, string key = null)
+        /// <typeparam name="T">Instance of type to fetch</typeparam>
+        /// <returns>Fetched instance</returns>
+        protected override T GetInstance<T>()
         {
-            return this.Container.Get(service, key);
-        }
-
-        /// <summary>
-        /// Override which uses StyletIoC as the implementation for IoC.GetAll
-        /// </summary>
-        protected override IEnumerable<object> GetAllInstances(Type service)
-        {
-            return this.Container.GetAll(service);
-        }
-
-        /// <summary>
-        /// Override which uses StyletIoC as the implementation for IoC.BuildUp
-        /// </summary>
-        protected override void BuildUp(object instance)
-        {
-            this.Container.BuildUp(instance);
+            return this.Container.Get<T>();
         }
     }
 }

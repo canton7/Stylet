@@ -21,6 +21,20 @@ namespace Stylet
         protected Application Application { get; private set; }
 
         /// <summary>
+        /// Assemblies which are used for IoC container auto-binding and searching for Views.
+        /// Set this in Configure() if you want to override it
+        /// </summary>
+        protected List<Assembly> Assemblies { get; set; }
+
+        /// <summary>
+        /// Instantiate a new BootstrapperBase
+        /// </summary>
+        public BootstrapperBase()
+        {
+            this.Assemblies = new List<Assembly>() { typeof(BootstrapperBase<>).Assembly, this.GetType().Assembly };
+        }
+
+        /// <summary>
         /// Called by the ApplicationLoader when this bootstrapper is loaded
         /// </summary>
         /// <param name="application"></param>
@@ -43,26 +57,16 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Called from the constructor, this does everything necessary to start the application
+        /// Called on Application.Startup, this does everything necessary to start the application
         /// </summary>
         protected virtual void Start()
         {
-            // Stitch the IoC shell to us
-            IoC.GetInstance = this.GetInstance;
-            IoC.GetAllInstances = this.GetAllInstances;
-            IoC.BuildUp = this.BuildUp;
-
             // Use the current SynchronizationContext for the Execute helper
             Execute.Dispatcher = new DispatcherWrapper(Dispatcher.CurrentDispatcher);
 
-            // Add the current assembly to the assemblies list - this will be needed by the IViewManager
-            // However it must be done *after* the SynchronizationContext has been set, or we'll try to raise a PropertyChanged notification and fail
-            AssemblySource.Assemblies.Clear();
-            AssemblySource.Assemblies.AddRange(this.SelectAssemblies());
+            this.ConfigureBootstrapper();
 
-            this.Configure();
-
-            View.ViewManager = IoC.Get<IViewManager>();
+            View.ViewManager = this.GetInstance<IViewManager>();
 
             if (!Execute.InDesignMode)
                 this.Launch();
@@ -73,43 +77,22 @@ namespace Stylet
         /// </summary>
         protected virtual void Launch()
         {
-            IoC.Get<IWindowManager>().ShowWindow(IoC.Get<TRootViewModel>());
+            var windowManager = this.GetInstance<IWindowManager>();
+            var rootViewModel = this.GetInstance<TRootViewModel>();
+            windowManager.ShowWindow(rootViewModel);
         }
 
         /// <summary>
         /// Override to configure your IoC container, and anything else
         /// </summary>
-        protected virtual void Configure() { }
+        protected virtual void ConfigureBootstrapper() { }
 
         /// <summary>
-        /// Override this to fetch an implementation of a service from your IoC container. Used by IoC.Get.
+        /// Given a type, use the IoC container to fetch an instance of it
         /// </summary>
-        /// <param name="service">Service type to fetch an implementation of</param>
-        /// <param name="key">String key passed to IoC.Get</param>
-        /// <returns>An instance implementing the service</returns>
-        protected abstract object GetInstance(Type service, string key = null);
-
-        /// <summary>
-        /// Override this to fetch all implementations of a service from your IoC container. Used by IoC.GetAll.
-        /// </summary>
-        /// <param name="service">Service type to fetch all implementations for</param>
-        /// <returns>All instances implementing the service</returns>
-        protected abstract IEnumerable<object> GetAllInstances(Type service);
-
-        /// <summary>
-        /// Override this to build up an instance using your IoC container. Used by IoC.BuildUp
-        /// </summary>
-        /// <param name="instance">Instance to build up</param>
-        protected abstract void BuildUp(object instance);
-
-        /// <summary>
-        /// Initial contents of AssemblySource.Assemblies, defaults to the entry assembly
-        /// </summary>
-        /// <returns></returns>
-        protected virtual IEnumerable<Assembly> SelectAssemblies()
-        {
-            return new[] { typeof(BootstrapperBase<>).Assembly, this.GetType().Assembly };
-        }
+        /// <typeparam name="T">Instance of type to fetch</typeparam>
+        /// <returns>Fetched instance</returns>
+        protected abstract T GetInstance<T>();
 
         /// <summary>
         /// Hook called on application startup. This occurs before Start() is called (if autoStart is true)
