@@ -13,7 +13,7 @@ namespace Stylet.Samples.OverridingViewManager
         {
             base.ConfigureIoC(builder);
 
-            builder.Bind<IViewManager>().To<CustomViewManager>().InSingletonScope();
+            builder.Bind<IViewManager>().ToInstance(new CustomViewManager(this.Assemblies, type => this.Container.Get(type)));
         }
     }
 }

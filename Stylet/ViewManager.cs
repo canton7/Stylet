@@ -36,8 +36,16 @@ namespace Stylet
     public class ViewManager : IViewManager
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
-        private readonly List<Assembly> assemblies;
-        private readonly Func<Type, object> viewFactory;
+
+        /// <summary>
+        /// Assemblies searched for View types
+        /// </summary>
+        protected virtual List<Assembly> Assemblies { get; set; }
+
+        /// <summary>
+        /// Factory used to create view instances from their type
+        /// </summary>
+        protected virtual Func<Type, object> ViewFactory { get; set; }
 
         /// <summary>
         /// Create a new ViewManager, with the given viewFactory
@@ -46,8 +54,8 @@ namespace Stylet
         /// <param name="viewFactory">Delegate used to create view instances from their type</param>
         public ViewManager(List<Assembly> assemblies, Func<Type, object> viewFactory)
         {
-            this.assemblies = assemblies;
-            this.viewFactory = viewFactory;
+            this.Assemblies = assemblies;
+            this.ViewFactory = viewFactory;
         }
 
         /// <summary>
@@ -107,7 +115,7 @@ namespace Stylet
         protected virtual Type ViewTypeForViewName(string viewName)
         {
             // TODO: This might need some more thinking
-            var viewType = this.assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+            var viewType = this.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
             if (viewType == null)
             {
                 var e = new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
@@ -149,7 +157,7 @@ namespace Stylet
                 throw e;
             }
 
-            var view = this.viewFactory(viewType) as UIElement;
+            var view = this.ViewFactory(viewType) as UIElement;
 
             // If it doesn't have a code-behind, this won't be called
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
