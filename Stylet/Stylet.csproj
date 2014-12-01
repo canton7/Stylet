@@ -76,7 +76,6 @@
     <Compile Include="StyletIoC\StyletIoCModule.cs" />
     <Compile Include="Xaml\ApplicationLoader.cs" />
     <Compile Include="ConductorNavigating.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IBootstrapper.cs" />
     <Compile Include="IValidationAdapter.cs" />
     <Compile Include="LabelledValue.cs" />

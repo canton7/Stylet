@@ -40,12 +40,12 @@ namespace Stylet
         /// <summary>
         /// Assemblies searched for View types
         /// </summary>
-        protected virtual List<Assembly> Assemblies { get; set; }
+        protected List<Assembly> Assemblies { get; set; }
 
         /// <summary>
         /// Factory used to create view instances from their type
         /// </summary>
-        protected virtual Func<Type, object> ViewFactory { get; set; }
+        protected Func<Type, object> ViewFactory { get; set; }
 
         /// <summary>
         /// Create a new ViewManager, with the given viewFactory
@@ -196,6 +196,7 @@ namespace Stylet
     /// <summary>
     /// Exception raised while attempting to locate a View for a ViewModel
     /// </summary>
+    [Serializable]
     public class StyletViewLocationException : Exception
     {
         /// <summary>
