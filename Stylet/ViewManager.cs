@@ -1,6 +1,7 @@
 ﻿using Stylet.Logging;
 using Stylet.Xaml;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -34,7 +35,28 @@ namespace Stylet
     /// </summary>
     public class ViewManager : IViewManager
     {
-        private static ILogger logger = LogManager.GetLogger(typeof(ViewManager));
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
+
+        /// <summary>
+        /// Assemblies searched for View types
+        /// </summary>
+        protected List<Assembly> Assemblies { get; set; }
+
+        /// <summary>
+        /// Factory used to create view instances from their type
+        /// </summary>
+        protected Func<Type, object> ViewFactory { get; set; }
+
+        /// <summary>
+        /// Create a new ViewManager, with the given viewFactory
+        /// </summary>
+        /// <param name="assemblies">Assemblies to search for View types in</param>
+        /// <param name="viewFactory">Delegate used to create view instances from their type</param>
+        public ViewManager(List<Assembly> assemblies, Func<Type, object> viewFactory)
+        {
+            this.Assemblies = assemblies;
+            this.ViewFactory = viewFactory;
+        }
 
         /// <summary>
         /// Called by View whenever its current View.Model changes. Will locate and instantiate the correct view, and set it as the target's Content
@@ -93,7 +115,7 @@ namespace Stylet
         protected virtual Type ViewTypeForViewName(string viewName)
         {
             // TODO: This might need some more thinking
-            var viewType = AssemblySource.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+            var viewType = this.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
             if (viewType == null)
             {
                 var e = new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
@@ -135,7 +157,7 @@ namespace Stylet
                 throw e;
             }
 
-            var view = (UIElement)IoC.GetInstance(viewType, null);
+            var view = this.ViewFactory(viewType) as UIElement;
 
             // If it doesn't have a code-behind, this won't be called
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
@@ -174,6 +196,7 @@ namespace Stylet
     /// <summary>
     /// Exception raised while attempting to locate a View for a ViewModel
     /// </summary>
+    [Serializable]
     public class StyletViewLocationException : Exception
     {
         /// <summary>

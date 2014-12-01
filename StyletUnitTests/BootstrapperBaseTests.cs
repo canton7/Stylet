@@ -36,29 +36,17 @@ namespace StyletUnitTests
             }
 
             public bool GetInstanceCalled;
-            protected override object GetInstance(Type service, string key = null)
+            protected override TInstance GetInstance<TInstance>()
             {
+                var service = typeof(TInstance);
                 this.GetInstanceCalled = true;
                 if (service == typeof(IViewManager))
-                    return this.viewManager;
+                    return (TInstance)this.viewManager;
                 if (service == typeof(IWindowManager))
-                    return this.windowManager;
+                    return (TInstance)this.windowManager;
                 if (service == typeof(RootViewModel))
-                    return new RootViewModel();
-                return new object();
-            }
-
-            public bool GetAllInstancesCalled;
-            protected override IEnumerable<object> GetAllInstances(Type service)
-            {
-                this.GetAllInstancesCalled = true;
-                return Enumerable.Empty<object>();
-            }
-
-            public bool BuildUpCalled;
-            protected override void BuildUp(object instance)
-            {
-                this.BuildUpCalled = true;
+                    return (TInstance)(object)new RootViewModel();
+                return default(TInstance);
             }
 
             public bool OnExitCalled;
@@ -68,10 +56,10 @@ namespace StyletUnitTests
             }
 
             public bool ConfigureCalled;
-            protected override void Configure()
+            protected override void ConfigureBootstrapper()
             {
                 this.ConfigureCalled = true;
-                base.Configure();
+                base.ConfigureBootstrapper();
             }
 
             public new void Start()
@@ -89,7 +77,6 @@ namespace StyletUnitTests
         public void FixtureSetUp()
         {
             Execute.TestExecuteSynchronously = true;
-            AssemblySource.Assemblies.Clear();
         }
 
         [SetUp]
@@ -101,40 +88,11 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void AssignsIoCGetInstanceToGetInstance()
-        {
-            IoC.GetInstance(typeof(string), null);
-            Assert.True(this.bootstrapper.GetInstanceCalled);
-        }
-
-        [Test]
-        public void AssignsIoCGetAllInstancesToGetAllInstances()
-        {
-            IoC.GetAllInstances(typeof(string));
-            Assert.True(this.bootstrapper.GetAllInstancesCalled);
-        }
-
-        [Test]
-        public void AssignsIoCBuildUpToBuildUp()
-        {
-            IoC.BuildUp(new object());
-            Assert.True(this.bootstrapper.BuildUpCalled);
-        }
-
-        [Test]
         public void StartAssignsExecuteDispatcher()
         {
             Execute.Dispatcher = null;
             this.bootstrapper.Start();
             Assert.NotNull(Execute.Dispatcher); // Can't test any further, unfortunately
-        }
-
-        [Test]
-        public void StartSetsUpAssemblySource()
-        {
-            AssemblySource.Assemblies.Add(null);
-            this.bootstrapper.Start();
-            Assert.That(AssemblySource.Assemblies, Is.EquivalentTo(new[] { typeof(BootstrapperBase<>).Assembly, this.bootstrapper.GetType().Assembly }));
         }
 
         [Test]

@@ -66,13 +66,34 @@ namespace Stylet
         public BindableCollection(IEnumerable<T> collection) : base(collection) { }
 
         /// <summary>
+        /// PropertyChanged event (per <see cref="INotifyPropertyChanged" />).
+        /// </summary>
+        protected override event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Occurs when the collection changes, either by adding or removing an item.
+        /// </summary>
+        /// <remarks>
+        /// see <seealso cref="INotifyCollectionChanged"/>
+        /// </remarks>
+        public override event NotifyCollectionChangedEventHandler CollectionChanged;
+
+        /// <summary>
         /// Raises the System.Collections.ObjectModel.ObservableCollection{T}.PropertyChanged event with the provided arguments.
         /// </summary>
         /// <param name="e">Arguments of the event being raised.</param>
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
-            if (this.isNotifying)
-                this.PropertyChangedDispatcher(() => base.OnPropertyChanged(e));
+            // Avoid doing a dispatch if nothing's subscribed....
+            if (this.isNotifying && this.PropertyChanged != null)
+            {
+                this.PropertyChangedDispatcher(() =>
+                {
+                    var handler = this.PropertyChanged;
+                    if (handler != null)
+                        handler(this, e);
+                });
+            }
         }
 
         /// <summary>
@@ -81,8 +102,21 @@ namespace Stylet
         /// <param name="e">Arguments of the event being raised.</param>
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            if (this.isNotifying)
-                this.PropertyChangedDispatcher(() => base.OnCollectionChanged(e));
+            // Avoid doing a dispatch if nothing's subscribed....
+            if (this.isNotifying && this.CollectionChanged != null)
+            {
+                this.PropertyChangedDispatcher(() =>
+                {
+                    var handler = this.CollectionChanged;
+                    if (handler != null)
+                    {
+                        using (this.BlockReentrancy())
+                        {
+                            handler(this, e);
+                        }
+                    }
+                });
+            }
         }
 
         /// <summary>
@@ -118,9 +152,7 @@ namespace Stylet
             {
                 var index = IndexOf(item);
                 if (index >= 0)
-                {
                     this.RemoveItem(index);
-                }
             }
             this.isNotifying = previousNotificationSetting;
             this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));

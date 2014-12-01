@@ -76,7 +76,6 @@
     <Compile Include="StyletIoC\StyletIoCModule.cs" />
     <Compile Include="Xaml\ApplicationLoader.cs" />
     <Compile Include="ConductorNavigating.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IBootstrapper.cs" />
     <Compile Include="IValidationAdapter.cs" />
     <Compile Include="LabelledValue.cs" />
@@ -86,7 +85,7 @@
     </Compile>
     <Compile Include="LambdaEqualityComparer.cs" />
     <Compile Include="Logging\LogManager.cs" />
-    <Compile Include="MessageBox.cs" />
+    <Compile Include="MessageBoxViewModel.cs" />
     <Compile Include="StyletConductorExtensions.cs" />
     <Compile Include="StyletIoC\IContainer.cs" />
     <Compile Include="StyletIoC\IInjectionAware.cs" />
@@ -95,7 +94,6 @@
     <Compile Include="StyletIoC\Internal\TypeExtensions.cs" />
     <Compile Include="ValidatingModelBase.cs" />
     <Compile Include="Xaml\ActionExtension.cs" />
-    <Compile Include="AssemblySource.cs" />
     <Compile Include="BindableCollection.cs" />
     <Compile Include="BootstrapperBase.cs" />
     <Compile Include="Xaml\BoolToVisibilityConverter.cs" />
@@ -112,7 +110,6 @@
     <Compile Include="Execute.cs" />
     <Compile Include="ExpressionExtensions.cs" />
     <Compile Include="IConductor.cs" />
-    <Compile Include="IoC.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="IScreen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -8,33 +8,51 @@ using System.Windows;
 namespace Stylet
 {
     /// <summary>
-    /// Class holding extension method(s) on IWindowManager, used to show a MessageBox
+    /// Optional configuration for a MessageBox
     /// </summary>
-    public static class MessageBoxWindowManagerExtensions
+    public class MessageBoxConfig
     {
         /// <summary>
-        /// Show a MessageBox, which looks very similar to the WPF MessageBox, but allows your ViewModel to be unit tested
+        /// Text to display in the body of the MessageBox
         /// </summary>
-        /// <param name="windowManager">WindowManager to use to display the MessageBox</param>
-        /// <param name="text">Text to display in the body of the MessageBox</param>
-        /// <param name="title">Title to display in the titlebar of the MessageBox</param>
-        /// <param name="buttons">Button, or Buttons, to display on the MessageBox</param>
-        /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
-        /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
-        /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        /// <param name="options">Additional options</param>
-        /// <param name="buttonLabels">You may override the text for individual buttons on a case-by-case basis</param>
-        /// <returns>Which button the user clicked</returns>
-        public static MessageBoxResult ShowMessageBox(this IWindowManager windowManager, string text, string title = "",
-            MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None,
-            MessageBoxResult defaultButton = MessageBoxResult.None, MessageBoxResult cancelButton = MessageBoxResult.None,
-            MessageBoxOptions options = MessageBoxOptions.None,
-            IDictionary<MessageBoxResult, string> buttonLabels = null)
+        public MessageBoxButton Buttons { get; set; }
+
+        /// <summary>
+        /// Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown
+        /// </summary>
+        public MessageBoxImage Icon { get; set; }
+
+        /// <summary>
+        /// Button pressed when the user presses Enter. Defaults to the leftmost button
+        /// </summary>
+        public MessageBoxResult DefaultButton { get; set; }
+
+        /// <summary>
+        /// Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button
+        /// </summary>
+        public MessageBoxResult CancelButton { get; set; }
+
+        /// <summary>
+        /// Additional options
+        /// </summary>
+        public MessageBoxOptions Options { get; set; }
+
+        /// <summary>
+        /// You may override the text for individual buttons on a case-by-case basis
+        /// </summary>
+        public IDictionary<MessageBoxResult, string> ButtonLabels { get; set; }
+
+        /// <summary>
+        /// Create a new instance with default configuration
+        /// </summary>
+        public MessageBoxConfig()
         {
-            var vm = IoC.Get<IMessageBoxViewModel>();
-            vm.Setup(text, title, buttons, icon, defaultButton, cancelButton, options, buttonLabels);
-            windowManager.ShowDialog(vm);
-            return vm.ClickedButton;
+            this.Buttons = MessageBoxButton.OK;
+            this.Icon = MessageBoxImage.None;
+            this.DefaultButton = MessageBoxResult.None;
+            this.CancelButton = MessageBoxResult.None;
+            this.Options = MessageBoxOptions.None;
+            this.ButtonLabels = null;
         }
     }
 
@@ -48,15 +66,8 @@ namespace Stylet
         /// </summary>
         /// <param name="text">Text to display in the body of the MessageBox</param>
         /// <param name="title">Title to display in the titlebar of the MessageBox</param>
-        /// <param name="buttons">Button, or Buttons, to display on the MessageBox</param>
-        /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
-        /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
-        /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        /// <param name="options">Additional options</param>
-        /// <param name="buttonLabels">You may override the text for individual buttons on a case-by-case basis</param>
-        void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon,
-            MessageBoxResult defaultButton, MessageBoxResult cancelButton, MessageBoxOptions options,
-            IDictionary<MessageBoxResult, string> buttonLabels = null);
+        /// <param name="config">Other configuration. Optional</param>
+        void Setup(string text, string title, MessageBoxConfig config = null);
 
         /// <summary>
         /// After the user has clicked a button, holds which button was clicked
@@ -132,53 +143,48 @@ namespace Stylet
         /// </summary>
         /// <param name="text">Text to display in the body of the MessageBox</param>
         /// <param name="title">Title to display in the titlebar of the MessageBox</param>
-        /// <param name="buttons">Button, or Buttons, to display on the MessageBox</param>
-        /// <param name="icon">Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown</param>
-        /// <param name="defaultButton">Button pressed when the user presses Enter. Defaults to the leftmost button</param>
-        /// <param name="cancelButton">Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button</param>
-        /// <param name="options">Additional options</param>
-        /// <param name="buttonLabels">You may override the text for individual buttons on a case-by-case basis</param>
-        public void Setup(string text, string title, MessageBoxButton buttons, MessageBoxImage icon,
-            MessageBoxResult defaultButton, MessageBoxResult cancelButton, MessageBoxOptions options,
-            IDictionary<MessageBoxResult, string> buttonLabels)
+        /// <param name="config">Other configuration. Optional</param>
+        public void Setup(string text, string title, MessageBoxConfig config = null)
         {
+            config = config ?? new MessageBoxConfig();
+
             this.Text = text;
             this.DisplayName = title;
-            this.Icon = icon;
+            this.Icon = config.Icon;
 
             var buttonList = new List<LabelledValue<MessageBoxResult>>();
             this.ButtonList = buttonList;
-            foreach (var val in ButtonToResults[buttons])
+            foreach (var val in ButtonToResults[config.Buttons])
             {
                 string label;
-                if (buttonLabels == null || !buttonLabels.TryGetValue(val, out label))
+                if (config.ButtonLabels == null || !config.ButtonLabels.TryGetValue(val, out label))
                     label = ButtonLabels[val];
                     
                 var lbv = new LabelledValue<MessageBoxResult>(label, val);
                 buttonList.Add(lbv);
-                if (val == defaultButton)
+                if (val == config.DefaultButton)
                     this.DefaultButton = lbv;
-                else if (val == cancelButton)
+                else if (val == config.CancelButton)
                     this.CancelButton = lbv;
             }
             // If they didn't specify a button which we showed, then pick a default, if we can
             if (this.DefaultButton == null)
             {
-                if (defaultButton == MessageBoxResult.None && this.ButtonList.Any())
+                if (config.DefaultButton == MessageBoxResult.None && this.ButtonList.Any())
                     this.DefaultButton = buttonList[0];
                 else
                     throw new ArgumentException("DefaultButton set to a button which doesn't appear in Buttons");
             }
             if (this.CancelButton == null)
             {
-                if (cancelButton == MessageBoxResult.None && this.ButtonList.Any())
+                if (config.CancelButton == MessageBoxResult.None && this.ButtonList.Any())
                     this.CancelButton = buttonList.Last();
                 else
                     throw new ArgumentException("CancelButton set to a button which doesn't appear in Buttons");
             }
 
-            this.FlowDirection = options.HasFlag(MessageBoxOptions.RtlReading) ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
-            this.TextAlignment = (options.HasFlag(MessageBoxOptions.RightAlign) == options.HasFlag(MessageBoxOptions.RtlReading)) ? TextAlignment.Left : TextAlignment.Right;
+            this.FlowDirection = config.Options.HasFlag(MessageBoxOptions.RtlReading) ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+            this.TextAlignment = (config.Options.HasFlag(MessageBoxOptions.RightAlign) == config.Options.HasFlag(MessageBoxOptions.RtlReading)) ? TextAlignment.Left : TextAlignment.Right;
         }
 
         /// <summary>

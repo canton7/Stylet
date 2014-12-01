@@ -14,7 +14,6 @@ namespace StyletIntegrationTests
     {
         protected override void Configure()
         {
-            base.Configure();
             LogManager.Enabled = true;
         }
 
@@ -24,7 +23,7 @@ namespace StyletIntegrationTests
             var message = e.Exception.Message;
             if (e.Exception is TargetInvocationException)
                 message = e.Exception.InnerException.Message;
-            IoC.Get<IWindowManager>().ShowMessageBox(String.Format("Unhandled Exception: {0}", message));
+            this.Container.Get<IWindowManager>().ShowMessageBox(String.Format("Unhandled Exception: {0}", message));
             e.Handled = true;
         }
     }
