@@ -1,6 +1,14 @@
 Stylet Changelog
 ================
 
+v1.0.1
+------
+
+ - Remove the IoC static service locator. It's no longer needed internally, and I don't want to encourage such bad behaviour. You can write your own easily if you need - see the docs
+ - Remove the static AssemblySource class, instead using a collection stored on the Bootstrapper
+ - Add Bootstrappers projects, with sample bootstrappers for a range of IoC containers
+ - Remove extension methods on IContainer, instead putting them in the interface. This means people don't have to have 'using StyletIoC' in order to see the methods they want to use
+
 v1.0.0
 ------
 
