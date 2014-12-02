@@ -1,6 +1,13 @@
 Stylet Changelog
 ================
 
+v1.0.2
+------
+
+ - Move back to separate arguments for ShowMessageBox - this is more consistent with MessageBox.Show
+ - ViewManager now accepts an IViewManagerConfig (implemented by BootstrapperBase), which simplifies the IoC container setup
+ - Add an overridable CanClose() method to screen (called by the CanCloseAsync version by default). This means screens don't have to deal with tasks if they're fully synchronous
+
 v1.0.1
 ------
 
