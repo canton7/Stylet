@@ -55,6 +55,12 @@ namespace StyletUnitTests
             {
                 this.OnViewLoadedCalled = true;
             }
+
+            public bool? CanCloseResult = null;
+            protected override bool CanClose()
+            {
+                return this.CanCloseResult == null ? base.CanClose() : this.CanCloseResult.Value;
+            }
         }
 
         private MyScreen screen;
@@ -248,11 +254,20 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void CanCloseAsyncReturnsCompletedTrueTask()
+        public void CanCloseAsyncReturnsTrueByDefault()
         {
             var task = this.screen.CanCloseAsync();
             Assert.IsTrue(task.IsCompleted);
             Assert.IsTrue(task.Result);
+        }
+
+        [Test]
+        public void CanCloseAsyncReturnsResultOfCanClose()
+        {
+            this.screen.CanCloseResult = false;
+            var task = this.screen.CanCloseAsync();
+            Assert.IsTrue(task.IsCompleted);
+            Assert.IsFalse(task.Result);
         }
 
         [Test]

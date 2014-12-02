@@ -220,10 +220,20 @@ namespace Stylet
         /// <summary>
         /// Called when a conductor wants to know whether this screen can close.
         /// </summary>
+        /// <remarks>Internally, this calls CanClose, and wraps the response in a Task</remarks>
         /// <returns>A task returning true (can close) or false (can't close)</returns>
         public virtual Task<bool> CanCloseAsync()
         {
-            return Task.FromResult(true);
+            return Task.FromResult(this.CanClose());
+        }
+
+        /// <summary>
+        /// Synchronous alternative to CanClose
+        /// </summary>
+        /// <returns>True if this screen can close, or false otherwise</returns>
+        protected virtual bool CanClose()
+        {
+            return true; 
         }
 
         #endregion
