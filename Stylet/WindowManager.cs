@@ -27,12 +27,23 @@ namespace Stylet
         bool? ShowDialog(object viewModel);
 
         /// <summary>
-        /// Setup the MessageBoxViewModel with the information it needs
+        /// Display a MessageBox
         /// </summary>
-        /// <param name="text">Text to display in the body of the MessageBox</param>
-        /// <param name="title">Title to display in the titlebar of the MessageBox</param>
-        /// <param name="config">Other configuration. Optional</param>
-        MessageBoxResult ShowMessageBox(string text, string title = "", MessageBoxConfig config = null);
+        /// <param name="messageBoxText">A System.String that specifies the text to display.</param>
+        /// <param name="caption">A System.String that specifies the title bar caption to display.</param>
+        /// <param name="buttons">A System.Windows.MessageBoxButton value that specifies which button or buttons to display.</param>
+        /// <param name="icon">A System.Windows.MessageBoxImage value that specifies the icon to display.</param>
+        /// <param name="defaultResult">A System.Windows.MessageBoxResult value that specifies the default result of the message box.</param>
+        /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
+        /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
+        /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
+        MessageBoxResult ShowMessageBox(string messageBoxText, string caption = null,
+            MessageBoxButton buttons = MessageBoxButton.OK,
+            MessageBoxImage icon = MessageBoxImage.None,
+            MessageBoxResult defaultResult = MessageBoxResult.None,
+            MessageBoxResult cancelResult = MessageBoxResult.None,
+            MessageBoxOptions options = MessageBoxOptions.None,
+            IDictionary<MessageBoxResult, string> buttonLabels = null);
     }
 
     /// <summary>
@@ -75,15 +86,26 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Setup the MessageBoxViewModel with the information it needs
+        /// Display a MessageBox
         /// </summary>
-        /// <param name="text">Text to display in the body of the MessageBox</param>
-        /// <param name="title">Title to display in the titlebar of the MessageBox</param>
-        /// <param name="config">Other configuration. Optional</param>
-        public MessageBoxResult ShowMessageBox(string text, string title = "", MessageBoxConfig config = null)
+        /// <param name="messageBoxText">A System.String that specifies the text to display.</param>
+        /// <param name="caption">A System.String that specifies the title bar caption to display.</param>
+        /// <param name="buttons">A System.Windows.MessageBoxButton value that specifies which button or buttons to display.</param>
+        /// <param name="icon">A System.Windows.MessageBoxImage value that specifies the icon to display.</param>
+        /// <param name="defaultResult">A System.Windows.MessageBoxResult value that specifies the default result of the message box.</param>
+        /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
+        /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
+        /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
+        public MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "",
+            MessageBoxButton buttons = MessageBoxButton.OK,
+            MessageBoxImage icon = MessageBoxImage.None,
+            MessageBoxResult defaultResult = MessageBoxResult.None,
+            MessageBoxResult cancelResult = MessageBoxResult.None,
+            MessageBoxOptions options = MessageBoxOptions.None,
+            IDictionary<MessageBoxResult, string> buttonLabels = null)
         {
             var vm = this.messageBoxViewModelFactory();
-            vm.Setup(text, title, config);
+            vm.Setup(messageBoxText, caption, buttons, icon, defaultResult, cancelResult, options, buttonLabels);
             this.ShowDialog(vm);
             return vm.ClickedButton;
         }
