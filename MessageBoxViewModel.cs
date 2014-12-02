@@ -8,55 +8,6 @@ using System.Windows;
 namespace Stylet
 {
     /// <summary>
-    /// Optional configuration for a MessageBox
-    /// </summary>
-    public class MessageBoxConfig
-    {
-        /// <summary>
-        /// Text to display in the body of the MessageBox
-        /// </summary>
-        public MessageBoxButton Buttons { get; set; }
-
-        /// <summary>
-        /// Icon to display to the left of the text. This also determines the sound played when the MessageBox is shown
-        /// </summary>
-        public MessageBoxImage Icon { get; set; }
-
-        /// <summary>
-        /// Button pressed when the user presses Enter. Defaults to the leftmost button
-        /// </summary>
-        public MessageBoxResult DefaultButton { get; set; }
-
-        /// <summary>
-        /// Button pressed when the user preses Esc or clicks the red X on the titlebar. Defaults to the rightmost button
-        /// </summary>
-        public MessageBoxResult CancelButton { get; set; }
-
-        /// <summary>
-        /// Additional options
-        /// </summary>
-        public MessageBoxOptions Options { get; set; }
-
-        /// <summary>
-        /// You may override the text for individual buttons on a case-by-case basis
-        /// </summary>
-        public IDictionary<MessageBoxResult, string> ButtonLabels { get; set; }
-
-        /// <summary>
-        /// Create a new instance with default configuration
-        /// </summary>
-        public MessageBoxConfig()
-        {
-            this.Buttons = MessageBoxButton.OK;
-            this.Icon = MessageBoxImage.None;
-            this.DefaultButton = MessageBoxResult.None;
-            this.CancelButton = MessageBoxResult.None;
-            this.Options = MessageBoxOptions.None;
-            this.ButtonLabels = null;
-        }
-    }
-
-    /// <summary>
     /// Interface for a MessageBoxViewModel. MessageBoxWindowManagerExtensions.ShowMessageBox will use the configured implementation of this
     /// </summary>
     public interface IMessageBoxViewModel
@@ -64,10 +15,21 @@ namespace Stylet
         /// <summary>
         /// Setup the MessageBoxViewModel with the information it needs
         /// </summary>
-        /// <param name="text">Text to display in the body of the MessageBox</param>
-        /// <param name="title">Title to display in the titlebar of the MessageBox</param>
-        /// <param name="config">Other configuration. Optional</param>
-        void Setup(string text, string title, MessageBoxConfig config = null);
+        /// <param name="messageBoxText">A System.String that specifies the text to display.</param>
+        /// <param name="caption">A System.String that specifies the title bar caption to display.</param>
+        /// <param name="buttons">A System.Windows.MessageBoxButton value that specifies which button or buttons to display.</param>
+        /// <param name="icon">A System.Windows.MessageBoxImage value that specifies the icon to display.</param>
+        /// <param name="defaultResult">A System.Windows.MessageBoxResult value that specifies the default result of the message box.</param>
+        /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
+        /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
+        /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
+        void Setup(string messageBoxText, string caption = null,
+            MessageBoxButton buttons = MessageBoxButton.OK,
+            MessageBoxImage icon = MessageBoxImage.None,
+            MessageBoxResult defaultResult = MessageBoxResult.None,
+            MessageBoxResult cancelResult = MessageBoxResult.None,
+            MessageBoxOptions options = MessageBoxOptions.None,
+            IDictionary<MessageBoxResult, string> buttonLabels = null);
 
         /// <summary>
         /// After the user has clicked a button, holds which button was clicked
@@ -141,50 +103,59 @@ namespace Stylet
         /// <summary>
         /// Setup the MessageBoxViewModel with the information it needs
         /// </summary>
-        /// <param name="text">Text to display in the body of the MessageBox</param>
-        /// <param name="title">Title to display in the titlebar of the MessageBox</param>
-        /// <param name="config">Other configuration. Optional</param>
-        public void Setup(string text, string title, MessageBoxConfig config = null)
+        /// <param name="messageBoxText">A System.String that specifies the text to display.</param>
+        /// <param name="caption">A System.String that specifies the title bar caption to display.</param>
+        /// <param name="buttons">A System.Windows.MessageBoxButton value that specifies which button or buttons to display.</param>
+        /// <param name="icon">A System.Windows.MessageBoxImage value that specifies the icon to display.</param>
+        /// <param name="defaultResult">A System.Windows.MessageBoxResult value that specifies the default result of the message box.</param>
+        /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
+        /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
+        /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
+        public void Setup(string messageBoxText, string caption = null,
+            MessageBoxButton buttons = MessageBoxButton.OK,
+            MessageBoxImage icon = MessageBoxImage.None,
+            MessageBoxResult defaultResult = MessageBoxResult.None,
+            MessageBoxResult cancelResult = MessageBoxResult.None,
+            MessageBoxOptions options = MessageBoxOptions.None,
+            IDictionary<MessageBoxResult, string> buttonLabels = null)
         {
-            config = config ?? new MessageBoxConfig();
-
-            this.Text = text;
-            this.DisplayName = title;
-            this.Icon = config.Icon;
+            this.Text = messageBoxText;
+            this.DisplayName = caption;
+            this.Icon = icon;
 
             var buttonList = new List<LabelledValue<MessageBoxResult>>();
             this.ButtonList = buttonList;
-            foreach (var val in ButtonToResults[config.Buttons])
+            foreach (var val in ButtonToResults[buttons])
             {
                 string label;
-                if (config.ButtonLabels == null || !config.ButtonLabels.TryGetValue(val, out label))
+                if (buttonLabels == null || !buttonLabels.TryGetValue(val, out label))
                     label = ButtonLabels[val];
                     
                 var lbv = new LabelledValue<MessageBoxResult>(label, val);
                 buttonList.Add(lbv);
-                if (val == config.DefaultButton)
+                if (val == defaultResult)
                     this.DefaultButton = lbv;
-                else if (val == config.CancelButton)
+                else if (val == cancelResult)
                     this.CancelButton = lbv;
             }
             // If they didn't specify a button which we showed, then pick a default, if we can
             if (this.DefaultButton == null)
             {
-                if (config.DefaultButton == MessageBoxResult.None && this.ButtonList.Any())
+                if (defaultResult == MessageBoxResult.None && this.ButtonList.Any())
                     this.DefaultButton = buttonList[0];
                 else
                     throw new ArgumentException("DefaultButton set to a button which doesn't appear in Buttons");
             }
             if (this.CancelButton == null)
             {
-                if (config.CancelButton == MessageBoxResult.None && this.ButtonList.Any())
+                if (cancelResult == MessageBoxResult.None && this.ButtonList.Any())
                     this.CancelButton = buttonList.Last();
                 else
                     throw new ArgumentException("CancelButton set to a button which doesn't appear in Buttons");
             }
 
-            this.FlowDirection = config.Options.HasFlag(MessageBoxOptions.RtlReading) ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
-            this.TextAlignment = (config.Options.HasFlag(MessageBoxOptions.RightAlign) == config.Options.HasFlag(MessageBoxOptions.RtlReading)) ? TextAlignment.Left : TextAlignment.Right;
+            this.FlowDirection = options.HasFlag(MessageBoxOptions.RtlReading) ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+            this.TextAlignment = (options.HasFlag(MessageBoxOptions.RightAlign) == options.HasFlag(MessageBoxOptions.RtlReading)) ? TextAlignment.Left : TextAlignment.Right;
         }
 
         /// <summary>
