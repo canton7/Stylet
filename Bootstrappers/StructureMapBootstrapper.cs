@@ -34,7 +34,8 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(ConfigurationExpression config)
         {
-            config.For<IViewManager>().Add(new ViewManager(this.Assemblies, type => this.container.GetInstance<IMessageBoxViewModel>()));
+            config.For<IViewManagerConfig>().Add(this);
+            config.For<IViewManager>().Add<ViewManager>().LifecycleIs<SingletonLifecycle>();
             config.For<IWindowManager>().Add<WindowManager>().LifecycleIs<SingletonLifecycle>();
             config.For<IEventAggregator>().Add<EventAggregator>().LifecycleIs<SingletonLifecycle>();
             config.For<IMessageBoxViewModel>().Add<MessageBoxViewModel>().LifecycleIs<UniquePerRequestLifecycle>();
@@ -49,9 +50,9 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureIoC(ConfigurationExpression config) { }
 
-        protected override T GetInstance<T>()
+        public override object GetInstance(Type type)
         {
-            return this.container.GetInstance<T>();
+            return this.container.GetInstance(type);
         }
     }
 }

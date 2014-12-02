@@ -32,7 +32,8 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(ContainerBuilder builder)
         {
-            builder.RegisterInstance(new ViewManager(this.Assemblies, type => this.container.Resolve(type))).As<IViewManager>().SingleInstance();
+            builder.RegisterInstance<IViewManagerConfig>(this);
+            builder.RegisterType<ViewManager>().As<IViewManager>().SingleInstance();
             builder.RegisterType<WindowManager>().As<IWindowManager>().SingleInstance();
             builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
             builder.RegisterType<MessageBoxViewModel>().As<IMessageBoxViewModel>(); // Not singleton!
@@ -44,9 +45,9 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureIoC(ContainerBuilder builder) { }
 
-        protected override T GetInstance<T>()
+        public override object GetInstance(Type type)
         {
-            return this.container.Resolve<T>();
+            return this.container.Resolve(type);
         }
     }
 }

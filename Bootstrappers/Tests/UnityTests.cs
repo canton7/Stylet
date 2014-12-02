@@ -35,9 +35,9 @@ namespace Bootstrappers.Tests
             this.ConfigureLog.Add("ConfigureIoC");
         }
 
-        public new T GetInstance<T>()
+        public new object GetInstance(Type type)
         {
-            return base.GetInstance<T>();
+            return base.GetInstance(type);
         }
 
         public new void ConfigureBootstrapper()

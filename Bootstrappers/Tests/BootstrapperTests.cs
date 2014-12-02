@@ -12,7 +12,7 @@ namespace Bootstrappers.Tests
 
     public interface ITestBootstrapper
     {
-        T GetInstance<T>();
+        object GetInstance(Type type);
         void ConfigureBootstrapper();
         List<string> ConfigureLog { get; }
     }
@@ -40,60 +40,60 @@ namespace Bootstrappers.Tests
         [Test]
         public void ReturnsCorrectViewManager()
         {
-            var vm = this.bootstrapper.GetInstance<IViewManager>();
+            var vm = this.bootstrapper.GetInstance(typeof(IViewManager));
             Assert.IsInstanceOf<ViewManager>(vm);
         }
 
         [Test]
         public void ReturnsSingletonViewManager()
         {
-            var vm1 = this.bootstrapper.GetInstance<IViewManager>();
-            var vm2 = this.bootstrapper.GetInstance<IViewManager>();
+            var vm1 = this.bootstrapper.GetInstance(typeof(IViewManager));
+            var vm2 = this.bootstrapper.GetInstance(typeof(IViewManager));
             Assert.AreEqual(vm1, vm2);
         }
 
         [Test]
         public void ReturnsCorrectWindowManager()
         {
-            var wm = this.bootstrapper.GetInstance<IWindowManager>();
+            var wm = this.bootstrapper.GetInstance(typeof(IWindowManager));
             Assert.IsInstanceOf<WindowManager>(wm);
         }
 
         [Test]
         public void ReturnsSingletonWindowManager()
         {
-            var wm1 = this.bootstrapper.GetInstance<IWindowManager>();
-            var wm2 = this.bootstrapper.GetInstance<IWindowManager>();
+            var wm1 = this.bootstrapper.GetInstance(typeof(IWindowManager));
+            var wm2 = this.bootstrapper.GetInstance(typeof(IWindowManager));
             Assert.AreEqual(wm1, wm2);
         }
 
         [Test]
         public void ReturnsCorrectEventAggregator()
         {
-            var ea = this.bootstrapper.GetInstance<IEventAggregator>();
+            var ea = this.bootstrapper.GetInstance(typeof(IEventAggregator));
             Assert.IsInstanceOf<EventAggregator>(ea);
         }
 
         [Test]
         public void ReturnsSingletonEventAggregator()
         {
-            var ea1 = this.bootstrapper.GetInstance<IEventAggregator>();
-            var ea2 = this.bootstrapper.GetInstance<IEventAggregator>();
+            var ea1 = this.bootstrapper.GetInstance(typeof(IEventAggregator));
+            var ea2 = this.bootstrapper.GetInstance(typeof(IEventAggregator));
             Assert.AreEqual(ea1, ea2);
         }
 
         [Test]
         public void ReturnsCorrectMessageBoxViewModel()
         {
-            var mb = this.bootstrapper.GetInstance<IMessageBoxViewModel>();
+            var mb = this.bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
             Assert.IsInstanceOf<MessageBoxViewModel>(mb);
         }
 
         [Test]
         public void ReturnsTransientMessageBoxViewModel()
         {
-            var mb1 = this.bootstrapper.GetInstance<IMessageBoxViewModel>();
-            var mb2 = this.bootstrapper.GetInstance<IMessageBoxViewModel>();
+            var mb1 = this.bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
+            var mb2 = this.bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
             Assert.AreNotEqual(mb1, mb2);
         }
 
@@ -103,9 +103,9 @@ namespace Bootstrappers.Tests
             if (!this.Autobinds)
                 Assert.Ignore("Autobinding not supported");
 
-            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance<TestRootViewModel>());
-            var vm1 = this.bootstrapper.GetInstance<TestRootViewModel>();
-            var vm2 = this.bootstrapper.GetInstance<TestRootViewModel>();
+            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance(typeof(TestRootViewModel)));
+            var vm1 = this.bootstrapper.GetInstance(typeof(TestRootViewModel));
+            var vm2 = this.bootstrapper.GetInstance(typeof(TestRootViewModel));
 
             Assert.NotNull(vm1);
             Assert.AreNotEqual(vm1, vm2); 
@@ -118,9 +118,9 @@ namespace Bootstrappers.Tests
                 Assert.Ignore("Autobinding not supported");
 
             // Pick a random class with no dependencies...
-            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance<StyletIoC.StyletIoCBuilder>());
-            var vm1 = this.bootstrapper.GetInstance<StyletIoC.StyletIoCBuilder>();
-            var vm2 = this.bootstrapper.GetInstance<StyletIoC.StyletIoCBuilder>();
+            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance(typeof(StyletIoC.StyletIoCBuilder)));
+            var vm1 = this.bootstrapper.GetInstance(typeof(StyletIoC.StyletIoCBuilder));
+            var vm2 = this.bootstrapper.GetInstance(typeof(StyletIoC.StyletIoCBuilder));
 
             Assert.NotNull(vm1);
             Assert.AreNotEqual(vm1, vm2);

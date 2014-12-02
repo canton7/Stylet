@@ -279,13 +279,12 @@ namespace StyletUnitTests
         [Test]
         public void ShowMessageBoxShowsMessageBox()
         {
-            var config = new MessageBoxConfig();
             var wm = new WindowManagerWithoutCreateWindow(this.viewManager.Object, () => this.messageBoxViewModel.Object);
 
-            try { wm.ShowMessageBox("text", "title", config); }
+            try { wm.ShowMessageBox("text", "title", MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxResult.Cancel, MessageBoxOptions.RtlReading); }
             catch (TestException) { }
 
-            this.messageBoxViewModel.Verify(x => x.Setup("text", "title", config));
+            this.messageBoxViewModel.Verify(x => x.Setup("text", "title", MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxResult.Cancel, MessageBoxOptions.RtlReading, null));
         }
     }
 }

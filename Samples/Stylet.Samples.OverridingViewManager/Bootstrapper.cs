@@ -11,9 +11,7 @@ namespace Stylet.Samples.OverridingViewManager
     {
         protected override void ConfigureIoC(IStyletIoCBuilder builder)
         {
-            base.ConfigureIoC(builder);
-
-            builder.Bind<IViewManager>().ToInstance(new CustomViewManager(this.Assemblies, type => this.Container.Get(type)));
+            builder.Bind<IViewManager>().To<CustomViewManager>();
         }
     }
 }
