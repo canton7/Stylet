@@ -52,7 +52,7 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureIoC(IWindsorContainer container) { }
 
-        protected override object GetInstance(Type type)
+        public override object GetInstance(Type type)
         {
             return this.container.Resolve(type);
         }

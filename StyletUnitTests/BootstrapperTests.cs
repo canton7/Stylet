@@ -39,11 +39,6 @@ namespace StyletUnitTests
                 builder.Bind<I1>().To<C1>();
                 base.ConfigureIoC(builder);
             }
-
-            public new object GetInstance(Type type)
-            {
-                return base.GetInstance(type);
-            }
         }
 
         private MyBootstrapper<RootViewModel> bootstrapper;

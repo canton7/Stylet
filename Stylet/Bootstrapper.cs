@@ -63,7 +63,7 @@ namespace Stylet
         /// </summary>
         /// <param name="type">Type to fetch</param>
         /// <returns>Fetched instance</returns>
-        protected override object GetInstance(Type type)
+        public override object GetInstance(Type type)
         {
             return this.Container.Get(type);
         }

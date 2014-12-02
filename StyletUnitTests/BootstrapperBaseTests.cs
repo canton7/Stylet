@@ -36,7 +36,7 @@ namespace StyletUnitTests
             }
 
             public bool GetInstanceCalled;
-            protected override object GetInstance(Type service)
+            public override object GetInstance(Type service)
             {
                 this.GetInstanceCalled = true;
                 if (service == typeof(IViewManager))

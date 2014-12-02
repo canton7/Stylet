@@ -18,13 +18,13 @@ namespace Stylet
         /// <summary>
         /// Reference to the current application
         /// </summary>
-        protected Application Application { get; private set; }
+        public Application Application { get; private set; }
 
         /// <summary>
         /// Assemblies which are used for IoC container auto-binding and searching for Views.
         /// Set this in Configure() if you want to override it
         /// </summary>
-        protected List<Assembly> Assemblies { get; set; }
+        public IList<Assembly> Assemblies { get; protected set; }
 
         /// <summary>
         /// Instantiate a new BootstrapperBase
@@ -59,7 +59,7 @@ namespace Stylet
         /// <summary>
         /// Called on Application.Startup, this does everything necessary to start the application
         /// </summary>
-        protected virtual void Start()
+        public virtual void Start()
         {
             // Use the current SynchronizationContext for the Execute helper
             Execute.Dispatcher = new DispatcherWrapper(Dispatcher.CurrentDispatcher);
@@ -92,7 +92,7 @@ namespace Stylet
         /// </summary>
         /// <param name="type">Type of instance to fetch</param>
         /// <returns>Fetched instance</returns>
-        protected abstract object GetInstance(Type type);
+        public abstract object GetInstance(Type type);
 
         /// <summary>
         /// Hook called on application startup. This occurs before Start() is called (if autoStart is true)
@@ -110,15 +110,5 @@ namespace Stylet
         /// Hook called on an unhandled exception
         /// </summary>
         protected virtual void OnApplicationUnhandledExecption(object sender, DispatcherUnhandledExceptionEventArgs e) { }
-
-        IList<Assembly> IViewManagerConfig.Assemblies
-        {
-            get { return this.Assemblies; }
-        }
-
-        object IViewManagerConfig.GetInstance(Type type)
-        {
-            return this.GetInstance(type);
-        }
     }
 }

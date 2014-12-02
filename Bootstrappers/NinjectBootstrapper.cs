@@ -43,7 +43,7 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureIoC(IKernel kernel) { }
 
-        protected override object GetInstance(Type type)
+        public override object GetInstance(Type type)
         {
             return this.kernel.Get(type);
         }

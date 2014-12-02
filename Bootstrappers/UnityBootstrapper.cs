@@ -46,7 +46,7 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureIoC(IUnityContainer container) { }
 
-        protected override object GetInstance(Type type)
+        public override object GetInstance(Type type)
         {
             return this.container.Resolve(type);
         }

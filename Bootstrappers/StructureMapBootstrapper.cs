@@ -50,7 +50,7 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureIoC(ConfigurationExpression config) { }
 
-        protected override object GetInstance(Type type)
+        public override object GetInstance(Type type)
         {
             return this.container.GetInstance(type);
         }
