@@ -43,7 +43,8 @@ namespace Stylet
         protected virtual void DefaultConfigureIoC(StyletIoCBuilder builder)
         {
             // Mark these as auto-bindings, so the user can replace them if they want
-            builder.Bind<IViewManager>().ToInstance(new ViewManager(this.Assemblies, type => this.Container.Get(type))).AsWeakBinding();
+            builder.Bind<IViewManagerConfig>().ToInstance(this).AsWeakBinding();
+            builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();
             builder.Bind<IMessageBoxViewModel>().To<MessageBoxViewModel>().AsWeakBinding();
@@ -60,11 +61,11 @@ namespace Stylet
         /// <summary>
         /// Given a type, use the IoC container to fetch an instance of it
         /// </summary>
-        /// <typeparam name="T">Instance of type to fetch</typeparam>
+        /// <param name="type">Type to fetch</param>
         /// <returns>Fetched instance</returns>
-        protected override T GetInstance<T>()
+        protected override object GetInstance(Type type)
         {
-            return this.Container.Get<T>();
+            return this.Container.Get(type);
         }
     }
 }

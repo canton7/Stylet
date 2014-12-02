@@ -31,9 +31,9 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(IKernel kernel)
         {
-            var viewManager = new ViewManager(this.Assemblies, type => kernel.Get(type));
-            kernel.Bind<IViewManager>().ToConstant(viewManager);
-            kernel.Bind<IWindowManager>().ToConstant(new WindowManager(viewManager, () => kernel.Get<IMessageBoxViewModel>()));
+            kernel.Bind<IViewManagerConfig>().ToConstant(this);
+            kernel.Bind<IViewManager>().To<ViewManager>().InSingletonScope();
+            kernel.Bind<IWindowManager>().ToMethod(c => new WindowManager(c.Kernel.Get<IViewManager>(), () => c.Kernel.Get<IMessageBoxViewModel>())).InSingletonScope();
             kernel.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope();
             kernel.Bind<IMessageBoxViewModel>().To<MessageBoxViewModel>(); // Not singleton!
         }
@@ -43,9 +43,9 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureIoC(IKernel kernel) { }
 
-        protected override T GetInstance<T>()
+        protected override object GetInstance(Type type)
         {
-            return this.kernel.Get<T>();
+            return this.kernel.Get(type);
         }
     }
 }

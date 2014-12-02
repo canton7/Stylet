@@ -31,6 +31,25 @@ namespace Stylet
     }
 
     /// <summary>
+    /// Configuration passed to ViewManager (normally implemented by BootstrapperBase)
+    /// </summary>
+    public interface IViewManagerConfig
+    {
+        /// <summary>
+        /// Assemblies which are used for IoC container auto-binding and searching for Views.
+        /// Set this in Configure() if you want to override it
+        /// </summary>
+        IList<Assembly> Assemblies { get; }
+
+        /// <summary>
+        /// Given a type, use the IoC container to fetch an instance of it
+        /// </summary>
+        /// <param name="type">Type of instance to fetch</param>
+        /// <returns>Fetched instance</returns>
+        object GetInstance(Type type);
+    }
+
+    /// <summary>
     /// Default implementation of ViewManager. Responsible for locating, creating, and settings up Views. Also owns the View.Model and View.ActionTarget attached properties
     /// </summary>
     public class ViewManager : IViewManager
@@ -40,7 +59,7 @@ namespace Stylet
         /// <summary>
         /// Assemblies searched for View types
         /// </summary>
-        protected List<Assembly> Assemblies { get; set; }
+        protected IList<Assembly> Assemblies { get; set; }
 
         /// <summary>
         /// Factory used to create view instances from their type
@@ -50,12 +69,11 @@ namespace Stylet
         /// <summary>
         /// Create a new ViewManager, with the given viewFactory
         /// </summary>
-        /// <param name="assemblies">Assemblies to search for View types in</param>
-        /// <param name="viewFactory">Delegate used to create view instances from their type</param>
-        public ViewManager(List<Assembly> assemblies, Func<Type, object> viewFactory)
+        /// <param name="config">Configuration</param>
+        public ViewManager(IViewManagerConfig config)
         {
-            this.Assemblies = assemblies;
-            this.ViewFactory = viewFactory;
+            this.Assemblies = config.Assemblies;
+            this.ViewFactory = config.GetInstance;
         }
 
         /// <summary>

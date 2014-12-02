@@ -13,7 +13,7 @@ namespace Stylet
     /// Bootstrapper to be extended by applications which don't want to use StyletIoC as the IoC container.
     /// </summary>
     /// <typeparam name="TRootViewModel">Type of the root ViewModel. This will be instantiated and displayed</typeparam>
-    public abstract class BootstrapperBase<TRootViewModel> : IBootstrapper where TRootViewModel : class
+    public abstract class BootstrapperBase<TRootViewModel> : IBootstrapper, IViewManagerConfig where TRootViewModel : class
     {
         /// <summary>
         /// Reference to the current application
@@ -66,7 +66,7 @@ namespace Stylet
 
             this.ConfigureBootstrapper();
 
-            View.ViewManager = this.GetInstance<IViewManager>();
+            View.ViewManager = (IViewManager)this.GetInstance(typeof(IViewManager));
 
             if (!Execute.InDesignMode)
                 this.Launch();
@@ -77,8 +77,8 @@ namespace Stylet
         /// </summary>
         protected virtual void Launch()
         {
-            var windowManager = this.GetInstance<IWindowManager>();
-            var rootViewModel = this.GetInstance<TRootViewModel>();
+            var windowManager = (IWindowManager)this.GetInstance(typeof(IWindowManager));
+            var rootViewModel = this.GetInstance(typeof(TRootViewModel));
             windowManager.ShowWindow(rootViewModel);
         }
 
@@ -90,9 +90,9 @@ namespace Stylet
         /// <summary>
         /// Given a type, use the IoC container to fetch an instance of it
         /// </summary>
-        /// <typeparam name="T">Instance of type to fetch</typeparam>
+        /// <param name="type">Type of instance to fetch</param>
         /// <returns>Fetched instance</returns>
-        protected abstract T GetInstance<T>();
+        protected abstract object GetInstance(Type type);
 
         /// <summary>
         /// Hook called on application startup. This occurs before Start() is called (if autoStart is true)
@@ -110,5 +110,15 @@ namespace Stylet
         /// Hook called on an unhandled exception
         /// </summary>
         protected virtual void OnApplicationUnhandledExecption(object sender, DispatcherUnhandledExceptionEventArgs e) { }
+
+        IList<Assembly> IViewManagerConfig.Assemblies
+        {
+            get { return this.Assemblies; }
+        }
+
+        object IViewManagerConfig.GetInstance(Type type)
+        {
+            return this.GetInstance(type);
+        }
     }
 }

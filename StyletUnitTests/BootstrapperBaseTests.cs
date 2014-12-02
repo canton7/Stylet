@@ -36,17 +36,16 @@ namespace StyletUnitTests
             }
 
             public bool GetInstanceCalled;
-            protected override TInstance GetInstance<TInstance>()
+            protected override object GetInstance(Type service)
             {
-                var service = typeof(TInstance);
                 this.GetInstanceCalled = true;
                 if (service == typeof(IViewManager))
-                    return (TInstance)this.viewManager;
+                    return this.viewManager;
                 if (service == typeof(IWindowManager))
-                    return (TInstance)this.windowManager;
+                    return this.windowManager;
                 if (service == typeof(RootViewModel))
-                    return (TInstance)(object)new RootViewModel();
-                return default(TInstance);
+                    return new RootViewModel();
+                return null;
             }
 
             public bool OnExitCalled;

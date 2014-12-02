@@ -29,8 +29,8 @@ namespace Stylet.Samples.OverridingViewManager
         // Dictionary of ViewModel type -> View type
         private readonly Dictionary<Type, Type> viewModelToViewMapping;
 
-        public CustomViewManager(List<Assembly> assemblies, Func<Type, object> viewFactory)
-            : base(assemblies, viewFactory)
+        public CustomViewManager(IViewManagerConfig config)
+            : base(config)
         {
             var mappings = from type in this.Assemblies.SelectMany(x => x.GetTypes())
                            let attribute = type.GetCustomAttribute<ViewModelAttribute>()

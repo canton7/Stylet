@@ -31,10 +31,10 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(IUnityContainer container)
         {
-            var viewManager = new ViewManager(this.Assemblies, type => container.Resolve(type));
-            container.RegisterInstance<IViewManager>(viewManager);
             // For some reason using ContainerControlledLifetimeManager results in a transient registration....
             // This is a workaround
+            var viewManager = new ViewManager(this);
+            container.RegisterInstance<IViewManager>(viewManager);
             container.RegisterInstance<IWindowManager>(new WindowManager(viewManager, () => container.Resolve<IMessageBoxViewModel>()));
             container.RegisterInstance<IEventAggregator>(new EventAggregator());
             container.RegisterType<IMessageBoxViewModel, MessageBoxViewModel>(new PerResolveLifetimeManager());
@@ -46,9 +46,9 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureIoC(IUnityContainer container) { }
 
-        protected override T GetInstance<T>()
+        protected override object GetInstance(Type type)
         {
-            return this.container.Resolve<T>();
+            return this.container.Resolve(type);
         }
     }
 }

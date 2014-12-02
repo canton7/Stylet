@@ -40,9 +40,9 @@ namespace StyletUnitTests
                 base.ConfigureIoC(builder);
             }
 
-            public new TInstance GetInstance<TInstance>()
+            public new object GetInstance(Type type)
             {
-                return base.GetInstance<TInstance>();
+                return base.GetInstance(type);
             }
         }
 
@@ -90,8 +90,8 @@ namespace StyletUnitTests
             var container = new Mock<IContainer>();
             this.bootstrapper.Container = container.Object;
 
-            container.Setup(x => x.Get<string>(null)).Returns("hello").Verifiable();
-            var result = this.bootstrapper.GetInstance<string>();
+            container.Setup(x => x.Get(typeof(string), null)).Returns("hello").Verifiable();
+            var result = this.bootstrapper.GetInstance(typeof(string));
             Assert.AreEqual("hello", result);
             container.Verify();
         }

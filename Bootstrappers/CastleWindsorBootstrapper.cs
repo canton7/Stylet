@@ -35,7 +35,8 @@ namespace Bootstrappers
         {
             container.AddFacility<TypedFactoryFacility>();
             container.Register(
-                Component.For<IViewManager>().Instance(new ViewManager(this.Assemblies, type => this.container.Resolve(type))),
+                Component.For<IViewManagerConfig>().Instance(this),
+                Component.For<IViewManager>().ImplementedBy<ViewManager>().LifestyleSingleton(),
                 Component.For<IWindowManager>().ImplementedBy<WindowManager>().LifestyleSingleton(),
                 Component.For<IEventAggregator>().ImplementedBy<EventAggregator>().LifestyleSingleton(),
                 Component.For<IMessageBoxViewModel>().ImplementedBy<MessageBoxViewModel>().LifestyleTransient()
@@ -51,9 +52,9 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureIoC(IWindsorContainer container) { }
 
-        protected override T GetInstance<T>()
+        protected override object GetInstance(Type type)
         {
-            return this.container.Resolve<T>();
+            return this.container.Resolve(type);
         }
     }
 }
