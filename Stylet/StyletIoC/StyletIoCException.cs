@@ -5,7 +5,7 @@ namespace StyletIoC
     /// <summary>
     /// Base class for all exceptions describing StyletIoC-specific problems?
     /// </summary>
-    [Serializable]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public abstract class StyletIoCException : Exception
     {
         internal StyletIoCException(string message) : base(message) { }
@@ -15,7 +15,6 @@ namespace StyletIoC
     /// <summary>
     /// A problem occured with a registration process (failed to register, failed to find a registration, etc)
     /// </summary>
-    [Serializable]
     public class StyletIoCRegistrationException : StyletIoCException
     {
         internal StyletIoCRegistrationException(string message) : base(message) { }
@@ -25,7 +24,6 @@ namespace StyletIoC
     /// <summary>
     /// StyletIoC was unable to find a callable constructor for a type
     /// </summary>
-    [Serializable]
     public class StyletIoCFindConstructorException : StyletIoCException
     {
         internal StyletIoCFindConstructorException(string message) : base(message) { }
@@ -34,7 +32,6 @@ namespace StyletIoC
     /// <summary>
     /// StyletIoC was unable to create an abstract factory
     /// </summary>
-    [Serializable]
     public class StyletIoCCreateFactoryException : StyletIoCException
     {
         internal StyletIoCCreateFactoryException(string message) : base(message) { }
