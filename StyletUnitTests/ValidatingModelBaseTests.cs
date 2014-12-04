@@ -31,10 +31,10 @@ namespace StyletUnitTests
                 set { base.AutoValidate = value; }
             }
 
-            public IModelValidator Validator
+            public new IModelValidator Validator
             {
-                get { return this.validator; }
-                set { this.validator = value; }
+                get { return base.Validator; }
+                set { base.Validator = value; }
             }
 
             public new bool Validate()

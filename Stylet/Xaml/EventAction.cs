@@ -35,8 +35,8 @@ namespace Stylet.Xaml
 
         private object target;
 
-        private ActionUnavailableBehaviour targetNullBehaviour;
-        private ActionUnavailableBehaviour actionNonExistentBehaviour;
+        private readonly ActionUnavailableBehaviour targetNullBehaviour;
+        private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
 
         /// <summary>
         /// Create a new EventAction

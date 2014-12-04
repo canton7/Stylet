@@ -17,10 +17,10 @@ namespace StyletUnitTests
     {
         private class MyScreen : Screen
         {
-            public IModelValidator Validator
+            public new IModelValidator Validator
             {
-                get { return base.validator; }
-                set { base.validator = value; }
+                get { return base.Validator; }
+                set { base.Validator = value; }
             }
 
             public MyScreen() { }
