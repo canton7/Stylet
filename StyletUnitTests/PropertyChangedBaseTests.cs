@@ -99,7 +99,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void UsesExecutesDispatcherByDefault()
+        public void UsesStaticDispatcherByDefault()
         {
             Action action = null;
             var oldDispatcher = Execute.DefaultPropertyChangedDispatcher;
