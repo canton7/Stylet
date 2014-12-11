@@ -71,9 +71,14 @@ namespace Stylet
         private static bool? inDesignMode;
 
         /// <summary>
-        /// Default dispatcher used by PropertyChangedBase instances. Defaults to OnUIThread
+        /// Default dispatcher used by PropertyChanged events. Defaults to OnUIThread
         /// </summary>
-        public static Action<Action> DefaultPropertyChangedDispatcher = Execute.OnUIThreadSync;
+        public static Action<Action> DefaultPropertyChangedDispatcher = a => a();
+
+        /// <summary>
+        /// Default dispatcher used by CollectionChanged events. Defaults to OnUIThreadSync
+        /// </summary>
+        public static Action<Action> DefaultCollectionChangedDispatcher = Execute.OnUIThreadSync;
 
         private static void EnsureDispatcher()
         {

@@ -15,7 +15,7 @@ namespace Stylet
             /// </summary>
             public class OneActive : ConductorBaseWithActiveItem<T>
             {
-                private BindableCollection<T> items = new BindableCollection<T>();
+                private readonly BindableCollection<T> items = new BindableCollection<T>();
 
                 /// <summary>
                 /// Items owned by this Conductor, one of which is active

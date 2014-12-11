@@ -214,7 +214,7 @@ namespace Stylet
     /// <summary>
     /// Exception raised while attempting to locate a View for a ViewModel
     /// </summary>
-    [Serializable]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class StyletViewLocationException : Exception
     {
         /// <summary>

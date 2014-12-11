@@ -41,12 +41,23 @@ namespace Stylet
     {
         private Action<Action> _propertyChangedDispatcher = Execute.DefaultPropertyChangedDispatcher;
         /// <summary>
-        /// Dispatcher to use when firing events. Defaults to Execute.DefaultPropertyChangedDispatcher
+        /// Dispatcher to use when firing events. Defaults to BindableCollection.DefaultPropertyChangedDispatcher
         /// </summary>
         public Action<Action> PropertyChangedDispatcher
         {
             get { return this._propertyChangedDispatcher; }
             set { this._propertyChangedDispatcher = value; }
+        }
+
+        private Action<Action> _collectionChangedDispatcher = Execute.DefaultCollectionChangedDispatcher;
+
+        /// <summary>
+        /// Dispatcher to use when firing CollectionChanged events. Defaults to BindableCollection.DefaultCollectionChangedDispatcher
+        /// </summary>
+        public Action<Action> CollectionChangedDispatcher
+        {
+            get { return this._collectionChangedDispatcher; }
+            set { this._collectionChangedDispatcher = value; }
         }
 
         /// <summary>

@@ -80,10 +80,6 @@
     <Compile Include="IValidationAdapter.cs" />
     <Compile Include="LabelledValue.cs" />
     <Compile Include="INotifyPropertyChangedDispatcher.cs" />
-    <Compile Include="LambdaComparer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LambdaEqualityComparer.cs" />
     <Compile Include="Logging\LogManager.cs" />
     <Compile Include="MessageBoxViewModel.cs" />
     <Compile Include="StyletConductorExtensions.cs" />

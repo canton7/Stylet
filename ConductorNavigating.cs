@@ -13,7 +13,7 @@ namespace Stylet
         public class StackNavigation : ConductorBaseWithActiveItem<T>
         {
             // We need to remove arbitrary items, so no Stack<T> here!
-            private List<T> history = new List<T>();
+            private readonly List<T> history = new List<T>();
 
             /// <summary>
             /// Activate the given item. This deactivates the previous item, and pushes it onto the history stack

@@ -19,7 +19,7 @@ namespace Stylet
             /// </summary>
             public class AllActive : ConductorBase<T>
             {
-                private BindableCollection<T> items = new BindableCollection<T>();
+                private readonly BindableCollection<T> items = new BindableCollection<T>();
 
                 /// <summary>
                 /// All items associated with this conductor
