@@ -75,8 +75,6 @@
     <Compile Include="ExpressionExtensionsTests.cs" />
     <Compile Include="IconToBitmapSourceConverterTests.cs" />
     <Compile Include="LabelledValueTests.cs" />
-    <Compile Include="LambdaComparerTests.cs" />
-    <Compile Include="LambdaEqualityComparerTests.cs" />
     <Compile Include="StyletLogManagerTests.cs" />
     <Compile Include="MessageBoxTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

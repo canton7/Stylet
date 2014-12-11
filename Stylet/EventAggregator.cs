@@ -123,7 +123,7 @@ namespace Stylet
         {
             private readonly WeakReference target;
             private readonly List<HandlerInvoker> invokers = new List<HandlerInvoker>();
-            private HashSet<string> channels = new HashSet<string>();
+            private readonly HashSet<string> channels = new HashSet<string>();
 
             public Handler(object handler, string[] channels)
             {

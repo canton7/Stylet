@@ -29,7 +29,7 @@ namespace Stylet
         /// <summary>
         /// IModelValidator to use to validate properties. You're expected to write your own, using your favourite validation library
         /// </summary>
-        protected virtual IModelValidator validator
+        protected virtual IModelValidator Validator
         {
             get { return this._validator; }
             set
@@ -98,7 +98,7 @@ namespace Stylet
         /// <remarks>If you override this, you MUST fire ErrorsChanged as appropriate, and call ValidationStateChanged</remarks>
         protected virtual async Task<bool> ValidateAsync()
         {
-            if (this.validator == null)
+            if (this.Validator == null)
                 throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
             bool anyChanged = false;
@@ -107,7 +107,7 @@ namespace Stylet
             // However this means that the stuff after the await can be run in parallel on multiple threads
             // Therefore, we need the lock
             // However, we can't raise PropertyChanged events from within the lock, otherwise deadlock
-            var results = await this.validator.ValidateAllPropertiesAsync().ConfigureAwait(false);
+            var results = await this.Validator.ValidateAllPropertiesAsync().ConfigureAwait(false);
             var changedProperties = new List<string>();
             await this.propertyErrorsLock.WaitAsync().ConfigureAwait(false);
             {
@@ -185,12 +185,12 @@ namespace Stylet
         /// <remarks>If you override this, you MUST fire ErrorsChange and call OnValidationStateChanged() if appropriate</remarks>
         protected virtual async Task<bool> ValidatePropertyAsync([CallerMemberName] string propertyName = null)
         {
-            if (this.validator == null)
+            if (this.Validator == null)
                 throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
             // To allow synchronous calling of this method, we need to resume on the ThreadPool.
             // Therefore, we might resume on any thread, hence the need for a lock
-            var newErrors = await this.validator.ValidatePropertyAsync(propertyName).ConfigureAwait(false);
+            var newErrors = await this.Validator.ValidatePropertyAsync(propertyName).ConfigureAwait(false);
             bool propertyErrorsChanged = false;
 
             await this.propertyErrorsLock.WaitAsync().ConfigureAwait(false);
@@ -222,7 +222,7 @@ namespace Stylet
 
             // Save ourselves a little bit of work every time HasErrors is fired as the result of 
             // the validation results changing.
-            if (this.validator != null && this.AutoValidate && propertyName != "HasErrors")
+            if (this.Validator != null && this.AutoValidate && propertyName != "HasErrors")
                 await this.ValidatePropertyAsync(propertyName);
         }
 

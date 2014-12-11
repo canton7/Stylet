@@ -15,7 +15,7 @@ namespace Stylet.Xaml
         /// <summary>
         /// Singleton instance of this converter. Usage e.g. Converter="{x:Static s:IconToBitmapSourceConverter.Instance}"
         /// </summary>
-        public static IconToBitmapSourceConverter Instance = new IconToBitmapSourceConverter();
+        public static readonly IconToBitmapSourceConverter Instance = new IconToBitmapSourceConverter();
 
         /// <summary>
         /// Converts a value

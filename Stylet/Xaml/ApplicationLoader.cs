@@ -8,7 +8,7 @@ namespace Stylet.Xaml
     /// </summary>
     public class ApplicationLoader : ResourceDictionary
     {
-        private ResourceDictionary styletResourceDictionary;
+        private readonly ResourceDictionary styletResourceDictionary;
 
         /// <summary>
         /// Create a new ApplicationLoader instance

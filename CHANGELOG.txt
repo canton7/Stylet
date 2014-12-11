@@ -1,6 +1,12 @@
 Stylet Changelog
 ================
 
+v1.0.3
+------
+
+ - Remove LambdaComparer and LambdaEqualityComparer - they don't really have a place in a UI framework
+ - Have different default PropertyChanged and CollectionChanged dispatchers
+
 v1.0.2
 ------
 
