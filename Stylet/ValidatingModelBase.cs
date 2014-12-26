@@ -113,12 +113,13 @@ namespace Stylet
             {
                 foreach (var kvp in results)
                 {
+                    var newErrors = kvp.Value == null ? null : kvp.Value.ToArray();
                     if (!this.propertyErrors.ContainsKey(kvp.Key))
-                        this.propertyErrors[kvp.Key] = kvp.Value;
-                    else if (this.ErrorsEqual(this.propertyErrors[kvp.Key], kvp.Value))
+                        this.propertyErrors[kvp.Key] = newErrors;
+                    else if (this.ErrorsEqual(this.propertyErrors[kvp.Key], newErrors))
                         continue;
                     else
-                        this.propertyErrors[kvp.Key] = kvp.Value;
+                        this.propertyErrors[kvp.Key] = newErrors;
                     anyChanged = true;
                     changedProperties.Add(kvp.Key);
                 }
@@ -190,7 +191,8 @@ namespace Stylet
 
             // To allow synchronous calling of this method, we need to resume on the ThreadPool.
             // Therefore, we might resume on any thread, hence the need for a lock
-            var newErrors = await this.Validator.ValidatePropertyAsync(propertyName).ConfigureAwait(false);
+            var newErrorsRaw = await this.Validator.ValidatePropertyAsync(propertyName).ConfigureAwait(false);
+            var newErrors = newErrorsRaw == null ? null : newErrorsRaw.ToArray();
             bool propertyErrorsChanged = false;
 
             await this.propertyErrorsLock.WaitAsync().ConfigureAwait(false);
