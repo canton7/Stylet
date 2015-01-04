@@ -19,7 +19,7 @@ namespace StyletUnitTests
         [TestFixtureSetUp]
         public void SetUpFixture()
         {
-            Execute.TestExecuteSynchronously = true;
+            Execute.Dispatcher = new SynchronousDispatcher();
         }
 
         [Test]

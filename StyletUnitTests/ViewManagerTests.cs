@@ -102,7 +102,7 @@ namespace StyletUnitTests
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
-            Execute.TestExecuteSynchronously = true;
+            Execute.Dispatcher = new SynchronousDispatcher();
         }
 
         [SetUp]
@@ -175,7 +175,7 @@ namespace StyletUnitTests
             var config = new Mock<IViewManagerConfig>();
             config.SetupGet(x => x.Assemblies).Returns(new List<Assembly>() { Assembly.GetExecutingAssembly() });
             var viewManager = new MyViewManager(config.Object);
-            Execute.TestExecuteSynchronously = true;
+            Execute.Dispatcher = new SynchronousDispatcher();
             var viewType = viewManager.LocateViewForModel(typeof(ViewManagerTestsViewModel));
             Assert.AreEqual(typeof(ViewManagerTestsView), viewType);
         }

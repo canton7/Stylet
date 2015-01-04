@@ -36,7 +36,6 @@ namespace Stylet
             this.dispatcher = dispatcher;
         }
 
-
         public void Post(Action action)
         {
             this.dispatcher.BeginInvoke(action);
@@ -61,12 +60,7 @@ namespace Stylet
         /// <summary>
         /// Should be set to the UI thread's Dispatcher. This is normally done by the Bootstrapper.
         /// </summary>
-        public static IDispatcher Dispatcher;
-
-        /// <summary>
-        /// FOR TESTING ONLY. Causes everything to execute synchronously
-        /// </summary>
-        public static bool TestExecuteSynchronously = false;
+        public static IDispatcher Dispatcher { get; set; }
 
         private static bool? inDesignMode;
 
@@ -82,7 +76,7 @@ namespace Stylet
 
         private static void EnsureDispatcher()
         {
-            if (Dispatcher == null && !TestExecuteSynchronously)
+            if (Dispatcher == null)
                 throw new InvalidOperationException("Execute.Dispatcher must be set before this method can be called. This should normally have been done by the Bootstrapper");
         }
 
@@ -93,10 +87,7 @@ namespace Stylet
         public static void PostToUIThread(Action action)
         {
             EnsureDispatcher();
-            if (!TestExecuteSynchronously)
-                Dispatcher.Post(action);
-            else
-                action();
+            Dispatcher.Post(action);
         }
 
         /// <summary>
@@ -108,15 +99,7 @@ namespace Stylet
         public static Task PostToUIThreadAsync(Action action)
         {
             EnsureDispatcher();
-            if (!TestExecuteSynchronously)
-            {
-                return PostOnUIThreadInternalAsync(action);
-            }
-            else
-            {
-                action();
-                return Task.FromResult(false);
-            }
+            return PostOnUIThreadInternalAsync(action);
         }
 
         /// <summary>
@@ -126,10 +109,10 @@ namespace Stylet
         public static void OnUIThread(Action action)
         {
             EnsureDispatcher();
-            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
-                Dispatcher.Post(action);
-            else
+            if (Dispatcher.IsCurrent)
                 action();
+            else
+                Dispatcher.Post(action);
         }
 
         /// <summary>
@@ -140,7 +123,11 @@ namespace Stylet
         {
             EnsureDispatcher();
             Exception exception = null;
-            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
+            if (Dispatcher.IsCurrent)
+            {
+                action();
+            }
+            else
             {
                 Dispatcher.Send(() =>
                 {
@@ -157,10 +144,6 @@ namespace Stylet
                 if (exception != null)
                     throw new System.Reflection.TargetInvocationException("An error occurred while dispatching a call to the UI Thread", exception);
             }
-            else
-            {
-                action();
-            }
         }
 
         /// <summary>
@@ -171,14 +154,14 @@ namespace Stylet
         public static Task OnUIThreadAsync(Action action)
         {
             EnsureDispatcher();
-            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
-            {
-                return PostOnUIThreadInternalAsync(action);
-            }
-            else
+            if (Dispatcher.IsCurrent)
             {
                 action();
                 return Task.FromResult(false);
+            }
+            else
+            {
+                return PostOnUIThreadInternalAsync(action);
             }
         }
 
