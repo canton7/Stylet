@@ -147,15 +147,32 @@ namespace Stylet
         }
 
         /// <summary>
+        /// Given the full name of a ViewModel type, determine the corresponding View type nasme
+        /// </summary>
+        /// <remarks>
+        /// This is used internally by LocateViewForModel. If you override LocateViewForModel, you
+        /// can simply ignore this method.
+        /// </remarks>
+        /// <param name="modelTypeName">ViewModel type name to get the View type name for</param>
+        /// <returns>View type name</returns>
+        protected virtual string ViewTypeNameForModelTypeName(string modelTypeName)
+        {
+            return Regex.Replace(modelTypeName, @"(?<=.)ViewModel(?=s?\.)|ViewModel$", "View");
+        }
+
+        /// <summary>
         /// Given the type of a model, locate the type of its View (or throw an exception)
         /// </summary>
         /// <param name="modelType">Model to find the view for</param>
         /// <returns>Type of the ViewModel's View</returns>
         protected virtual Type LocateViewForModel(Type modelType)
         {
-            var viewName = Regex.Replace(modelType.FullName, @"ViewModel", "View");
-            var viewType = this.ViewTypeForViewName(viewName);
+            var modelName = modelType.FullName;
+            var viewName = this.ViewTypeNameForModelTypeName(modelName);
+            if (modelName == viewName)
+                throw new StyletViewLocationException(String.Format("Unable to transform ViewModel name {0} into a suitable View name", modelName), viewName);
 
+            var viewType = this.ViewTypeForViewName(viewName);
             return viewType;
         }
 
