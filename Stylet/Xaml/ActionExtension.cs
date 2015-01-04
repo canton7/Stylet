@@ -78,7 +78,8 @@ namespace Stylet.Xaml
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
-                var nullTarget = this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Disable : this.NullTarget;
+                // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
+                var nullTarget = this.NullTarget == ActionUnavailableBehaviour.Default ? (Execute.InDesignMode ? ActionUnavailableBehaviour.Enable : ActionUnavailableBehaviour.Disable) : this.NullTarget;
                 var actionNotFound = this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
                 return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, nullTarget, actionNotFound);
             }
