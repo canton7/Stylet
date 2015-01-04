@@ -23,7 +23,7 @@ namespace Bootstrappers
         }
 
         /// <summary>
-        /// Override to configure your IoC container, and anything else
+        /// Override to configure anything that needs configuring
         /// </summary>
         protected virtual void Configure() { }
 
