@@ -73,31 +73,52 @@ namespace StyletUnitTests
             }
         }
 
+        private class FakeDispatcher : IDispatcher
+        {
+            public void Post(Action action)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Send(Action action)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsCurrent
+            {
+                get { throw new NotImplementedException(); }
+            }
+        }
+
         
         private MyBootstrapperBase<RootViewModel> bootstrapper;
         private Mock<IViewManager> viewManager;
         private Mock<IWindowManager> windowManager;
 
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
+        private IDispatcher dispatcher;
 
         [SetUp]
         public void SetUp()
         {
+            this.dispatcher = Execute.Dispatcher;
             this.viewManager = new Mock<IViewManager>();
             this.windowManager = new Mock<IWindowManager>();
             this.bootstrapper = new MyBootstrapperBase<RootViewModel>(this.viewManager.Object, this.windowManager.Object);
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            Execute.Dispatcher = this.dispatcher;
+        }
+
         [Test]
         public void StartAssignsExecuteDispatcher()
         {
-            Execute.Dispatcher = null;
+            Execute.Dispatcher = new FakeDispatcher();
             this.bootstrapper.Start(new string[0]);
-            Assert.NotNull(Execute.Dispatcher); // Can't test any further, unfortunately
+            Assert.IsNotInstanceOf<FakeDispatcher>(Execute.Dispatcher); // Can't test any further, unfortunately
         }
 
         [Test]

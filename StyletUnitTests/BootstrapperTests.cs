@@ -43,12 +43,6 @@ namespace StyletUnitTests
 
         private MyBootstrapper<RootViewModel> bootstrapper;
 
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
-
         [SetUp]
         public void SetUp()
         {

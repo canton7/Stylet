@@ -13,11 +13,18 @@ namespace StyletUnitTests
     [TestFixture]
     public class ExecuteTests
     {
+        private IDispatcher dispatcher;
+
         [SetUp]
         public void SetUp()
         {
-            // Dont want this being previously set by anything and messing us around
-            Execute.Dispatcher = new SynchronousDispatcher();
+            this.dispatcher = Execute.Dispatcher;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Execute.Dispatcher = this.dispatcher;
         }
 
         [Test]
@@ -205,38 +212,25 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void ThrowsIfPostToUIThreadCalledWithNoDispatcher()
+        public void ThrowsIfDispatcherSetToNull()
         {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.PostToUIThread(() => { }));
+            Assert.Throws<ArgumentNullException>(() => Execute.Dispatcher = null);
         }
 
         [Test]
-        public void ThrowsIfPostToUIThreadAsyncCalledWithNoDispatcher()
+        public void DefaultDispatcherIsSynchronous()
         {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.PostToUIThreadAsync(() => { }));
-        }
+            var dispatcher = Execute.Dispatcher;
 
-        [Test]
-        public void ThrowsIfOnUIThreadCalledWithNoDispatcher()
-        {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.OnUIThread(() => { }));
-        }
+            Assert.IsTrue(dispatcher.IsCurrent);
 
-        [Test]
-        public void ThrowsIfOnUIThreadSyncCalledWithNoDispatcher()
-        {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.OnUIThreadSync(() => { }));
-        }
+            bool actionCalled = false;
+            dispatcher.Post(() => actionCalled = true);
+            Assert.IsTrue(actionCalled);
 
-        [Test]
-        public void ThrowsIfOnUIThreadAsyncCalledWithNoDispatcher()
-        {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.OnUIThreadAsync(() => { }));
+            actionCalled = false;
+            dispatcher.Send(() => actionCalled = true);
+            Assert.IsTrue(actionCalled);
         }
 
         [Test]

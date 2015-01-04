@@ -36,12 +36,6 @@ namespace StyletUnitTests
 
         private EventAggregator ea;
 
-        [TestFixtureSetUp]
-        public void SetUpFixture()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
-
         [SetUp]
         public void SetUp()
         {

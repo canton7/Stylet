@@ -46,12 +46,6 @@ namespace StyletUnitTests
         private Target target;
         private EventInfo eventInfo;
 
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
-
         [SetUp]
         public void SetUp()
         {

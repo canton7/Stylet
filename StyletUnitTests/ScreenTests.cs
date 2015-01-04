@@ -65,13 +65,6 @@ namespace StyletUnitTests
 
         private MyScreen screen;
 
-        [TestFixtureSetUp]
-        public void SetUpFixture()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
-
-
         [SetUp]
         public void SetUp()
         {

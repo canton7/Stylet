@@ -34,12 +34,6 @@ namespace StyletUnitTests
             }
         }
 
-        [TestFixtureSetUp]
-        public void SetUpFixture()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
-
         [Test]
         public void RefreshRaisesPropertyChangedWithEmptyString()
         {

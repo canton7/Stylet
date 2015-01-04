@@ -71,12 +71,6 @@ namespace StyletUnitTests
         private Mock<IModelValidator> validator;
         private MyModel model;
 
-        [TestFixtureSetUp]
-        public void SetUpFixture()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
-
         [SetUp]
         public void SetUp()
         {

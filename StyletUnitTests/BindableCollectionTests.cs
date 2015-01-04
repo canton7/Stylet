@@ -16,12 +16,6 @@ namespace StyletUnitTests
     {
         private class Element { }
 
-        [TestFixtureSetUp]
-        public void SetUpFixture()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
-
         [Test]
         public void AddRangeAddsElements()
         {

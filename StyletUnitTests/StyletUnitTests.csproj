@@ -67,7 +67,6 @@
     <Compile Include="StyletIoC\StyletIoCFuncFactoryTests.cs" />
     <Compile Include="StyletIoC\StyletIoCInstanceBindingTests.cs" />
     <Compile Include="StyletIoC\StyletIoCModuleTests.cs" />
-    <Compile Include="SynchronousDispatcher.cs" />
     <Compile Include="TraceLoggerTests.cs" />
     <Compile Include="EqualityConverterTests.cs" />
     <Compile Include="EventActionTests.cs" />

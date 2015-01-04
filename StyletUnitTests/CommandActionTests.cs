@@ -55,12 +55,6 @@ namespace StyletUnitTests
         private DependencyObject subject;
         private Target target;
 
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
-
         [SetUp]
         public void SetUp()
         {

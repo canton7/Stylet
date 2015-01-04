@@ -104,12 +104,6 @@ namespace StyletUnitTests
 
         private AccessibleViewManager viewManager;
 
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
-        {
-            Execute.Dispatcher = new SynchronousDispatcher();
-        }
-
         [SetUp]
         public void SetUp()
         {
@@ -186,7 +180,6 @@ namespace StyletUnitTests
             var config = new Mock<IViewManagerConfig>();
             config.SetupGet(x => x.Assemblies).Returns(new List<Assembly>() { Assembly.GetExecutingAssembly() });
             var viewManager = new AccessibleViewManager(config.Object);
-            Execute.Dispatcher = new SynchronousDispatcher();
             var viewType = viewManager.LocateViewForModel(typeof(ViewManagerTestsViewModel));
             Assert.AreEqual(typeof(ViewManagerTestsView), viewType);
         }

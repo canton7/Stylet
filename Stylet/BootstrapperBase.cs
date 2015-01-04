@@ -47,10 +47,7 @@ namespace Stylet
         {
             this.Application = application;
 
-            this.Application.Startup += (o, e) =>
-            {
-                this.Start(e.Args);
-            };
+            this.Application.Startup += (o, e) => this.Start(e.Args);
 
             // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
             this.Application.Exit += (o, e) => this.OnExit(e);
@@ -69,7 +66,7 @@ namespace Stylet
             this.Args = args;
 
             // Use the current SynchronizationContext for the Execute helper
-            Execute.Dispatcher = new DispatcherWrapper(Dispatcher.CurrentDispatcher);
+            Execute.Dispatcher = new DispatcherWrapper(this.Application.Dispatcher);
 
             this.ConfigureBootstrapper();
 

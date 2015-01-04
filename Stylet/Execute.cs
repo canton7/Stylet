@@ -52,15 +52,50 @@ namespace Stylet
         }
     }
 
+    internal class SynchronousDispatcher : IDispatcher
+    {
+        public void Post(Action action)
+        {
+            action();
+        }
+
+        public void Send(Action action)
+        {
+            action();
+        }
+
+        public bool IsCurrent
+        {
+            get { return true; }
+        }
+    }
+
     /// <summary>
     /// Static class providing methods to easily run an action on the UI thread in various ways, and some other things
     /// </summary>
     public static class Execute
     {
+        private static IDispatcher _dispatcher;
+
         /// <summary>
         /// Should be set to the UI thread's Dispatcher. This is normally done by the Bootstrapper.
         /// </summary>
-        public static IDispatcher Dispatcher { get; set; }
+        public static IDispatcher Dispatcher
+        {
+            get
+            {
+                if (_dispatcher == null)
+                    _dispatcher = new SynchronousDispatcher();
+                return _dispatcher;
+            }
+
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                _dispatcher = value;
+            }
+        }
 
         private static bool? inDesignMode;
 
@@ -74,19 +109,12 @@ namespace Stylet
         /// </summary>
         public static Action<Action> DefaultCollectionChangedDispatcher = Execute.OnUIThreadSync;
 
-        private static void EnsureDispatcher()
-        {
-            if (Dispatcher == null)
-                throw new InvalidOperationException("Execute.Dispatcher must be set before this method can be called. This should normally have been done by the Bootstrapper");
-        }
-
         /// <summary>
         /// Dispatches the given action to be run on the UI thread asynchronously, even if the current thread is the UI thread
         /// </summary>
         /// <param name="action">Action to run on the UI thread</param>
         public static void PostToUIThread(Action action)
         {
-            EnsureDispatcher();
             Dispatcher.Post(action);
         }
 
@@ -98,7 +126,6 @@ namespace Stylet
         /// <returns>Task which completes when the action has been run</returns>
         public static Task PostToUIThreadAsync(Action action)
         {
-            EnsureDispatcher();
             return PostOnUIThreadInternalAsync(action);
         }
 
@@ -108,7 +135,6 @@ namespace Stylet
         /// <param name="action">Action to run on the UI thread</param>
         public static void OnUIThread(Action action)
         {
-            EnsureDispatcher();
             if (Dispatcher.IsCurrent)
                 action();
             else
@@ -121,7 +147,6 @@ namespace Stylet
         /// <param name="action">Action to run on the UI thread</param>
         public static void OnUIThreadSync(Action action)
         {
-            EnsureDispatcher();
             Exception exception = null;
             if (Dispatcher.IsCurrent)
             {
@@ -153,7 +178,6 @@ namespace Stylet
         /// <returns>Task which completes when the action has been run</returns>
         public static Task OnUIThreadAsync(Action action)
         {
-            EnsureDispatcher();
             if (Dispatcher.IsCurrent)
             {
                 action();
