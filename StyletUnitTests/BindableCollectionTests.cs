@@ -134,6 +134,32 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void PropertyChangedDispatcherDefaultsToExecuteDefaultPropertyChangedDispatcher()
+        {
+            var oldDispatcher = Execute.DefaultPropertyChangedDispatcher;
+            Execute.DefaultPropertyChangedDispatcher = a => a();
+
+            var collection = new BindableCollection<Element>();
+
+            Assert.AreEqual(collection.PropertyChangedDispatcher, Execute.DefaultPropertyChangedDispatcher);
+
+            Execute.DefaultPropertyChangedDispatcher = oldDispatcher;
+        }
+
+        [Test]
+        public void CollectionChangedDispatcherDefaultsToExecuteDefaultCollectionChangedDispatcher()
+        {
+            var oldDispatcher = Execute.DefaultCollectionChangedDispatcher;
+            Execute.DefaultCollectionChangedDispatcher = a => a();
+
+            var collection = new BindableCollection<Element>();
+
+            Assert.AreEqual(collection.CollectionChangedDispatcher, Execute.DefaultCollectionChangedDispatcher);
+
+            Execute.DefaultCollectionChangedDispatcher = oldDispatcher;
+        }
+
+        [Test]
         public void UsesPropertyChangedDipatcher()
         {
             var collection = new BindableCollection<Element>();
@@ -141,10 +167,7 @@ namespace StyletUnitTests
             var changedProperties = new List<string>();
             ((INotifyPropertyChanged)collection).PropertyChanged += (o, e) => changedProperties.Add(e.PropertyName);
 
-            var changedEvents = new List<NotifyCollectionChangedEventArgs>();
-            collection.CollectionChanged += (o, e) => changedEvents.Add(e);
-
-            List<Action> dispatchedActions = new List<Action>();
+            var dispatchedActions = new List<Action>();
             collection.PropertyChangedDispatcher = a => dispatchedActions.Add(a);
 
             collection.Add(new Element());
@@ -153,11 +176,36 @@ namespace StyletUnitTests
             Assert.IsNotEmpty(dispatchedActions);
 
             foreach (var action in dispatchedActions)
+            {
                 action();
+            }
 
             Assert.That(changedProperties, Is.EquivalentTo(new[] { "Count", "Item[]" }));
-            Assert.AreEqual(1, changedEvents.Count);
-            var changedEvent = changedEvents[0];
+        }
+
+        [Test]
+        public void UsesCollectionChangedDispatcher()
+        {
+            var collection = new BindableCollection<Element>();
+
+            var events = new List<NotifyCollectionChangedEventArgs>();
+            collection.CollectionChanged += (o, e) => events.Add(e);
+
+            var dispatchedActions = new List<Action>();
+            collection.CollectionChangedDispatcher = a => dispatchedActions.Add(a);
+
+            collection.Add(new Element());
+
+            Assert.IsEmpty(events);
+            Assert.IsNotEmpty(dispatchedActions);
+
+            foreach (var action in dispatchedActions)
+            {
+                action();
+            }
+
+            Assert.AreEqual(1, events.Count);
+            var changedEvent = events[0];
             Assert.AreEqual(NotifyCollectionChangedAction.Add, changedEvent.Action);
         }
     }

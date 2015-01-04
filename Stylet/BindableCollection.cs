@@ -116,7 +116,7 @@ namespace Stylet
             // Avoid doing a dispatch if nothing's subscribed....
             if (this.isNotifying && this.CollectionChanged != null)
             {
-                this.PropertyChangedDispatcher(() =>
+                this.CollectionChangedDispatcher(() =>
                 {
                     var handler = this.CollectionChanged;
                     if (handler != null)
