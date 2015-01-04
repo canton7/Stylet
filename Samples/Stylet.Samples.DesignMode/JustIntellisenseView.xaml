@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="Stylet.Samples.DesignMode.JustIntellisenseView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             xmlns:local="clr-namespace:Stylet.Samples.DesignMode"
+             d:DataContext="{d:DesignInstance local:JustIntellisenseViewModel}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="10">
+            This demonstrates "just intellisense" design mode. The Visual Studio XAML designer will show intellisense for bindings
+            (try and modify the binding below, and see), but does display values from the ViewModel.
+        </TextBlock>
+        
+        <TextBlock DockPanel.Dock="Top" Text="{Binding TextBoxText}"/>
+    </DockPanel>
+</UserControl>

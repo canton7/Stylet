@@ -1,0 +1,15 @@
+﻿<Application x:Class="Stylet.Samples.DesignMode.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="https://github.com/canton7/Stylet"
+             xmlns:local="clr-namespace:Stylet.Samples.DesignMode">
+    <Application.Resources>
+        <s:ApplicationLoader>
+            <s:ApplicationLoader.Bootstrapper>
+                <local:Bootstrapper/>
+            </s:ApplicationLoader.Bootstrapper>
+            
+            <local:ViewModelLocator x:Key="ViewModelLocator"/>
+        </s:ApplicationLoader>
+    </Application.Resources>
+</Application>

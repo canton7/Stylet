@@ -1,0 +1,10 @@
+﻿<Window x:Class="Stylet.Samples.DesignMode.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ShellView" Height="300" Width="300">
+    <Grid>
+        <TextBlock TextWrapping="Wrap" Margin="10">
+            This sample demonstrates design-time capabilities, and as such is intended to be viewed in the Visual Studio XAML designer, rather than run.
+        </TextBlock>
+    </Grid>
+</Window>
