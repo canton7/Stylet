@@ -47,6 +47,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IDispatcher.cs" />
     <Compile Include="StyletIoC\Creation\ICreator.cs" />
     <Compile Include="StyletIoC\Creation\IRegistration.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderAbstractFactoryBinding.cs" />

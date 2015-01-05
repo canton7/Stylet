@@ -45,7 +45,13 @@ namespace Stylet
         /// <param name="application"></param>
         public void Setup(Application application)
         {
+            if (application == null)
+                throw new ArgumentNullException("application");
+
             this.Application = application;
+
+            // Use the current application's dispatcher for Execute
+            Execute.Dispatcher = new DispatcherWrapper(this.Application.Dispatcher);
 
             this.Application.Startup += (o, e) => this.Start(e.Args);
 
@@ -64,9 +70,6 @@ namespace Stylet
         {
             // Set this before anything else, so everything can use it
             this.Args = args;
-
-            // Use the current SynchronizationContext for the Execute helper
-            Execute.Dispatcher = new DispatcherWrapper(this.Application.Dispatcher);
 
             this.ConfigureBootstrapper();
 

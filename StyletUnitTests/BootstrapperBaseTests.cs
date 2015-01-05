@@ -114,11 +114,9 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void StartAssignsExecuteDispatcher()
+        public void SetupThrowsIfApplicationIsNull()
         {
-            Execute.Dispatcher = new FakeDispatcher();
-            this.bootstrapper.Start(new string[0]);
-            Assert.IsNotInstanceOf<FakeDispatcher>(Execute.Dispatcher); // Can't test any further, unfortunately
+            Assert.Throws<ArgumentNullException>(() => this.bootstrapper.Setup(null));
         }
 
         [Test]
