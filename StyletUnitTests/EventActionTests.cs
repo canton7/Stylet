@@ -71,26 +71,26 @@ namespace StyletUnitTests
         public void ThrowsIfTargetNullBehaviourIsThrowAndTargetBecomesNull()
         {
             var cmd = new EventAction(this.subject, this.eventInfo, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Enable);
-            Assert.Throws<ArgumentException>(() => View.SetActionTarget(this.subject, null));
+            Assert.Throws<ActionTargetNullException>(() => View.SetActionTarget(this.subject, null));
         }
 
         [Test]
         public void ThrowsIfActionNonExistentBehaviourIsThrowAndActionIsNonExistent()
         {
             var cmd = new EventAction(this.subject, this.eventInfo, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Throw);
-            Assert.Throws<ArgumentException>(() => View.SetActionTarget(this.subject, new Target2()));
+            Assert.Throws<ActionNotFoundException>(() => View.SetActionTarget(this.subject, new Target2()));
         }
 
         [Test]
         public void ThrowsIfMethodHasTooManyArguments()
         {
-            Assert.Throws<ArgumentException>(() => new EventAction(this.subject, this.eventInfo, "DoSomethingWithTooManyArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
+            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, this.eventInfo, "DoSomethingWithTooManyArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
         }
 
         [Test]
         public void ThrowsIfMethodHasBadParameter()
         {
-            Assert.Throws<ArgumentException>(() => new EventAction(this.subject, this.eventInfo, "DoSomethingWithBadArgument", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
+            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, this.eventInfo, "DoSomethingWithBadArgument", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
         }
 
         [Test]

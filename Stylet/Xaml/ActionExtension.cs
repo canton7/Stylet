@@ -95,4 +95,28 @@ namespace Stylet.Xaml
             throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
         }
     }
+
+    /// <summary>
+    /// The Action Target was null, and shouldn't have been (NullTarget = Throw)
+    /// </summary>
+    public class ActionTargetNullException : Exception
+    {
+        internal ActionTargetNullException(string message) : base(message) { }
+    }
+
+    /// <summary>
+    /// The method specified could not be found on the Action Target
+    /// </summary>
+    public class ActionNotFoundException : Exception
+    {
+        internal ActionNotFoundException(string message) : base(message) { }
+    }
+
+    /// <summary>
+    /// The method specified does not have the correct signature
+    /// </summary>
+    public class ActionSignatureInvalidException : Exception
+    {
+        internal ActionSignatureInvalidException(string message) : base(message) { }
+    }
 }
