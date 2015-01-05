@@ -100,6 +100,7 @@ namespace Stylet.Xaml
     /// <summary>
     /// The Action Target was null, and shouldn't have been (NullTarget = Throw)
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class ActionTargetNullException : Exception
     {
         internal ActionTargetNullException(string message) : base(message) { }
@@ -108,6 +109,7 @@ namespace Stylet.Xaml
     /// <summary>
     /// The method specified could not be found on the Action Target
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class ActionNotFoundException : Exception
     {
         internal ActionNotFoundException(string message) : base(message) { }
@@ -116,6 +118,7 @@ namespace Stylet.Xaml
     /// <summary>
     /// The method specified does not have the correct signature
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class ActionSignatureInvalidException : Exception
     {
         internal ActionSignatureInvalidException(string message) : base(message) { }
