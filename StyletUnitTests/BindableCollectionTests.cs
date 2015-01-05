@@ -16,26 +16,77 @@ namespace StyletUnitTests
     {
         private class Element { }
 
+        private class TestDispatcher : IDispatcher
+        {
+            public Action PostAction;
+            public void Post(Action action)
+            {
+                this.PostAction = action;
+            }
+
+            public Action SendAction;
+            public void Send(Action action)
+            {
+                this.SendAction = action;
+            }
+
+            public bool IsCurrent
+            {
+                get;
+                set;
+            }
+        }
+
+        private IDispatcher dispatcher;
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.dispatcher = Execute.Dispatcher;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Execute.Dispatcher = this.dispatcher;
+        }
+
         [Test]
-        public void AddRangeAddsElements()
+        public void AddRangeUsesDispatcherToAddElements()
         {
             var itemsToAdd = new[] { new Element(), new Element() };
             var existingItems = new[] { new Element() };
             var collection = new BindableCollection<Element>(existingItems);
 
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
+
             collection.AddRange(itemsToAdd);
+
+            Assert.That(collection, Is.EquivalentTo(existingItems));
+            Assert.NotNull(dispatcher.SendAction);
+
+            dispatcher.SendAction();
 
             Assert.AreEqual(existingItems.Concat(itemsToAdd), collection);
         }
 
         [Test]
-        public void RemoveRangeRemovesElements()
+        public void RemoveRangeUsesDispatcherToRemoveElements()
         {
             var itemsToRemove = new[] { new Element(), new Element() };
             var existingItems = new[] { new Element() };
             var collection = new BindableCollection<Element>(itemsToRemove.Concat(existingItems));
 
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
+
             collection.RemoveRange(itemsToRemove);
+
+            Assert.That(collection, Is.EquivalentTo(itemsToRemove.Concat(existingItems)));
+            Assert.NotNull(dispatcher.SendAction);
+
+            dispatcher.SendAction();
 
             Assert.AreEqual(existingItems, collection);
         }
@@ -92,7 +143,7 @@ namespace StyletUnitTests
             var changedEvents = new List<NotifyCollectionChangedEventArgs>();
             collection.CollectionChanged += (o, e) => changedEvents.Add(e);
 
-            collection.AddRange(itemsToRemove);
+            collection.RemoveRange(itemsToRemove);
 
             Assert.AreEqual(1, changedEvents.Count);
             var changedEvent = changedEvents[0];
@@ -128,79 +179,202 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void PropertyChangedDispatcherDefaultsToExecuteDefaultPropertyChangedDispatcher()
+        public void RefreshUsesDispatcherToFireEvents()
         {
-            var oldDispatcher = Execute.DefaultPropertyChangedDispatcher;
-            Execute.DefaultPropertyChangedDispatcher = a => a();
-
             var collection = new BindableCollection<Element>();
 
-            Assert.AreEqual(collection.PropertyChangedDispatcher, Execute.DefaultPropertyChangedDispatcher);
+            bool propertyChangedRaised = false;
+            ((INotifyPropertyChanged)collection).PropertyChanged += (o, e) => propertyChangedRaised = true;
+            bool collectionChangedRaised = false;
+            collection.CollectionChanged += (o, e) => collectionChangedRaised = true;
 
-            Execute.DefaultPropertyChangedDispatcher = oldDispatcher;
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
+
+            collection.Refresh();
+
+            Assert.False(propertyChangedRaised);
+            Assert.False(collectionChangedRaised);
+            Assert.NotNull(dispatcher.SendAction);
+
+            dispatcher.SendAction();
+
+            Assert.True(propertyChangedRaised);
+            Assert.True(collectionChangedRaised);
         }
 
         [Test]
-        public void CollectionChangedDispatcherDefaultsToExecuteDefaultCollectionChangedDispatcher()
-        {
-            var oldDispatcher = Execute.DefaultCollectionChangedDispatcher;
-            Execute.DefaultCollectionChangedDispatcher = a => a();
-
-            var collection = new BindableCollection<Element>();
-
-            Assert.AreEqual(collection.CollectionChangedDispatcher, Execute.DefaultCollectionChangedDispatcher);
-
-            Execute.DefaultCollectionChangedDispatcher = oldDispatcher;
-        }
-
-        [Test]
-        public void UsesPropertyChangedDipatcher()
+        public void InsertItemUsesDispatcherToInsertItem()
         {
             var collection = new BindableCollection<Element>();
 
-            var changedProperties = new List<string>();
-            ((INotifyPropertyChanged)collection).PropertyChanged += (o, e) => changedProperties.Add(e.PropertyName);
-
-            var dispatchedActions = new List<Action>();
-            collection.PropertyChangedDispatcher = a => dispatchedActions.Add(a);
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
 
             collection.Add(new Element());
 
-            Assert.IsEmpty(changedProperties);
-            Assert.IsNotEmpty(dispatchedActions);
+            Assert.AreEqual(0, collection.Count);
+            Assert.NotNull(dispatcher.SendAction);
 
-            foreach (var action in dispatchedActions)
-            {
-                action();
-            }
+            dispatcher.SendAction();
 
-            Assert.That(changedProperties, Is.EquivalentTo(new[] { "Count", "Item[]" }));
+            Assert.AreEqual(1, collection.Count);
         }
 
         [Test]
-        public void UsesCollectionChangedDispatcher()
+        public void InsertItemUsesDispatcherToRaiseEvents()
         {
             var collection = new BindableCollection<Element>();
 
-            var events = new List<NotifyCollectionChangedEventArgs>();
-            collection.CollectionChanged += (o, e) => events.Add(e);
+            bool propertyChangedRaised = false;
+            ((INotifyPropertyChanged)collection).PropertyChanged += (o, e) => propertyChangedRaised = true;
+            bool collectionChangedRaised = false;
+            collection.CollectionChanged += (o, e) => collectionChangedRaised = true;
 
-            var dispatchedActions = new List<Action>();
-            collection.CollectionChangedDispatcher = a => dispatchedActions.Add(a);
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
 
             collection.Add(new Element());
 
-            Assert.IsEmpty(events);
-            Assert.IsNotEmpty(dispatchedActions);
+            Assert.False(propertyChangedRaised);
+            Assert.False(collectionChangedRaised);
+            Assert.NotNull(dispatcher.SendAction);
 
-            foreach (var action in dispatchedActions)
-            {
-                action();
-            }
+            dispatcher.SendAction();
 
-            Assert.AreEqual(1, events.Count);
-            var changedEvent = events[0];
-            Assert.AreEqual(NotifyCollectionChangedAction.Add, changedEvent.Action);
+            Assert.True(propertyChangedRaised);
+            Assert.True(collectionChangedRaised);
+        }
+
+        [Test]
+        public void SetItemUsesDispatcherToSetItems()
+        {
+            var initialElement = new Element();
+            var collection = new BindableCollection<Element>() { initialElement };
+            var element = new Element();
+
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
+
+            collection[0] = element;
+
+            Assert.AreEqual(initialElement, collection[0]);
+            Assert.NotNull(dispatcher.SendAction);
+
+            dispatcher.SendAction();
+
+            Assert.AreEqual(element, collection[0]);
+        }
+
+        [Test]
+        public void SetItemUsesDispatcherToRaiseEvents()
+        {
+            var collection = new BindableCollection<Element>() { new Element() };
+
+            bool propertyChangedRaised = false;
+            ((INotifyPropertyChanged)collection).PropertyChanged += (o, e) => propertyChangedRaised = true;
+            bool collectionChangedRaised = false;
+            collection.CollectionChanged += (o, e) => collectionChangedRaised = true;
+
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
+
+            collection[0] = new Element();
+
+            Assert.False(propertyChangedRaised);
+            Assert.False(collectionChangedRaised);
+            Assert.NotNull(dispatcher.SendAction);
+
+            dispatcher.SendAction();
+
+            Assert.True(propertyChangedRaised);
+            Assert.True(collectionChangedRaised);
+        }
+
+        [Test]
+        public void RemoveItemUsesDispatcherToRemoveItems()
+        {
+            var collection = new BindableCollection<Element>() { new Element() };
+
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
+
+            collection.RemoveAt(0);
+
+            Assert.AreEqual(1, collection.Count);
+            Assert.NotNull(dispatcher.SendAction);
+
+            dispatcher.SendAction();
+
+            Assert.AreEqual(0, collection.Count);
+        }
+
+        [Test]
+        public void RemoveItemUsesDispatcherToRaiseEvents()
+        {
+            var collection = new BindableCollection<Element>() { new Element() };
+
+            bool propertyChangedRaised = false;
+            ((INotifyPropertyChanged)collection).PropertyChanged += (o, e) => propertyChangedRaised = true;
+            bool collectionChangedRaised = false;
+            collection.CollectionChanged += (o, e) => collectionChangedRaised = true;
+
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
+
+            collection.RemoveAt(0);
+
+            Assert.False(propertyChangedRaised);
+            Assert.False(collectionChangedRaised);
+            Assert.NotNull(dispatcher.SendAction);
+
+            dispatcher.SendAction();
+
+            Assert.True(propertyChangedRaised);
+            Assert.True(collectionChangedRaised);
+        }
+
+        [Test]
+        public void ClearItemsUsesDispatcherToClearItems()
+        {
+            var collection = new BindableCollection<Element>() { new Element() };
+
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
+
+            collection.Clear();
+
+            Assert.AreEqual(1, collection.Count);
+            Assert.NotNull(dispatcher.SendAction);
+
+            dispatcher.SendAction();
+
+            Assert.AreEqual(0, collection.Count);
+        }
+
+        [Test]
+        public void ClearItemsUsesDispatcherToRaiseEvents()
+        {
+            var collection = new BindableCollection<Element>() { new Element() };
+
+            bool propertyChangedRaised = false;
+            ((INotifyPropertyChanged)collection).PropertyChanged += (o, e) => propertyChangedRaised = true;
+            bool collectionChangedRaised = false;
+            collection.CollectionChanged += (o, e) => collectionChangedRaised = true;
+
+            var dispatcher = new TestDispatcher();
+            Execute.Dispatcher = dispatcher;
+
+            collection.Clear();
+
+            Assert.False(propertyChangedRaised);
+            Assert.False(collectionChangedRaised);
+            Assert.NotNull(dispatcher.SendAction);
+
+            dispatcher.SendAction();
+
+            Assert.True(propertyChangedRaised);
+            Assert.True(collectionChangedRaised);
         }
     }
 }

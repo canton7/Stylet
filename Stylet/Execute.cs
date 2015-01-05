@@ -41,11 +41,6 @@ namespace Stylet
         public static Action<Action> DefaultPropertyChangedDispatcher = a => a();
 
         /// <summary>
-        /// Default dispatcher used by CollectionChanged events. Defaults to OnUIThreadSync
-        /// </summary>
-        public static Action<Action> DefaultCollectionChangedDispatcher = Execute.OnUIThreadSync;
-
-        /// <summary>
         /// Dispatches the given action to be run on the UI thread asynchronously, even if the current thread is the UI thread
         /// </summary>
         /// <param name="action">Action to run on the UI thread</param>
