@@ -1,10 +1,6 @@
-﻿using FluentValidation;
+﻿using System;
+using FluentValidation;
 using Stylet.Samples.ModelValidation.Pages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Stylet.Samples.ModelValidation
 {

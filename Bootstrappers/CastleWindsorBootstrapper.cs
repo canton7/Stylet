@@ -3,10 +3,6 @@ using Castle.MicroKernel.Registration;
 using Castle.Windsor;
 using Stylet;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bootstrappers
 {
