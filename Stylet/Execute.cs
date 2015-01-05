@@ -144,7 +144,7 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Determing if we're currently running in design mode
+        /// Determing if we're currently running in design mode. Settable for really obscure unit testing only
         /// </summary>
         public static bool InDesignMode
         {
@@ -158,6 +158,8 @@ namespace Stylet
 
                 return inDesignMode.Value;
             }
+
+            set { inDesignMode = value; }
         }
     }
 }

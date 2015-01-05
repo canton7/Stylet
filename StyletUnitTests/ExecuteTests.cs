@@ -234,9 +234,22 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void InDesignModeReturnsFalse()
+        public void InDesignModeIsOverridable()
         {
-            Assert.False(Execute.InDesignMode);
+            try
+            {
+                Assert.False(Execute.InDesignMode);
+
+                Execute.InDesignMode = true;
+                Assert.True(Execute.InDesignMode);
+
+                Execute.InDesignMode = false;
+                Assert.False(Execute.InDesignMode);
+            }
+            finally
+            {
+                Execute.InDesignMode = false;
+            }
         }
     }
 }
