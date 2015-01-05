@@ -54,7 +54,6 @@ namespace Stylet
             Execute.Dispatcher = new DispatcherWrapper(this.Application.Dispatcher);
 
             this.Application.Startup += (o, e) => this.Start(e.Args);
-
             // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
             this.Application.Exit += (o, e) => this.OnExit(e);
 

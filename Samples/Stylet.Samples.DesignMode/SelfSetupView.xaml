@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="Stylet.Samples.DesignMode.SelfSetupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Stylet.Samples.DesignMode"
+             xmlns:s="https://github.com/canton7/Stylet"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance local:SelfSetupViewModel, IsDesignTimeCreatable=True}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <DockPanel LastChildFill="False">
+        <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="10">
+            This example demonstrates binding to a ViewModel, where that ViewModel is created at design-time by the designer, and sets itself up.
+            <LineBreak/><LineBreak/>
+            Intellisense on bindings works, and dummy values from the ViewModel are displayed.
+            <LineBreak/><LineBreak/>
+            Note that View.ActionTarget has not been set, and so the Button's enabled proeprty does not reflect the CanDoSomething guard property in the ViewModel.
+        </TextBlock>
+        
+        <TextBlock DockPanel.Dock="Top" Text="{Binding TextBoxText}"/>
+        <Button DockPanel.Dock="Top" Command="{s:Action DoSomething}">Button</Button>
+    </DockPanel>
+</UserControl>
