@@ -21,6 +21,8 @@ namespace Stylet
             {
                 private readonly BindableCollection<T> items = new BindableCollection<T>();
 
+                private T[] itemsBeforeReset;
+
                 /// <summary>
                 /// All items associated with this conductor
                 /// </summary>
@@ -34,6 +36,16 @@ namespace Stylet
                 /// </summary>
                 public AllActive()
                 {
+                    this.items.CollectionChanging += (o, e) =>
+                    {
+                        switch (e.Action)
+                        {
+                            case NotifyCollectionChangedAction.Reset:
+                                this.itemsBeforeReset = this.items.ToArray();
+                                break;
+                        }
+                    };
+
                     this.items.CollectionChanged += (o, e) =>
                     {
                         switch (e.Action)
@@ -52,7 +64,9 @@ namespace Stylet
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
-                                this.ActivateAndSetParent(this.items);
+                                this.ActivateAndSetParent(this.items.Except(this.itemsBeforeReset));
+                                this.CloseAndCleanUp(this.itemsBeforeReset.Except(this.items));
+                                this.itemsBeforeReset = null;
                                 break;
                         }
                     };

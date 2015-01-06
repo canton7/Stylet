@@ -29,7 +29,7 @@ namespace Stylet
     /// Interface encapsulating IReadOnlyList and INotifyCollectionChanged
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IReadOnlyObservableCollection<T> : IReadOnlyList<T>, INotifyCollectionChanged
+    public interface IReadOnlyObservableCollection<T> : IReadOnlyList<T>, INotifyCollectionChanged, INotifyCollectionChanging
     {
     }
 
@@ -56,6 +56,11 @@ namespace Stylet
         public BindableCollection(IEnumerable<T> collection) : base(collection) { }
 
         /// <summary>
+        /// Occurs when the collection will change
+        /// </summary>
+        public event NotifyCollectionChangedEventHandler CollectionChanging;
+
+        /// <summary>
         /// Raises the System.Collections.ObjectModel.ObservableCollection{T}.PropertyChanged event with the provided arguments.
         /// </summary>
         /// <param name="e">Arguments of the event being raised.</param>
@@ -64,6 +69,25 @@ namespace Stylet
             // Avoid doing a dispatch if nothing's subscribed....
             if (this.isNotifying)
                 base.OnPropertyChanged(e);
+        }
+
+        /// <summary>
+        /// Raises the CollectionChanging event with the provided arguments.
+        /// </summary>
+        /// <param name="e">Arguments of the event being raised.</param>
+        protected virtual void OnCollectionChanging(NotifyCollectionChangedEventArgs e)
+        {
+            if (this.isNotifying)
+            {
+                var handler = this.CollectionChanging;
+                if (handler != null)
+                {
+                    using (this.BlockReentrancy())
+                    {
+                        handler(this, e);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -84,6 +108,8 @@ namespace Stylet
         {
             Execute.OnUIThreadSync(() =>
             {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
                 var previousNotificationSetting = this.isNotifying;
                 this.isNotifying = false;
                 var index = Count;
@@ -108,6 +134,8 @@ namespace Stylet
         {
             Execute.OnUIThreadSync(() =>
             {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
                 var previousNotificationSetting = this.isNotifying;
                 this.isNotifying = false;
                 foreach (var item in items)
@@ -133,6 +161,7 @@ namespace Stylet
             {
                 this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
                 this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
                 this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             });
         }
@@ -143,7 +172,11 @@ namespace Stylet
         /// </summary>
         protected override void InsertItem(int index, T item)
         {
-            Execute.OnUIThreadSync(() => base.InsertItem(index, item));
+            Execute.OnUIThreadSync(() =>
+            {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+                base.InsertItem(index, item);
+            });
         }
 
         /// <summary>
@@ -152,7 +185,11 @@ namespace Stylet
         /// </summary>
         protected override void SetItem(int index, T item)
         {
-            Execute.OnUIThreadSync(() => base.SetItem(index, item));
+            Execute.OnUIThreadSync(() =>
+            {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, this[index], index));
+                base.SetItem(index, item);
+            });
         }
 
         /// <summary>
@@ -161,7 +198,11 @@ namespace Stylet
         /// </summary>
         protected override void RemoveItem(int index)
         {
-            Execute.OnUIThreadSync(() => base.RemoveItem(index));
+            Execute.OnUIThreadSync(() =>
+            {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, this[index], index));
+                base.RemoveItem(index);
+            });
         }
 
         /// <summary>
@@ -170,7 +211,11 @@ namespace Stylet
         /// </summary>
         protected override void ClearItems()
         {
-            Execute.OnUIThreadSync(() => base.ClearItems());
+            Execute.OnUIThreadSync(() =>
+            {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                base.ClearItems();
+            });
         }
     }
 }
