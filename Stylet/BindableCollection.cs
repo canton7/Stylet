@@ -187,7 +187,7 @@ namespace Stylet
         {
             Execute.OnUIThreadSync(() =>
             {
-                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, this[index], item, index));
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, this[index], index));
                 base.SetItem(index, item);
             });
         }
