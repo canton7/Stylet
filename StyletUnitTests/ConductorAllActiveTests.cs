@@ -197,5 +197,27 @@ namespace StyletUnitTests
             screen.Verify(x => x.Dispose());
             CollectionAssert.DoesNotContain(this.conductor.Items, screen.Object);
         }
+
+        [Test]
+        public void AddRangeActivatesAddedItems()
+        {
+            var screen = new Mock<IMyScreen>();
+            ((IActivate)this.conductor).Activate();
+
+            this.conductor.Items.AddRange(new[] { screen.Object });
+
+            screen.Verify(x => x.Activate());
+        }
+
+        [Test]
+        public void RemoveRangeClosesRemovedItems()
+        {
+            var screen = new Mock<IMyScreen>();
+            this.conductor.ActivateItem(screen.Object);
+
+            this.conductor.Items.RemoveRange(new[] { screen.Object });
+
+            screen.Verify(x => x.Close());
+        }
     }
 }
