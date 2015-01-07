@@ -22,21 +22,19 @@ namespace Stylet.Samples.ModelValidation
             this.subject = (T)subject;
         }
 
-        public async Task<string[]> ValidatePropertyAsync(string propertyName)
+        public Task<IEnumerable<string>> ValidatePropertyAsync(string propertyName)
         {
-            // If someone's calling us synchronously, and ValidationAsync does not complete synchronously,
-            // we'll deadlock unless we continue on another thread.
-            return (await this.validator.ValidateAsync(this.subject, propertyName).ConfigureAwait(false))
-                .Errors.Select(x => x.ErrorMessage).ToArray();
+            var errors = this.validator.Validate(this.subject, propertyName).Errors.Select(x => x.ErrorMessage);
+            return Task.FromResult(errors);
         }
 
-        public async Task<Dictionary<string, string[]>> ValidateAllPropertiesAsync()
+        public async Task<Dictionary<string, IEnumerable<string>>> ValidateAllPropertiesAsync()
         {
             // If someone's calling us synchronously, and ValidationAsync does not complete synchronously,
             // we'll deadlock unless we continue on another thread.
             return (await this.validator.ValidateAsync(this.subject).ConfigureAwait(false))
                 .Errors.GroupBy(x => x.PropertyName)
-                .ToDictionary(x => x.Key, x => x.Select(failure => failure.ErrorMessage).ToArray());
+                .ToDictionary(x => x.Key, x => x.Select(failure => failure.ErrorMessage));
         }
     }
 }

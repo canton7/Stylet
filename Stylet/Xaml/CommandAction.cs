@@ -87,7 +87,7 @@ namespace Stylet.Xaml
                 // If it's Enable or Disable we don't do anything - CanExecute will handle this
                 if (this.targetNullBehaviour == ActionUnavailableBehaviour.Throw)
                 {
-                    var e = new ArgumentException(String.Format("ActionTarget on element {0} is null (method name is {1})", this.Subject, this.MethodName));
+                    var e = new ActionTargetNullException(String.Format("ActionTarget on element {0} is null (method name is {1})", this.Subject, this.MethodName));
                     logger.Error(e);
                     throw e;
                 }
@@ -120,7 +120,7 @@ namespace Stylet.Xaml
                 {
                     if (this.actionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
                     {
-                        var e = new ArgumentException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
+                        var e = new ActionNotFoundException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
                         logger.Error(e);
                         throw e;
                     }
@@ -134,7 +134,7 @@ namespace Stylet.Xaml
                     var methodParameters = targetMethodInfo.GetParameters();
                     if (methodParameters.Length > 1)
                     {
-                        var e = new ArgumentException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
+                        var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
                         logger.Error(e);
                         throw e;
                     }

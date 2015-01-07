@@ -72,12 +72,14 @@
     <Compile Include="AutofacBootstrapper.cs" />
     <Compile Include="CastleWindsorBootstrapper.cs" />
     <Compile Include="NinjectBootstrapper.cs" />
+    <Compile Include="NoIoCContainerBootstrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StructureMapBootstrapper.cs" />
     <Compile Include="Tests\AutofacTests.cs" />
     <Compile Include="Tests\BootstrapperTests.cs" />
     <Compile Include="Tests\CastleWindsorTests.cs" />
     <Compile Include="Tests\NinjectTests.cs" />
+    <Compile Include="Tests\NoIoCContainerTests.cs" />
     <Compile Include="Tests\StructureMapTests.cs" />
     <Compile Include="Tests\UnityTests.cs" />
     <Compile Include="UnityBootstrapper.cs" />

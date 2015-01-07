@@ -27,7 +27,7 @@ namespace StyletUnitTests
                 this.viewManager = viewManager;
                 this.windowManager = windowManager;
 
-                this.Start();
+                this.Start(new string[0]);
             }
 
             public new Application Application
@@ -48,8 +48,14 @@ namespace StyletUnitTests
                 return null;
             }
 
+            public bool OnStartupCalled;
+            protected override void OnStartup()
+            {
+                this.OnStartupCalled = true;
+            }
+
             public bool OnExitCalled;
-            protected override void OnApplicationExit(object sender, ExitEventArgs e)
+            protected override void OnExit(ExitEventArgs e)
             {
                 this.OnExitCalled = true;
             }
@@ -61,9 +67,27 @@ namespace StyletUnitTests
                 base.ConfigureBootstrapper();
             }
 
-            public new void Start()
+            public new void Start(string[] args)
             {
-                base.Start();
+                base.Start(args);
+            }
+        }
+
+        private class FakeDispatcher : IDispatcher
+        {
+            public void Post(Action action)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Send(Action action)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsCurrent
+            {
+                get { throw new NotImplementedException(); }
             }
         }
 
@@ -72,40 +96,55 @@ namespace StyletUnitTests
         private Mock<IViewManager> viewManager;
         private Mock<IWindowManager> windowManager;
 
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
-        {
-            Execute.TestExecuteSynchronously = true;
-        }
+        private IDispatcher dispatcher;
 
         [SetUp]
         public void SetUp()
         {
+            this.dispatcher = Execute.Dispatcher;
             this.viewManager = new Mock<IViewManager>();
             this.windowManager = new Mock<IWindowManager>();
             this.bootstrapper = new MyBootstrapperBase<RootViewModel>(this.viewManager.Object, this.windowManager.Object);
         }
 
-        [Test]
-        public void StartAssignsExecuteDispatcher()
+        [TearDown]
+        public void TearDown()
         {
-            Execute.Dispatcher = null;
-            this.bootstrapper.Start();
-            Assert.NotNull(Execute.Dispatcher); // Can't test any further, unfortunately
+            Execute.Dispatcher = this.dispatcher;
+        }
+
+        [Test]
+        public void SetupThrowsIfApplicationIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => this.bootstrapper.Setup(null));
         }
 
         [Test]
         public void StartCallsConfigure()
         {
-            this.bootstrapper.Start();
+            this.bootstrapper.Start(new string[0]);
             Assert.True(this.bootstrapper.ConfigureCalled);
         }
 
         [Test]
         public void StartAssignsViewManager()
         {
-            this.bootstrapper.Start();
+            this.bootstrapper.Start(new string[0]);
             Assert.AreEqual(View.ViewManager, this.viewManager.Object);
+        }
+
+        [Test]
+        public void StartAssignsArgs()
+        {
+            this.bootstrapper.Start(new[] { "one", "two" });
+            Assert.That(this.bootstrapper.Args, Is.EquivalentTo(new[] { "one", "two" }));
+        }
+
+        [Test]
+        public void StartCallsOnStartup()
+        {
+            this.bootstrapper.Start(new string[0]);
+            Assert.True(this.bootstrapper.OnStartupCalled);
         }
     }
 }

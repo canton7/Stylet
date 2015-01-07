@@ -78,7 +78,8 @@ namespace Stylet.Xaml
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
-                var nullTarget = this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Disable : this.NullTarget;
+                // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
+                var nullTarget = this.NullTarget == ActionUnavailableBehaviour.Default ? (Execute.InDesignMode ? ActionUnavailableBehaviour.Enable : ActionUnavailableBehaviour.Disable) : this.NullTarget;
                 var actionNotFound = this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
                 return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, nullTarget, actionNotFound);
             }
@@ -94,5 +95,32 @@ namespace Stylet.Xaml
                 
             throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
         }
+    }
+
+    /// <summary>
+    /// The Action Target was null, and shouldn't have been (NullTarget = Throw)
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
+    public class ActionTargetNullException : Exception
+    {
+        internal ActionTargetNullException(string message) : base(message) { }
+    }
+
+    /// <summary>
+    /// The method specified could not be found on the Action Target
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
+    public class ActionNotFoundException : Exception
+    {
+        internal ActionNotFoundException(string message) : base(message) { }
+    }
+
+    /// <summary>
+    /// The method specified does not have the correct signature
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
+    public class ActionSignatureInvalidException : Exception
+    {
+        internal ActionSignatureInvalidException(string message) : base(message) { }
     }
 }

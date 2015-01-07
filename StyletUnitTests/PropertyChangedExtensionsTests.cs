@@ -52,12 +52,6 @@ namespace StyletUnitTests
         private string newVal;
         private object sender;
 
-        [TestFixtureSetUp]
-        public void SetUpFixture()
-        {
-            Execute.TestExecuteSynchronously = true;
-        }
-
         [SetUp]
         public void SetUp()
         {

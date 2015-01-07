@@ -26,14 +26,14 @@ namespace StyletIoC.Internal.Creators
             this.Type = type;
 
             // Use the key from InjectAttribute (if present), and let someone else override it if they want
-            var attribute = (InjectAttribute)type.GetCustomAttributes(typeof(InjectAttribute), false).FirstOrDefault();
+            var attribute = type.GetCustomAttribute<InjectAttribute>(true);
             if (attribute != null)
                 this._attributeKey = attribute.Key;
         }
 
         private string KeyForParameter(ParameterInfo parameter)
         {
-            var attribute = parameter.GetCustomAttributes(typeof(InjectAttribute)).FirstOrDefault() as InjectAttribute;
+            var attribute = parameter.GetCustomAttribute<InjectAttribute>(true);
             return attribute == null ? null : attribute.Key;
         }
 
@@ -44,7 +44,7 @@ namespace StyletIoC.Internal.Creators
 
             // Find the constructor which has the most parameters which we can fulfill, accepting default values which we can't fulfill
             ConstructorInfo ctor;
-            var ctorsWithAttribute = this.Type.GetConstructors().Where(x => x.GetCustomAttributes(typeof(InjectAttribute), false).Any()).ToList();
+            var ctorsWithAttribute = this.Type.GetConstructors().Where(x => x.GetCustomAttribute<InjectAttribute>(true) != null).ToList();
             if (ctorsWithAttribute.Count > 1)
             {
                 throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", this.Type.GetDescription()));
@@ -52,7 +52,7 @@ namespace StyletIoC.Internal.Creators
             else if (ctorsWithAttribute.Count == 1)
             {
                 ctor = ctorsWithAttribute[0];
-                var key = ((InjectAttribute)ctorsWithAttribute[0].GetCustomAttribute(typeof(InjectAttribute), false)).Key;
+                var key = ctorsWithAttribute[0].GetCustomAttribute<InjectAttribute>(true).Key;
                 var cantResolve = ctor.GetParameters().Where(p => !this.parentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue).FirstOrDefault();
                 if (cantResolve != null)
                     throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", this.Type.GetDescription(), cantResolve.Name, cantResolve.ParameterType.GetDescription()));

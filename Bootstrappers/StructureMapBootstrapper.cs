@@ -2,10 +2,6 @@
 using StructureMap.Pipeline;
 using Stylet;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bootstrappers
 {
@@ -25,7 +21,7 @@ namespace Bootstrappers
         }
 
         /// <summary>
-        /// Override to configure your IoC container, and anything else
+        /// Override to configure anything that needs configuring
         /// </summary>
         protected virtual void Configure() { }
 

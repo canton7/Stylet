@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="Stylet.Samples.DesignMode.ComposedViewModelsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:s="https://github.com/canton7/Stylet"
+             xmlns:local="clr-namespace:Stylet.Samples.DesignMode"
+             d:DataContext="{d:DesignInstance local:ComposedViewModelsViewModel, IsDesignTimeCreatable=True}"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="10">
+            This example demonstrates how Composed Views/ViewModels are displayed at design-time.
+            <LineBreak/><LineBreak/>
+            Stylet does not attempt to locate and display a View for bound ViewModels at design-time: that would mean the IoC container would need
+            to be configured, the bootstrapper run, and other unexpected things. Instead, a message saying which ViewModel has been bound to is shown.
+        </TextBlock>
+        
+        <ContentControl DockPanel.Dock="Top" s:View.Model="{Binding ActiveItem}" Margin="10"/>
+        <ItemsControl DockPanel.Dock="Top" Style="{StaticResource StyletConductorItemsControl}" Margin="10"/>
+        <TabControl DockPanel.Dock="Top" Style="{StaticResource StyletConductorTabControl}" Margin="10"/>
+    </DockPanel>
+</UserControl>

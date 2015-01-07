@@ -10,7 +10,7 @@ namespace Stylet
     /// Represents a collection which is observasble
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IObservableCollection<T> : IList<T>, INotifyPropertyChanged, INotifyCollectionChanged, INotifyPropertyChangedDispatcher
+    public interface IObservableCollection<T> : IList<T>, INotifyPropertyChanged, INotifyCollectionChanged
     {
         /// <summary>
         /// Add a range of items
@@ -29,7 +29,7 @@ namespace Stylet
     /// Interface encapsulating IReadOnlyList and INotifyCollectionChanged
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IReadOnlyObservableCollection<T> : IReadOnlyList<T>, INotifyCollectionChanged, INotifyPropertyChangedDispatcher
+    public interface IReadOnlyObservableCollection<T> : IReadOnlyList<T>, INotifyCollectionChanged, INotifyCollectionChanging
     {
     }
 
@@ -39,27 +39,6 @@ namespace Stylet
     /// <typeparam name="T"></typeparam>
     public class BindableCollection<T> : ObservableCollection<T>, IObservableCollection<T>, IReadOnlyObservableCollection<T>
     {
-        private Action<Action> _propertyChangedDispatcher = Execute.DefaultPropertyChangedDispatcher;
-        /// <summary>
-        /// Dispatcher to use when firing events. Defaults to BindableCollection.DefaultPropertyChangedDispatcher
-        /// </summary>
-        public Action<Action> PropertyChangedDispatcher
-        {
-            get { return this._propertyChangedDispatcher; }
-            set { this._propertyChangedDispatcher = value; }
-        }
-
-        private Action<Action> _collectionChangedDispatcher = Execute.DefaultCollectionChangedDispatcher;
-
-        /// <summary>
-        /// Dispatcher to use when firing CollectionChanged events. Defaults to BindableCollection.DefaultCollectionChangedDispatcher
-        /// </summary>
-        public Action<Action> CollectionChangedDispatcher
-        {
-            get { return this._collectionChangedDispatcher; }
-            set { this._collectionChangedDispatcher = value; }
-        }
-
         /// <summary>
         ///  We have to disable notifications when adding individual elements in the AddRange and RemoveRange implementations
         /// </summary>
@@ -77,17 +56,9 @@ namespace Stylet
         public BindableCollection(IEnumerable<T> collection) : base(collection) { }
 
         /// <summary>
-        /// PropertyChanged event (per <see cref="INotifyPropertyChanged" />).
+        /// Occurs when the collection will change
         /// </summary>
-        protected override event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Occurs when the collection changes, either by adding or removing an item.
-        /// </summary>
-        /// <remarks>
-        /// see <seealso cref="INotifyCollectionChanged"/>
-        /// </remarks>
-        public override event NotifyCollectionChangedEventHandler CollectionChanged;
+        public event NotifyCollectionChangedEventHandler CollectionChanging;
 
         /// <summary>
         /// Raises the System.Collections.ObjectModel.ObservableCollection{T}.PropertyChanged event with the provided arguments.
@@ -96,14 +67,26 @@ namespace Stylet
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             // Avoid doing a dispatch if nothing's subscribed....
-            if (this.isNotifying && this.PropertyChanged != null)
+            if (this.isNotifying)
+                base.OnPropertyChanged(e);
+        }
+
+        /// <summary>
+        /// Raises the CollectionChanging event with the provided arguments.
+        /// </summary>
+        /// <param name="e">Arguments of the event being raised.</param>
+        protected virtual void OnCollectionChanging(NotifyCollectionChangedEventArgs e)
+        {
+            if (this.isNotifying)
             {
-                this.PropertyChangedDispatcher(() =>
+                var handler = this.CollectionChanging;
+                if (handler != null)
                 {
-                    var handler = this.PropertyChanged;
-                    if (handler != null)
+                    using (this.BlockReentrancy())
+                    {
                         handler(this, e);
-                });
+                    }
+                }
             }
         }
 
@@ -113,21 +96,8 @@ namespace Stylet
         /// <param name="e">Arguments of the event being raised.</param>
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            // Avoid doing a dispatch if nothing's subscribed....
-            if (this.isNotifying && this.CollectionChanged != null)
-            {
-                this.PropertyChangedDispatcher(() =>
-                {
-                    var handler = this.CollectionChanged;
-                    if (handler != null)
-                    {
-                        using (this.BlockReentrancy())
-                        {
-                            handler(this, e);
-                        }
-                    }
-                });
-            }
+            if (this.isNotifying)
+                base.OnCollectionChanged(e);
         }
 
         /// <summary>
@@ -136,19 +106,24 @@ namespace Stylet
         /// <param name="items">Items to add</param>
         public virtual void AddRange(IEnumerable<T> items)
         {
-           var previousNotificationSetting = this.isNotifying;
-            this.isNotifying = false;
-            var index = Count;
-            foreach (var item in items)
+            Execute.OnUIThreadSync(() =>
             {
-                this.InsertItem(index, item);
-                index++;
-            }
-            this.isNotifying = previousNotificationSetting;
-            this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
-            this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-            // Can't add with a range, or it throws an exception
-            this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
+                var previousNotificationSetting = this.isNotifying;
+                this.isNotifying = false;
+                var index = Count;
+                foreach (var item in items)
+                {
+                    base.InsertItem(index, item);
+                    index++;
+                }
+                this.isNotifying = previousNotificationSetting;
+                this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+                this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+                // Can't add with a range, or it throws an exception
+                this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            });
         }
 
         /// <summary>
@@ -157,19 +132,24 @@ namespace Stylet
         /// <param name="items">Items to remove</param>
         public virtual void RemoveRange(IEnumerable<T> items)
         {
-            var previousNotificationSetting = this.isNotifying;
-            this.isNotifying = false;
-            foreach (var item in items)
+            Execute.OnUIThreadSync(() =>
             {
-                var index = IndexOf(item);
-                if (index >= 0)
-                    this.RemoveItem(index);
-            }
-            this.isNotifying = previousNotificationSetting;
-            this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
-            this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-            // Can't remove with a range, or it throws an exception
-            this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
+                var previousNotificationSetting = this.isNotifying;
+                this.isNotifying = false;
+                foreach (var item in items)
+                {
+                    var index = IndexOf(item);
+                    if (index >= 0)
+                        base.RemoveItem(index);
+                }
+                this.isNotifying = previousNotificationSetting;
+                this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+                this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+                // Can't remove with a range, or it throws an exception
+                this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            });
         }
 
         /// <summary>
@@ -177,9 +157,65 @@ namespace Stylet
         /// </summary>
         public void Refresh()
         {
-            this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
-            this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-            this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            Execute.OnUIThreadSync(() =>
+            {
+                this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+                this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            });
+        }
+
+        /// <summary>
+        /// Called by base class Collection&lt;T&gt; when an item is added to list;
+        /// raises a CollectionChanged event to any listeners.
+        /// </summary>
+        protected override void InsertItem(int index, T item)
+        {
+            Execute.OnUIThreadSync(() =>
+            {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+                base.InsertItem(index, item);
+            });
+        }
+
+        /// <summary>
+        /// Called by base class Collection&lt;T&gt; when an item is set in list;
+        /// raises a CollectionChanged event to any listeners.
+        /// </summary>
+        protected override void SetItem(int index, T item)
+        {
+            Execute.OnUIThreadSync(() =>
+            {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, this[index], index));
+                base.SetItem(index, item);
+            });
+        }
+
+        /// <summary>
+        /// Called by base class Collection&lt;T&gt; when an item is removed from list;
+        /// raises a CollectionChanged event to any listeners.
+        /// </summary>
+        protected override void RemoveItem(int index)
+        {
+            Execute.OnUIThreadSync(() =>
+            {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, this[index], index));
+                base.RemoveItem(index);
+            });
+        }
+
+        /// <summary>
+        /// Called by base class Collection&lt;T&gt; when the list is being cleared;
+        /// raises a CollectionChanged event to any listeners.
+        /// </summary>
+        protected override void ClearItems()
+        {
+            Execute.OnUIThreadSync(() =>
+            {
+                this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                base.ClearItems();
+            });
         }
     }
 }

@@ -1,0 +1,27 @@
+﻿<UserControl x:Class="Stylet.Samples.DesignMode.SelfSetupWithActionTargetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Stylet.Samples.DesignMode"
+             xmlns:s="https://github.com/canton7/Stylet"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance local:SelfSetupWithActionTargetViewModel, IsDesignTimeCreatable=True}"
+             s:View.ActionTarget="{Binding}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <DockPanel LastChildFill="False">
+        <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="10">
+            This example demonstrates binding to a ViewModel, where that ViewModel is created at design-time by the designer, and sets itself up.
+            <LineBreak/><LineBreak/>
+            Intellisense on bindings works, and dummy values from the ViewModel are displayed.
+            <LineBreak/><LineBreak/>
+            This time, View.ActionTarget has been set, and so the Button's enabled property <Bold>does</Bold> reflect the CanDoSomething guard property in the ViewModel.
+            <LineBreak/><LineBreak/>
+            Likewise, incorrect action targets are marked as errors in the designer
+        </TextBlock>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding TextBoxText}"/>
+        <!-- Change {s:Action DoSomething} to {s:Action DoSometingElse} to see an exception -->
+        <Button DockPanel.Dock="Top" Command="{s:Action DoSomething}">DoSomething Button</Button>
+    </DockPanel>
+</UserControl>

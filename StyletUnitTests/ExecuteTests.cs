@@ -13,15 +13,22 @@ namespace StyletUnitTests
     [TestFixture]
     public class ExecuteTests
     {
+        private IDispatcher dispatcher;
+
         [SetUp]
         public void SetUp()
         {
-            // Dont want this being previously set by anything and messing us around
-            Execute.TestExecuteSynchronously = false;
+            this.dispatcher = Execute.Dispatcher;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Execute.Dispatcher = this.dispatcher;
         }
 
         [Test]
-        public void OnUIThreadSyncExecutesUsingDispatcher()
+        public void OnUIThreadSyncExecutesUsingDispatcherIfNotCurrent()
         {
             var sync = new Mock<IDispatcher>();
             Execute.Dispatcher = sync.Object;
@@ -106,7 +113,21 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void OnUIThreadAsyncExecutesAsynchronouslyIfDispatcherIsNotNull()
+        public void OnUIThreadExecutesSynchronouslyIfCurrent()
+        {
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
+
+            sync.SetupGet(x => x.IsCurrent).Returns(true);
+
+            bool actionCalled = false;
+            Execute.OnUIThread(() => actionCalled = true);
+
+            Assert.IsTrue(actionCalled);
+        }
+
+        [Test]
+        public void OnUIThreadAsyncExecutesAsynchronouslyIfNotCurrent()
         {
             var sync = new Mock<IDispatcher>();
             Execute.Dispatcher = sync.Object;
@@ -122,6 +143,21 @@ namespace StyletUnitTests
             passedAction();
             Assert.IsTrue(actionCalled);
             Assert.IsTrue(task.IsCompleted);
+        }
+
+        [Test]
+        public void OnUIThreadAsyncExecutesSynchronouslyIfCurrent()
+        {
+            var sync = new Mock<IDispatcher>();
+            Execute.Dispatcher = sync.Object;
+
+            sync.SetupGet(x => x.IsCurrent).Returns(true);
+
+            bool actionCalled = false;
+            var task = Execute.OnUIThreadAsync(() => actionCalled = true);
+
+            Assert.IsTrue(task.IsCompleted);
+            Assert.IsTrue(actionCalled);
         }
 
         [Test]
@@ -176,89 +212,44 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void ThrowsIfPostToUIThreadCalledWithNoDispatcher()
+        public void ThrowsIfDispatcherSetToNull()
         {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.PostToUIThread(() => { }));
+            Assert.Throws<ArgumentNullException>(() => Execute.Dispatcher = null);
         }
 
         [Test]
-        public void ThrowsIfPostToUIThreadAsyncCalledWithNoDispatcher()
+        public void DefaultDispatcherIsSynchronous()
         {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.PostToUIThreadAsync(() => { }));
+            var dispatcher = Execute.Dispatcher;
+
+            Assert.IsTrue(dispatcher.IsCurrent);
+
+            bool actionCalled = false;
+            dispatcher.Post(() => actionCalled = true);
+            Assert.IsTrue(actionCalled);
+
+            actionCalled = false;
+            dispatcher.Send(() => actionCalled = true);
+            Assert.IsTrue(actionCalled);
         }
 
         [Test]
-        public void ThrowsIfOnUIThreadCalledWithNoDispatcher()
+        public void InDesignModeIsOverridable()
         {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.OnUIThread(() => { }));
-        }
+            try
+            {
+                Assert.False(Execute.InDesignMode);
 
-        [Test]
-        public void ThrowsIfOnUIThreadSyncCalledWithNoDispatcher()
-        {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.OnUIThreadSync(() => { }));
-        }
+                Execute.InDesignMode = true;
+                Assert.True(Execute.InDesignMode);
 
-        [Test]
-        public void ThrowsIfOnUIThreadAsyncCalledWithNoDispatcher()
-        {
-            Execute.Dispatcher = null;
-            Assert.Throws<InvalidOperationException>(() => Execute.OnUIThreadAsync(() => { }));
-        }
-
-        [Test]
-        public void PostToUIThreadExecutesSynchronouslyIfTestExecuteSynchronouslySet()
-        {
-            Execute.TestExecuteSynchronously = true;
-
-            Execute.Dispatcher = null;
-            bool called = false;
-            Execute.PostToUIThread(() => called = true);
-            Assert.True(called);
-        }
-
-        [Test]
-        public void PostToUIThreadAsyncExecutesSynchronouslyIfTestExecuteSynchronouslySet()
-        {
-            Execute.TestExecuteSynchronously = true;
-
-            Execute.Dispatcher = null;
-            bool called = false;
-            var task = Execute.PostToUIThreadAsync(() => called = true);
-            Assert.True(called);
-            Assert.True(task.IsCompleted);
-        }
-
-        [Test]
-        public void OnUIThreadSyncExecutesSynchronouslyIfTestExecuteSynchronouslySet()
-        {
-            Execute.TestExecuteSynchronously = true;
-
-            Execute.Dispatcher = null;
-            bool called = false;
-            Execute.OnUIThreadSync(() => called = true);
-            Assert.True(called);
-        }
-
-        [Test]
-        public void OnUIThreadAsyncExecutesSynchronouslyIfTestExecuteSynchronouslySet()
-        {
-            Execute.TestExecuteSynchronously = true;
-
-            Execute.Dispatcher = null;
-            bool called = false;
-            Execute.OnUIThreadAsync(() => called = true);
-            Assert.True(called);
-        }
-
-        [Test]
-        public void InDesignModeReturnsFalse()
-        {
-            Assert.False(Execute.InDesignMode);
+                Execute.InDesignMode = false;
+                Assert.False(Execute.InDesignMode);
+            }
+            finally
+            {
+                Execute.InDesignMode = false;
+            }
         }
     }
 }

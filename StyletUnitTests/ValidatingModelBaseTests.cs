@@ -71,12 +71,6 @@ namespace StyletUnitTests
         private Mock<IModelValidator> validator;
         private MyModel model;
 
-        [TestFixtureSetUp]
-        public void SetUpFixture()
-        {
-            Execute.TestExecuteSynchronously = true;
-        }
-
         [SetUp]
         public void SetUp()
         {
@@ -110,7 +104,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidateCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).Returns(Task.Delay(1).ContinueWith(t => new Dictionary<string, string[]>() { { "property", new[] { "error1", "error2" } } })).Verifiable();
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).Returns(Task.Delay(1).ContinueWith(t => new Dictionary<string, IEnumerable<string>>() { { "property", new[] { "error1", "error2" } } })).Verifiable();
             this.model.Validate();
 
             this.validator.Verify();
@@ -119,7 +113,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidateAsyncCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).Returns(Task.Delay(1).ContinueWith(t => new Dictionary<string, string[]>())).Verifiable();
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).Returns(Task.Delay(1).ContinueWith(t => new Dictionary<string, IEnumerable<string>>())).Verifiable();
             this.model.ValidateAsync().Wait();
 
             this.validator.Verify();
@@ -128,7 +122,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyByNameCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("test")).Returns(Task.Delay(1).ContinueWith(t => new string[0])).Verifiable();
+            this.validator.Setup(x => x.ValidatePropertyAsync("test")).Returns(Task.Delay(1).ContinueWith(t => Enumerable.Empty<string>())).Verifiable();
             this.model.ValidateProperty("test");
 
             this.validator.Verify();
@@ -137,7 +131,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyAsyncByNameCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("test")).Returns(Task.Delay(1).ContinueWith(t => new string[0])).Verifiable();
+            this.validator.Setup(x => x.ValidatePropertyAsync("test")).Returns(Task.Delay(1).ContinueWith(t => Enumerable.Empty<string>())).Verifiable();
             this.model.ValidatePropertyAsync("test").Wait();
 
             this.validator.Verify();
@@ -146,7 +140,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyByExpressoinCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).Returns(Task.Delay(1).ContinueWith(t => new string[0])).Verifiable();
+            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).Returns(Task.Delay(1).ContinueWith(t => Enumerable.Empty<string>())).Verifiable();
             this.model.ValidateProperty(() => this.model.IntProperty);
 
             this.validator.Verify();
@@ -155,7 +149,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertAsyncByExpressionCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).Returns(Task.Delay(1).ContinueWith(t => new string[0])).Verifiable();
+            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).Returns(Task.Delay(1).ContinueWith(t => Enumerable.Empty<string>())).Verifiable();
             this.model.ValidatePropertyAsync(() => this.model.IntProperty).Wait();
 
             this.validator.Verify();
@@ -184,14 +178,14 @@ namespace StyletUnitTests
         [Test]
         public void ValidateReturnsTrueIfValidationPassed()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, string[]>()
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()
                 {
                     { "IntProperty", null }
                 });
             var result = this.model.Validate();
             Assert.True(result);
 
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, string[]>()
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()
                 {
                     { "IntProperty", new string[0] }
                 });
@@ -202,7 +196,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidateReturnsFalseIfValidationFailed()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, string[]>()
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()
                 {
                     { "IntProperty", new[] { "error" } }
                 });
@@ -286,7 +280,7 @@ namespace StyletUnitTests
         public void EventRaisedAndHasErrorsChangedIfValidateAllAndErrorsChange()
         {
             // Set up some initial errors
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, string[]>()
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()
                 {
                     { "IntProperty", new[] { "error" } },
                     { "OtherProperty", null },
@@ -295,7 +289,7 @@ namespace StyletUnitTests
                 });
             this.model.Validate();
 
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, string[]>()
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()
                 {
                     { "IntProperty", new[] { "error" } },
                     { "OtherProperty", new[] { "error" } },

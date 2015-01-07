@@ -38,7 +38,7 @@ namespace Stylet
         /// </summary>
         /// <param name="propertyName">Property to validate</param>
         /// <returns>Array of validation errors, or null if validation was successful</returns>
-        Task<string[]> ValidatePropertyAsync(string propertyName);
+        Task<IEnumerable<string>> ValidatePropertyAsync(string propertyName);
 
         /// <summary>
         /// Validate all properties, and return the results for all properties
@@ -47,6 +47,6 @@ namespace Stylet
         /// If a property validates successfully, you MUST return a null entry for it in the returned dictionary!
         /// </remarks>
         /// <returns>A dictionary of property name => array of validation errors (or null if that property validated successfully)</returns>
-        Task<Dictionary<string, string[]>> ValidateAllPropertiesAsync();
+        Task<Dictionary<string, IEnumerable<string>>> ValidateAllPropertiesAsync();
     }
 }

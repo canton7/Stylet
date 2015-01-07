@@ -425,7 +425,7 @@ namespace StyletIoC.Internal
                 if (methodInfo.ReturnType == typeof(void))
                     throw new StyletIoCCreateFactoryException("Can only implement methods which return something");
 
-                var attribute = methodInfo.GetCustomAttribute<InjectAttribute>();
+                var attribute = methodInfo.GetCustomAttribute<InjectAttribute>(true);
 
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
                 var methodIlGenerator = methodBuilder.GetILGenerator();

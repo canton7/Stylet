@@ -1,10 +1,7 @@
 ﻿using Spring.Http.Converters.Json;
 using Spring.Rest.Client;
-using Stylet.Samples.RedditBrowser.RedditApi.Contracts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Stylet.Samples.RedditBrowser.RedditApi

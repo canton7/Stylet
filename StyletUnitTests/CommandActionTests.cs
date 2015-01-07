@@ -55,12 +55,6 @@ namespace StyletUnitTests
         private DependencyObject subject;
         private Target target;
 
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
-        {
-            Execute.TestExecuteSynchronously = true;
-        }
-
         [SetUp]
         public void SetUp()
         {
@@ -73,7 +67,7 @@ namespace StyletUnitTests
         public void ThrowsIfTargetNullBehaviourIsThrowAndTargetBecomesNull()
         {
             var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Disable);
-            Assert.Throws<ArgumentException>(() => View.SetActionTarget(this.subject, null));
+            Assert.Throws<ActionTargetNullException>(() => View.SetActionTarget(this.subject, null));
         }
 
         [Test]
@@ -96,7 +90,7 @@ namespace StyletUnitTests
         public void ThrowsIfActionNonExistentBehaviourIsThrowAndActionIsNonExistent()
         {
             var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
-            Assert.Throws<ArgumentException>(() => View.SetActionTarget(this.subject, new Target2()));
+            Assert.Throws<ActionNotFoundException>(() => View.SetActionTarget(this.subject, new Target2()));
         }
 
         [Test]
@@ -212,7 +206,7 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfMethodHasMoreThanOneParameter()
         {
-            Assert.Throws<ArgumentException>(() => new CommandAction(this.subject, "DoSomethingWithManyArguments", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
+            Assert.Throws<ActionSignatureInvalidException>(() => new CommandAction(this.subject, "DoSomethingWithManyArguments", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
         }
     }
 }

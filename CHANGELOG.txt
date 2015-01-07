@@ -1,6 +1,17 @@
 Stylet Changelog
 ================
 
+v1.0.4
+------
+
+ - Allow IModelValidator to return an IEnumerable<string> rather than a string[]
+ - Fix up BindableCollection to be thread-safe
+ - View name resolution is now a bit smarter
+ - Add design time support
+ - Add design time sample
+ - Add sample bootstrapper which does not use an IoC container
+ - Execute.OnXXX is synchronous by default in unit tests and design time: Execute.TestExecuteSynchronously has been removed
+
 v1.0.3
 ------
 

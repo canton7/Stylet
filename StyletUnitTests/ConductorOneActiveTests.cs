@@ -17,12 +17,6 @@ namespace StyletUnitTests
 
         private Conductor<IScreen>.Collection.OneActive conductor;
 
-        [TestFixtureSetUp]
-        public void SetUpFixture()
-        {
-            Execute.TestExecuteSynchronously = true;
-        }
-
         [SetUp]
         public void SetUp()
         {
