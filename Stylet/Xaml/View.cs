@@ -70,11 +70,13 @@ namespace Stylet.Xaml
             obj.SetValue(ModelProperty, value);
         }
 
+        private static readonly object defaultModelValue = new object();
+
         /// <summary>
         /// Property specifying the ViewModel currently associated with a given object
         /// </summary>
         public static readonly DependencyProperty ModelProperty =
-            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(new object(), (d, e) =>
+            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(defaultModelValue, (d, e) =>
             {
                 if (ViewManager == null)
                 {
@@ -97,7 +99,9 @@ namespace Stylet.Xaml
                 }
                 else
                 {
-                    ViewManager.OnModelChanged(d, e.OldValue, e.NewValue);
+                    // It appears we can be reset to the default value on destruction
+                    var newValue = e.NewValue == defaultModelValue ? null : e.NewValue;
+                    ViewManager.OnModelChanged(d, e.OldValue, newValue);
                 }
             }));
 
