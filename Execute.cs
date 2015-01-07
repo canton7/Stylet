@@ -7,66 +7,31 @@ using System.Windows.Threading;
 namespace Stylet
 {
     /// <summary>
-    /// Generalised dispatcher, which can post and send
-    /// </summary>
-    public interface IDispatcher
-    {
-        /// <summary>
-        /// Execute asynchronously
-        /// </summary>
-        void Post(Action action);
-
-        /// <summary>
-        /// Execute synchronously
-        /// </summary>
-        void Send(Action action);
-
-        /// <summary>
-        /// True if invocation isn't required
-        /// </summary>
-        bool IsCurrent { get; }
-    }
-
-    internal class DispatcherWrapper : IDispatcher
-    {
-        private readonly Dispatcher dispatcher;
-
-        public DispatcherWrapper(Dispatcher dispatcher)
-        {
-            this.dispatcher = dispatcher;
-        }
-
-
-        public void Post(Action action)
-        {
-            this.dispatcher.BeginInvoke(action);
-        }
-
-        public void Send(Action action)
-        {
-            this.dispatcher.Invoke(action);
-        }
-
-        public bool IsCurrent
-        {
-            get { return this.dispatcher.CheckAccess(); }
-        }
-    }
-
-    /// <summary>
     /// Static class providing methods to easily run an action on the UI thread in various ways, and some other things
     /// </summary>
     public static class Execute
     {
+        private static IDispatcher _dispatcher;
+
         /// <summary>
         /// Should be set to the UI thread's Dispatcher. This is normally done by the Bootstrapper.
         /// </summary>
-        public static IDispatcher Dispatcher;
+        public static IDispatcher Dispatcher
+        {
+            get
+            {
+                if (_dispatcher == null)
+                    _dispatcher = new SynchronousDispatcher();
+                return _dispatcher;
+            }
 
-        /// <summary>
-        /// FOR TESTING ONLY. Causes everything to execute synchronously
-        /// </summary>
-        public static bool TestExecuteSynchronously = false;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                _dispatcher = value;
+            }
+        }
 
         private static bool? inDesignMode;
 
@@ -76,27 +41,12 @@ namespace Stylet
         public static Action<Action> DefaultPropertyChangedDispatcher = a => a();
 
         /// <summary>
-        /// Default dispatcher used by CollectionChanged events. Defaults to OnUIThreadSync
-        /// </summary>
-        public static Action<Action> DefaultCollectionChangedDispatcher = Execute.OnUIThreadSync;
-
-        private static void EnsureDispatcher()
-        {
-            if (Dispatcher == null && !TestExecuteSynchronously)
-                throw new InvalidOperationException("Execute.Dispatcher must be set before this method can be called. This should normally have been done by the Bootstrapper");
-        }
-
-        /// <summary>
         /// Dispatches the given action to be run on the UI thread asynchronously, even if the current thread is the UI thread
         /// </summary>
         /// <param name="action">Action to run on the UI thread</param>
         public static void PostToUIThread(Action action)
         {
-            EnsureDispatcher();
-            if (!TestExecuteSynchronously)
-                Dispatcher.Post(action);
-            else
-                action();
+            Dispatcher.Post(action);
         }
 
         /// <summary>
@@ -107,16 +57,7 @@ namespace Stylet
         /// <returns>Task which completes when the action has been run</returns>
         public static Task PostToUIThreadAsync(Action action)
         {
-            EnsureDispatcher();
-            if (!TestExecuteSynchronously)
-            {
-                return PostOnUIThreadInternalAsync(action);
-            }
-            else
-            {
-                action();
-                return Task.FromResult(false);
-            }
+            return PostOnUIThreadInternalAsync(action);
         }
 
         /// <summary>
@@ -125,11 +66,10 @@ namespace Stylet
         /// <param name="action">Action to run on the UI thread</param>
         public static void OnUIThread(Action action)
         {
-            EnsureDispatcher();
-            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
-                Dispatcher.Post(action);
-            else
+            if (Dispatcher.IsCurrent)
                 action();
+            else
+                Dispatcher.Post(action);
         }
 
         /// <summary>
@@ -138,9 +78,12 @@ namespace Stylet
         /// <param name="action">Action to run on the UI thread</param>
         public static void OnUIThreadSync(Action action)
         {
-            EnsureDispatcher();
             Exception exception = null;
-            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
+            if (Dispatcher.IsCurrent)
+            {
+                action();
+            }
+            else
             {
                 Dispatcher.Send(() =>
                 {
@@ -157,10 +100,6 @@ namespace Stylet
                 if (exception != null)
                     throw new System.Reflection.TargetInvocationException("An error occurred while dispatching a call to the UI Thread", exception);
             }
-            else
-            {
-                action();
-            }
         }
 
         /// <summary>
@@ -170,15 +109,14 @@ namespace Stylet
         /// <returns>Task which completes when the action has been run</returns>
         public static Task OnUIThreadAsync(Action action)
         {
-            EnsureDispatcher();
-            if (!TestExecuteSynchronously && !Dispatcher.IsCurrent)
-            {
-                return PostOnUIThreadInternalAsync(action);
-            }
-            else
+            if (Dispatcher.IsCurrent)
             {
                 action();
                 return Task.FromResult(false);
+            }
+            else
+            {
+                return PostOnUIThreadInternalAsync(action);
             }
         }
 
@@ -201,7 +139,7 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Determing if we're currently running in design mode
+        /// Determing if we're currently running in design mode. Settable for really obscure unit testing only
         /// </summary>
         public static bool InDesignMode
         {
@@ -215,6 +153,8 @@ namespace Stylet
 
                 return inDesignMode.Value;
             }
+
+            set { inDesignMode = value; }
         }
     }
 }

@@ -81,7 +81,7 @@ namespace Stylet.Xaml
             {
                 if (this.targetNullBehaviour == ActionUnavailableBehaviour.Throw)
                 {
-                    var e = new ArgumentException(String.Format("ActionTarget on element {0} is null (method name is {1})", this.subject, this.methodName));
+                    var e = new ActionTargetNullException(String.Format("ActionTarget on element {0} is null (method name is {1})", this.subject, this.methodName));
                     logger.Error(e);
                     throw e;
                 }
@@ -98,7 +98,7 @@ namespace Stylet.Xaml
                 {
                     if (this.actionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
                     {
-                        var e = new ArgumentException(String.Format("Unable to find method {0} on {1}", this.methodName, newTargetType.Name));
+                        var e = new ActionNotFoundException(String.Format("Unable to find method {0} on {1}", this.methodName, newTargetType.Name));
                         logger.Error(e);
                         throw e;
                     }
@@ -112,7 +112,7 @@ namespace Stylet.Xaml
                     var methodParameters = targetMethodInfo.GetParameters();
                     if (methodParameters.Length > 1 || (methodParameters.Length == 1 && !methodParameters[0].ParameterType.IsAssignableFrom(typeof(RoutedEventArgs))))
                     {
-                        var e = new ArgumentException(String.Format("Method {0} on {1} must have zero parameters, or a single parameter accepting a RoutedEventArgs", this.methodName, newTargetType.Name));
+                        var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have zero parameters, or a single parameter accepting a RoutedEventArgs", this.methodName, newTargetType.Name));
                         logger.Error(e);
                         throw e;
                     }

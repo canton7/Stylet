@@ -27,6 +27,11 @@ namespace Stylet
         public IList<Assembly> Assemblies { get; protected set; }
 
         /// <summary>
+        /// Gets command line arguments that were passed to the application from either the command prompt or the desktop.
+        /// </summary>
+        public string[] Args { get; protected set; }
+
+        /// <summary>
         /// Instantiate a new BootstrapperBase
         /// </summary>
         public BootstrapperBase()
@@ -40,16 +45,17 @@ namespace Stylet
         /// <param name="application"></param>
         public void Setup(Application application)
         {
+            if (application == null)
+                throw new ArgumentNullException("application");
+
             this.Application = application;
 
-            this.Application.Startup += (o, e) =>
-            {
-                this.OnApplicationStartup(o, e);
-                this.Start();
-            };
+            // Use the current application's dispatcher for Execute
+            Execute.Dispatcher = new DispatcherWrapper(this.Application.Dispatcher);
 
+            this.Application.Startup += (o, e) => this.Start(e.Args);
             // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
-            this.Application.Exit += OnApplicationExit;
+            this.Application.Exit += (o, e) => this.OnExit(e);
 
             // Fetch this logger when needed. If we fetch it now, then no-one will have been given the change to enable the LogManager, and we'll get a NullLogger
             this.Application.DispatcherUnhandledException += (o, e) => LogManager.GetLogger(typeof(BootstrapperBase<>)).Error(e.Exception, "Unhandled exception");
@@ -59,17 +65,16 @@ namespace Stylet
         /// <summary>
         /// Called on Application.Startup, this does everything necessary to start the application
         /// </summary>
-        public virtual void Start()
+        public virtual void Start(string[] args)
         {
-            // Use the current SynchronizationContext for the Execute helper
-            Execute.Dispatcher = new DispatcherWrapper(Dispatcher.CurrentDispatcher);
+            // Set this before anything else, so everything can use it
+            this.Args = args;
 
             this.ConfigureBootstrapper();
 
             View.ViewManager = (IViewManager)this.GetInstance(typeof(IViewManager));
 
-            if (!Execute.InDesignMode)
-                this.Launch();
+            this.Launch();
         }
 
         /// <summary>
@@ -80,6 +85,7 @@ namespace Stylet
             var windowManager = (IWindowManager)this.GetInstance(typeof(IWindowManager));
             var rootViewModel = this.GetInstance(typeof(TRootViewModel));
             windowManager.ShowWindow(rootViewModel);
+            this.OnStartup();
         }
 
         /// <summary>
@@ -95,16 +101,15 @@ namespace Stylet
         public abstract object GetInstance(Type type);
 
         /// <summary>
-        /// Hook called on application startup. This occurs before Start() is called (if autoStart is true)
+        /// Hook called on application startup. This occurs once the root view has been displayed
         /// </summary>
-        protected virtual void OnApplicationStartup(object sender, StartupEventArgs e) { }
+        protected virtual void OnStartup() { }
 
         /// <summary>
         /// Hook called on application exit
         /// </summary>
-        /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnApplicationExit(object sender, ExitEventArgs e) { }
+        protected virtual void OnExit(ExitEventArgs e) { }
 
         /// <summary>
         /// Hook called on an unhandled exception

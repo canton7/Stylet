@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Markup;
 
 namespace Stylet.Xaml
@@ -73,7 +74,32 @@ namespace Stylet.Xaml
         /// Property specifying the ViewModel currently associated with a given object
         /// </summary>
         public static readonly DependencyProperty ModelProperty =
-            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(null, (d, e) => ViewManager.OnModelChanged(d, e.OldValue, e.NewValue) ));
+            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(new object(), (d, e) =>
+            {
+                if (ViewManager == null)
+                {
+                    if (Execute.InDesignMode)
+                    {
+                        var bindingExpression = BindingOperations.GetBindingExpression(d, View.ModelProperty);
+                        string text;
+                        if (bindingExpression == null)
+                            text = "View for [Broken Binding]";
+                        else if (bindingExpression.ResolvedSourcePropertyName == null)
+                            text = String.Format("View for child ViewModel on {0}", bindingExpression.DataItem.GetType().Name);
+                        else
+                            text = String.Format("View for {0}.{1}", bindingExpression.DataItem.GetType().Name, bindingExpression.ResolvedSourcePropertyName);
+                        View.SetContentProperty(d, new System.Windows.Controls.TextBlock() { Text = text });
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("View.ViewManager is unassigned. This should have been set by the Bootstrapper");
+                    }
+                }
+                else
+                {
+                    ViewManager.OnModelChanged(d, e.OldValue, e.NewValue);
+                }
+            }));
 
 
         /// <summary>
