@@ -167,8 +167,11 @@ namespace Stylet.Xaml
         private void UpdateCanExecute()
         {
             var handler = this.CanExecuteChanged;
+            // So. While we're safe firing PropertyChanged events on a non-UI thread, we
+            // are not safe firing CanExecuteChanged events on other threads...
+            // Therefore make sure we're on the UI thread
             if (handler != null)
-                handler(this, EventArgs.Empty);
+                Stylet.Execute.OnUIThread(() => handler(this, EventArgs.Empty));
         }
 
         /// <summary>
