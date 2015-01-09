@@ -19,13 +19,14 @@ namespace Stylet.Xaml
     public class CommandAction : ICommand
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(CommandAction));
+
         /// <summary>
-        /// View to grab the View.ActionTarget from
+        /// Gets the View to grab the View.ActionTarget from
         /// </summary>
         public DependencyObject Subject { get; private set; }
 
         /// <summary>
-        /// Method name. E.g. if someone's gone Buttom Command="{s:Action MyMethod}", this is MyMethod.
+        /// Gets the method name. E.g. if someone's gone Buttom Command="{s:Action MyMethod}", this is MyMethod.
         /// </summary>
         public string MethodName { get; private set; }
 
@@ -45,7 +46,7 @@ namespace Stylet.Xaml
         private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
 
         /// <summary>
-        /// Create a new ActionCommand 
+        /// Initialises a new instance of the <see cref="CommandAction"/> class
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>

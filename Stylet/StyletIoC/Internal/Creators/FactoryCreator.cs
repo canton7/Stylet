@@ -7,6 +7,7 @@ namespace StyletIoC.Internal.Creators
     /// <summary>
     /// Knows how to create an instance of a type, by using a Func{IRegistration, T} passed by the user during building
     /// </summary>
+    /// <typeparam name="T">Type of object created by this factory</typeparam>
     internal class FactoryCreator<T> : CreatorBase
     {
         private readonly Func<IRegistrationContext, T> factory;

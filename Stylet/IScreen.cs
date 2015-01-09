@@ -10,7 +10,7 @@ namespace Stylet
     public interface IViewAware
     {
         /// <summary>
-        /// The view associated with this ViewModel
+        /// Gets the view associated with this ViewModel
         /// </summary>
         UIElement View { get; }
 
@@ -76,7 +76,7 @@ namespace Stylet
     public interface IHaveDisplayName
     {
         /// <summary>
-        /// Name which should be displayed
+        /// Gets or sets the name which should be displayed
         /// </summary>
         string DisplayName { get; set; }
     }
@@ -87,7 +87,7 @@ namespace Stylet
     public interface IChild
     {
         /// <summary>
-        /// Parent object to this child
+        /// Gets or sets the parent object to this child
         /// </summary>
         object Parent { get; set; }
     }
@@ -101,6 +101,7 @@ namespace Stylet
         /// <summary>
         /// Returns whether or not the object can close, potentially asynchronously
         /// </summary>
+        /// <returns>A task indicating whether the object can close</returns>
         Task<bool> CanCloseAsync();
     }
 

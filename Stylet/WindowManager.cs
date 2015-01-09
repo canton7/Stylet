@@ -37,6 +37,7 @@ namespace Stylet
         /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
         /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
         /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
+        /// <returns>The result chosen by the user</returns>
         MessageBoxResult ShowMessageBox(string messageBoxText, string caption = null,
             MessageBoxButton buttons = MessageBoxButton.OK,
             MessageBoxImage icon = MessageBoxImage.None,
@@ -56,7 +57,7 @@ namespace Stylet
         private readonly Func<IMessageBoxViewModel> messageBoxViewModelFactory;
 
         /// <summary>
-        /// Create a new WindowManager instance, using the given IViewManager
+        /// Initialises a new instance of the <see cref="WindowManager"/> class, using the given <see cref="IViewManager"/>
         /// </summary>
         /// <param name="viewManager">IViewManager to use when creating views</param>
         /// <param name="messageBoxViewModelFactory">Delegate which returns a new IMessageBoxViewModel instance when invoked</param>
@@ -96,6 +97,7 @@ namespace Stylet
         /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
         /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
         /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
+        /// <returns>The result chosen by the user</returns>
         public MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "",
             MessageBoxButton buttons = MessageBoxButton.OK,
             MessageBoxImage icon = MessageBoxImage.None,
@@ -157,11 +159,15 @@ namespace Stylet
             if (Application.Current == null)
                 return null;
 
+            // We can end up in a really weird situation if they try and display more than one dialog as the application's closing
+            // Basically the MainWindow's no long active, so the second dialog chooses the first dialog as its owner... But the first dialog
+            // hasn't yet been shown, so we get an exception ("cannot set owner property to a Window which has not been previously shown").
+            // Not sure whether checking IsLoaded is the correct solution, but...
             var active = Application.Current.Windows.OfType<Window>().Where(x => x.IsActive).FirstOrDefault() ?? Application.Current.MainWindow;
             return active == window ? null : active;
         }
 
-        class WindowConductor : IChildDelegate
+        private class WindowConductor : IChildDelegate
         {
             private readonly Window window;
             private readonly object viewModel;
@@ -186,7 +192,7 @@ namespace Stylet
                     window.Closing += this.WindowClosing;
 
                 if (this.viewModel is IActivate || this.viewModel is IDeactivate)
-                    window.StateChanged += WindowStateChanged;
+                    window.StateChanged += this.WindowStateChanged;
             }
 
             private void WindowStateChanged(object sender, EventArgs e)
@@ -217,9 +223,6 @@ namespace Stylet
                 ScreenExtensions.TryCloseAndDispose(this.viewModel);
             }
 
-            /// <summary>
-            /// Closing event from the window
-            /// </summary>
             private async void WindowClosing(object sender, CancelEventArgs e)
             {
                 if (e.Cancel)
@@ -256,6 +259,8 @@ namespace Stylet
             /// <summary>
             /// Close was requested by the child
             /// </summary>
+            /// <param name="item">Item to close</param>
+            /// <param name="dialogResult">DialogResult to close with, if it's a dialog</param>
             async void IChildDelegate.CloseItem(object item, bool? dialogResult)
             {
                 if (item != this.viewModel)

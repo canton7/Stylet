@@ -16,7 +16,7 @@ namespace StyletIoC.Creation
         private Action<IRegistrationContext, object> implementor;
 
         /// <summary>
-        /// Instantiate a new BuilderUpper
+        /// Initialises a new instance of the <see cref="BuilderUpper"/> class
         /// </summary>
         /// <param name="type">Type of object that the BuilderUpper will work on</param>
         /// <param name="parentContext">IRegistrationContext on which this BuilderUpper is registered</param>

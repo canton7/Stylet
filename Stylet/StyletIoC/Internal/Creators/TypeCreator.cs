@@ -1,5 +1,6 @@
 ﻿using StyletIoC.Creation;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -37,6 +38,7 @@ namespace StyletIoC.Internal.Creators
             return attribute == null ? null : attribute.Key;
         }
 
+        [SuppressMessage("StyleCop.CSharp.Readability", "SA1118:ParameterMustNotSpanMultipleLines", Justification = "Honestly, it's clearer like this")]
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             if (this.creationExpression != null)
@@ -53,28 +55,30 @@ namespace StyletIoC.Internal.Creators
             {
                 ctor = ctorsWithAttribute[0];
                 var key = ctorsWithAttribute[0].GetCustomAttribute<InjectAttribute>(true).Key;
-                var cantResolve = ctor.GetParameters().Where(p => !this.parentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue).FirstOrDefault();
+                var cantResolve = ctor.GetParameters().Where(p => !this.ParentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue).FirstOrDefault();
                 if (cantResolve != null)
                     throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", this.Type.GetDescription(), cantResolve.Name, cantResolve.ParameterType.GetDescription()));
             }
             else
             {
                 ctor = this.Type.GetConstructors()
-                    .Where(c => c.GetParameters().All(p => this.parentContext.CanResolve(p.ParameterType, this.KeyForParameter(p)) || p.HasDefaultValue))
+                    .Where(c => c.GetParameters().All(p => this.ParentContext.CanResolve(p.ParameterType, this.KeyForParameter(p)) || p.HasDefaultValue))
                     .OrderByDescending(c => c.GetParameters().Count(p => !p.HasDefaultValue))
                     .FirstOrDefault();
 
                 if (ctor == null)
                 {
                     // Get us a bit more information....
-                    var info = String.Join("\n\n", this.Type.GetConstructors().Select(c => String.Format("Constructor:\n{0}\n\n", String.Join("\n", c.GetParameters().Select(p =>
+                    Func<ParameterInfo, string> ctorParameterPrinter = p =>
                     {
                         var key = this.KeyForParameter(p);
-                        var canResolve = this.parentContext.CanResolve(p.ParameterType, key) || p.HasDefaultValue;
+                        var canResolve = this.ParentContext.CanResolve(p.ParameterType, key) || p.HasDefaultValue;
                         var keyStr = key == null ? "" : String.Format(" [Key = {0}]", key);
-                        var usingDefaultStr = (!this.parentContext.CanResolve(p.ParameterType, key) && p.HasDefaultValue) ? " [Using Default]" : "";
+                        var usingDefaultStr = (!this.ParentContext.CanResolve(p.ParameterType, key) && p.HasDefaultValue) ? " [Using Default]" : "";
                         return String.Format("   {0}{1}: {2}{3}", p.ParameterType.GetDescription(), keyStr, canResolve ? "Success" : "Failure", usingDefaultStr);
-                    })))));
+                    };
+
+                    var info = String.Join("\n\n", this.Type.GetConstructors().Select(c => String.Format("Constructor:\n{0}\n\n", String.Join("\n", c.GetParameters().Select(ctorParameterPrinter)))));
 
                     throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call:\n{1}", this.Type.GetDescription(), info));
                 }
@@ -86,11 +90,11 @@ namespace StyletIoC.Internal.Creators
             var ctorParams = ctor.GetParameters().Select(x =>
             {
                 var key = this.KeyForParameter(x);
-                if (this.parentContext.CanResolve(x.ParameterType, key))
+                if (this.ParentContext.CanResolve(x.ParameterType, key))
                 {
                     try
                     {
-                        return this.parentContext.GetSingleRegistration(x.ParameterType, key, true).GetInstanceExpression(registrationContext);
+                        return this.ParentContext.GetSingleRegistration(x.ParameterType, key, true).GetInstanceExpression(registrationContext);
                     }
                     catch (StyletIoCRegistrationException e)
                     {

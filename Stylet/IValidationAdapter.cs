@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Stylet
@@ -13,7 +14,7 @@ namespace Stylet
     /// builder.Bind(typeof(IModelValidator{})).ToAllImplementations()
     /// and request a new IModelValidator{MyViewModelType} in your ViewModel's constructor.
     /// </remarks>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Type of model being validated</typeparam>
     public interface IModelValidator<in T> : IModelValidator
     {
     }
@@ -30,7 +31,7 @@ namespace Stylet
         /// Called by ValidatingModelBase, which passes in an instance of itself.
         /// This allows the IModelValidator to specialize to validating that particular ValidatingModelBase instance
         /// </summary>
-        /// <param name="subject"></param>
+        /// <param name="subject">Subject to initialize</param>
         void Initialize(object subject);
 
         /// <summary>

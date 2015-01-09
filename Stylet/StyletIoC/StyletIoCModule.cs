@@ -18,6 +18,7 @@ namespace StyletIoC
         /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
         /// </summary>
         /// <param name="serviceType">Service to bind</param>
+        /// <returns>Fluent interface to continue configuration</returns>
         protected IBindTo Bind(Type serviceType)
         {
             var builderBindTo = new BuilderBindTo(serviceType);
@@ -29,6 +30,7 @@ namespace StyletIoC
         /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
         /// </summary>
         /// <typeparam name="TService">Service to bind</typeparam>
+        /// <returns>Fluent interface to continue configuration</returns>
         protected IBindTo Bind<TService>()
         {
             return this.Bind(typeof(TService));

@@ -10,9 +10,9 @@ namespace StyletIoC.Internal.Registrations
     // We're only created when we're needed, so no point in trying to be lazy
     internal class FuncNoKeyRegistration : IRegistration
     {
-        private IRegistration delegateRegistration;
         private readonly Type funcType;
         private readonly Func<IRegistrationContext, object> generator;
+        private IRegistration delegateRegistration;
 
         public Type Type
         {

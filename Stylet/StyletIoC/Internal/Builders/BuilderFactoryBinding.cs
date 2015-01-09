@@ -11,8 +11,8 @@ namespace StyletIoC.Internal.Builders
         public BuilderFactoryBinding(Type serviceType, Func<IRegistrationContext, TImplementation> factory)
             : base(serviceType)
         {
-            if (this.serviceType.IsGenericTypeDefinition)
-                throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.serviceType.GetDescription()));
+            if (this.ServiceType.IsGenericTypeDefinition)
+                throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.ServiceType.GetDescription()));
             this.EnsureType(typeof(TImplementation), assertImplementation: false);
             this.factory = factory;
         }
@@ -22,7 +22,7 @@ namespace StyletIoC.Internal.Builders
             var creator = new FactoryCreator<TImplementation>(this.factory, container);
             var registration = this.CreateRegistration(container, creator);
 
-            container.AddRegistration(new TypeKey(this.serviceType, this.Key), registration);
+            container.AddRegistration(new TypeKey(this.ServiceType, this.Key), registration);
         }
     }
 }

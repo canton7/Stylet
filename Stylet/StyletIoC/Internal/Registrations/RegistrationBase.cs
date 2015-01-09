@@ -9,29 +9,25 @@ namespace StyletIoC.Internal.Registrations
     /// </summary>
     internal abstract class RegistrationBase : IRegistration
     {
-        protected readonly ICreator creator;
-        public Type Type { get { return this.creator.Type; } }
+        protected readonly ICreator Creator;
+        public Type Type { get { return this.Creator.Type; } }
 
         private readonly object generatorLock = new object();
-        protected Func<IRegistrationContext, object> generator;
+        protected Func<IRegistrationContext, object> Generator { get; set; }
 
         public RegistrationBase(ICreator creator)
         {
-            this.creator = creator;
+            this.Creator = creator;
         }
 
         public virtual Func<IRegistrationContext, object> GetGenerator()
         {
-            if (this.generator != null)
-                return this.generator;
+            if (this.Generator != null)
+                return this.Generator;
 
             lock (this.generatorLock)
             {
-                if (this.generator == null)
-                {
-                    this.generator = this.GetGeneratorInternal();
-                }
-                return this.generator;
+                return this.Generator ?? (this.Generator = this.GetGeneratorInternal());
             }
         }
 

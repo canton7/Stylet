@@ -63,7 +63,9 @@
     <Compile Include="StyletIoC\Internal\Creators\AbstractFactoryCreator.cs" />
     <Compile Include="StyletIoC\Internal\Creators\CreatorBase.cs" />
     <Compile Include="StyletIoC\Internal\Creators\FactoryCreator.cs" />
-    <Compile Include="StyletIoC\Internal\Creators\TypeCreator.cs" />
+    <Compile Include="StyletIoC\Internal\Creators\TypeCreator.cs">
+      <ExcludeFromStyleCop>False</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="StyletIoC\Creation\IRegistrationContext.cs" />
     <Compile Include="StyletIoC\Internal\RegistrationCollections\EmptyRegistrationCollection.cs" />
     <Compile Include="StyletIoC\Internal\RegistrationCollections\RegistrationCollection.cs" />

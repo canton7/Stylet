@@ -20,9 +20,9 @@ namespace Stylet.Xaml
         private static readonly ContentPropertyAttribute defaultContentProperty = new ContentPropertyAttribute("Content");
 
         /// <summary>
-        /// IViewManager to be used. This should be set by the Bootstrapper.
+        /// Gets or sets the <see cref="IViewManager"/> to be used. This should be set by the Bootstrapper.
         /// </summary>
-        public static IViewManager ViewManager;
+        public static IViewManager ViewManager { get; set; }
 
         /// <summary>
         /// Get the ActionTarget associated with the given object
@@ -31,7 +31,7 @@ namespace Stylet.Xaml
         /// <returns>ActionTarget associated with the given object</returns>
         public static object GetActionTarget(DependencyObject obj)
         {
-            return (object)obj.GetValue(ActionTargetProperty);
+            return obj.GetValue(ActionTargetProperty);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Stylet.Xaml
         /// <returns>ViewModel currently associated with the given object</returns>
         public static object GetModel(DependencyObject obj)
         {
-            return (object)obj.GetValue(ModelProperty);
+            return obj.GetValue(ModelProperty);
         }
 
         /// <summary>
@@ -104,7 +104,6 @@ namespace Stylet.Xaml
                     ViewManager.OnModelChanged(d, e.OldValue, newValue);
                 }
             }));
-
 
         /// <summary>
         /// Helper to set the Content property of a given object to a particular View

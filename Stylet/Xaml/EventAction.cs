@@ -13,6 +13,9 @@ namespace Stylet.Xaml
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(EventAction));
 
+        private readonly ActionUnavailableBehaviour targetNullBehaviour;
+        private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
+
         /// <summary>
         /// View whose View.ActionTarget we watch
         /// </summary>
@@ -35,11 +38,8 @@ namespace Stylet.Xaml
 
         private object target;
 
-        private readonly ActionUnavailableBehaviour targetNullBehaviour;
-        private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
-
         /// <summary>
-        /// Create a new EventAction
+        /// Initialises a new instance of the <see cref="EventAction"/> class
         /// </summary>
         /// <param name="subject">View whose View.ActionTarget we watch</param>
         /// <param name="targetProperty">Property on the WPF element we're returning a delegate for</param>
@@ -126,9 +126,10 @@ namespace Stylet.Xaml
         /// <summary>
         /// Return a delegate which can be added to the targetProperty
         /// </summary>
+        /// <returns>An event hander, which, when invoked, will invoke the action</returns>
         public RoutedEventHandler GetDelegate()
         {
-            return new RoutedEventHandler(this.InvokeCommand);
+            return this.InvokeCommand;
         }
 
         private void InvokeCommand(object sender, RoutedEventArgs e)

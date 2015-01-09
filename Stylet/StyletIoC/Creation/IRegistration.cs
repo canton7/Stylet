@@ -20,7 +20,7 @@ namespace StyletIoC.Creation
     public interface IRegistration
     {
         /// <summary>
-        /// Type of the object returned by the registration
+        /// Gets the type of the object returned by the registration
         /// </summary>
         Type Type { get; }
 
@@ -33,6 +33,7 @@ namespace StyletIoC.Creation
         /// <summary>
         /// Fetches an expression which evaluates to an instance of the relevant type
         /// </summary>
+        /// <param name="registrationContext">Context which calls this method</param>
         /// <returns>An expression evaluating to an instance of type Type, which is supplied by the ICreator></returns>
         Expression GetInstanceExpression(ParameterExpression registrationContext);
     }

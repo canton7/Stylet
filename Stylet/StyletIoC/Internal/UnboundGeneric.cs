@@ -6,8 +6,8 @@ namespace StyletIoC.Internal
 {
     internal class UnboundGeneric
     {
-        private IRegistrationContext parentContext;
         private readonly Type serviceType;
+        private readonly IRegistrationContext parentContext;
         public Type Type { get; private set; }
         public RegistrationFactory RegistrationFactory { get; private set; }
 

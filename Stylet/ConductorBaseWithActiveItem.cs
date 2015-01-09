@@ -6,13 +6,13 @@ namespace Stylet
     /// <summary>
     /// Base class for all conductors which had a single active item
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Type of item being conducted</typeparam>
     public abstract class ConductorBaseWithActiveItem<T> : ConductorBase<T>, IHaveActiveItem<T> where T : class
     {
         private T _activeItem;
 
         /// <summary>
-        /// Item which is currently active
+        /// Gets or sets the item which is currently active
         /// </summary>
         public T ActiveItem
         {
@@ -23,14 +23,17 @@ namespace Stylet
         /// <summary>
         /// From IParent, fetch all items
         /// </summary>
+        /// <returns>Children of this conductor</returns>
         public override IEnumerable<T> GetChildren()
         {
-            return new[] { ActiveItem };
+            return new[] { this.ActiveItem };
         }
 
         /// <summary>
         /// Switch the active item to the given item
         /// </summary>
+        /// <param name="newItem">New item to activate</param>
+        /// <param name="closePrevious">Whether the previously-active item should be closed</param>
         protected virtual void ChangeActiveItem(T newItem, bool closePrevious)
         {
             ScreenExtensions.TryDeactivate(this.ActiveItem);
@@ -73,5 +76,4 @@ namespace Stylet
             this.CloseAndCleanUp(this.ActiveItem);
         }
     }
-
 }

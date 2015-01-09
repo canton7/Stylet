@@ -11,6 +11,8 @@ namespace Stylet
         /// <summary>
         /// Given a MemberExpression (or MemberExpression wrapped in a UnaryExpression), get the name of the property
         /// </summary>
+        /// <typeparam name="TDelegate">Type of the delegate</typeparam>
+        /// <param name="propertyExpression">Expression describe the property whose name we want to extract</param>
         /// <returns>Name of the property referenced by the expression</returns>
         public static string NameForProperty<TDelegate>(this Expression<TDelegate> propertyExpression)
         {

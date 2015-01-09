@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Data;
 
@@ -8,6 +9,7 @@ namespace Stylet.Xaml
     /// <summary>
     /// Turn a boolean value into a Visibility
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1126:PrefixCallsCorrectly", Justification = "Don't agree with prefixing static method calls with the class name")]
     public class BoolToVisibilityConverter : DependencyObject, IValueConverter
     {
         /// <summary>
@@ -16,7 +18,7 @@ namespace Stylet.Xaml
         public static readonly BoolToVisibilityConverter Instance = new BoolToVisibilityConverter();
 
         /// <summary>
-        /// Visibility to use if value is true
+        /// Gets or sets the visibility to use if value is true
         /// </summary>
         public Visibility TrueVisibility
         {
@@ -31,7 +33,7 @@ namespace Stylet.Xaml
             DependencyProperty.Register("TrueVisibility", typeof(Visibility), typeof(BoolToVisibilityConverter), new PropertyMetadata(Visibility.Visible));
 
         /// <summary>
-        /// Visibility to use if value is false
+        /// Gets or sets the visibility to use if value is false
         /// </summary>
         public Visibility FalseVisibility
         {
@@ -45,10 +47,14 @@ namespace Stylet.Xaml
         public static readonly DependencyProperty FalseVisibilityProperty =
             DependencyProperty.Register("FalseVisibility", typeof(Visibility), typeof(BoolToVisibilityConverter), new PropertyMetadata(Visibility.Collapsed));
 
-
         /// <summary>
         /// Perform the conversion
         /// </summary>
+        /// <param name="value">value as produced by source binding</param>
+        /// <param name="targetType">target type</param>
+        /// <param name="parameter">converter parameter</param>
+        /// <param name="culture">culture information</param>
+        /// <returns>Converted value</returns>
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             bool result;
@@ -68,9 +74,10 @@ namespace Stylet.Xaml
             {
                 result = true; // Non-null non-enumerable reference type = true
             }
-            // Value types from here on in
-            else
+            else 
             {
+                // Value types from here on in
+
                 // This fails if an int can't be converted to it, or for many other reasons
                 // Easiest is just to try it and see
                 try
@@ -89,6 +96,11 @@ namespace Stylet.Xaml
         /// <summary>
         /// Perform the inverse conversion. Only valid if the value is bool
         /// </summary>
+        /// <param name="value">value, as produced by target</param>
+        /// <param name="targetType">target type</param>
+        /// <param name="parameter">converter parameter</param>
+        /// <param name="culture">culture information</param>
+        /// <returns>Converted back value</returns>
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (targetType != typeof(bool))

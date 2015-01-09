@@ -49,6 +49,8 @@ namespace Stylet
         /// Activate the child whenever the parent is activated
         /// </summary>
         /// <example>child.ActivateWith(this)</example>
+        /// <param name="child">Child to activate whenever the parent is activated</param>
+        /// <param name="parent">Parent to observe</param>
         public static void ActivateWith(this IActivate child, IActivate parent)
         {
             WeakEventManager<IActivate, ActivationEventArgs>.AddHandler(parent, "Activated", (o, e) => child.Activate());
@@ -58,6 +60,8 @@ namespace Stylet
         /// Deactivate the child whenever the parent is deactivated
         /// </summary>
         /// <example>child.DeactivateWith(this)</example>
+        /// <param name="child">Child to deactivate whenever the parent is deacgtivated</param>
+        /// <param name="parent">Parent to observe</param>
         public static void DeactivateWith(this IDeactivate child, IDeactivate parent)
         {
             WeakEventManager<IDeactivate, DeactivationEventArgs>.AddHandler(parent, "Deactivated", (o, e) => child.Deactivate());
@@ -67,6 +71,8 @@ namespace Stylet
         /// Close the child whenever the parent is closed
         /// </summary>
         /// <example>child.CloseWith(this)</example>
+        /// <param name="child">Child to close when the parent is closed</param>
+        /// <param name="parent">Parent to observe</param>
         public static void CloseWith(this IClose child, IClose parent)
         {
             // Using TryCloseAndDispose ensures that Dispose is called if necessary
@@ -77,6 +83,10 @@ namespace Stylet
         /// Activate, Deactivate, or Close the child whenever the parent is Activated, Deactivated, or Closed
         /// </summary>
         /// <example>child.ConductWith(this)</example>
+        /// <typeparam name="TChild">Type of the child</typeparam>
+        /// <typeparam name="TParent">Type of the parent</typeparam>
+        /// <param name="child">Child to conduct with the parent</param>
+        /// <param name="parent">Parent to observe</param>
         public static void ConductWith<TChild, TParent>(this TChild child, TParent parent)
             where TChild : IActivate, IDeactivate, IClose
             where TParent : IActivate, IDeactivate, IClose

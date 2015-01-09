@@ -64,7 +64,7 @@ namespace Stylet
             /// <summary>
             /// Close the given item. If it was the ActiveItem, activate the top item in the history stack
             /// </summary>
-            /// <param name="item"></param>
+            /// <param name="item">Item to close</param>
             public override async void CloseItem(T item)
             {
                 if (item == null || !await this.CanCloseItem(item))
@@ -90,7 +90,7 @@ namespace Stylet
             /// <summary>
             /// Returns true if and when all items (ActiveItem + everything in the history stack) can close
             /// </summary>
-            /// <returns></returns>
+            /// <returns>A task indicating whether this conductor can close</returns>
             public override Task<bool> CanCloseAsync()
             {
                 return this.CanAllItemsCloseAsync(this.history.Concat(new[] { this.ActiveItem }));

@@ -13,8 +13,7 @@ namespace Stylet
     /// <summary>
     /// Base for ViewModels which require property validation
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable",
-        Justification="According to Albahari and Albahari, relying on the GC to tidy up WaitHandles is arguably acceptable, since they're so small.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable", Justification = "According to Albahari and Albahari, relying on the GC to tidy up WaitHandles is arguably acceptable, since they're so small.")]
     public class ValidatingModelBase : PropertyChangedBase, INotifyDataErrorInfo
     {
         /// <summary>
@@ -27,7 +26,7 @@ namespace Stylet
         private IModelValidator _validator;
 
         /// <summary>
-        /// IModelValidator to use to validate properties. You're expected to write your own, using your favourite validation library
+        /// Gets or sets the IModelValidator to use to validate properties. You're expected to write your own, using your favourite validation library
         /// </summary>
         protected virtual IModelValidator Validator
         {
@@ -41,12 +40,12 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Whether to run validation for a property automatically every time that property changes
+        /// Gets or sets a value indicating whether to run validation for a property automatically every time that property changes
         /// </summary>
         protected bool AutoValidate { get; set; }
 
         /// <summary>
-        /// Instantiate, without using an IValidatorAdapter
+        /// Initialises a new instance of the <see cref="ValidatingModelBase"/> class, without using an <see cref="IModelValidator"/>
         /// </summary>
         public ValidatingModelBase()
         {
@@ -54,7 +53,7 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Instantiate, using the specified IValidatorAdapter
+        /// Initialises a new instance of the <see cref="ValidatingModelBase"/> class, using the specifies <see cref="IModelValidator"/>
         /// </summary>
         /// <param name="validator">Validator adapter to use to perform validations</param>
         public ValidatingModelBase(IModelValidator validator) : this()
@@ -143,6 +142,7 @@ namespace Stylet
         /// <summary>
         /// Validate a single property synchronously, by name
         /// </summary>
+        /// <typeparam name="TProperty">Type of property to validate</typeparam>
         /// <param name="property">Expression describing the property to validate</param>
         /// <returns>True if the property validated successfully</returns>
         protected virtual bool ValidateProperty<TProperty>(Expression<Func<TProperty>> property)
@@ -153,6 +153,7 @@ namespace Stylet
         /// <summary>
         /// Validate a single property asynchronously, by name
         /// </summary>
+        /// <typeparam name="TProperty">Type ofproperty to validate</typeparam>
         /// <param name="property">Expression describing the property to validate</param>
         /// <returns>True if the property validated successfully</returns>
         protected virtual Task<bool> ValidatePropertyAsync<TProperty>(Expression<Func<TProperty>> property)
@@ -217,7 +218,8 @@ namespace Stylet
         /// <summary>
         /// Raise a PropertyChanged notification for the named property, and validate that property if this.validation is set and this.autoValidate is true
         /// </summary>
-        /// <param name="propertyName"></param>
+        /// <param name="propertyName">Name of the property which has changed</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected override async void OnPropertyChanged(string propertyName)
         {
             base.OnPropertyChanged(propertyName);
@@ -231,6 +233,7 @@ namespace Stylet
         /// <summary>
         /// Called whenever the error state of any properties changes. Calls NotifyOfPropertyChange(() => this.HasErrors) by default
         /// </summary>
+        /// <param name="changedProperties">List of property names which have changed validation state</param>
         protected virtual void OnValidationStateChanged(IEnumerable<string> changedProperties)
         {
             this.NotifyOfPropertyChange(() => this.HasErrors);
@@ -273,7 +276,7 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Gets a value that indicates whether the entity has validation errors.
+        /// Gets a value indicating whether the entity has validation errors.
         /// </summary>
         public bool HasErrors
         {

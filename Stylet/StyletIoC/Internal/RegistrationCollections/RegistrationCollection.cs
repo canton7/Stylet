@@ -23,7 +23,7 @@ namespace StyletIoC.Internal.RegistrationCollections
         public List<IRegistration> GetAll()
         {
             List<IRegistration> registrationsCopy;
-            lock (this.registrationsLock) { registrationsCopy = registrations.ToList(); }
+            lock (this.registrationsLock) { registrationsCopy = this.registrations.ToList(); }
             return registrationsCopy;
         }
 

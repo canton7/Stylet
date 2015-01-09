@@ -10,16 +10,16 @@ namespace Stylet
     /// <summary>
     /// Extension of PropertyChangedEventArgs, which includes the new value of the property
     /// </summary>
-    /// <typeparam name="TProperty"></typeparam>
+    /// <typeparam name="TProperty">Type of property being notified</typeparam>
     public class PropertyChangedExtendedEventArgs<TProperty> : PropertyChangedEventArgs
     {
         /// <summary>
-        /// New value of the property
+        /// Gets the new value of the property
         /// </summary>
         public virtual TProperty NewValue { get; private set; }
 
         /// <summary>
-        /// Instantiate a new PropertyChangedExtendedEventArgs
+        /// Initialises a new instance of the <see cref="PropertyChangedExtendedEventArgs{TProperty}"/> class
         /// </summary>
         /// <param name="propertyName">Name of the property which changed</param>
         /// <param name="newValue">New value of the property which changed</param>
@@ -61,7 +61,7 @@ namespace Stylet
             {
                 INotifyPropertyChanged inpc;
                 if (this.inpc.TryGetTarget(out inpc))
-                    inpc.PropertyChanged -= handler;
+                    inpc.PropertyChanged -= this.handler;
             }
         }
 
@@ -123,6 +123,8 @@ namespace Stylet
         /// Strongly bind to PropertyChanged events for a particular property on a particular object
         /// </summary>
         /// <example>someObject.Bind(x => x.PropertyNameToBindTo, newValue => /* do something with the new value */)</example>
+        /// <typeparam name="TSource">Type of object providing the PropertyChanged event</typeparam>
+        /// <typeparam name="TProperty">Type of property for which the event is raised</typeparam>
         /// <param name="target">Object raising the PropertyChanged event you're interested in</param>
         /// <param name="targetSelector">MemberExpression selecting the property to observe for changes (e.g x => x.PropertyName)</param>
         /// <param name="handler">Handler called whenever that property changed</param>
@@ -156,6 +158,8 @@ namespace Stylet
         /// Weakly bind to PropertyChanged events for a particular property on a particular object
         /// </summary>
         /// <example>someObject.Bind(x => x.PropertyNameToBindTo, newValue => /* do something with the new value */)</example>
+        /// <typeparam name="TSource">Type of object providing the PropertyChanged event</typeparam>
+        /// <typeparam name="TProperty">Type of property for which the event is raised</typeparam>
         /// <param name="target">Object raising the PropertyChanged event you're interested in</param>
         /// <param name="targetSelector">MemberExpression selecting the property to observe for changes (e.g x => x.PropertyName)</param>
         /// <param name="handler">Handler called whenever that property changed</param>

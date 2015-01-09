@@ -14,16 +14,14 @@ namespace Stylet
         private static IDispatcher _dispatcher;
 
         /// <summary>
-        /// Should be set to the UI thread's Dispatcher. This is normally done by the Bootstrapper.
+        /// Gets or sets Execute's dispatcher
         /// </summary>
+        /// <remarks>
+        /// Should be set to the UI thread's Dispatcher. This is normally done by the Bootstrapper.
+        /// </remarks>
         public static IDispatcher Dispatcher
         {
-            get
-            {
-                if (_dispatcher == null)
-                    _dispatcher = new SynchronousDispatcher();
-                return _dispatcher;
-            }
+            get { return _dispatcher ?? (_dispatcher = new SynchronousDispatcher()); }
 
             set
             {
@@ -36,9 +34,15 @@ namespace Stylet
         private static bool? inDesignMode;
 
         /// <summary>
-        /// Default dispatcher used by PropertyChanged events. Defaults to OnUIThread
+        /// Gets or sets the default dispatcher used by PropertyChanged events.
+        /// Defaults to OnUIThread
         /// </summary>
-        public static Action<Action> DefaultPropertyChangedDispatcher = a => a();
+        public static Action<Action> DefaultPropertyChangedDispatcher { get; set; }
+
+        static Execute()
+        {
+            DefaultPropertyChangedDispatcher = a => a();
+        }
 
         /// <summary>
         /// Dispatches the given action to be run on the UI thread asynchronously, even if the current thread is the UI thread
@@ -139,7 +143,8 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Determing if we're currently running in design mode. Settable for really obscure unit testing only
+        /// Gets or sets a value indicating whether design mode is currently active.
+        /// Settable for really obscure unit testing only
         /// </summary>
         public static bool InDesignMode
         {

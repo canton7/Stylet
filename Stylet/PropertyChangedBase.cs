@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
@@ -12,8 +13,9 @@ namespace Stylet
     public abstract class PropertyChangedBase : INotifyPropertyChanged, INotifyPropertyChangedDispatcher
     {
         private Action<Action> _propertyChangedDispatcher = Execute.DefaultPropertyChangedDispatcher;
+
         /// <summary>
-        /// Dispatcher to use to dispatch PropertyChanged events. Defaults to Execute.DefaultPropertyChangedDispatcher
+        /// Gets or sets the dispatcher to use to dispatch PropertyChanged events. Defaults to Execute.DefaultPropertyChangedDispatcher
         /// </summary>
         [System.Xml.Serialization.XmlIgnore]
         public virtual Action<Action> PropertyChangedDispatcher
@@ -38,6 +40,7 @@ namespace Stylet
         /// <summary>
         /// Raise a PropertyChanged notification from the property in the given expression, e.g. NotifyOfPropertyChange(() => this.Property)
         /// </summary>
+        /// <typeparam name="TProperty">Type of property being notified</typeparam>
         /// <param name="property">Expression describing the property to raise a PropertyChanged notification for</param>
         protected virtual void NotifyOfPropertyChange<TProperty>(Expression<Func<TProperty>> property)
         {
@@ -75,6 +78,7 @@ namespace Stylet
         /// <summary>
         /// Takes, by reference, a field, and its new value. If field != value, will set field = value and raise a PropertyChanged notification
         /// </summary>
+        /// <typeparam name="T">Type of field being set and notified</typeparam>
         /// <param name="field">Field to assign</param>
         /// <param name="value">Value to assign to the field, if it differs</param>
         /// <param name="propertyName">Name of the property to notify for. Defaults to the calling property</param>

@@ -6,13 +6,13 @@ namespace Stylet
     /// <summary>
     /// Conductor with a single active item, and no other items
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Type of child to conduct</typeparam>
     public partial class Conductor<T> : ConductorBaseWithActiveItem<T> where T : class
     {
         /// <summary>
         /// Activate the given item, discarding the previous ActiveItem
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">Item to active</param>
         public override async void ActivateItem(T item)
         {
             if (item != null && item.Equals(this.ActiveItem))
@@ -20,8 +20,10 @@ namespace Stylet
                 if (this.IsActive)
                     ScreenExtensions.TryActivate(item);
             }
-            else if (await this.CanCloseItem(this.ActiveItem)) // This is null-safe
+            else if (await this.CanCloseItem(this.ActiveItem)) 
             {
+                // CanCloseItem is null-safe
+
                 this.ChangeActiveItem(item, true);
             }
         }
@@ -47,12 +49,12 @@ namespace Stylet
 
             if (await this.CanCloseItem(item))
                  this.ChangeActiveItem(default(T), true);
-                
         }
 
         /// <summary>
         /// Determine if this conductor can close. Depends on whether the ActiveItem can close
         /// </summary>
+        /// <returns>Task indicating whether this can be closed</returns>
         public override Task<bool> CanCloseAsync()
         {
             return this.CanCloseItem(this.ActiveItem);

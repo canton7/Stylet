@@ -39,6 +39,7 @@ namespace Stylet
         /// <summary>
         /// Ensure an item is ready to be activated
         /// </summary>
+        /// <param name="newItem">Item to use</param>
         protected virtual void EnsureItem(T newItem)
         {
             Debug.Assert(newItem != null);
@@ -51,17 +52,19 @@ namespace Stylet
         /// <summary>
         /// Utility method to determine if all of the give items can close
         /// </summary>
-        protected virtual async Task<bool> CanAllItemsCloseAsync(IEnumerable<T> toClose)
+        /// <param name="itemsToClose">Items to close</param>
+        /// <returns>Task indicating whether all items can close</returns>
+        protected virtual async Task<bool> CanAllItemsCloseAsync(IEnumerable<T> itemsToClose)
         {
-            var results = await Task.WhenAll(toClose.Select(x => this.CanCloseItem(x)));
+            var results = await Task.WhenAll(itemsToClose.Select(this.CanCloseItem));
             return results.All(x => x);
         }
 
         /// <summary>
         /// Determine if the given item can be closed
         /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
+        /// <param name="item">Item to use</param>
+        /// <returns>Task indicating whether the item can be closed</returns>
         protected virtual Task<bool> CanCloseItem(T item)
         {
             var itemAsGuardClose = item as IGuardClose;
@@ -71,6 +74,11 @@ namespace Stylet
                 return Task.FromResult(true);
         }
 
+        /// <summary>
+        /// Close the given child
+        /// </summary>
+        /// <param name="item">Child to close</param>
+        /// <param name="dialogResult">Unused in this scenario</param>
         void IChildDelegate.CloseItem(object item, bool? dialogResult)
         {
             T typedItem = item as T;

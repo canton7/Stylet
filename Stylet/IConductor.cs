@@ -6,12 +6,13 @@ namespace Stylet
     /// <summary>
     /// Generalised parent, with many children
     /// </summary>
+    /// <typeparam name="T">Type of children</typeparam>
     public interface IParent<out T>
     {
         /// <summary>
         /// Fetch all children of this parent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>All children owned by this parent</returns>
         IEnumerable<T> GetChildren();
     }
 
@@ -22,7 +23,8 @@ namespace Stylet
     public interface IHaveActiveItem<T>
     {
         /// <summary>
-        /// Only item which is currently active. This normally corresponds to the item being displayed
+        /// Gets or sets the only item which is currently active.
+        /// This normally corresponds to the item being displayed
         /// </summary>
         T ActiveItem { get; set; }
     }
@@ -43,6 +45,7 @@ namespace Stylet
     /// <summary>
     /// Thing which owns one or more children, and can manage their lifecycles accordingly
     /// </summary>
+    /// <typeparam name="T">Type of child being conducted</typeparam>
     public interface IConductor<T>
     {
         /// <summary>

@@ -16,23 +16,23 @@ namespace Stylet
     public abstract class BootstrapperBase<TRootViewModel> : IBootstrapper, IViewManagerConfig where TRootViewModel : class
     {
         /// <summary>
-        /// Reference to the current application
+        /// Gets the current application
         /// </summary>
         public Application Application { get; private set; }
 
         /// <summary>
-        /// Assemblies which are used for IoC container auto-binding and searching for Views.
+        /// Gets or sets assemblies which are used for IoC container auto-binding and searching for Views.
         /// Set this in Configure() if you want to override it
         /// </summary>
         public IList<Assembly> Assemblies { get; protected set; }
 
         /// <summary>
-        /// Gets command line arguments that were passed to the application from either the command prompt or the desktop.
+        /// Gets the command line arguments that were passed to the application from either the command prompt or the desktop.
         /// </summary>
-        public string[] Args { get; protected set; }
+        public string[] Args { get; private set; }
 
         /// <summary>
-        /// Instantiate a new BootstrapperBase
+        /// Initialises a new instance of the <see cref="BootstrapperBase{TRootViewModel}"/> class
         /// </summary>
         public BootstrapperBase()
         {
@@ -42,7 +42,7 @@ namespace Stylet
         /// <summary>
         /// Called by the ApplicationLoader when this bootstrapper is loaded
         /// </summary>
-        /// <param name="application"></param>
+        /// <param name="application">Application within which Stylet is running</param>
         public void Setup(Application application)
         {
             if (application == null)
@@ -59,12 +59,13 @@ namespace Stylet
 
             // Fetch this logger when needed. If we fetch it now, then no-one will have been given the change to enable the LogManager, and we'll get a NullLogger
             this.Application.DispatcherUnhandledException += (o, e) => LogManager.GetLogger(typeof(BootstrapperBase<>)).Error(e.Exception, "Unhandled exception");
-            this.Application.DispatcherUnhandledException += OnApplicationUnhandledExecption;
+            this.Application.DispatcherUnhandledException += (o, e) => this.OnUnhandledExecption(e);
         }
 
         /// <summary>
         /// Called on Application.Startup, this does everything necessary to start the application
         /// </summary>
+        /// <param name="args">Command-line arguments used to start this executable</param>
         public virtual void Start(string[] args)
         {
             // Set this before anything else, so everything can use it
@@ -108,12 +109,13 @@ namespace Stylet
         /// <summary>
         /// Hook called on application exit
         /// </summary>
-        /// <param name="e"></param>
+        /// <param name="e">The exit event data</param>
         protected virtual void OnExit(ExitEventArgs e) { }
 
         /// <summary>
         /// Hook called on an unhandled exception
         /// </summary>
-        protected virtual void OnApplicationUnhandledExecption(object sender, DispatcherUnhandledExceptionEventArgs e) { }
+        /// <param name="e">The event data</param>
+        protected virtual void OnUnhandledExecption(DispatcherUnhandledExceptionEventArgs e) { }
     }
 }
