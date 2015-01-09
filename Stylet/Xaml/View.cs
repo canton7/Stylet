@@ -118,5 +118,9 @@ namespace Stylet.Xaml
 
             type.GetProperty(contentProperty.Name).SetValue(targetLocation, view, null);
         }
+
+        // Stop someone from instantiating us
+        private View()
+        { }
     }
 }
