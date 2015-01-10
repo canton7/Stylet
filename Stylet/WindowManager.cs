@@ -140,7 +140,19 @@ namespace Stylet
             {
                 var owner = this.InferOwnerOf(window);
                 if (owner != null)
-                    window.Owner = owner;
+                {
+                    // We can end up in a really weird situation if they try and display more than one dialog as the application's closing
+                    // Basically the MainWindow's no long active, so the second dialog chooses the first dialog as its owner... But the first dialog
+                    // hasn't yet been shown, so we get an exception ("cannot set owner property to a Window which has not been previously shown").
+                    try
+                    {
+                        window.Owner = owner;
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        logger.Error(e, "This can occur when the application is closing down");
+                    }
+                }
                 logger.Info("Displaying ViewModel {0} with View {1} as a Dialog", viewModel, window);
             }
             else
@@ -159,10 +171,6 @@ namespace Stylet
             if (Application.Current == null)
                 return null;
 
-            // We can end up in a really weird situation if they try and display more than one dialog as the application's closing
-            // Basically the MainWindow's no long active, so the second dialog chooses the first dialog as its owner... But the first dialog
-            // hasn't yet been shown, so we get an exception ("cannot set owner property to a Window which has not been previously shown").
-            // Not sure whether checking IsLoaded is the correct solution, but...
             var active = Application.Current.Windows.OfType<Window>().Where(x => x.IsActive).FirstOrDefault() ?? Application.Current.MainWindow;
             return active == window ? null : active;
         }
