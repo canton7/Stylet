@@ -8,7 +8,7 @@ namespace Stylet
     /// Bootstrapper to be extended by any application which wants to use StyletIoC (the default)
     /// </summary>
     /// <typeparam name="TRootViewModel">Type of the root ViewModel. This will be instantiated and displayed</typeparam>
-    public class Bootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
+    public abstract class Bootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
     {
         /// <summary>
         /// Gets or sets the Bootstrapper's IoC container. This is created after ConfigureIoC has been run.
@@ -29,6 +29,8 @@ namespace Stylet
             this.ConfigureIoC(builder);
 
             this.Container = builder.BuildContainer();
+
+            this.Application.Exit += (o, e) => this.Container.Dispose();
         }
 
         /// <summary>
