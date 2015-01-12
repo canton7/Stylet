@@ -190,6 +190,9 @@ namespace Stylet
             if (this.Validator == null)
                 throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
+            if (propertyName == null)
+                propertyName = String.Empty;
+
             // To allow synchronous calling of this method, we need to resume on the ThreadPool.
             // Therefore, we might resume on any thread, hence the need for a lock
             var newErrorsRaw = await this.Validator.ValidatePropertyAsync(propertyName).ConfigureAwait(false);

@@ -12,7 +12,7 @@ namespace StyletIoC.Internal.Registrations
     {
         private readonly Type funcType;
         private readonly Func<IRegistrationContext, object> generator;
-        private IRegistration delegateRegistration;
+        private readonly IRegistration delegateRegistration;
 
         public Type Type
         {

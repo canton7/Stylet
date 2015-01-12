@@ -46,6 +46,8 @@ namespace Stylet
     /// Thing which owns one or more children, and can manage their lifecycles accordingly
     /// </summary>
     /// <typeparam name="T">Type of child being conducted</typeparam>
+    // ReSharper disable once TypeParameterCanBeVariant
+    // Not sure whether this might change in future...
     public interface IConductor<T>
     {
         /// <summary>

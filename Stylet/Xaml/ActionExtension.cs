@@ -84,12 +84,11 @@ namespace Stylet.Xaml
                 return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, nullTarget, actionNotFound);
             }
 
-            var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
-            if (propertyAsEventInfo != null)
+            if (valueService.TargetProperty is EventInfo)
             {
                 var nullTarget = this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Enable : this.NullTarget;
                 var actionNotFound = this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
-                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo, this.Method, nullTarget, actionNotFound);
+                var ec = new EventAction((DependencyObject)valueService.TargetObject, this.Method, nullTarget, actionNotFound);
                 return ec.GetDelegate();
             }
                 

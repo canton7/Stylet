@@ -22,8 +22,8 @@ namespace Stylet.Xaml
         /// </summary>
         public bool Invert
         {
-            get { return (bool)GetValue(InvertProperty); }
-            set { SetValue(InvertProperty, value); }
+            get { return (bool)this.GetValue(InvertProperty); }
+            set { this.SetValue(InvertProperty, value); }
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Stylet.Xaml
             if (values == null || values.Length == 0)
                 return null;
             var first = values.FirstOrDefault();
-            var result = values.Skip(1).All(x => first.Equals(x));
+            var result = values.Skip(1).All(x => x.Equals(first));
             return this.Invert ? !result : result;
         }
 

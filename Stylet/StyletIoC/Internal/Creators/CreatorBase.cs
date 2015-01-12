@@ -13,7 +13,7 @@ namespace StyletIoC.Internal.Creators
         public virtual Type Type { get; protected set; }
         protected IRegistrationContext ParentContext { get; set; }
 
-        public CreatorBase(IRegistrationContext parentContext)
+        protected CreatorBase(IRegistrationContext parentContext)
         {
             this.ParentContext = parentContext;
         }

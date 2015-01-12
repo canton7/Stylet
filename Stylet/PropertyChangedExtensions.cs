@@ -48,8 +48,8 @@ namespace Stylet
     {
         internal class StrongPropertyChangedBinding : IEventBinding
         {
-            private WeakReference<INotifyPropertyChanged> inpc;
-            private PropertyChangedEventHandler handler;
+            private readonly WeakReference<INotifyPropertyChanged> inpc;
+            private readonly PropertyChangedEventHandler handler;
 
             public StrongPropertyChangedBinding(INotifyPropertyChanged inpc, PropertyChangedEventHandler handler)
             {
@@ -68,9 +68,9 @@ namespace Stylet
         internal class WeakPropertyChangedHandler<TSource, TProperty> : IEventBinding where TSource : class, INotifyPropertyChanged
         {
             private readonly WeakReference<TSource> source;
-            private EventHandler<PropertyChangedExtendedEventArgs<TProperty>> handler;
-            private string propertyName;
-            private Func<TSource, TProperty> valueSelector;
+            private readonly EventHandler<PropertyChangedExtendedEventArgs<TProperty>> handler;
+            private readonly string propertyName;
+            private readonly Func<TSource, TProperty> valueSelector;
 
             public WeakPropertyChangedHandler(TSource source, Expression<Func<TSource, TProperty>> selector, EventHandler<PropertyChangedExtendedEventArgs<TProperty>> handler)
             {
@@ -104,7 +104,7 @@ namespace Stylet
 
         internal class WeakPropertyChangedBinding : IEventBinding
         {
-            private WeakReference<IEventBinding> wrappedBinding;
+            private readonly WeakReference<IEventBinding> wrappedBinding;
 
             public WeakPropertyChangedBinding(IEventBinding wrappedBinding)
             {

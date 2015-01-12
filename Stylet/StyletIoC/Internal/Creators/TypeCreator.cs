@@ -55,7 +55,7 @@ namespace StyletIoC.Internal.Creators
             {
                 ctor = ctorsWithAttribute[0];
                 var key = ctorsWithAttribute[0].GetCustomAttribute<InjectAttribute>(true).Key;
-                var cantResolve = ctor.GetParameters().Where(p => !this.ParentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue).FirstOrDefault();
+                var cantResolve = ctor.GetParameters().FirstOrDefault(p => !this.ParentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue);
                 if (cantResolve != null)
                     throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", this.Type.GetDescription(), cantResolve.Name, cantResolve.ParameterType.GetDescription()));
             }

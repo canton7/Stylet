@@ -19,17 +19,12 @@ namespace Stylet.Xaml
         /// <summary>
         /// View whose View.ActionTarget we watch
         /// </summary>
-        private DependencyObject subject;
-
-        /// <summary>
-        /// Property on the WPF element we're returning a delegate for
-        /// </summary>
-        private EventInfo targetProperty;
+        private readonly DependencyObject subject;
 
         /// <summary>
         /// The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired
         /// </summary>
-        private string methodName;
+        private readonly string methodName;
 
         /// <summary>
         /// MethodInfo for the method to call. This has to exist, or we throw a wobbly
@@ -42,11 +37,10 @@ namespace Stylet.Xaml
         /// Initialises a new instance of the <see cref="EventAction"/> class
         /// </summary>
         /// <param name="subject">View whose View.ActionTarget we watch</param>
-        /// <param name="targetProperty">Property on the WPF element we're returning a delegate for</param>
         /// <param name="methodName">The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired</param>
         /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
-        public EventAction(DependencyObject subject, EventInfo targetProperty, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+        public EventAction(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
         {
             if (targetNullBehaviour == ActionUnavailableBehaviour.Disable)
                 throw new ArgumentException("Setting NullTarget = Disable is unsupported when used on an Event");
@@ -54,7 +48,6 @@ namespace Stylet.Xaml
                 throw new ArgumentException("Setting ActionNotFound = Disable is unsupported when used on an Event");
 
             this.subject = subject;
-            this.targetProperty = targetProperty;
             this.methodName = methodName;
             this.targetNullBehaviour = targetNullBehaviour;
             this.actionNonExistentBehaviour = actionNonExistentBehaviour;

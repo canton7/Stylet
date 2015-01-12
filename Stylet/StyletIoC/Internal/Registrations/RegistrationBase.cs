@@ -15,7 +15,7 @@ namespace StyletIoC.Internal.Registrations
         private readonly object generatorLock = new object();
         protected Func<IRegistrationContext, object> Generator { get; set; }
 
-        public RegistrationBase(ICreator creator)
+        protected RegistrationBase(ICreator creator)
         {
             this.Creator = creator;
         }

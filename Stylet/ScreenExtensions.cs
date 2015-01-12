@@ -76,7 +76,7 @@ namespace Stylet
         public static void CloseWith(this IClose child, IClose parent)
         {
             // Using TryCloseAndDispose ensures that Dispose is called if necessary
-            WeakEventManager<IClose, CloseEventArgs>.AddHandler(parent, "Closed", (o, e) => ScreenExtensions.TryCloseAndDispose(child));
+            WeakEventManager<IClose, CloseEventArgs>.AddHandler(parent, "Closed", (o, e) => TryCloseAndDispose(child));
         }
 
         /// <summary>

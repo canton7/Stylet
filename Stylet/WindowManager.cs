@@ -161,6 +161,7 @@ namespace Stylet
             }
 
             // This gets itself retained by the window, by registering events
+            // ReSharper disable once ObjectCreationAsStatement
             new WindowConductor(window, viewModel);
 
             return window;
@@ -171,8 +172,8 @@ namespace Stylet
             if (Application.Current == null)
                 return null;
 
-            var active = Application.Current.Windows.OfType<Window>().Where(x => x.IsActive).FirstOrDefault() ?? Application.Current.MainWindow;
-            return active == window ? null : active;
+            var active = Application.Current.Windows.OfType<Window>().FirstOrDefault(x => x.IsActive) ?? Application.Current.MainWindow;
+            return ReferenceEquals(active, window) ? null : active;
         }
 
         private class WindowConductor : IChildDelegate

@@ -33,7 +33,7 @@ namespace StyletIoC.Internal.RegistrationCollections
             lock (this.registrationsLock)
             {
                 // Should have been caught by SingleRegistration.AddRegistration
-                Debug.Assert(!this.registrations.Any(x => x.Type == registration.Type));
+                Debug.Assert(this.registrations.All(x => x.Type != registration.Type));
                 this.registrations.Add(registration);
                 return this;
             }

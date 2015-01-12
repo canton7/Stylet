@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Stylet
@@ -15,6 +14,7 @@ namespace Stylet
     /// and request a new IModelValidator{MyViewModelType} in your ViewModel's constructor.
     /// </remarks>
     /// <typeparam name="T">Type of model being validated</typeparam>
+    // ReSharper disable once UnusedTypeParameter
     public interface IModelValidator<in T> : IModelValidator
     {
     }

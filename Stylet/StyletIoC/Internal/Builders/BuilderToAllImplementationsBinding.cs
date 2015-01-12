@@ -8,7 +8,7 @@ namespace StyletIoC.Internal.Builders
 {
     internal class BuilderToAllImplementationsBinding : BuilderBindingBase
     {
-        private IEnumerable<Assembly> assemblies;
+        private readonly IEnumerable<Assembly> assemblies;
 
         public BuilderToAllImplementationsBinding(Type serviceType, IEnumerable<Assembly> assemblies)
             : base(serviceType)

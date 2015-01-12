@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Stylet
 {
@@ -15,6 +11,6 @@ namespace Stylet
         /// <summary>
         /// Occurs when the collection will change
         /// </summary>
-        event NotifyCollectionChangedEventHandler CollectionChanged;
+        event NotifyCollectionChangedEventHandler CollectionChanging;
     }
 }

@@ -17,7 +17,7 @@ namespace Stylet
     /// Implement this to handle a particular message type
     /// </summary>
     /// <typeparam name="TMessageType">Message type to handle. Can be a base class of the messsage type(s) to handle</typeparam>
-    public interface IHandle<TMessageType> : IHandle
+    public interface IHandle<in TMessageType> : IHandle
     {
         /// <summary>
         /// Called whenever a message of type TMessageType is posted
@@ -137,7 +137,7 @@ namespace Stylet
                 }
 
                 if (channels.Length == 0)
-                    channels = new[] { EventAggregator.DefaultChannel };
+                    channels = new[] { DefaultChannel };
                 this.SubscribeToChannels(channels);
             }
 
@@ -167,7 +167,7 @@ namespace Stylet
                     return false;
 
                 if (channels.Length == 0)
-                    channels = new[] { EventAggregator.DefaultChannel };
+                    channels = new[] { DefaultChannel };
 
                 // We're not subscribed to any of the channels
                 if (!channels.All(x => this.channels.Contains(x)))

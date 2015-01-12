@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -16,6 +15,7 @@ namespace StyletIoC.Internal
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1611:ElementParametersMustBeDocumented", Justification = "Internal class, but some documentation added for readability. StyleCop ignores 'Internal only' setting if some documentation exists on member")]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1615:ElementReturnValueMustBeDocumented", Justification = "Internal class, but some documentation added for readability. StyleCop ignores 'Internal only' setting if some documentation exists on member")]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1618:GenericTypeParametersMustBeDocumented", Justification = "Internal class, but some documentation added for readability. StyleCop ignores 'Internal only' setting if some documentation exists on member")]
+    // ReSharper disable once RedundantExtendsListEntry
     internal class Container : IContainer, IRegistrationContext
     {
         /// <summary>
@@ -51,7 +51,7 @@ namespace StyletIoC.Internal
         /// </summary>
         public event EventHandler Disposing;
 
-        private bool disposed = false;
+        private bool disposed;
 
         /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
@@ -401,7 +401,7 @@ namespace StyletIoC.Internal
             // {
             //    this.registrationContext = registrationContext;
             // }
-            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { typeof(IRegistrationContext) });
+            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { typeof(IRegistrationContext) });
             var ilGenerator = ctorBuilder.GetILGenerator();
             // Load 'this' and the registration context onto the stack
             ilGenerator.Emit(OpCodes.Ldarg_0);
@@ -413,7 +413,7 @@ namespace StyletIoC.Internal
             // These are needed by all methods, so get them now
             // IRegistrationContext.GetTypeOrAll(Type, string)
             // IRegistrationContext extends ICreator, and it's ICreator that actually implements this
-            var containerGetMethod = typeof(IContainer).GetMethod("GetTypeOrAll", new Type[] { typeof(Type), typeof(string) });
+            var containerGetMethod = typeof(IContainer).GetMethod("GetTypeOrAll", new[] { typeof(Type), typeof(string) });
             // Type.GetTypeFromHandler(RuntimeTypeHandle)
             var typeFromHandleMethod = typeof(Type).GetMethod("GetTypeFromHandle");
 

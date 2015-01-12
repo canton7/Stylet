@@ -1,9 +1,5 @@
-﻿using StyletIoC.Internal.Creators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using StyletIoC.Internal.Creators;
 
 namespace StyletIoC.Internal.Builders
 {

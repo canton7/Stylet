@@ -17,8 +17,9 @@ namespace Stylet
         public static string NameForProperty<TDelegate>(this Expression<TDelegate> propertyExpression)
         {
             Expression body;
-            if (propertyExpression.Body is UnaryExpression)
-                body = ((UnaryExpression)propertyExpression.Body).Operand;
+            var expression = propertyExpression.Body as UnaryExpression;
+            if (expression != null)
+                body = expression.Operand;
             else
                 body = propertyExpression.Body;
 

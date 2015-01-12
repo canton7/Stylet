@@ -22,8 +22,8 @@ namespace Stylet.Xaml
         /// </summary>
         public string Name
         {
-            get { return (string)GetValue(NameProperty); }
-            set { SetValue(NameProperty, value); }
+            get { return (string)this.GetValue(NameProperty); }
+            set { this.SetValue(NameProperty, value); }
         }
 
         /// <summary>
@@ -37,8 +37,8 @@ namespace Stylet.Xaml
         /// </summary>
         public Action<string, string> Logger
         {
-            get { return (Action<string, string>)GetValue(LoggerProperty); }
-            set { SetValue(LoggerProperty, value); }
+            get { return (Action<string, string>)this.GetValue(LoggerProperty); }
+            set { this.SetValue(LoggerProperty, value); }
         }
 
         /// <summary>

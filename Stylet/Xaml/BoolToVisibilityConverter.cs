@@ -22,8 +22,8 @@ namespace Stylet.Xaml
         /// </summary>
         public Visibility TrueVisibility
         {
-            get { return (Visibility)GetValue(TrueVisibilityProperty); }
-            set { SetValue(TrueVisibilityProperty, value); }
+            get { return (Visibility)this.GetValue(TrueVisibilityProperty); }
+            set { this.SetValue(TrueVisibilityProperty, value); }
         }
 
         /// <summary>
@@ -37,8 +37,8 @@ namespace Stylet.Xaml
         /// </summary>
         public Visibility FalseVisibility
         {
-            get { return (Visibility)GetValue(FalseVisibilityProperty); }
-            set { SetValue(FalseVisibilityProperty, value); }
+            get { return (Visibility)this.GetValue(FalseVisibilityProperty); }
+            set { this.SetValue(FalseVisibilityProperty, value); }
         }
 
         /// <summary>
@@ -66,6 +66,7 @@ namespace Stylet.Xaml
             {
                 result = (bool)value;
             }
+            // ReSharper disable once CanBeReplacedWithTryCastAndCheckForNull
             else if (value is IEnumerable)
             {
                 result = ((IEnumerable)value).GetEnumerator().MoveNext();
@@ -82,7 +83,7 @@ namespace Stylet.Xaml
                 // Easiest is just to try it and see
                 try
                 {
-                    result = !value.Equals(System.Convert.ChangeType((object)0, value.GetType()));
+                    result = !value.Equals(System.Convert.ChangeType(0, value.GetType()));
                 }
                 catch
                 {

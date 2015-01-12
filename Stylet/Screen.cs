@@ -134,7 +134,7 @@ namespace Stylet
 
         #region IClose
 
-        private bool isClosed = false;
+        private bool isClosed;
 
         /// <summary>
         /// Called whenever this Screen is closed

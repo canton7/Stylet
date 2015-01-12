@@ -13,7 +13,7 @@ namespace StyletIoC.Internal.Builders
         public string Key { get; protected set; }
         public bool IsWeak { get; protected set; }
 
-        public BuilderBindingBase(Type serviceType)
+        protected BuilderBindingBase(Type serviceType)
         {
             this.ServiceType = serviceType;
 

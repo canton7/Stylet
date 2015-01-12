@@ -29,7 +29,7 @@ namespace Stylet
     /// Interface encapsulating IReadOnlyList and INotifyCollectionChanged
     /// </summary>
     /// <typeparam name="T">The type of elements in the collection</typeparam>
-    public interface IReadOnlyObservableCollection<T> : IReadOnlyList<T>, INotifyCollectionChanged, INotifyCollectionChanging
+    public interface IReadOnlyObservableCollection<out T> : IReadOnlyList<T>, INotifyCollectionChanged, INotifyCollectionChanging
     { }
 
     /// <summary>
@@ -112,7 +112,7 @@ namespace Stylet
 
                 var previousNotificationSetting = this.isNotifying;
                 this.isNotifying = false;
-                var index = Count;
+                var index = this.Count;
                 foreach (var item in items)
                 {
                     base.InsertItem(index, item);
@@ -140,7 +140,7 @@ namespace Stylet
                 this.isNotifying = false;
                 foreach (var item in items)
                 {
-                    var index = IndexOf(item);
+                    var index = this.IndexOf(item);
                     if (index >= 0)
                         base.RemoveItem(index);
                 }

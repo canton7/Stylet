@@ -87,7 +87,7 @@ namespace Stylet
             if (!EqualityComparer<T>.Default.Equals(field, value))
             {
                 field = value;
-                this.NotifyOfPropertyChange(propertyName);
+                this.NotifyOfPropertyChange(propertyName: propertyName);
             }
         }
     }

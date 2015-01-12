@@ -34,7 +34,7 @@ namespace Stylet
         /// <summary>
         /// Initialises a new instance of the <see cref="BootstrapperBase{TRootViewModel}"/> class
         /// </summary>
-        public BootstrapperBase()
+        protected BootstrapperBase()
         {
             this.Assemblies = new List<Assembly>() { typeof(BootstrapperBase<>).Assembly, this.GetType().Assembly };
         }

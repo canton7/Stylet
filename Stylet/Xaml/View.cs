@@ -82,7 +82,7 @@ namespace Stylet.Xaml
                 {
                     if (Execute.InDesignMode)
                     {
-                        var bindingExpression = BindingOperations.GetBindingExpression(d, View.ModelProperty);
+                        var bindingExpression = BindingOperations.GetBindingExpression(d, ModelProperty);
                         string text;
                         if (bindingExpression == null)
                             text = "View for [Broken Binding]";
@@ -90,7 +90,7 @@ namespace Stylet.Xaml
                             text = String.Format("View for child ViewModel on {0}", bindingExpression.DataItem.GetType().Name);
                         else
                             text = String.Format("View for {0}.{1}", bindingExpression.DataItem.GetType().Name, bindingExpression.ResolvedSourcePropertyName);
-                        View.SetContentProperty(d, new System.Windows.Controls.TextBlock() { Text = text });
+                        SetContentProperty(d, new System.Windows.Controls.TextBlock() { Text = text });
                     }
                     else
                     {
