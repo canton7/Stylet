@@ -31,7 +31,7 @@ namespace Stylet.Xaml
         /// <summary>
         /// Property on the WPF element we're returning a delegate for
         /// </summary>
-        private EventInfo targetProperty;
+        private readonly EventInfo targetProperty;
 
         /// <summary>
         /// MethodInfo for the method to call. This has to exist, or we throw a wobbly
@@ -144,6 +144,7 @@ namespace Stylet.Xaml
             return del;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private void InvokeCommand(object sender, EventArgs e)
         {
             // Any throwing will have been handled above
@@ -158,7 +159,7 @@ namespace Stylet.Xaml
                     break;
                     
                 case 2:
-                    parameters = new object[] { sender, e };
+                    parameters = new[] { sender, e };
                     break;
 
                 default:
