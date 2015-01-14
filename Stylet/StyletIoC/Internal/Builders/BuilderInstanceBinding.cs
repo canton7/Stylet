@@ -1,9 +1,5 @@
-﻿using StyletIoC.Internal.Creators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using StyletIoC.Internal.Creators;
 
 namespace StyletIoC.Internal.Builders
 {
@@ -23,7 +19,7 @@ namespace StyletIoC.Internal.Builders
             var creator = new InstanceCreator(this.instance);
             var registration = this.CreateRegistration(container, creator);
 
-            container.AddRegistration(new TypeKey(this.serviceType, this.Key), registration);
+            container.AddRegistration(new TypeKey(this.ServiceType, this.Key), registration);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Input;
 using Expressions = System.Linq.Expressions;
@@ -19,13 +20,14 @@ namespace Stylet.Xaml
     public class CommandAction : ICommand
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(CommandAction));
+
         /// <summary>
-        /// View to grab the View.ActionTarget from
+        /// Gets the View to grab the View.ActionTarget from
         /// </summary>
         public DependencyObject Subject { get; private set; }
 
         /// <summary>
-        /// Method name. E.g. if someone's gone Buttom Command="{s:Action MyMethod}", this is MyMethod.
+        /// Gets the method name. E.g. if someone's gone Buttom Command="{s:Action MyMethod}", this is MyMethod.
         /// </summary>
         public string MethodName { get; private set; }
 
@@ -45,7 +47,7 @@ namespace Stylet.Xaml
         private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
 
         /// <summary>
-        /// Create a new ActionCommand 
+        /// Initialises a new instance of the <see cref="CommandAction"/> class
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
@@ -167,8 +169,11 @@ namespace Stylet.Xaml
         private void UpdateCanExecute()
         {
             var handler = this.CanExecuteChanged;
+            // So. While we're safe firing PropertyChanged events on a non-UI thread, we
+            // are not safe firing CanExecuteChanged events on other threads...
+            // Therefore make sure we're on the UI thread
             if (handler != null)
-                handler(this, EventArgs.Empty);
+                Stylet.Execute.OnUIThread(() => handler(this, EventArgs.Empty));
         }
 
         /// <summary>
@@ -218,7 +223,18 @@ namespace Stylet.Xaml
             var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
             logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.target, parameters == null ? "none" : String.Join(", ", parameters));
 
-            this.targetMethodInfo.Invoke(this.target, parameters);
+            try
+            {
+                this.targetMethodInfo.Invoke(this.target, parameters);
+            }
+            catch (TargetInvocationException e)
+            {
+                // Be nice and unwrap this for them
+                // They want a stack track for their VM method, not us
+                logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.target, parameters == null ? "none" : String.Join(", ", parameters)));
+                // http://stackoverflow.com/a/17091351/1086121
+                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+            }
         }
     }
 }

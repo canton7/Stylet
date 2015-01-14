@@ -6,6 +6,8 @@ using System.Threading;
 
 namespace StyletIoC.Internal.Registrations
 {
+    using System.Diagnostics;
+
     /// <summary>
     /// Knows how to generate an IEnumerable{T}, which contains all implementations of T
     /// </summary>
@@ -54,6 +56,7 @@ namespace StyletIoC.Internal.Registrations
 
             var instanceExpressions = this.parentContext.GetAllRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(registrationContext)).ToArray();
             var listCtor = this.Type.GetConstructor(new[] { typeof(int) }); // ctor which takes capacity
+            Debug.Assert(listCtor != null);
             var listNew = Expression.New(listCtor, Expression.Constant(instanceExpressions.Length));
             Expression list = instanceExpressions.Any() ? (Expression)Expression.ListInit(listNew, instanceExpressions) : listNew;
 

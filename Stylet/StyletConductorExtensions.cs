@@ -5,6 +5,7 @@ using System.Linq;
 namespace Stylet
 {
     // Don't name ConductorExtensions, otherwise it's too obvious when someone types 'Conductor'
+
     /// <summary>
     /// Extension methods used by the Conductor classes
     /// </summary>

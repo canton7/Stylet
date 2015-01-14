@@ -11,7 +11,7 @@ namespace Stylet.Xaml
         private readonly ResourceDictionary styletResourceDictionary;
 
         /// <summary>
-        /// Create a new ApplicationLoader instance
+        /// Initialises a new instance of the <see cref="ApplicationLoader"/> class
         /// </summary>
         public ApplicationLoader()
         {
@@ -22,11 +22,11 @@ namespace Stylet.Xaml
         private IBootstrapper _bootstrapper;
 
         /// <summary>
-        /// Bootstrapper instance to use to start your application. This must be set.
+        /// Gets or sets the bootstrapper instance to use to start your application. This must be set.
         /// </summary>
         public IBootstrapper Bootstrapper
         {
-            get { return _bootstrapper; }
+            get { return this._bootstrapper; }
             set
             {
                 this._bootstrapper = value;
@@ -37,7 +37,7 @@ namespace Stylet.Xaml
         private bool _loadStyletResources;
 
         /// <summary>
-        /// Control whether to load Stylet's own resources (e.g. StyletConductorTabControl). Defaults to true.
+        /// Gets or sets a value indicating whether to load Stylet's own resources (e.g. StyletConductorTabControl). Defaults to true.
         /// </summary>
         public bool LoadStyletResources
         {

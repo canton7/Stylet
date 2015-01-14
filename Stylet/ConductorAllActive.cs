@@ -24,7 +24,7 @@ namespace Stylet
                 private T[] itemsBeforeReset;
 
                 /// <summary>
-                /// All items associated with this conductor
+                /// Gets all items associated with this conductor
                 /// </summary>
                 public IObservableCollection<T> Items
                 {
@@ -32,7 +32,7 @@ namespace Stylet
                 }
 
                 /// <summary>
-                /// Creates a new Conductor{T}.Collection.AllActive
+                /// Initialises a new instance of the <see cref="Conductor{T}.Collection.AllActive"/> class
                 /// </summary>
                 public AllActive()
                 {
@@ -119,12 +119,13 @@ namespace Stylet
                     foreach (var item in this.items)
                         this.CloseAndCleanUp(item);
                     
-                    items.Clear();
+                    this.items.Clear();
                 }
 
                 /// <summary>
                 /// Determine if the conductor can close. Returns true if and when all items can close
                 /// </summary>
+                /// <returns>A Task indicating whether this conductor can close</returns>
                 public override Task<bool> CanCloseAsync()
                 {
                     return this.CanAllItemsCloseAsync(this.items);
@@ -173,6 +174,7 @@ namespace Stylet
                 /// <summary>
                 /// Returns all children of this parent
                 /// </summary>
+                /// <returns>All children associated with this conductor</returns>
                 public override IEnumerable<T> GetChildren()
                 {
                     return this.items;

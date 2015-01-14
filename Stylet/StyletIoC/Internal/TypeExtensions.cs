@@ -84,10 +84,8 @@ namespace StyletIoC.Internal
             string name;
             if (genericArguments.Length > 0)
             {
-                return String.Format("{0}<{1}>", type.Name.Split('`')[0], String.Join(", ", genericArguments.Select(x =>
-                {
-                    return primitiveNameMapping.TryGetValue(x, out name) ? name : x.Name;
-                })));
+                var genericArgumentNames = genericArguments.Select(x => primitiveNameMapping.TryGetValue(x, out name) ? name : x.Name);
+                return String.Format("{0}<{1}>", type.Name.Split('`')[0], String.Join(", ", genericArgumentNames));
             }
             else
             {

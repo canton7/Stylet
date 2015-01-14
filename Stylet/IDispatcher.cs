@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 
 namespace Stylet
@@ -15,15 +11,17 @@ namespace Stylet
         /// <summary>
         /// Execute asynchronously
         /// </summary>
+        /// <param name="action">Action to execute</param>
         void Post(Action action);
 
         /// <summary>
         /// Execute synchronously
         /// </summary>
+        /// <param name="action">Action to execute</param>
         void Send(Action action);
 
         /// <summary>
-        /// True if invocation isn't required
+        /// Gets a value indicating whether the current thread is the thread being dispatched to
         /// </summary>
         bool IsCurrent { get; }
     }

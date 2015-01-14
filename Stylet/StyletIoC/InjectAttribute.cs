@@ -9,23 +9,23 @@ namespace StyletIoC
     public sealed class InjectAttribute : Attribute
     {
         /// <summary>
-        /// Create a new InjectAttribute
+        /// Initialises a new instance of the <see cref="InjectAttribute"/> class
         /// </summary>
         public InjectAttribute()
         {
         }
 
         /// <summary>
-        /// Create a new InjectAttribute, which has the specified key
+        /// Initialises a new instance of the <see cref="InjectAttribute"/> class, which has the specified key
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">Key to associate (meaning depends on context)</param>
         public InjectAttribute(string key)
         {
             this.Key = key;
         }
 
         /// <summary>
-        /// Key to use to resolve the relevant dependency
+        /// Gets or sets the key to use to resolve the relevant dependency
         /// </summary>
         public string Key { get; set; }
     }

@@ -12,7 +12,7 @@ namespace StyletIoC.Internal.Registrations
 
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
-            return this.creator.GetInstanceExpression(registrationContext);
+            return this.Creator.GetInstanceExpression(registrationContext);
         }
     }
 }

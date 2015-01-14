@@ -46,6 +46,11 @@ namespace StyletUnitTests
                 get { return false; }
             }
             public void DoSomethingWithBadGuard() { }
+
+            public void DoSomethingUnsuccessfully()
+            {
+                throw new InvalidOperationException("woo");
+            }
         }
 
         private class Target2
@@ -207,6 +212,14 @@ namespace StyletUnitTests
         public void ThrowsIfMethodHasMoreThanOneParameter()
         {
             Assert.Throws<ActionSignatureInvalidException>(() => new CommandAction(this.subject, "DoSomethingWithManyArguments", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
+        }
+
+        [Test]
+        public void PropagatesActionException()
+        {
+            var cmd = new CommandAction(this.subject, "DoSomethingUnsuccessfully", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var e = Assert.Throws<InvalidOperationException>(() => cmd.Execute(null));
+            Assert.AreEqual("woo", e.Message);
         }
     }
 }

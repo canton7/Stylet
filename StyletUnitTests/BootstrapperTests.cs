@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace StyletUnitTests
 {
@@ -38,6 +39,11 @@ namespace StyletUnitTests
                 this.ConfigureIoCCalled = true;
                 builder.Bind<I1>().To<C1>();
                 base.ConfigureIoC(builder);
+            }
+
+            public new void OnExitInternal(ExitEventArgs e)
+            {
+                base.OnExitInternal(e);
             }
         }
 
@@ -83,6 +89,15 @@ namespace StyletUnitTests
             var result = this.bootstrapper.GetInstance(typeof(string));
             Assert.AreEqual("hello", result);
             container.Verify();
+        }
+
+        [Test]
+        public void OnExitInternalDisposesContainer()
+        {
+            var container = new Mock<IContainer>();
+            this.bootstrapper.Container = container.Object;
+            this.bootstrapper.OnExitInternal(null);
+            container.Verify(x => x.Dispose());
         }
     }
 }

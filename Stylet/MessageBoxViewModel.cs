@@ -23,7 +23,9 @@ namespace Stylet
         /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
         /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
         /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
-        void Setup(string messageBoxText, string caption = null,
+        void Setup(
+            string messageBoxText,
+            string caption = null,
             MessageBoxButton buttons = MessageBoxButton.OK,
             MessageBoxImage icon = MessageBoxImage.None,
             MessageBoxResult defaultResult = MessageBoxResult.None,
@@ -32,7 +34,7 @@ namespace Stylet
             IDictionary<MessageBoxResult, string> buttonLabels = null);
 
         /// <summary>
-        /// After the user has clicked a button, holds which button was clicked
+        /// Gets the button clicked by the user, after they've clicked it
         /// </summary>
         MessageBoxResult ClickedButton { get; }
     }
@@ -43,22 +45,22 @@ namespace Stylet
     public class MessageBoxViewModel : Screen, IMessageBoxViewModel
     {
         /// <summary>
-        /// Mapping of button to text to display on that button. You can modify this to localize your application.
+        /// Gets or sets the mapping of button to text to display on that button. You can modify this to localize your application.
         /// </summary>
         public static IDictionary<MessageBoxResult, string> ButtonLabels { get; set; }
 
         /// <summary>
-        /// Mapping of MessageBoxButton values to the buttons which should be displayed
+        /// Gets or sets the mapping of MessageBoxButton values to the buttons which should be displayed
         /// </summary>
         public static IDictionary<MessageBoxButton, MessageBoxResult[]> ButtonToResults { get; set; }
 
         /// <summary>
-        /// Mapping of MessageBoxImage to the SystemIcon to display. You can customize this if you really want.
+        /// Gets or sets the mapping of MessageBoxImage to the SystemIcon to display. You can customize this if you really want.
         /// </summary>
         public static IDictionary<MessageBoxImage, Icon> IconMapping { get; set; }
 
         /// <summary>
-        /// Mapping of MessageBoxImage to the sound to play when the MessageBox is shown. You can customize this if you really want.
+        /// Gets or sets the mapping of MessageBoxImage to the sound to play when the MessageBox is shown. You can customize this if you really want.
         /// </summary>
         public static IDictionary<MessageBoxImage, SystemSound> SoundMapping { get; set; }
 
@@ -77,7 +79,7 @@ namespace Stylet
                 { MessageBoxButton.OK, new[] { MessageBoxResult.OK } },
                 { MessageBoxButton.OKCancel, new[] { MessageBoxResult.OK, MessageBoxResult.Cancel } },
                 { MessageBoxButton.YesNo, new[] { MessageBoxResult.Yes, MessageBoxResult.No } },
-                { MessageBoxButton.YesNoCancel, new[] { MessageBoxResult.Yes, MessageBoxResult.No, MessageBoxResult.Cancel} },
+                { MessageBoxButton.YesNoCancel, new[] { MessageBoxResult.Yes, MessageBoxResult.No, MessageBoxResult.Cancel } },
             };
 
             IconMapping = new Dictionary<MessageBoxImage, Icon>()
@@ -111,7 +113,9 @@ namespace Stylet
         /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
         /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
         /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
-        public void Setup(string messageBoxText, string caption = null,
+        public void Setup(
+            string messageBoxText,
+            string caption = null,
             MessageBoxButton buttons = MessageBoxButton.OK,
             MessageBoxImage icon = MessageBoxImage.None,
             MessageBoxResult defaultResult = MessageBoxResult.None,
@@ -159,32 +163,32 @@ namespace Stylet
         }
 
         /// <summary>
-        /// List of buttons which are shown in the View.
+        /// Gets or sets the list of buttons which are shown in the View.
         /// </summary>
         public IEnumerable<LabelledValue<MessageBoxResult>> ButtonList { get; protected set; }
 
         /// <summary>
-        /// Item in ButtonList which is the Default button
+        /// Gets or sets the item in ButtonList which is the Default button
         /// </summary>
         public LabelledValue<MessageBoxResult> DefaultButton { get; protected set; }
 
         /// <summary>
-        /// Item in ButtonList which is the Cancel button
+        /// Gets or sets the item in ButtonList which is the Cancel button
         /// </summary>
         public LabelledValue<MessageBoxResult> CancelButton { get; protected set; }      
 
         /// <summary>
-        /// Text which is shown in the body of the MessageBox
+        /// Gets or sets the text which is shown in the body of the MessageBox
         /// </summary>
         public virtual string Text { get; protected set; }
 
         /// <summary>
-        /// Icon which the user specified
+        /// Gets or sets the icon which the user specified
         /// </summary>
         public virtual MessageBoxImage Icon { get; protected set; }
 
         /// <summary>
-        /// Icon which is shown next to the text in the View
+        /// Gets or the icon which is shown next to the text in the View
         /// </summary>
         public virtual Icon ImageIcon
         {
@@ -192,17 +196,17 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Which way the document should flow
+        /// Gets or sets which way the document should flow
         /// </summary>
         public virtual FlowDirection FlowDirection { get; protected set; }
 
         /// <summary>
-        /// Text alignment of the message
+        /// Gets or sets the text alignment of the message
         /// </summary>
         public virtual TextAlignment TextAlignment { get; protected set; }
 
         /// <summary>
-        /// Which button the user clicked, once they've clicked a button
+        /// Gets or sets which button the user clicked, once they've clicked a button
         /// </summary>
         public virtual MessageBoxResult ClickedButton { get; protected set; }
 

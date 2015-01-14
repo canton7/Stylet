@@ -15,11 +15,11 @@ namespace StyletIoC.Internal.Builders
 
         public override void Build(Container container)
         {
-            var factoryType = container.GetFactoryForType(this.serviceType);
+            var factoryType = container.GetFactoryForType(this.ServiceType);
             var creator = new AbstractFactoryCreator(factoryType);
             var registration = new TransientRegistration(creator);
 
-            container.AddRegistration(new TypeKey(this.serviceType, this.Key), registration);
+            container.AddRegistration(new TypeKey(this.ServiceType, this.Key), registration);
         }
     }
 }

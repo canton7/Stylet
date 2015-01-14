@@ -8,7 +8,7 @@ namespace StyletIoC.Internal.Builders
 {
     internal class BuilderToAllImplementationsBinding : BuilderBindingBase
     {
-        private IEnumerable<Assembly> assemblies;
+        private readonly IEnumerable<Assembly> assemblies;
 
         public BuilderToAllImplementationsBinding(Type serviceType, IEnumerable<Assembly> assemblies)
             : base(serviceType)
@@ -18,8 +18,8 @@ namespace StyletIoC.Internal.Builders
 
         public override void Build(Container container)
         {
-            var candidates = from type in assemblies.Distinct().SelectMany(x => x.GetTypes())
-                             let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x == this.serviceType || x.IsGenericType && x.GetGenericTypeDefinition() == this.serviceType)
+            var candidates = from type in this.assemblies.Distinct().SelectMany(x => x.GetTypes())
+                             let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x == this.ServiceType || (x.IsGenericType && x.GetGenericTypeDefinition() == this.ServiceType))
                              where baseType != null
                              select new { Type = type, Base = baseType.ContainsGenericParameters ? baseType.GetGenericTypeDefinition() : baseType };
 
@@ -37,5 +37,4 @@ namespace StyletIoC.Internal.Builders
             }
         }
     }
-
 }
