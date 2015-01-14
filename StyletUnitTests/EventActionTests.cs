@@ -53,6 +53,11 @@ namespace StyletUnitTests
                 this.Sender = sender;
                 this.EventArgs = e;
             }
+
+            public void DoSomethingUnsuccessfully()
+            {
+                throw new InvalidOperationException("foo");
+            }
         }
 
         private class Target2
@@ -172,6 +177,15 @@ namespace StyletUnitTests
         {
             var cmd = new EventAction(this.subject, typeof(Subject).GetEvent("BadEventHandler"), "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             Assert.Throws<ActionEventSignatureInvalidException>(() => cmd.GetDelegate());
+        }
+
+        [Test]
+        public void PropagatesActionException()
+        {
+            var cmd = new EventAction(this.subject, this.eventInfo, "DoSomethingUnsuccessfully", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, null));
+            Assert.IsInstanceOf<InvalidOperationException>(e.InnerException);
+            Assert.AreEqual("foo", e.InnerException.Message);
         }
     }
 }

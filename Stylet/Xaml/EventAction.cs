@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Windows;
 
 namespace Stylet.Xaml
@@ -167,7 +168,18 @@ namespace Stylet.Xaml
 
             logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.methodName, this.target, parameters == null ? "none" : String.Join(", ", parameters));
 
-            this.targetMethodInfo.Invoke(this.target, parameters);
+            try
+            {
+                this.targetMethodInfo.Invoke(this.target, parameters);
+            }
+            catch (TargetInvocationException ex)
+            {
+                // Be nice and unwrap this for them
+                // They want a stack track for their VM method, not us
+                logger.Error(ex.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.methodName, this.target, parameters == null ? "none" : String.Join(", ", parameters)));
+                // http://stackoverflow.com/a/17091351/1086121
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            }
         }
     }
 
