@@ -23,6 +23,20 @@ namespace Stylet
         void OnModelChanged(DependencyObject targetLocation, object oldValue, object newValue);
 
         /// <summary>
+        /// Given a ViewModel instance, locate its View type (using LocateViewForModel), and instantiates it
+        /// </summary>
+        /// <param name="model">ViewModel to locate and instantiate the View for</param>
+        /// <returns>Instantiated and setup view</returns>
+        UIElement CreateViewForModel(object model);
+
+        /// <summary>
+        /// Given an instance of a ViewModel and an instance of its View, bind the two together
+        /// </summary>
+        /// <param name="view">View to bind to the ViewModel</param>
+        /// <param name="viewModel">ViewModel to bind the View to</param>
+        void BindViewToModel(UIElement view, object viewModel);
+
+        /// <summary>
         /// Create a View for the given ViewModel, and bind the two together
         /// </summary>
         /// <param name="model">ViewModel to create a Veiw for</param>
@@ -181,7 +195,7 @@ namespace Stylet
         /// </summary>
         /// <param name="model">ViewModel to locate and instantiate the View for</param>
         /// <returns>Instantiated and setup view</returns>
-        protected virtual UIElement CreateViewForModel(object model)
+        public virtual UIElement CreateViewForModel(object model)
         {
             var viewType = this.LocateViewForModel(model.GetType());
 
@@ -207,7 +221,7 @@ namespace Stylet
         /// </summary>
         /// <param name="view">View to bind to the ViewModel</param>
         /// <param name="viewModel">ViewModel to bind the View to</param>
-        protected virtual void BindViewToModel(UIElement view, object viewModel)
+        public virtual void BindViewToModel(UIElement view, object viewModel)
         {
             logger.Info("Setting {0}'s ActionTarget to {1}", view, viewModel);
             View.SetActionTarget(view, viewModel);
