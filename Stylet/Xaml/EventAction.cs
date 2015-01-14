@@ -12,6 +12,7 @@ namespace Stylet.Xaml
     public class EventAction
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(EventAction));
+        private static readonly MethodInfo invokeCommandMethodInfo = typeof(EventAction).GetMethod("InvokeCommand", BindingFlags.NonPublic | BindingFlags.Instance);
 
         private readonly ActionUnavailableBehaviour targetNullBehaviour;
         private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
@@ -20,6 +21,11 @@ namespace Stylet.Xaml
         /// View whose View.ActionTarget we watch
         /// </summary>
         private readonly DependencyObject subject;
+
+        /// <summary>
+        /// Property on the WPF element we're returning a delegate for
+        /// </summary>
+        private EventInfo targetProperty;
 
         /// <summary>
         /// The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired
@@ -37,10 +43,11 @@ namespace Stylet.Xaml
         /// Initialises a new instance of the <see cref="EventAction"/> class
         /// </summary>
         /// <param name="subject">View whose View.ActionTarget we watch</param>
+        /// <param name="targetProperty">Property on the WPF element we're returning a delegate for</param>
         /// <param name="methodName">The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired</param>
         /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
-        public EventAction(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+        public EventAction(DependencyObject subject, EventInfo targetProperty, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
         {
             if (targetNullBehaviour == ActionUnavailableBehaviour.Disable)
                 throw new ArgumentException("Setting NullTarget = Disable is unsupported when used on an Event");
@@ -48,6 +55,7 @@ namespace Stylet.Xaml
                 throw new ArgumentException("Setting ActionNotFound = Disable is unsupported when used on an Event");
 
             this.subject = subject;
+            this.targetProperty = targetProperty;
             this.methodName = methodName;
             this.targetNullBehaviour = targetNullBehaviour;
             this.actionNonExistentBehaviour = actionNonExistentBehaviour;
@@ -103,9 +111,11 @@ namespace Stylet.Xaml
                 else
                 {
                     var methodParameters = targetMethodInfo.GetParameters();
-                    if (methodParameters.Length > 1 || (methodParameters.Length == 1 && !methodParameters[0].ParameterType.IsAssignableFrom(typeof(RoutedEventArgs))))
+                    if (!(methodParameters.Length == 0 ||
+                        (methodParameters.Length == 1 && typeof(EventArgs).IsAssignableFrom(methodParameters[0].ParameterType)) ||
+                        (methodParameters.Length == 2 && typeof(EventArgs).IsAssignableFrom(methodParameters[1].ParameterType))))
                     {
-                        var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have zero parameters, or a single parameter accepting a RoutedEventArgs", this.methodName, newTargetType.Name));
+                        var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have the signatures void Method(), void Method(EventArgsOrSubClass e), or void Method(object sender, EventArgsOrSubClass e)", this.methodName, newTargetType.Name));
                         logger.Error(e);
                         throw e;
                     }
@@ -120,22 +130,53 @@ namespace Stylet.Xaml
         /// Return a delegate which can be added to the targetProperty
         /// </summary>
         /// <returns>An event hander, which, when invoked, will invoke the action</returns>
-        public RoutedEventHandler GetDelegate()
+        public Delegate GetDelegate()
         {
-            return this.InvokeCommand;
+            var parameterType = this.targetProperty.EventHandlerType;
+            var del = Delegate.CreateDelegate(parameterType, this, invokeCommandMethodInfo, false);
+            if (del == null)
+            {
+                var e = new ActionEventSignatureInvalidException(String.Format("Event being bound to does not have the '(object sender, EventArgsOrSubclass e)' signature we were expecting. Method {0} on target {1}", this.methodName, this.target));
+                logger.Error(e);
+                throw e;
+            }
+            return del;
         }
 
-        private void InvokeCommand(object sender, RoutedEventArgs e)
+        private void InvokeCommand(object sender, EventArgs e)
         {
             // Any throwing will have been handled above
             if (this.target == null || this.targetMethodInfo == null)
                 return;
 
-            var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new object[] { e } : null;
+            object[] parameters;
+            switch (this.targetMethodInfo.GetParameters().Length)
+            {
+                case 1:
+                    parameters = new object[] { e };
+                    break;
+                    
+                case 2:
+                    parameters = new object[] { sender, e };
+                    break;
+
+                default:
+                    parameters = null;
+                    break;
+            }
 
             logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.methodName, this.target, parameters == null ? "none" : String.Join(", ", parameters));
 
             this.targetMethodInfo.Invoke(this.target, parameters);
         }
+    }
+
+    /// <summary>
+    /// You tried to use an EventAction with an event that doesn't follow the EventHandler signature
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
+    public class ActionEventSignatureInvalidException : Exception
+    {
+        internal ActionEventSignatureInvalidException(string message) : base(message) { }
     }
 }
