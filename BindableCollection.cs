@@ -9,7 +9,7 @@ namespace Stylet
     /// <summary>
     /// Represents a collection which is observasble
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of elements in the collections</typeparam>
     public interface IObservableCollection<T> : IList<T>, INotifyPropertyChanged, INotifyCollectionChanged
     {
         /// <summary>
@@ -28,15 +28,14 @@ namespace Stylet
     /// <summary>
     /// Interface encapsulating IReadOnlyList and INotifyCollectionChanged
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface IReadOnlyObservableCollection<T> : IReadOnlyList<T>, INotifyCollectionChanged, INotifyCollectionChanging
-    {
-    }
+    /// <typeparam name="T">The type of elements in the collection</typeparam>
+    public interface IReadOnlyObservableCollection<out T> : IReadOnlyList<T>, INotifyCollectionChanged, INotifyCollectionChanging
+    { }
 
     /// <summary>
     /// ObservableCollection subclass which supports AddRange and RemoveRange
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of elements in the collection</typeparam>
     public class BindableCollection<T> : ObservableCollection<T>, IObservableCollection<T>, IReadOnlyObservableCollection<T>
     {
         /// <summary>
@@ -45,12 +44,13 @@ namespace Stylet
         private bool isNotifying = true;
 
         /// <summary>
-        /// Create a new empty BindableCollection
+        /// Initialises a new instance of the <see cref="BindableCollection{T}"/> class
         /// </summary>
-        public BindableCollection() : base() { }
+        public BindableCollection()
+        { }
 
         /// <summary>
-        /// Create a new BindableCollection with the given members
+        /// Initialises a new instance of the <see cref="BindableCollection{T}"/> class that contains the given members
         /// </summary>
         /// <param name="collection">The collection from which the elements are copied</param>
         public BindableCollection(IEnumerable<T> collection) : base(collection) { }
@@ -112,7 +112,7 @@ namespace Stylet
 
                 var previousNotificationSetting = this.isNotifying;
                 this.isNotifying = false;
-                var index = Count;
+                var index = this.Count;
                 foreach (var item in items)
                 {
                     base.InsertItem(index, item);
@@ -140,7 +140,7 @@ namespace Stylet
                 this.isNotifying = false;
                 foreach (var item in items)
                 {
-                    var index = IndexOf(item);
+                    var index = this.IndexOf(item);
                     if (index >= 0)
                         base.RemoveItem(index);
                 }
@@ -170,6 +170,8 @@ namespace Stylet
         /// Called by base class Collection&lt;T&gt; when an item is added to list;
         /// raises a CollectionChanged event to any listeners.
         /// </summary>
+        /// <param name="index">Index at which to insert the item</param>
+        /// <param name="item">Item to insert</param>
         protected override void InsertItem(int index, T item)
         {
             Execute.OnUIThreadSync(() =>
@@ -180,9 +182,11 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Called by base class Collection&lt;T&gt; when an item is set in list;
+        /// Called by base class Collection{T} when an item is set in list;
         /// raises a CollectionChanged event to any listeners.
         /// </summary>
+        /// <param name="index">Index of the item to set</param>
+        /// <param name="item">Item to set</param>
         protected override void SetItem(int index, T item)
         {
             Execute.OnUIThreadSync(() =>
@@ -196,6 +200,7 @@ namespace Stylet
         /// Called by base class Collection&lt;T&gt; when an item is removed from list;
         /// raises a CollectionChanged event to any listeners.
         /// </summary>
+        /// <param name="index">Index of the item to remove</param>
         protected override void RemoveItem(int index)
         {
             Execute.OnUIThreadSync(() =>

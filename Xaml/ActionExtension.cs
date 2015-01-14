@@ -30,7 +30,7 @@ namespace Stylet.Xaml
         /// Throw an exception
         /// </summary>
         Throw
-    };
+    }
 
     /// <summary>
     /// MarkupExtension used for binding Commands and Events to methods on the View.ActionTarget
@@ -38,22 +38,22 @@ namespace Stylet.Xaml
     public class ActionExtension : MarkupExtension
     {
         /// <summary>
-        /// Name of the method to call
+        /// Gets or sets the name of the method to call
         /// </summary>
         public string Method { get; set; }
 
         /// <summary>
-        /// Behaviour if the View.ActionTarget is nulil
+        /// Gets or sets the behaviour if the View.ActionTarget is nulil
         /// </summary>
         public ActionUnavailableBehaviour NullTarget { get; set; }
 
         /// <summary>
-        /// Behaviour if the action itself isn't found on the View.ActionTarget
+        /// Gets or sets the behaviour if the action itself isn't found on the View.ActionTarget
         /// </summary>
         public ActionUnavailableBehaviour ActionNotFound { get; set; }
 
         /// <summary>
-        /// Create a new ActionExtension
+        /// Initialises a new instance of the <see cref="ActionExtension"/> class
         /// </summary>
         /// <param name="method">Name of the method to call</param>
         public ActionExtension(string method)

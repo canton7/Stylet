@@ -36,7 +36,7 @@ namespace Stylet
     public interface IViewManagerConfig
     {
         /// <summary>
-        /// Assemblies which are used for IoC container auto-binding and searching for Views.
+        /// Gets the assemblies which are used for IoC container auto-binding and searching for Views.
         /// Set this in Configure() if you want to override it
         /// </summary>
         IList<Assembly> Assemblies { get; }
@@ -57,19 +57,19 @@ namespace Stylet
         private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
 
         /// <summary>
-        /// Assemblies searched for View types
+        /// Gets or sets the assemblies searched for View types
         /// </summary>
         protected IList<Assembly> Assemblies { get; set; }
 
         /// <summary>
-        /// Factory used to create view instances from their type
+        /// Gets or sets the factory used to create view instances from their type
         /// </summary>
         protected Func<Type, object> ViewFactory { get; set; }
 
         /// <summary>
-        /// Create a new ViewManager, with the given viewFactory
+        /// Initialises a new instance of the <see cref="ViewManager"/> class, with the given viewFactory
         /// </summary>
-        /// <param name="config">Configuration</param>
+        /// <param name="config">Configuration to use</param>
         public ViewManager(IViewManagerConfig config)
         {
             this.Assemblies = config.Assemblies;
@@ -240,7 +240,7 @@ namespace Stylet
         public readonly string ViewTypeName;
 
         /// <summary>
-        /// Create a new StyletViewLocationException
+        /// Initialises a new instance of the <see cref="StyletViewLocationException"/> class
         /// </summary>
         /// <param name="message">Message associated with the Exception</param>
         /// <param name="viewTypeName">Name of the View this question was thrown for</param>

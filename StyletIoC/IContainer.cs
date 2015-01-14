@@ -52,7 +52,7 @@ namespace StyletIoC
         /// </summary>
         /// <param name="type">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</param>
         /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
-        /// <returns></returns>
+        /// <returns>The resolved result</returns>
         object GetTypeOrAll(Type type, string key = null);
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace StyletIoC
         /// </summary>
         /// <typeparam name="T">If IEnumerable{T}, will fetch all implementations of T, otherwise wil fetch a single T</typeparam>
         /// <param name="key">Key that implementations of the service to fetch were registered with, defaults to null</param>
-        /// <returns></returns>
+        /// <returns>The resolved result</returns>
         T GetTypeOrAll<T>(string key = null);
 
         /// <summary>

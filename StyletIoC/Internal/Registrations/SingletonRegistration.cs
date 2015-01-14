@@ -10,9 +10,9 @@ namespace StyletIoC.Internal.Registrations
     /// </summary>
     internal class SingletonRegistration : RegistrationBase
     {
+        private readonly IRegistrationContext parentContext;
         private Expression instanceExpression;
         private object instance;
-        private readonly IRegistrationContext parentContext;
 
         public SingletonRegistration(IRegistrationContext parentContext, ICreator creator)
             : base(creator)
@@ -25,7 +25,7 @@ namespace StyletIoC.Internal.Registrations
                     disposable.Dispose();
 
                 this.instance = this.instanceExpression = null;
-                this.generator = null;
+                this.Generator = null;
             };
         }
 
@@ -34,7 +34,7 @@ namespace StyletIoC.Internal.Registrations
             if (this.instanceExpression != null)
                 return this.instanceExpression;
 
-            this.instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(this.parentContext);
+            this.instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.Creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(this.parentContext);
 
             // This expression yields the actual type of instance, not 'object'
             var instanceExpression = Expression.Constant(this.instance);

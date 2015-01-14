@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Windows;
 
 namespace Stylet.Xaml
@@ -12,21 +13,25 @@ namespace Stylet.Xaml
     public class EventAction
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(EventAction));
+        private static readonly MethodInfo invokeCommandMethodInfo = typeof(EventAction).GetMethod("InvokeCommand", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        private readonly ActionUnavailableBehaviour targetNullBehaviour;
+        private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
 
         /// <summary>
         /// View whose View.ActionTarget we watch
         /// </summary>
-        private DependencyObject subject;
-
-        /// <summary>
-        /// Property on the WPF element we're returning a delegate for
-        /// </summary>
-        private EventInfo targetProperty;
+        private readonly DependencyObject subject;
 
         /// <summary>
         /// The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired
         /// </summary>
-        private string methodName;
+        private readonly string methodName;
+
+        /// <summary>
+        /// Property on the WPF element we're returning a delegate for
+        /// </summary>
+        private readonly EventInfo targetProperty;
 
         /// <summary>
         /// MethodInfo for the method to call. This has to exist, or we throw a wobbly
@@ -35,11 +40,8 @@ namespace Stylet.Xaml
 
         private object target;
 
-        private readonly ActionUnavailableBehaviour targetNullBehaviour;
-        private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
-
         /// <summary>
-        /// Create a new EventAction
+        /// Initialises a new instance of the <see cref="EventAction"/> class
         /// </summary>
         /// <param name="subject">View whose View.ActionTarget we watch</param>
         /// <param name="targetProperty">Property on the WPF element we're returning a delegate for</param>
@@ -110,9 +112,11 @@ namespace Stylet.Xaml
                 else
                 {
                     var methodParameters = targetMethodInfo.GetParameters();
-                    if (methodParameters.Length > 1 || (methodParameters.Length == 1 && !methodParameters[0].ParameterType.IsAssignableFrom(typeof(RoutedEventArgs))))
+                    if (!(methodParameters.Length == 0 ||
+                        (methodParameters.Length == 1 && typeof(EventArgs).IsAssignableFrom(methodParameters[0].ParameterType)) ||
+                        (methodParameters.Length == 2 && typeof(EventArgs).IsAssignableFrom(methodParameters[1].ParameterType))))
                     {
-                        var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have zero parameters, or a single parameter accepting a RoutedEventArgs", this.methodName, newTargetType.Name));
+                        var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have the signatures void Method(), void Method(EventArgsOrSubClass e), or void Method(object sender, EventArgsOrSubClass e)", this.methodName, newTargetType.Name));
                         logger.Error(e);
                         throw e;
                     }
@@ -126,22 +130,66 @@ namespace Stylet.Xaml
         /// <summary>
         /// Return a delegate which can be added to the targetProperty
         /// </summary>
-        public RoutedEventHandler GetDelegate()
+        /// <returns>An event hander, which, when invoked, will invoke the action</returns>
+        public Delegate GetDelegate()
         {
-            return new RoutedEventHandler(this.InvokeCommand);
+            var parameterType = this.targetProperty.EventHandlerType;
+            var del = Delegate.CreateDelegate(parameterType, this, invokeCommandMethodInfo, false);
+            if (del == null)
+            {
+                var e = new ActionEventSignatureInvalidException(String.Format("Event being bound to does not have the '(object sender, EventArgsOrSubclass e)' signature we were expecting. Method {0} on target {1}", this.methodName, this.target));
+                logger.Error(e);
+                throw e;
+            }
+            return del;
         }
 
-        private void InvokeCommand(object sender, RoutedEventArgs e)
+        // ReSharper disable once UnusedMember.Local
+        private void InvokeCommand(object sender, EventArgs e)
         {
             // Any throwing will have been handled above
             if (this.target == null || this.targetMethodInfo == null)
                 return;
 
-            var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new object[] { e } : null;
+            object[] parameters;
+            switch (this.targetMethodInfo.GetParameters().Length)
+            {
+                case 1:
+                    parameters = new object[] { e };
+                    break;
+                    
+                case 2:
+                    parameters = new[] { sender, e };
+                    break;
+
+                default:
+                    parameters = null;
+                    break;
+            }
 
             logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.methodName, this.target, parameters == null ? "none" : String.Join(", ", parameters));
 
-            this.targetMethodInfo.Invoke(this.target, parameters);
+            try
+            {
+                this.targetMethodInfo.Invoke(this.target, parameters);
+            }
+            catch (TargetInvocationException ex)
+            {
+                // Be nice and unwrap this for them
+                // They want a stack track for their VM method, not us
+                logger.Error(ex.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.methodName, this.target, parameters == null ? "none" : String.Join(", ", parameters)));
+                // http://stackoverflow.com/a/17091351/1086121
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            }
         }
+    }
+
+    /// <summary>
+    /// You tried to use an EventAction with an event that doesn't follow the EventHandler signature
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
+    public class ActionEventSignatureInvalidException : Exception
+    {
+        internal ActionEventSignatureInvalidException(string message) : base(message) { }
     }
 }

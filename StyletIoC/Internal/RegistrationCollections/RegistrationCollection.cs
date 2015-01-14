@@ -23,7 +23,7 @@ namespace StyletIoC.Internal.RegistrationCollections
         public List<IRegistration> GetAll()
         {
             List<IRegistration> registrationsCopy;
-            lock (this.registrationsLock) { registrationsCopy = registrations.ToList(); }
+            lock (this.registrationsLock) { registrationsCopy = this.registrations.ToList(); }
             return registrationsCopy;
         }
 
@@ -33,7 +33,7 @@ namespace StyletIoC.Internal.RegistrationCollections
             lock (this.registrationsLock)
             {
                 // Should have been caught by SingleRegistration.AddRegistration
-                Debug.Assert(!this.registrations.Any(x => x.Type == registration.Type));
+                Debug.Assert(this.registrations.All(x => x.Type != registration.Type));
                 this.registrations.Add(registration);
                 return this;
             }

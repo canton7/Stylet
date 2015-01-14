@@ -20,9 +20,9 @@ namespace Stylet.Xaml
         private static readonly ContentPropertyAttribute defaultContentProperty = new ContentPropertyAttribute("Content");
 
         /// <summary>
-        /// IViewManager to be used. This should be set by the Bootstrapper.
+        /// Gets or sets the <see cref="IViewManager"/> to be used. This should be set by the Bootstrapper.
         /// </summary>
-        public static IViewManager ViewManager;
+        public static IViewManager ViewManager { get; set; }
 
         /// <summary>
         /// Get the ActionTarget associated with the given object
@@ -31,7 +31,7 @@ namespace Stylet.Xaml
         /// <returns>ActionTarget associated with the given object</returns>
         public static object GetActionTarget(DependencyObject obj)
         {
-            return (object)obj.GetValue(ActionTargetProperty);
+            return obj.GetValue(ActionTargetProperty);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Stylet.Xaml
         /// <returns>ViewModel currently associated with the given object</returns>
         public static object GetModel(DependencyObject obj)
         {
-            return (object)obj.GetValue(ModelProperty);
+            return obj.GetValue(ModelProperty);
         }
 
         /// <summary>
@@ -70,17 +70,19 @@ namespace Stylet.Xaml
             obj.SetValue(ModelProperty, value);
         }
 
+        private static readonly object defaultModelValue = new object();
+
         /// <summary>
         /// Property specifying the ViewModel currently associated with a given object
         /// </summary>
         public static readonly DependencyProperty ModelProperty =
-            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(new object(), (d, e) =>
+            DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(defaultModelValue, (d, e) =>
             {
                 if (ViewManager == null)
                 {
                     if (Execute.InDesignMode)
                     {
-                        var bindingExpression = BindingOperations.GetBindingExpression(d, View.ModelProperty);
+                        var bindingExpression = BindingOperations.GetBindingExpression(d, ModelProperty);
                         string text;
                         if (bindingExpression == null)
                             text = "View for [Broken Binding]";
@@ -88,7 +90,7 @@ namespace Stylet.Xaml
                             text = String.Format("View for child ViewModel on {0}", bindingExpression.DataItem.GetType().Name);
                         else
                             text = String.Format("View for {0}.{1}", bindingExpression.DataItem.GetType().Name, bindingExpression.ResolvedSourcePropertyName);
-                        View.SetContentProperty(d, new System.Windows.Controls.TextBlock() { Text = text });
+                        SetContentProperty(d, new System.Windows.Controls.TextBlock() { Text = text });
                     }
                     else
                     {
@@ -97,10 +99,11 @@ namespace Stylet.Xaml
                 }
                 else
                 {
-                    ViewManager.OnModelChanged(d, e.OldValue, e.NewValue);
+                    // It appears we can be reset to the default value on destruction
+                    var newValue = e.NewValue == defaultModelValue ? null : e.NewValue;
+                    ViewManager.OnModelChanged(d, e.OldValue, newValue);
                 }
             }));
-
 
         /// <summary>
         /// Helper to set the Content property of a given object to a particular View
@@ -114,5 +117,9 @@ namespace Stylet.Xaml
 
             type.GetProperty(contentProperty.Name).SetValue(targetLocation, view, null);
         }
+
+        // Stop someone from instantiating us
+        private View()
+        { }
     }
 }

@@ -4,14 +4,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:s="clr-namespace:Stylet.Xaml"
+        xmlns:stylet="clr-namespace:Stylet"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance stylet:MessageBoxViewModel}"
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
         FlowDirection="{Binding FlowDirection}"
         WindowStartupLocation="CenterScreen"
         ShowInTaskbar="False"
         MinWidth="160" MaxWidth="485"
-        x:Name="rootObject">
+        x:Name="RootObject">
     <Grid Margin="0,0,0,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="6"/> <!-- Padding -->
@@ -31,7 +33,7 @@
         <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Text}" Margin="8,30,15,30" TextWrapping="Wrap" TextAlignment="{Binding TextAlignment}"/>
 
         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-            <ItemsControl Grid.Row="1" ItemsSource="{Binding ButtonList}"
+            <ItemsControl ItemsSource="{Binding ButtonList}"
                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="43,0,0,0">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -45,13 +47,13 @@
                             <Button.IsDefault>
                                 <MultiBinding Converter="{x:Static s:EqualityConverter.Instance}">
                                     <Binding/>
-                                    <Binding Path="DataContext.DefaultButton" ElementName="rootObject"/>
+                                    <Binding Path="DataContext.DefaultButton" ElementName="RootObject"/>
                                 </MultiBinding>
                             </Button.IsDefault>
                             <Button.IsCancel>
                                 <MultiBinding Converter="{x:Static s:EqualityConverter.Instance}">
                                     <Binding/>
-                                    <Binding Path="DataContext.CancelButton" ElementName="rootObject"/>
+                                    <Binding Path="DataContext.CancelButton" ElementName="RootObject"/>
                                 </MultiBinding>
                             </Button.IsCancel>
                         </Button>

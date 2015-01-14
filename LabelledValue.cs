@@ -10,34 +10,36 @@ namespace Stylet
     public class LabelledValue<T> : PropertyChangedBase, IEquatable<LabelledValue<T>>
     {
         private string _label;
+
         /// <summary>
-        /// Label associated with this item. This is displayed in your View
+        /// Gets or sets the label associated with this item. This is displayed in your View
         /// </summary>
         public string Label
         {
             get { return this._label; }
-            set { SetAndNotify(ref this._label, value); }
+            set { this.SetAndNotify(ref this._label, value); }
         }
 
         private T _value;
+
         /// <summary>
-        /// Value associated with this item. This is used by your ViewModel
+        /// Gets or sets the value associated with this item. This is used by your ViewModel
         /// </summary>
         public T Value
         {
             get { return this._value; }
-            set { SetAndNotify(ref this._value, value); }
+            set { this.SetAndNotify(ref this._value, value); }
         }
 
         /// <summary>
-        /// Create a new LabelledValue, without setting Label or Value
+        /// Initialises a new instance of the <see cref="LabelledValue{T}"/> class, without setting Label or Value
         /// </summary>
         public LabelledValue()
         {
         }
 
         /// <summary>
-        /// Create a new LabelledValue, with the given label and value
+        /// Initialises a new instance of the <see cref="LabelledValue{T}"/> class, with the given label and value
         /// </summary>
         /// <param name="label">Label to use. This value is displayed in your view</param>
         /// <param name="value">Value to use. This is used by your ViewModel</param>
@@ -97,6 +99,10 @@ namespace Stylet
         /// <summary>
         /// Construct a new LabelledValue{T}, using method type inference
         /// </summary>
+        /// <typeparam name="T">Type of value</typeparam>
+        /// <param name="label">Label to assign</param>
+        /// <param name="value">Value to assign</param>
+        /// <returns>Constructed LabelledValue{T}</returns>
         public static LabelledValue<T> Create<T>(string label, T value)
         {
             return new LabelledValue<T>(label, value);

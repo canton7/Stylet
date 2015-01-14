@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Stylet.Logging
 {
@@ -65,7 +66,7 @@ namespace Stylet.Logging
         private readonly string name;
 
         /// <summary>
-        /// Create a new DebugLogger with the given name
+        /// Initialises a new instance of the <see cref="TraceLogger"/> class, with the given name
         /// </summary>
         /// <param name="name">Name of the DebugLogger</param>
         public TraceLogger(string name)
@@ -115,21 +116,26 @@ namespace Stylet.Logging
         private static readonly ILogger nullLogger = new NullLogger();
 
         /// <summary>
-        /// Set to true to enable logging
+        /// Gets or sets a value indicating whether logging is enabled
         /// </summary>
         /// <remarks>
         /// When false (the default), a null logger will be returned by GetLogger().
         /// When true, LoggerFactory will be used to create a new logger
         /// </remarks>
-        public static bool Enabled;
+        public static bool Enabled { get; set; }
 
         /// <summary>
-        /// Factory used to create new ILoggers, used by GetLogger
+        /// Gets or sets the factory used to create new ILoggers, used by GetLogger
         /// </summary>
-        /// <remarks>
-        /// e.g. LogManager.LoggerFactory = name => new MyLogger(name);
-        /// </remarks>
-        public static Func<string, ILogger> LoggerFactory = name => new TraceLogger(name);
+        /// <example>
+        /// LogManager.LoggerFactory = name => new MyLogger(name);
+        /// </example>
+        public static Func<string, ILogger> LoggerFactory { get; set; }
+
+        static LogManager()
+        {
+            LoggerFactory = name => new TraceLogger(name);
+        }
 
         /// <summary>
         /// Get a new ILogger for the given type

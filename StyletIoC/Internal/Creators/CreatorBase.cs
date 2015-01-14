@@ -11,11 +11,11 @@ namespace StyletIoC.Internal.Creators
     internal abstract class CreatorBase : ICreator
     {
         public virtual Type Type { get; protected set; }
-        protected IRegistrationContext parentContext;
+        protected IRegistrationContext ParentContext { get; set; }
 
-        public CreatorBase(IRegistrationContext parentContext)
+        protected CreatorBase(IRegistrationContext parentContext)
         {
-            this.parentContext = parentContext;
+            this.ParentContext = parentContext;
         }
 
         // Common utility method
@@ -24,7 +24,7 @@ namespace StyletIoC.Internal.Creators
             var instanceVar = Expression.Variable(this.Type, "instance");
             var assignment = Expression.Assign(instanceVar, creator);
 
-            var buildUpExpression = this.parentContext.GetBuilderUpper(this.Type).GetExpression(instanceVar, registrationContext);
+            var buildUpExpression = this.ParentContext.GetBuilderUpper(this.Type).GetExpression(instanceVar, registrationContext);
 
             // We always start with:
             // var instance = new Class(.....)

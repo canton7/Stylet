@@ -18,7 +18,7 @@ namespace Stylet
                 private readonly BindableCollection<T> items = new BindableCollection<T>();
 
                 /// <summary>
-                /// Items owned by this Conductor, one of which is active
+                /// Gets the tems owned by this Conductor, one of which is active
                 /// </summary>
                 public IObservableCollection<T> Items
                 {
@@ -26,7 +26,7 @@ namespace Stylet
                 }
 
                 /// <summary>
-                /// Create a new Conductor{T}.Collections.OneActive instance
+                /// Initialises a new instance of the <see cref="Conductor{T}.Collection.OneActive"/> class
                 /// </summary>
                 public OneActive()
                 {
@@ -71,7 +71,7 @@ namespace Stylet
                 /// <summary>
                 /// Return all items associated with this conductor
                 /// </summary>
-                /// <returns></returns>
+                /// <returns>All children associated with this conductor</returns>
                 public override IEnumerable<T> GetChildren()
                 {
                     return this.items;
@@ -139,6 +139,7 @@ namespace Stylet
                 /// <summary>
                 /// Given a list of items, and and item which is going to be removed, choose a new item to be the next ActiveItem 
                 /// </summary>
+                /// <param name="itemToRemove">Item to remove</param>
                 /// <returns>The next item to activate, or default(T) if no such item exists</returns>
                 protected virtual T DetermineNextItemToActivate(T itemToRemove)
                 {
@@ -167,7 +168,7 @@ namespace Stylet
                 /// <summary>
                 /// Returns true if and when all children can close
                 /// </summary>
-                /// <returns></returns>
+                /// <returns>A task indicating whether this conductor can close</returns>
                 public override Task<bool> CanCloseAsync()
                 {
                     return this.CanAllItemsCloseAsync(this.items);
@@ -187,7 +188,7 @@ namespace Stylet
                 /// <summary>
                 /// Ensure an item is ready to be activated
                 /// </summary>
-                /// <param name="newItem"></param>
+                /// <param name="newItem">New item to ensure</param>
                 protected override void EnsureItem(T newItem)
                 {
                     if (!this.items.Contains(newItem))

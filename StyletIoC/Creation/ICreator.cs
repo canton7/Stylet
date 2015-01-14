@@ -9,13 +9,14 @@ namespace StyletIoC.Creation
     public interface ICreator
     {
         /// <summary>
-        /// Type of object that will be created
+        /// Gets the type of object that will be created
         /// </summary>
         Type Type { get; }
 
         /// <summary>
         /// Fetches an expression evaluating to an instance on demand
         /// </summary>
+        /// <param name="registrationContext">Context which calls this method</param>
         /// <returns>An expression evaluating to an instance of the specified Type</returns>
         Expression GetInstanceExpression(ParameterExpression registrationContext);
     }

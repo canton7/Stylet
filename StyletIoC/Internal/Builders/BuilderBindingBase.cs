@@ -8,30 +8,31 @@ namespace StyletIoC.Internal.Builders
 {
     internal abstract class BuilderBindingBase : IInScopeOrWithKeyOrAsWeakBinding, IWithKeyOrAsWeakBinding
     {
-        protected Type serviceType;
-        protected RegistrationFactory registrationFactory;
+        protected Type ServiceType { get; set; }
+        protected RegistrationFactory RegistrationFactory { get; set; }
         public string Key { get; protected set; }
         public bool IsWeak { get; protected set; }
 
-        public BuilderBindingBase(Type serviceType)
+        protected BuilderBindingBase(Type serviceType)
         {
-            this.serviceType = serviceType;
+            this.ServiceType = serviceType;
 
             // Default is transient
-            this.registrationFactory = (ctx, service, creator, key) => new TransientRegistration(creator);
+            this.RegistrationFactory = (ctx, service, creator, key) => new TransientRegistration(creator);
         }
 
         public IAsWeakBinding WithRegistrationFactory(RegistrationFactory registrationFactory)
         {
             if (registrationFactory == null)
                 throw new ArgumentNullException("registrationFactory");
-            this.registrationFactory = registrationFactory;
+            this.RegistrationFactory = registrationFactory;
             return this;
         }
 
         /// <summary>
         /// Modify the scope of the binding to Singleton. One instance of this implementation will be generated for this binding.
         /// </summary>
+        /// <returns>Fluent interface to continue configuration</returns>
         public IAsWeakBinding InSingletonScope()
         {
             return this.WithRegistrationFactory((ctx, serviceType, creator, key) => new SingletonRegistration(ctx, creator));
@@ -45,7 +46,7 @@ namespace StyletIoC.Internal.Builders
 
         protected void EnsureType(Type implementationType, Type serviceType = null, bool assertImplementation = true)
         {
-            serviceType = serviceType ?? this.serviceType;
+            serviceType = serviceType ?? this.ServiceType;
 
             if (assertImplementation && (!implementationType.IsClass || implementationType.IsAbstract))
                 throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
@@ -68,18 +69,18 @@ namespace StyletIoC.Internal.Builders
                     throw new StyletIoCRegistrationException(String.Format("You cannot bind the non-generic type {0} to the unbound generic service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
             }
 
-            if (!implementationType.Implements(this.serviceType))
+            if (!implementationType.Implements(this.ServiceType))
                 throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
         }
 
         // Convenience...
         protected void BindImplementationToService(Container container, Type implementationType, Type serviceType = null)
         {
-            serviceType = serviceType ?? this.serviceType;
+            serviceType = serviceType ?? this.ServiceType;
 
             if (serviceType.IsGenericTypeDefinition)
             {
-                var unboundGeneric = new UnboundGeneric(serviceType, implementationType, container, this.registrationFactory);
+                var unboundGeneric = new UnboundGeneric(serviceType, implementationType, container, this.RegistrationFactory);
                 container.AddUnboundGeneric(new TypeKey(serviceType, this.Key), unboundGeneric);
             }
             else
@@ -94,7 +95,7 @@ namespace StyletIoC.Internal.Builders
         // Convenience...
         protected IRegistration CreateRegistration(IRegistrationContext registrationContext, ICreator creator)
         {
-            return this.registrationFactory(registrationContext, this.serviceType, creator, this.Key);
+            return this.RegistrationFactory(registrationContext, this.ServiceType, creator, this.Key);
         }
 
         IAsWeakBinding IWithKeyOrAsWeakBinding.WithKey(string key)

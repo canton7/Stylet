@@ -14,12 +14,12 @@ namespace Stylet
         private readonly ILogger logger;
 
         /// <summary>
-        /// Create a new Screen instance (without setting up a validator)
+        /// Initialises a new instance of the <see cref="Screen"/> class, without setting up a validator
         /// </summary>
         public Screen() : this(null) { }
 
         /// <summary>
-        /// Create a new screen instance, which can validate properties using the given validator
+        /// Initialises a new instance of the <see cref="Screen"/> class, which can validate properties using the given validator
         /// </summary>
         /// <param name="validator">Validator to use</param>
         [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "Can be safely called from the Ctor, as it doesn't depend on state being set")]
@@ -35,12 +35,13 @@ namespace Stylet
         private string _displayName;
 
         /// <summary>
-        /// Name associated with this ViewModel. Shown e.g. in a window's title bar, or as a tab's displayName
+        /// Gets or sets the name associated with this ViewModel.
+        /// Shown e.g. in a window's title bar, or as a tab's displayName
         /// </summary>
         public string DisplayName
         {
             get { return this._displayName; }
-            set { SetAndNotify(ref this._displayName, value); }
+            set { this.SetAndNotify(ref this._displayName, value); }
         }
 
         #endregion
@@ -55,13 +56,14 @@ namespace Stylet
         private bool hasBeenActivatedEver;
 
         private bool _isActive;
+
         /// <summary>
-        /// True if this Screen is currently active
+        /// Gets or sets a value indicating whether this Screen is currently active
         /// </summary>
         public bool IsActive
         {
             get { return this._isActive; }
-            set { SetAndNotify(ref this._isActive, value); }
+            set { this.SetAndNotify(ref this._isActive, value); }
         }
 
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
@@ -73,7 +75,7 @@ namespace Stylet
             this.IsActive = true;
             this.isClosed = false;
 
-            logger.Info("Activating");
+            this.logger.Info("Activating");
 
             if (!this.hasBeenActivatedEver)
                 this.OnInitialActivate();
@@ -114,7 +116,7 @@ namespace Stylet
             this.IsActive = false;
             this.isClosed = false;
 
-            logger.Info("Deactivating");
+            this.logger.Info("Deactivating");
 
             this.OnDeactivate();
 
@@ -132,7 +134,7 @@ namespace Stylet
 
         #region IClose
 
-        private bool isClosed = false;
+        private bool isClosed;
 
         /// <summary>
         /// Called whenever this Screen is closed
@@ -151,7 +153,7 @@ namespace Stylet
             this.View = null;
             this.isClosed = true;
 
-            logger.Info("Closing");
+            this.logger.Info("Closing");
 
             this.OnClose();
 
@@ -170,7 +172,7 @@ namespace Stylet
         #region IViewAware
 
         /// <summary>
-        /// View attached to this ViewModel, if any. Using this should be a last resort
+        /// Gets the View attached to this ViewModel, if any. Using this should be a last resort
         /// </summary>
         public UIElement View { get; private set; }
 
@@ -182,7 +184,7 @@ namespace Stylet
 
             this.View = view;
 
-            logger.Info("Attaching view {0}", view);
+            this.logger.Info("Attaching view {0}", view);
 
             var viewAsFrameworkElement = view as FrameworkElement;
             if (viewAsFrameworkElement != null)
@@ -204,13 +206,14 @@ namespace Stylet
         #region IChild
 
         private object _parent;
+
         /// <summary>
-        /// Parent conductor of this screen. Used to TryClose to request a closure
+        /// Gets or sets the parent conductor of this screen. Used to TryClose to request a closure
         /// </summary>
         public object Parent
         {
             get { return this._parent; }
-            set { SetAndNotify(ref this._parent, value); }
+            set { this.SetAndNotify(ref this._parent, value); }
         }
 
         #endregion
@@ -241,19 +244,19 @@ namespace Stylet
         /// <summary>
         /// Request that the conductor responsible for this screen close it
         /// </summary>
-        /// <param name="dialogResult"></param>
+        /// <param name="dialogResult">DialogResult to return, if this is a dialog</param>
         public virtual void TryClose(bool? dialogResult = null)
         {
             var conductor = this.Parent as IChildDelegate;
             if (conductor != null)
             {
-                logger.Info("TryClose called. Conductor: {0}; DialogResult: {1}", conductor, dialogResult);
+                this.logger.Info("TryClose called. Conductor: {0}; DialogResult: {1}", conductor, dialogResult);
                 conductor.CloseItem(this, dialogResult);
             }
             else
             {
                 var e = new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent (note that windows and dialogs automatically have such a parent)", this.GetType()));
-                logger.Error(e);
+                this.logger.Error(e);
                 throw e;
             }
         }

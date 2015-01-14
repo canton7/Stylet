@@ -4,7 +4,7 @@ namespace StyletIoC.Internal.Builders
 {
     internal class BuilderTypeBinding : BuilderBindingBase
     {
-        private Type implementationType;
+        private readonly Type implementationType;
 
         public BuilderTypeBinding(Type serviceType, Type implementationType)
             : base(serviceType)
