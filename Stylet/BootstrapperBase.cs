@@ -55,7 +55,11 @@ namespace Stylet
 
             this.Application.Startup += (o, e) => this.Start(e.Args);
             // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
-            this.Application.Exit += (o, e) => this.OnExit(e);
+            this.Application.Exit += (o, e) =>
+            {
+                this.OnExitInternal(e);
+                this.OnExit(e);
+            };
 
             // Fetch this logger when needed. If we fetch it now, then no-one will have been given the change to enable the LogManager, and we'll get a NullLogger
             this.Application.DispatcherUnhandledException += (o, e) => LogManager.GetLogger(typeof(BootstrapperBase<>)).Error(e.Exception, "Unhandled exception");
@@ -105,6 +109,12 @@ namespace Stylet
         /// Hook called on application startup. This occurs once the root view has been displayed
         /// </summary>
         protected virtual void OnStartup() { }
+
+        /// <summary>
+        /// Hook used internall by the Bootstrapper to do things like dispose the IoC container
+        /// </summary>
+        /// <param name="e">The exit event data</param>
+        protected virtual void OnExitInternal(ExitEventArgs e) { }
 
         /// <summary>
         /// Hook called on application exit

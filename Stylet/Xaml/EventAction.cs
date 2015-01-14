@@ -24,14 +24,14 @@ namespace Stylet.Xaml
         private readonly DependencyObject subject;
 
         /// <summary>
-        /// Property on the WPF element we're returning a delegate for
-        /// </summary>
-        private EventInfo targetProperty;
-
-        /// <summary>
         /// The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired
         /// </summary>
         private readonly string methodName;
+
+        /// <summary>
+        /// Property on the WPF element we're returning a delegate for
+        /// </summary>
+        private EventInfo targetProperty;
 
         /// <summary>
         /// MethodInfo for the method to call. This has to exist, or we throw a wobbly

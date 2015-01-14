@@ -1,6 +1,7 @@
 ﻿using StyletIoC;
 using System;
 using System.Collections.Generic;
+using System.Windows;
 
 namespace Stylet
 {
@@ -29,8 +30,6 @@ namespace Stylet
             this.ConfigureIoC(builder);
 
             this.Container = builder.BuildContainer();
-
-            this.Application.Exit += (o, e) => this.Container.Dispose();
         }
 
         /// <summary>
@@ -68,6 +67,16 @@ namespace Stylet
         public override object GetInstance(Type type)
         {
             return this.Container.Get(type);
+        }
+
+        /// <summary>
+        /// Hook used internall by the Bootstrapper to do things like dispose the IoC container
+        /// </summary>
+        /// <param name="e">The exit event data</param>
+        protected override void OnExitInternal(ExitEventArgs e)
+        {
+            base.OnExitInternal(e);
+            this.Container.Dispose();
         }
     }
 }
