@@ -1,6 +1,15 @@
 Stylet Changelog
 ================
 
+v1.0.5
+------
+
+ - Code analysis improvements (StyleCop and ReSharper)
+ - Work around error when showing multiple dialogs after main window has been closed
+ - Actions unwrap TargetInvocationException, showing the user the actual exception and stack trace
+ - Accept any (reasonable) event signature for event Actions, not just RoutedEventHandler
+ - Bootstrapper disposes its container on exit
+
 v1.0.4
 ------
 
