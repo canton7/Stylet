@@ -17,8 +17,11 @@ namespace StyletUnitTests
     {
         private class Subject : DependencyObject
         {
+            // They're used by reflection - squish 'unused' warning
+#pragma warning disable 0067
             public event EventHandler SimpleEventHandler;
             public event Action BadEventHandler;
+#pragma warning restore 0067
         }
 
         private class Target
