@@ -3,6 +3,7 @@ using Castle.MicroKernel.Registration;
 using Castle.Windsor;
 using Stylet;
 using System;
+using System.Windows;
 
 namespace Bootstrappers
 {
@@ -51,6 +52,11 @@ namespace Bootstrappers
         public override object GetInstance(Type type)
         {
             return this.container.Resolve(type);
+        }
+
+        protected override void OnExitInternal(ExitEventArgs e)
+        {
+            this.container.Dispose();
         }
     }
 }

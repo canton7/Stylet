@@ -1,6 +1,7 @@
 ﻿using Ninject;
 using Stylet;
 using System;
+using System.Windows;
 
 namespace Bootstrappers
 {
@@ -42,6 +43,11 @@ namespace Bootstrappers
         public override object GetInstance(Type type)
         {
             return this.kernel.Get(type);
+        }
+
+        protected override void OnExitInternal(ExitEventArgs e)
+        {
+            this.kernel.Dispose();
         }
     }
 }
