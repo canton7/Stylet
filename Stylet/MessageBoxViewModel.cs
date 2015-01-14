@@ -229,7 +229,7 @@ namespace Stylet
         public void ButtonClicked(MessageBoxResult button)
         {
             this.ClickedButton = button;
-            this.TryClose(true);
+            this.RequestClose(true);
         }
     }
 }

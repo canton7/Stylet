@@ -264,18 +264,18 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void TryCloseThrowsIfParentIsNotIChildDelegate()
+        public void RequestCloseThrowsIfParentIsNotIChildDelegate()
         {
             this.screen.Parent = new object();
-            Assert.Throws<InvalidOperationException>(() => this.screen.TryClose());
+            Assert.Throws<InvalidOperationException>(() => this.screen.RequestClose());
         }
 
         [Test]
-        public void TryCloseCallsParentCloseItemPassingDialogResult()
+        public void RequestCloseCallsParentCloseItemPassingDialogResult()
         {
             var parent = new Mock<IChildDelegate>();
             screen.Parent = parent.Object;
-            this.screen.TryClose(true);
+            this.screen.RequestClose(true);
             parent.Verify(x => x.CloseItem(this.screen, true));
         }
 

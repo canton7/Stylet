@@ -285,7 +285,7 @@ namespace Stylet
                     return;
                 }
 
-                logger.Info("ViewModel {0} close requested with DialogResult {1} because it called TryClose", this.viewModel, dialogResult);
+                logger.Info("ViewModel {0} close requested with DialogResult {1} because it called RequestClose", this.viewModel, dialogResult);
 
                 this.window.StateChanged -= this.WindowStateChanged;
                 this.window.Closed -= this.WindowClosed;

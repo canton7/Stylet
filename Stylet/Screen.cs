@@ -208,7 +208,7 @@ namespace Stylet
         private object _parent;
 
         /// <summary>
-        /// Gets or sets the parent conductor of this screen. Used to TryClose to request a closure
+        /// Gets or sets the parent conductor of this screen. Used to RequestClose to request a closure
         /// </summary>
         public object Parent
         {
@@ -241,16 +241,18 @@ namespace Stylet
 
         #endregion
 
+        #region IRequestClose
+
         /// <summary>
         /// Request that the conductor responsible for this screen close it
         /// </summary>
         /// <param name="dialogResult">DialogResult to return, if this is a dialog</param>
-        public virtual void TryClose(bool? dialogResult = null)
+        public virtual void RequestClose(bool? dialogResult = null)
         {
             var conductor = this.Parent as IChildDelegate;
             if (conductor != null)
             {
-                this.logger.Info("TryClose called. Conductor: {0}; DialogResult: {1}", conductor, dialogResult);
+                this.logger.Info("RequstClose called. Conductor: {0}; DialogResult: {1}", conductor, dialogResult);
                 conductor.CloseItem(this, dialogResult);
             }
             else
@@ -259,6 +261,18 @@ namespace Stylet
                 this.logger.Error(e);
                 throw e;
             }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Obselete - use RequestClose
+        /// </summary>
+        /// <param name="dialogResult">DialogResult to return, if this is a dialog</param>
+        [Obsolete("Obseleted by RequestClose", true)]
+        public virtual void TryClose(bool? dialogResult = null)
+        {
+            this.RequestClose(dialogResult);
         }
     }
 }
