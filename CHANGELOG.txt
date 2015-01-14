@@ -1,6 +1,11 @@
 Stylet Changelog
 ================
 
+v1.0.6
+------
+
+ - Actions can handle attached events
+
 v1.0.5
 ------
 

@@ -29,9 +29,9 @@ namespace Stylet.Xaml
         private readonly string methodName;
 
         /// <summary>
-        /// Property on the WPF element we're returning a delegate for
+        /// Type of event handler
         /// </summary>
-        private readonly EventInfo targetProperty;
+        private readonly Type eventHandlerType;
 
         /// <summary>
         /// MethodInfo for the method to call. This has to exist, or we throw a wobbly
@@ -44,11 +44,11 @@ namespace Stylet.Xaml
         /// Initialises a new instance of the <see cref="EventAction"/> class
         /// </summary>
         /// <param name="subject">View whose View.ActionTarget we watch</param>
-        /// <param name="targetProperty">Property on the WPF element we're returning a delegate for</param>
+        /// <param name="eventHandlerType">Type of event handler we're returning a delegate for</param>
         /// <param name="methodName">The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired</param>
         /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
-        public EventAction(DependencyObject subject, EventInfo targetProperty, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+        public EventAction(DependencyObject subject, Type eventHandlerType, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
         {
             if (targetNullBehaviour == ActionUnavailableBehaviour.Disable)
                 throw new ArgumentException("Setting NullTarget = Disable is unsupported when used on an Event");
@@ -56,7 +56,7 @@ namespace Stylet.Xaml
                 throw new ArgumentException("Setting ActionNotFound = Disable is unsupported when used on an Event");
 
             this.subject = subject;
-            this.targetProperty = targetProperty;
+            this.eventHandlerType = eventHandlerType;
             this.methodName = methodName;
             this.targetNullBehaviour = targetNullBehaviour;
             this.actionNonExistentBehaviour = actionNonExistentBehaviour;
@@ -133,8 +133,7 @@ namespace Stylet.Xaml
         /// <returns>An event hander, which, when invoked, will invoke the action</returns>
         public Delegate GetDelegate()
         {
-            var parameterType = this.targetProperty.EventHandlerType;
-            var del = Delegate.CreateDelegate(parameterType, this, invokeCommandMethodInfo, false);
+            var del = Delegate.CreateDelegate(this.eventHandlerType, this, invokeCommandMethodInfo, false);
             if (del == null)
             {
                 var e = new ActionEventSignatureInvalidException(String.Format("Event being bound to does not have the '(object sender, EventArgsOrSubclass e)' signature we were expecting. Method {0} on target {1}", this.methodName, this.target));
