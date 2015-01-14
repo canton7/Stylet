@@ -269,7 +269,7 @@ namespace Stylet
         /// Obselete - use RequestClose
         /// </summary>
         /// <param name="dialogResult">DialogResult to return, if this is a dialog</param>
-        [Obsolete("Obseleted by RequestClose", true)]
+        [Obsolete("Obseleted by RequestClose")]
         public virtual void TryClose(bool? dialogResult = null)
         {
             this.RequestClose(dialogResult);

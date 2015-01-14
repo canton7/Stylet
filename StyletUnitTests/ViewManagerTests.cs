@@ -66,7 +66,7 @@ namespace StyletUnitTests
 
             public CreatingAndBindingViewManager(IViewManagerConfig config) : base(config) { }
 
-            protected override UIElement CreateViewForModel(object model)
+            public override UIElement CreateViewForModel(object model)
             {
                 this.RequestedModel = model;
                 return this.View;
@@ -74,7 +74,7 @@ namespace StyletUnitTests
 
             public UIElement BindViewToModelView;
             public object BindViewtoModelViewModel;
-            protected override void BindViewToModel(UIElement view, object viewModel)
+            public override void BindViewToModel(UIElement view, object viewModel)
             {
                 this.BindViewToModelView = view;
                 this.BindViewtoModelViewModel = viewModel;
