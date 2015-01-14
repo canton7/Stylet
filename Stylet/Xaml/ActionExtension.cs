@@ -61,22 +61,22 @@ namespace Stylet.Xaml
             this.Method = method;
         }
 
-        private ActionUnavailableBehaviour commandNullTargetBehaviour
+        private ActionUnavailableBehaviour CommandNullTargetBehaviour
         {
             get { return this.NullTarget == ActionUnavailableBehaviour.Default ? (Execute.InDesignMode ? ActionUnavailableBehaviour.Enable : ActionUnavailableBehaviour.Disable) : this.NullTarget; }
         }
 
-        private ActionUnavailableBehaviour commandActionNotFoundBehaviour
+        private ActionUnavailableBehaviour CommandActionNotFoundBehaviour
         {
             get { return this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound; }
         }
 
-        private ActionUnavailableBehaviour eventNullTargetBehaviour
+        private ActionUnavailableBehaviour EventNullTargetBehaviour
         {
             get { return this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Enable : this.NullTarget; }
         }
 
-        private ActionUnavailableBehaviour eventActionNotFoundBehaviour
+        private ActionUnavailableBehaviour EventActionNotFoundBehaviour
         {
             get { return this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound; }
         }
@@ -99,14 +99,13 @@ namespace Stylet.Xaml
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
                 // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
-                return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, this.commandNullTargetBehaviour, this.commandActionNotFoundBehaviour);
+                return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
             }
 
             var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
             if (propertyAsEventInfo != null)
             {
- 
-                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo.EventHandlerType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
+                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo.EventHandlerType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
                 return ec.GetDelegate();
             }
 
@@ -117,7 +116,7 @@ namespace Stylet.Xaml
                 var parameters = propertyAsMethodInfo.GetParameters();
                 if (parameters.Length == 2 && typeof(RoutedEventHandler).IsAssignableFrom(parameters[1].ParameterType))
                 {
-                    var ec = new EventAction((DependencyObject)valueService.TargetObject, parameters[1].ParameterType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
+                    var ec = new EventAction((DependencyObject)valueService.TargetObject, parameters[1].ParameterType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
                     return ec.GetDelegate();
                 }
             }
