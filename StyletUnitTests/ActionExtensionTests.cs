@@ -35,6 +35,10 @@ namespace StyletUnitTests
                 if (uie != null)
                     uie.RemoveHandler(TestExtensions.TestEvent, handler);
             }
+
+            public static void InvalidHandler(DependencyObject d)
+            {
+            }
         }
 
         [SetUp]
@@ -85,6 +89,13 @@ namespace StyletUnitTests
             this.provideValueTarget.Setup(x => x.TargetProperty).Returns(typeof(TestExtensions).GetMethod("AddTestHandler"));
 
             Assert.IsInstanceOf<RoutedEventHandler>(this.actionExtension.ProvideValue(this.serviceProvider.Object));
+        }
+
+        [Test]
+        public void ThrowsArgumentExceptionIfIsMethodInfoWithWrongParameters()
+        {
+            this.provideValueTarget.Setup(x => x.TargetProperty).Returns(typeof(TestExtensions).GetMethod("InvalidHandler"));
+            Assert.Throws<ArgumentException>(() => this.actionExtension.ProvideValue(this.serviceProvider.Object));
         }
 
         [Test]
