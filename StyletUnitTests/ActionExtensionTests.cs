@@ -20,6 +20,23 @@ namespace StyletUnitTests
         private Mock<IProvideValueTarget> provideValueTarget;
         private Mock<IServiceProvider> serviceProvider;
 
+        private class TestExtensions
+        {
+            public static readonly RoutedEvent TestEvent = EventManager.RegisterRoutedEvent("Test", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(TestExtensions));
+            public static void AddTestHandler(DependencyObject d, RoutedEventHandler handler)
+            {
+                UIElement uie = d as UIElement;
+                if (uie != null)
+                    uie.AddHandler(TestExtensions.TestEvent, handler);
+            }
+            public static void RemoveTestHandler(DependencyObject d, RoutedEventHandler handler)
+            {
+                UIElement uie = d as UIElement;
+                if (uie != null)
+                    uie.RemoveHandler(TestExtensions.TestEvent, handler);
+            }
+        }
+
         [SetUp]
         public void SetUp()
         {
@@ -58,6 +75,14 @@ namespace StyletUnitTests
         public void ReturnsEventActionIfTargetObjectPropertyIsEventInfo()
         {
             this.provideValueTarget.Setup(x => x.TargetProperty).Returns(typeof(Button).GetEvent("Click"));
+
+            Assert.IsInstanceOf<RoutedEventHandler>(this.actionExtension.ProvideValue(this.serviceProvider.Object));
+        }
+
+        [Test]
+        public void ReturnsEventActionIfTargetIsAttachedEvent()
+        {
+            this.provideValueTarget.Setup(x => x.TargetProperty).Returns(typeof(TestExtensions).GetMethod("AddTestHandler"));
 
             Assert.IsInstanceOf<RoutedEventHandler>(this.actionExtension.ProvideValue(this.serviceProvider.Object));
         }

@@ -61,6 +61,26 @@ namespace Stylet.Xaml
             this.Method = method;
         }
 
+        private ActionUnavailableBehaviour commandNullTargetBehaviour
+        {
+            get { return this.NullTarget == ActionUnavailableBehaviour.Default ? (Execute.InDesignMode ? ActionUnavailableBehaviour.Enable : ActionUnavailableBehaviour.Disable) : this.NullTarget; }
+        }
+
+        private ActionUnavailableBehaviour commandActionNotFoundBehaviour
+        {
+            get { return this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound; }
+        }
+
+        private ActionUnavailableBehaviour eventNullTargetBehaviour
+        {
+            get { return this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Enable : this.NullTarget; }
+        }
+
+        private ActionUnavailableBehaviour eventActionNotFoundBehaviour
+        {
+            get { return this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound; }
+        }
+
         /// <summary>
         /// When implemented in a derived class, returns an object that is provided as the value of the target property for this markup extension.
         /// </summary>
@@ -79,18 +99,27 @@ namespace Stylet.Xaml
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
                 // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
-                var nullTarget = this.NullTarget == ActionUnavailableBehaviour.Default ? (Execute.InDesignMode ? ActionUnavailableBehaviour.Enable : ActionUnavailableBehaviour.Disable) : this.NullTarget;
-                var actionNotFound = this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
-                return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, nullTarget, actionNotFound);
+                return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, this.commandNullTargetBehaviour, this.commandActionNotFoundBehaviour);
             }
 
             var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
             if (propertyAsEventInfo != null)
             {
-                var nullTarget = this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Enable : this.NullTarget;
-                var actionNotFound = this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
-                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo, this.Method, nullTarget, actionNotFound);
+ 
+                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo.EventHandlerType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
                 return ec.GetDelegate();
+            }
+
+            // For attached events
+            var propertyAsMethodInfo = valueService.TargetProperty as MethodInfo;
+            if (propertyAsMethodInfo != null)
+            {
+                var parameters = propertyAsMethodInfo.GetParameters();
+                if (parameters.Length == 2 && typeof(RoutedEventHandler).IsAssignableFrom(parameters[1].ParameterType))
+                {
+                    var ec = new EventAction((DependencyObject)valueService.TargetObject, parameters[1].ParameterType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
+                    return ec.GetDelegate();
+                }
             }
                 
             throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
