@@ -106,9 +106,21 @@ namespace Stylet
     }
 
     /// <summary>
+    /// Get the object to request that its parent close it
+    /// </summary>
+    public interface IRequestClose
+    {
+        /// <summary>
+        /// Request that the conductor responsible for this screen close it
+        /// </summary>
+        /// <param name="dialogResult">DialogResult to return, if this is a dialog</param>
+        void RequestClose(bool? dialogResult = null);
+    }
+
+    /// <summary>
     /// Generalised 'screen' composing all the behaviours expected of a screen
     /// </summary>
-    public interface IScreen : IViewAware, IHaveDisplayName, IActivate, IDeactivate, IChild, IClose, IGuardClose
+    public interface IScreen : IViewAware, IHaveDisplayName, IActivate, IDeactivate, IChild, IClose, IGuardClose, IRequestClose
     {
     }
 

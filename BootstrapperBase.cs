@@ -12,8 +12,7 @@ namespace Stylet
     /// <summary>
     /// Bootstrapper to be extended by applications which don't want to use StyletIoC as the IoC container.
     /// </summary>
-    /// <typeparam name="TRootViewModel">Type of the root ViewModel. This will be instantiated and displayed</typeparam>
-    public abstract class BootstrapperBase<TRootViewModel> : IBootstrapper, IViewManagerConfig where TRootViewModel : class
+    public abstract class BootstrapperBase : IBootstrapper, IViewManagerConfig
     {
         /// <summary>
         /// Gets the current application
@@ -32,11 +31,16 @@ namespace Stylet
         public string[] Args { get; private set; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BootstrapperBase{TRootViewModel}"/> class
+        /// Gets the instance of the root ViewMode, which is displayed at launch
+        /// </summary>
+        protected abstract object RootViewModel { get; }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="BootstrapperBase"/> class
         /// </summary>
         protected BootstrapperBase()
         {
-            this.Assemblies = new List<Assembly>() { typeof(BootstrapperBase<>).Assembly, this.GetType().Assembly };
+            this.Assemblies = new List<Assembly>() { typeof(BootstrapperBase).Assembly, this.GetType().Assembly };
         }
 
         /// <summary>
@@ -62,7 +66,7 @@ namespace Stylet
             };
 
             // Fetch this logger when needed. If we fetch it now, then no-one will have been given the change to enable the LogManager, and we'll get a NullLogger
-            this.Application.DispatcherUnhandledException += (o, e) => LogManager.GetLogger(typeof(BootstrapperBase<>)).Error(e.Exception, "Unhandled exception");
+            this.Application.DispatcherUnhandledException += (o, e) => LogManager.GetLogger(typeof(BootstrapperBase)).Error(e.Exception, "Unhandled exception");
             this.Application.DispatcherUnhandledException += (o, e) => this.OnUnhandledExecption(e);
         }
 
@@ -88,8 +92,7 @@ namespace Stylet
         protected virtual void Launch()
         {
             var windowManager = (IWindowManager)this.GetInstance(typeof(IWindowManager));
-            var rootViewModel = this.GetInstance(typeof(TRootViewModel));
-            windowManager.ShowWindow(rootViewModel);
+            windowManager.ShowWindow(this.RootViewModel);
             this.OnStartup();
         }
 

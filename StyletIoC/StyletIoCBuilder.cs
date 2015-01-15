@@ -230,12 +230,13 @@ namespace StyletIoC
         /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
         public void Autobind(IEnumerable<Assembly> assemblies)
         {
+            var assembliesArray = (assemblies == null) ? new Assembly[0] : (assemblies as Assembly[] ?? assemblies.ToArray());
             // If they haven't given any assemblies, use the assembly of the caller
-            if (assemblies == null || !assemblies.Any())
-                assemblies = new[] { Assembly.GetCallingAssembly() };
+            if (assembliesArray.Length == 0)
+                assembliesArray = new[] { Assembly.GetCallingAssembly() };
 
             // We self-bind concrete classes only
-            var classes = assemblies.Distinct().SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
+            var classes = assembliesArray.Distinct().SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
             foreach (var cls in classes)
             {
                 // It's not actually possible for this to fail with a StyletIoCRegistrationException (at least currently)
