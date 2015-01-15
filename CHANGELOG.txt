@@ -1,6 +1,15 @@
 Stylet Changelog
 ================
 
+v1.0.7
+------
+
+ - Expand IViewManager to add other useful stuff, which ViewManager did anyway
+ - Conductors now optionally dispose their children, and the WindowManager never does. This is to handle ViewModels which are displayed multiple times e.g. as dialogs
+ - Conductors now ensure new children are either activated or deactivated. This is to handle child ViewModels which may have been closed previously
+ - Make BootstrapperBase non-generic, instead having an abstract RootViewModel property. This makes it more flexible.
+ - Handle null/empty property name in ValidatingModelBase.ValidatePropertyAsync
+
 v1.0.6
 ------
 
