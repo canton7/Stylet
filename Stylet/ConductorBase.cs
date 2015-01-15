@@ -13,6 +13,11 @@ namespace Stylet
     public abstract class ConductorBase<T> : Screen, IConductor<T>, IParent<T>, IChildDelegate where T : class
     {
         /// <summary>
+        /// Gets or sets a value indicating whether to dispose a child when it's closed. True by default
+        /// </summary>
+        public virtual bool DisposeChildren { get; set; }
+
+        /// <summary>
         /// Retrieves the Item or Items associated with this Conductor
         /// </summary>
         /// <returns>Item or Items associated with this Conductor</returns>
@@ -84,6 +89,14 @@ namespace Stylet
             T typedItem = item as T;
             if (typedItem != null)
                 this.CloseItem(typedItem);
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ConductorBase{T}"/> class
+        /// </summary>
+        public ConductorBase()
+        {
+            this.DisposeChildren = true;
         }
     }
 }

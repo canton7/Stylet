@@ -38,7 +38,7 @@ namespace Stylet
         {
             ScreenExtensions.TryDeactivate(this.ActiveItem);
             if (closePrevious)
-                this.CloseAndCleanUp(this.ActiveItem);
+                this.CloseAndCleanUp(this.ActiveItem, this.DisposeChildren);
 
             if (newItem != null)
             {
@@ -73,7 +73,7 @@ namespace Stylet
         /// </summary>
         protected override void OnClose()
         {
-            this.CloseAndCleanUp(this.ActiveItem);
+            this.CloseAndCleanUp(this.ActiveItem, this.DisposeChildren);
         }
     }
 }
