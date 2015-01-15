@@ -184,11 +184,16 @@ namespace StyletUnitTests
             var screen2 = new Mock<IScreen>();
             ((IActivate)this.conductor).Activate();
             this.conductor.ActivateItem(screen1.Object);
+
+            // This is an implementation detail
+            screen1.Verify(x => x.Deactivate(), Times.Once);
+            screen1.Verify(x => x.Activate(), Times.Once);
+
             this.conductor.Items.Add(screen2.Object);
 
             Assert.AreEqual(this.conductor.ActiveItem, screen1.Object);
             screen2.Verify(x => x.Activate(), Times.Never);
-            screen1.Verify(x => x.Deactivate(), Times.Never);
+            screen1.Verify(x => x.Deactivate(), Times.Once); // The one deactivate from earlier
         }
 
         [Test]

@@ -78,14 +78,7 @@ namespace Stylet
                 /// <param name="items">Items to manipulate</param>
                 protected virtual void ActivateAndSetParent(IEnumerable items)
                 {
-                    this.SetParent(items);
-                    foreach (var item in items)
-                    {
-                        if (this.IsActive)
-                            ScreenExtensions.TryActivate(item);
-                        else
-                            ScreenExtensions.TryDeactivate(item);
-                    }
+                    this.SetParentAndSetActive(items, this.IsActive);
                 }
 
                 /// <summary>

@@ -17,11 +17,19 @@ namespace Stylet
         /// <typeparam name="T">Type of conductor</typeparam>
         /// <param name="parent">Parent to set the items' parent to</param>
         /// <param name="items">Items to manipulate</param>
-        public static void SetParent<T>(this IConductor<T> parent, IEnumerable items)
+        /// <param name="active">True to active the item, false to deactive it</param>
+        public static void SetParentAndSetActive<T>(this IConductor<T> parent, IEnumerable items, bool active)
         {
-            foreach (var child in items.OfType<IChild>())
+            foreach (var item in items)
             {
-                child.Parent = parent;
+                var itemAsChild = item as IChild;
+                if (itemAsChild != null)
+                    itemAsChild.Parent = parent;
+
+                if (active)
+                    ScreenExtensions.TryActivate(item);
+                else
+                    ScreenExtensions.TryDeactivate(item);
             }
         }
 
