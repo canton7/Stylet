@@ -7,9 +7,15 @@ using System.Windows;
 
 namespace Bootstrappers
 {
-    public class CastleWindsorBootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
+    public class CastleWindsorBootstrapper<TRootViewModel> : BootstrapperBase where TRootViewModel : class
     {
         private IWindsorContainer container;
+
+        private object _rootViewModel;
+        protected override object RootViewModel
+        {
+            get { return this._rootViewModel ?? (this._rootViewModel = this.GetInstance(typeof(TRootViewModel))); }
+        }
 
         protected override void ConfigureBootstrapper()
         {
