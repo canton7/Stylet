@@ -194,8 +194,26 @@ namespace StyletUnitTests
             this.conductor.ActivateItem(screen1.Object);
             ((IClose)this.conductor).Close();
             screen1.Verify(x => x.Close());
-            screen1.Verify(x => x.Dispose());
             screen1.VerifySet(x => x.Parent = null);
+        }
+
+        [Test]
+        public void ClosingConductorDisposesActiveItemIfDisposeChildrenIsTrue()
+        {
+            var screen = new Mock<IMyScreen>();
+            this.conductor.ActivateItem(screen.Object);
+            ((IClose)this.conductor).Close();
+            screen.Verify(x => x.Dispose());
+        }
+
+        [Test]
+        public void ClosingConductorDoesNotDisposeActiveItemIfDisposeChildrenIsFalse()
+        {
+            this.conductor.DisposeChildren = false;
+            var screen = new Mock<IMyScreen>();
+            this.conductor.ActivateItem(screen.Object);
+            ((IClose)this.conductor).Close();
+            screen.Verify(x => x.Dispose(), Times.Never);
         }
 
         [Test]

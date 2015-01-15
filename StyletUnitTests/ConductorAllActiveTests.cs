@@ -46,12 +46,29 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void ActivateItemDoesActiveIfConductorIsActive()
+        public void ActivateItemDeactivatesIfConductorIsNotActive()
+        {
+            var screen = new Mock<IScreen>();
+            this.conductor.ActivateItem(screen.Object);
+            screen.Verify(x => x.Deactivate());
+        }
+
+        [Test]
+        public void ActivateItemActivatesfConductorIsActive()
         {
             var screen = new Mock<IScreen>();
             ((IActivate)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
             screen.Verify(x => x.Activate());
+        }
+
+        [Test]
+        public void ActivateItemDoesNotDeactivateIfConductorIsActive()
+        {
+            var screen = new Mock<IScreen>();
+            ((IActivate)this.conductor).Activate();
+            this.conductor.ActivateItem(screen.Object);
+            screen.Verify(x => x.Deactivate(), Times.Never);
         }
 
         [Test]
@@ -113,7 +130,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void RemovingItemClosesAndDisposesAndRemovesParent()
+        public void RemovingItemClosesAndRemovesParent()
         {
             var screen = new Mock<IMyScreen>();
             screen.SetupGet(x => x.Parent).Returns(this.conductor);
@@ -121,7 +138,25 @@ namespace StyletUnitTests
             this.conductor.Items.Remove(screen.Object);
             screen.VerifySet(x => x.Parent = null);
             screen.Verify(x => x.Close());
+        }
+
+        [Test]
+        public void RemovingItemDisposesIfDisposeChildrenIsTrue()
+        {
+            var screen = new Mock<IMyScreen>();
+            this.conductor.Items.Add(screen.Object);
+            this.conductor.Items.Remove(screen.Object);
             screen.Verify(x => x.Dispose());
+        }
+
+        [Test]
+        public void RemovingItemDoesNotDisposeIfDisposeChildrenIsFalse()
+        {
+            var screen = new Mock<IMyScreen>();
+            this.conductor.DisposeChildren = false;
+            this.conductor.Items.Add(screen.Object);
+            this.conductor.Items.Remove(screen.Object);
+            screen.Verify(x => x.Dispose(), Times.Never);
         }
 
         [Test]

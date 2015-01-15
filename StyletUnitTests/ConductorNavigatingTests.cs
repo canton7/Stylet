@@ -56,6 +56,14 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void InitialActivateDeactivatesItemIfConductorIsDeactivated()
+        {
+            var screen = new Mock<IScreen>();
+            this.conductor.ActivateItem(screen.Object);
+            screen.Verify(x => x.Deactivate());
+        }
+
+        [Test]
         public void ActivatesActiveItemWhenActivated()
         {
             var screen = new Mock<IScreen>();
@@ -144,16 +152,37 @@ namespace StyletUnitTests
             Assert.AreEqual(this.conductor.ActiveItem, screen.Object);
         }
 
-
         [Test]
-        public void CloseRemovesItemsParent()
+        public void CloseClosesAndRemovesItemsParent()
         {
             var screen = new Mock<IScreen>();
             screen.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
             screen.Setup(x => x.Parent).Returns(this.conductor);
             this.conductor.ActivateItem(screen.Object);
             this.conductor.CloseItem(screen.Object);
+            screen.Verify(x => x.Close());
             screen.VerifySet(x => x.Parent = null);
+        }
+
+        [Test]
+        public void CloseDisposesItemIfDisposeChildrenIsTrue()
+        {
+            var screen = new Mock<IMyScreen>();
+            screen.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
+            this.conductor.ActivateItem(screen.Object);
+            this.conductor.CloseItem(screen.Object);
+            screen.Verify(x => x.Dispose());
+        }
+
+        [Test]
+        public void CloseDoesNotDisposeItemIfDisposeChildrenIsFalse()
+        {
+            var screen = new Mock<IMyScreen>();
+            screen.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
+            this.conductor.DisposeChildren = false;
+            this.conductor.ActivateItem(screen.Object);
+            this.conductor.CloseItem(screen.Object);
+            screen.Verify(x => x.Dispose(), Times.Never);
         }
         
         [Test]
@@ -221,10 +250,8 @@ namespace StyletUnitTests
 
             ((IClose)this.conductor).Close();
             screen1.Verify(x => x.Close());
-            screen1.Verify(x => x.Dispose());
             screen1.VerifySet(x => x.Parent = null);
             screen2.Verify(x => x.Close());
-            screen2.Verify(x => x.Dispose());
             screen2.VerifySet(x => x.Parent = null);
         }
 
@@ -237,7 +264,6 @@ namespace StyletUnitTests
             ((IChildDelegate)this.conductor).CloseItem(screen.Object);
 
             screen.Verify(x => x.Close());
-            screen.Verify(x => x.Dispose());
             Assert.Null(this.conductor.ActiveItem);
         }
     }

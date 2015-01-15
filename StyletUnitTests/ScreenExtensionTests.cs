@@ -102,7 +102,6 @@ namespace StyletUnitTests
             this.child.Object.ConductWith(this.parent);
             ((IClose)this.parent).Close();
             this.child.Verify(x => x.Close());
-            this.child.Verify(x => x.Dispose());
         }
 
         [Test]
