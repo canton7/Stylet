@@ -182,16 +182,16 @@ namespace Stylet
         /// <summary>
         /// Validate a single property asynchronously, by name.
         /// </summary>
-        /// <param name="propertyName">Property to validate</param>
+        /// <param name="propertyName">Property to validate. Validates all properties if null or String.Empty</param>
         /// <returns>True if the property validated successfully</returns>
-        /// <remarks>If you override this, you MUST fire ErrorsChange and call OnValidationStateChanged() if appropriate</remarks>
+        /// <remarks>If you override this, you MUST fire ErrorsChanged and call OnValidationStateChanged() if appropriate</remarks>
         protected virtual async Task<bool> ValidatePropertyAsync([CallerMemberName] string propertyName = null)
         {
             if (this.Validator == null)
                 throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
-            if (propertyName == null)
-                propertyName = String.Empty;
+            if (propertyName == null || propertyName == String.Empty)
+                return await this.ValidateAsync().ConfigureAwait(false);
 
             // To allow synchronous calling of this method, we need to resume on the ThreadPool.
             // Therefore, we might resume on any thread, hence the need for a lock
