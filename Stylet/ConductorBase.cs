@@ -12,6 +12,18 @@ namespace Stylet
     /// <typeparam name="T">Type of item to be conducted</typeparam>
     public abstract class ConductorBase<T> : Screen, IConductor<T>, IParent<T>, IChildDelegate where T : class
     {
+        private bool _disposeChildren = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to dispose a child when it's closed. True by default
+        /// </summary>
+        // Can't be an auto-property, since it's virtual so we can't set it in the ctor 
+        public virtual bool DisposeChildren
+        {
+            get { return this._disposeChildren; }
+            set { this._disposeChildren = value; }
+        }
+
         /// <summary>
         /// Retrieves the Item or Items associated with this Conductor
         /// </summary>

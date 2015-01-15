@@ -223,10 +223,8 @@ namespace StyletUnitTests
             model.Setup(x => x.CanCloseAsync()).Returns(tcs.Task);
             window.OnClosing(new CancelEventArgs());
             model.Verify(x => x.Close(), Times.Never);
-            model.Verify(x => x.Dispose(), Times.Never);
             tcs.SetResult(true);
             model.Verify(x => x.Close(), Times.Once);
-            model.Verify(x => x.Dispose(), Times.Once);
 
             Assert.True(window.OnClosedCalled);
 
@@ -272,7 +270,6 @@ namespace StyletUnitTests
             ((IChildDelegate)parent).CloseItem(model.Object);
 
             model.Verify(x => x.Close());
-            model.Verify(x => x.Dispose());
             Assert.True(window.OnClosedCalled);
         }
 

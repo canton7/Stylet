@@ -56,26 +56,26 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void TryCloseAndDisposeClosesIClose()
+        public void TryCloseClosesIClose()
         {
             var screen = new Mock<IClose>();
-            ScreenExtensions.TryCloseAndDispose(screen.Object);
+            ScreenExtensions.TryClose(screen.Object);
             screen.Verify(x => x.Close());
         }
 
         [Test]
-        public void TryCloseAndDisposeDisposesIDisposable()
+        public void TryDisposeDisposesIDisposable()
         {
             var screen = new Mock<IDisposable>();
-            ScreenExtensions.TryCloseAndDispose(screen.Object);
+            ScreenExtensions.TryDispose(screen.Object);
             screen.Verify(x => x.Dispose());
         }
 
         [Test]
-        public void TryCloseAndDisposeDoesNothingToNonIClose()
+        public void TryCloseDoesNothingToNonIClose()
         {
             var screen = new Mock<IActivate>(MockBehavior.Strict);
-            ScreenExtensions.TryCloseAndDispose(screen.Object);
+            ScreenExtensions.TryClose(screen.Object);
         }
 
         [Test]
@@ -102,7 +102,6 @@ namespace StyletUnitTests
             this.child.Object.ConductWith(this.parent);
             ((IClose)this.parent).Close();
             this.child.Verify(x => x.Close());
-            this.child.Verify(x => x.Dispose());
         }
 
         [Test]

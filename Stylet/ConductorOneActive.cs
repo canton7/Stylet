@@ -35,22 +35,22 @@ namespace Stylet
                         switch (e.Action)
                         {
                             case NotifyCollectionChangedAction.Add:
-                                this.SetParent(e.NewItems);
+                                this.SetParentAndSetActive(e.NewItems, false);
                                 break;
 
                             case NotifyCollectionChangedAction.Remove:
-                                this.CloseAndCleanUp(e.OldItems);
+                                this.CloseAndCleanUp(e.OldItems, this.DisposeChildren);
                                 this.ActiveItemMayHaveBeenRemovedFromItems();
                                 break;
 
                             case NotifyCollectionChangedAction.Replace:
-                                this.SetParent(e.NewItems);
-                                this.CloseAndCleanUp(e.OldItems);
+                                this.SetParentAndSetActive(e.NewItems, false);
+                                this.CloseAndCleanUp(e.OldItems, this.DisposeChildren);
                                 this.ActiveItemMayHaveBeenRemovedFromItems();
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
-                                this.SetParent(this.items);
+                                this.SetParentAndSetActive(this.items, false);
                                 this.ActiveItemMayHaveBeenRemovedFromItems();
                                 break;
                         }
@@ -130,7 +130,7 @@ namespace Stylet
                     }
                     else
                     {
-                        this.CloseAndCleanUp(item);
+                        this.CloseAndCleanUp(item, this.DisposeChildren);
                     }
 
                     this.items.Remove(item);
@@ -181,7 +181,7 @@ namespace Stylet
                 {
                     // We've already been deactivated by this point
                     foreach (var item in this.items)
-                        this.CloseAndCleanUp(item);
+                        this.CloseAndCleanUp(item, this.DisposeChildren);
                     this.items.Clear();
                 }
 

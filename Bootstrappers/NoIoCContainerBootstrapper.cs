@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Bootstrappers
 {
-    public class NoIoCContainerBootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
+    public abstract class NoIoCContainerBootstrapper : BootstrapperBase
     {
         protected readonly Dictionary<Type, Func<object>> Container = new Dictionary<Type, Func<object>>();
 
@@ -35,7 +35,7 @@ namespace Bootstrappers
         }
 
         /// <summary>
-        /// Use this to add your own types to this.Container. You *MUST* add TRootViewModel
+        /// Use this to add your own types to this.Container
         /// </summary>
         protected virtual void ConfigureContainer() { }
 

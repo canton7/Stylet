@@ -182,12 +182,18 @@ namespace StyletUnitTests
         {
             var screen1 = new Mock<IScreen>();
             var screen2 = new Mock<IScreen>();
+            ((IActivate)this.conductor).Activate();
             this.conductor.ActivateItem(screen1.Object);
+
+            // This is an implementation detail
+            screen1.Verify(x => x.Deactivate(), Times.Once);
+            screen1.Verify(x => x.Activate(), Times.Once);
+
             this.conductor.Items.Add(screen2.Object);
 
             Assert.AreEqual(this.conductor.ActiveItem, screen1.Object);
             screen2.Verify(x => x.Activate(), Times.Never);
-            screen1.Verify(x => x.Deactivate(), Times.Never);
+            screen1.Verify(x => x.Deactivate(), Times.Once); // The one deactivate from earlier
         }
 
         [Test]
@@ -199,7 +205,25 @@ namespace StyletUnitTests
             this.conductor.Items.Remove(screen.Object);
             screen.VerifySet(x => x.Parent = null);
             screen.Verify(x => x.Close());
+        }
+
+        [Test]
+        public void RemovingItemDisposesIfDisposeChildrenIsTrue()
+        {
+            var screen = new Mock<IMyScreen>();
+            this.conductor.Items.Add(screen.Object);
+            this.conductor.Items.Remove(screen.Object);
             screen.Verify(x => x.Dispose());
+        }
+
+        [Test]
+        public void RemovingItemDoesNotDisposeIfDisposeChildrenIsFalse()
+        {
+            var screen = new Mock<IMyScreen>();
+            this.conductor.DisposeChildren = false;
+            this.conductor.Items.Add(screen.Object);
+            this.conductor.Items.Remove(screen.Object);
+            screen.Verify(x => x.Dispose(), Times.Never);
         }
 
         [Test]
@@ -216,7 +240,6 @@ namespace StyletUnitTests
             Assert.AreEqual(this.conductor.ActiveItem, screen2.Object);
             screen2.Verify(x => x.Activate());
             screen1.Verify(x => x.Close());
-            screen1.Verify(x => x.Dispose());
         }
 
         [Test]
@@ -257,8 +280,28 @@ namespace StyletUnitTests
             this.conductor.ActivateItem(screen.Object);
             this.conductor.CloseItem(screen.Object);
             screen.Verify(x => x.Close());
-            screen.Verify(x => x.Dispose());
             Assert.AreEqual(0, this.conductor.Items.Count);
+        }
+
+        [Test]
+        public void CloseItemDisposesIfDisposeChildrenIsTrue()
+        {
+            var screen = new Mock<IMyScreen>();
+            screen.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
+            this.conductor.ActivateItem(screen.Object);
+            this.conductor.CloseItem(screen.Object);
+            screen.Verify(x => x.Dispose());
+        }
+
+        [Test]
+        public void CloseItemDoesNotDisposeIfDisposeChildrenIsFalse()
+        {
+            var screen = new Mock<IMyScreen>();
+            this.conductor.DisposeChildren = false;
+            screen.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
+            this.conductor.ActivateItem(screen.Object);
+            this.conductor.CloseItem(screen.Object);
+            screen.Verify(x => x.Dispose(), Times.Never);
         }
 
         [Test]

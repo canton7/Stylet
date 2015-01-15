@@ -26,7 +26,7 @@ namespace StyletIntegrationTests.ShowDialogAndDialogResult
 
         public void Close()
         {
-            this.TryClose(this.SelectedDesiredResult.Value);
+            this.RequestClose(this.SelectedDesiredResult.Value);
         }
     }
 }

@@ -229,7 +229,7 @@ namespace Stylet
                 this.window.Closed -= this.WindowClosed;
                 this.window.Closing -= this.WindowClosing; // Not sure this is required
 
-                ScreenExtensions.TryCloseAndDispose(this.viewModel);
+                ScreenExtensions.TryClose(this.viewModel);
             }
 
             private async void WindowClosing(object sender, CancelEventArgs e)
@@ -285,7 +285,7 @@ namespace Stylet
                     return;
                 }
 
-                logger.Info("ViewModel {0} close requested with DialogResult {1} because it called TryClose", this.viewModel, dialogResult);
+                logger.Info("ViewModel {0} close requested with DialogResult {1} because it called RequestClose", this.viewModel, dialogResult);
 
                 this.window.StateChanged -= this.WindowStateChanged;
                 this.window.Closed -= this.WindowClosed;
@@ -296,7 +296,7 @@ namespace Stylet
                 if (dialogResult != null)
                     this.window.DialogResult = dialogResult;
 
-                ScreenExtensions.TryCloseAndDispose(this.viewModel);
+                ScreenExtensions.TryClose(this.viewModel);
 
                 this.window.Close();
             }

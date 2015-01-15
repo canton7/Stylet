@@ -7,13 +7,18 @@ using System.Threading.Tasks;
 
 namespace Bootstrappers.Tests
 {
-    public class MyNoIocContainerBootstrapper : NoIoCContainerBootstrapper<TestRootViewModel>, ITestBootstrapper
+    public class MyNoIocContainerBootstrapper : NoIoCContainerBootstrapper, ITestBootstrapper
     {
         public List<string> ConfigureLog { get; set; }
 
         public MyNoIocContainerBootstrapper()
         {
             this.ConfigureLog = new List<string>();
+        }
+
+        protected override object RootViewModel
+        {
+            get { return new TestRootViewModel(); }
         }
 
         protected override void Configure()

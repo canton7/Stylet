@@ -264,6 +264,26 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void RequestCloseThrowsIfParentIsNotIChildDelegate()
+        {
+            this.screen.Parent = new object();
+            Assert.Throws<InvalidOperationException>(() => this.screen.RequestClose());
+        }
+
+        [Test]
+        public void RequestCloseCallsParentCloseItemPassingDialogResult()
+        {
+            var parent = new Mock<IChildDelegate>();
+            screen.Parent = parent.Object;
+            this.screen.RequestClose(true);
+            parent.Verify(x => x.CloseItem(this.screen, true));
+        }
+
+        // OBSELETED - but need to test anyway...
+
+#pragma warning disable 618
+
+        [Test]
         public void TryCloseThrowsIfParentIsNotIChildDelegate()
         {
             this.screen.Parent = new object();
@@ -278,6 +298,8 @@ namespace StyletUnitTests
             this.screen.TryClose(true);
             parent.Verify(x => x.CloseItem(this.screen, true));
         }
+
+#pragma warning restore 618
 
         [Test]
         public void PassesValidatorAdapter()

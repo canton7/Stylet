@@ -57,7 +57,7 @@ namespace Stylet
             public void Clear()
             {
                 foreach (var item in this.history)
-                    this.CloseAndCleanUp(item);
+                    this.CloseAndCleanUp(item, this.DisposeChildren);
                 this.history.Clear();
             }
 
@@ -82,7 +82,7 @@ namespace Stylet
                 }
                 else if (this.history.Contains(item))
                 {
-                    this.CloseAndCleanUp(item);
+                    this.CloseAndCleanUp(item, this.DisposeChildren);
                     this.history.Remove(item);
                 }
             }
@@ -103,10 +103,10 @@ namespace Stylet
             {
                 // We've already been deactivated by this point
                 foreach (var item in this.history)
-                    this.CloseAndCleanUp(item);
+                    this.CloseAndCleanUp(item, this.DisposeChildren);
                 this.history.Clear();
 
-                this.CloseAndCleanUp(this.ActiveItem);
+                this.CloseAndCleanUp(this.ActiveItem, this.DisposeChildren);
             }
         }
     }

@@ -17,7 +17,7 @@ namespace StyletUnitTests
     {
         private class RootViewModel { }
 
-        private class MyBootstrapperBase<T> : BootstrapperBase<T> where T : class
+        private class MyBootstrapperBase : BootstrapperBase
         {
             private IViewManager viewManager;
             private IWindowManager windowManager;
@@ -35,6 +35,11 @@ namespace StyletUnitTests
                 get { return base.Application; }
             }
 
+            protected override object RootViewModel
+            {
+                get { return new RootViewModel(); }
+            }
+
             public bool GetInstanceCalled;
             public override object GetInstance(Type service)
             {
@@ -43,8 +48,6 @@ namespace StyletUnitTests
                     return this.viewManager;
                 if (service == typeof(IWindowManager))
                     return this.windowManager;
-                if (service == typeof(RootViewModel))
-                    return new RootViewModel();
                 return null;
             }
 
@@ -92,7 +95,7 @@ namespace StyletUnitTests
         }
 
         
-        private MyBootstrapperBase<RootViewModel> bootstrapper;
+        private MyBootstrapperBase bootstrapper;
         private Mock<IViewManager> viewManager;
         private Mock<IWindowManager> windowManager;
 
@@ -104,7 +107,7 @@ namespace StyletUnitTests
             this.dispatcher = Execute.Dispatcher;
             this.viewManager = new Mock<IViewManager>();
             this.windowManager = new Mock<IWindowManager>();
-            this.bootstrapper = new MyBootstrapperBase<RootViewModel>(this.viewManager.Object, this.windowManager.Object);
+            this.bootstrapper = new MyBootstrapperBase(this.viewManager.Object, this.windowManager.Object);
         }
 
         [TearDown]

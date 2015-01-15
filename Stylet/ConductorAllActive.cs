@@ -55,17 +55,17 @@ namespace Stylet
                                 break;
 
                             case NotifyCollectionChangedAction.Remove:
-                                this.CloseAndCleanUp(e.OldItems);
+                                this.CloseAndCleanUp(e.OldItems, this.DisposeChildren);
                                 break;
 
                             case NotifyCollectionChangedAction.Replace:
                                 this.ActivateAndSetParent(e.NewItems);
-                                this.CloseAndCleanUp(e.OldItems);
+                                this.CloseAndCleanUp(e.OldItems, this.DisposeChildren);
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
                                 this.ActivateAndSetParent(this.items.Except(this.itemsBeforeReset));
-                                this.CloseAndCleanUp(this.itemsBeforeReset.Except(this.items));
+                                this.CloseAndCleanUp(this.itemsBeforeReset.Except(this.items), this.DisposeChildren);
                                 this.itemsBeforeReset = null;
                                 break;
                         }
@@ -78,14 +78,7 @@ namespace Stylet
                 /// <param name="items">Items to manipulate</param>
                 protected virtual void ActivateAndSetParent(IEnumerable items)
                 {
-                    this.SetParent(items);
-                    if (this.IsActive)
-                    {
-                        foreach (var item in items.OfType<IActivate>())
-                        {
-                            item.Activate();
-                        }
-                    }
+                    this.SetParentAndSetActive(items, this.IsActive);
                 }
 
                 /// <summary>
@@ -117,7 +110,7 @@ namespace Stylet
                 {
                     // We've already been deactivated by this point    
                     foreach (var item in this.items)
-                        this.CloseAndCleanUp(item);
+                        this.CloseAndCleanUp(item, this.DisposeChildren);
                     
                     this.items.Clear();
                 }
@@ -144,6 +137,8 @@ namespace Stylet
 
                     if (this.IsActive)
                         ScreenExtensions.TryActivate(item);
+                    else
+                        ScreenExtensions.TryDeactivate(item);
                 }
 
                 /// <summary>
@@ -166,7 +161,7 @@ namespace Stylet
 
                     if (await this.CanCloseItem(item))
                     {
-                        this.CloseAndCleanUp(item);
+                        this.CloseAndCleanUp(item, this.DisposeChildren);
                         this.items.Remove(item);
                     }
                 }

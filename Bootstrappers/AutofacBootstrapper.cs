@@ -6,9 +6,15 @@ using System.Windows;
 
 namespace Bootstrappers
 {
-    public class AutofacBootstrapper<TRootViewModel> : BootstrapperBase<TRootViewModel> where TRootViewModel : class
+    public class AutofacBootstrapper<TRootViewModel> : BootstrapperBase where TRootViewModel : class
     {
         private IContainer container;
+
+        private object _rootViewModel;
+        protected override object RootViewModel
+        {
+            get { return this._rootViewModel ?? (this._rootViewModel = this.GetInstance(typeof(TRootViewModel))); }
+        }
 
         protected override void ConfigureBootstrapper()
         {

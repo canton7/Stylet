@@ -54,9 +54,10 @@ namespace StyletIoC.Internal.Builders
 
         public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(IEnumerable<Assembly> assemblies)
         {
-            if (assemblies == null || !assemblies.Any())
-                assemblies = new[] { Assembly.GetCallingAssembly() };
-            this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceType, assemblies);
+            var assembliesArray = (assemblies == null) ? new Assembly[0] : (assemblies as Assembly[] ?? assemblies.ToArray());
+            if (assembliesArray.Length == 0)
+                assembliesArray = new[] { Assembly.GetCallingAssembly() };
+            this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceType, assembliesArray);
             return this.builderBinding;
         }
 

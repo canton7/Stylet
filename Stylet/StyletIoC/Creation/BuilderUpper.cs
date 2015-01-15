@@ -36,13 +36,14 @@ namespace StyletIoC.Creation
         {
             var expressions = this.type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.FieldType, registrationContext))
                 .Concat(this.type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.PropertyType, registrationContext)))
-                .Where(x => x != null);
+                .Where(x => x != null)
+                .ToList();
 
             // Sadly, we can't cache this expression (I think), as it relies on the inputParameterExpression
             // which is likely to change between calls
             // This isn't so bad, so we'll (probably) only need to call this at most twice - once for building up the type on creation,
             // and once for creating the implemtor (which is used in BuildUp())
-            if (!expressions.Any())
+            if (expressions.Count == 0)
                 return Expression.Empty();
             return Expression.Block(expressions);
         }

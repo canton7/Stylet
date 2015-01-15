@@ -17,11 +17,19 @@ namespace Stylet
         /// <typeparam name="T">Type of conductor</typeparam>
         /// <param name="parent">Parent to set the items' parent to</param>
         /// <param name="items">Items to manipulate</param>
-        public static void SetParent<T>(this IConductor<T> parent, IEnumerable items)
+        /// <param name="active">True to active the item, false to deactive it</param>
+        public static void SetParentAndSetActive<T>(this IConductor<T> parent, IEnumerable items, bool active)
         {
-            foreach (var child in items.OfType<IChild>())
+            foreach (var item in items)
             {
-                child.Parent = parent;
+                var itemAsChild = item as IChild;
+                if (itemAsChild != null)
+                    itemAsChild.Parent = parent;
+
+                if (active)
+                    ScreenExtensions.TryActivate(item);
+                else
+                    ScreenExtensions.TryDeactivate(item);
             }
         }
 
@@ -31,13 +39,17 @@ namespace Stylet
         /// <typeparam name="T">Type of conductor</typeparam>
         /// <param name="parent">Parent</param>
         /// <param name="item">Item to close and clean up</param>
-        public static void CloseAndCleanUp<T>(this IConductor<T> parent, T item)
+        /// <param name="dispose">True to dispose children as well as close them</param>
+        public static void CloseAndCleanUp<T>(this IConductor<T> parent, T item, bool dispose)
         {
-            ScreenExtensions.TryCloseAndDispose(item);
+            ScreenExtensions.TryClose(item);
 
             var itemAsChild = item as IChild;
             if (itemAsChild != null && itemAsChild.Parent == parent)
                 itemAsChild.Parent = null;
+
+            if (dispose)
+                ScreenExtensions.TryDispose(item);
         }
         
         /// <summary>
@@ -46,11 +58,12 @@ namespace Stylet
         /// <typeparam name="T">Type of conductor</typeparam>
         /// <param name="parent">Parent</param>
         /// <param name="items">List of items to close and clean up</param>
-        public static void CloseAndCleanUp<T>(this IConductor<T> parent, IEnumerable items)
+        /// <param name="dispose">True to dispose children as well as close them</param>
+        public static void CloseAndCleanUp<T>(this IConductor<T> parent, IEnumerable items, bool dispose)
         {
             foreach (var item in items.OfType<T>())
             {
-                parent.CloseAndCleanUp(item);
+                parent.CloseAndCleanUp(item, dispose);
             }
         }
     }
