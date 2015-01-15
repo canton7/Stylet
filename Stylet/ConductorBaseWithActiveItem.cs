@@ -46,6 +46,8 @@ namespace Stylet
 
                 if (this.IsActive)
                     ScreenExtensions.TryActivate(newItem);
+                else
+                    ScreenExtensions.TryDeactivate(newItem);
             }
 
             this._activeItem = newItem;

@@ -79,12 +79,12 @@ namespace Stylet
                 protected virtual void ActivateAndSetParent(IEnumerable items)
                 {
                     this.SetParent(items);
-                    if (this.IsActive)
+                    foreach (var item in items)
                     {
-                        foreach (var item in items.OfType<IActivate>())
-                        {
-                            item.Activate();
-                        }
+                        if (this.IsActive)
+                            ScreenExtensions.TryActivate(item);
+                        else
+                            ScreenExtensions.TryDeactivate(item);
                     }
                 }
 
@@ -144,6 +144,8 @@ namespace Stylet
 
                     if (this.IsActive)
                         ScreenExtensions.TryActivate(item);
+                    else
+                        ScreenExtensions.TryDeactivate(item);
                 }
 
                 /// <summary>
