@@ -77,7 +77,10 @@ namespace Stylet.Xaml
             // If they've opted to throw if the target is null, then this will cause that exception.
             // We'll just wait until the ActionTarget is assigned, and we're called again
             if (newTarget == View.InitialActionTarget)
+            {
+                this.target = newTarget;
                 return;
+            }
 
             if (newTarget == null)
             {
@@ -146,6 +149,17 @@ namespace Stylet.Xaml
         // ReSharper disable once UnusedMember.Local
         private void InvokeCommand(object sender, EventArgs e)
         {
+            // If we've made it this far and the target is still the default, then something's wrong
+            // Make sure they know
+            if (this.target == View.InitialActionTarget)
+            {
+                var ex = new ActionNotSetException(String.Format("View.ActionTarget not on control {0} (method {1}). " +
+                    "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
+                    "You will need so set 's:View.ActionTarget' explicitly. See the wiki for more details.", this.subject, this.methodName));
+                logger.Error(ex);
+                throw ex;
+            }
+
             // Any throwing will have been handled above
             if (this.target == null || this.targetMethodInfo == null)
                 return;

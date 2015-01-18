@@ -190,5 +190,14 @@ namespace StyletUnitTests
             Assert.IsInstanceOf<InvalidOperationException>(e.InnerException);
             Assert.AreEqual("foo", e.InnerException.Message);
         }
+
+        [Test]
+        public void ExecuteThrowsIfActionTargetIsDefault()
+        {
+            View.SetActionTarget(this.subject, View.InitialActionTarget);
+            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, null));
+            Assert.IsInstanceOf<ActionNotSetException>(e.InnerException);
+        }
     }
 }

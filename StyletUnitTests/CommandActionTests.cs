@@ -221,5 +221,21 @@ namespace StyletUnitTests
             var e = Assert.Throws<InvalidOperationException>(() => cmd.Execute(null));
             Assert.AreEqual("woo", e.Message);
         }
+
+        [Test]
+        public void ControlIsEnabledIfTargetIsDefault()
+        {
+            View.SetActionTarget(this.subject, View.InitialActionTarget);
+            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            Assert.True(cmd.CanExecute(null));
+        }
+
+        [Test]
+        public void ExecuteThrowsIfTargetIsDefault()
+        {
+            View.SetActionTarget(this.subject, View.InitialActionTarget);
+            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            Assert.Throws<ActionNotSetException>(() => cmd.Execute(null));
+        }
     }
 }
