@@ -66,8 +66,11 @@ namespace Stylet
             };
 
             // Fetch this logger when needed. If we fetch it now, then no-one will have been given the change to enable the LogManager, and we'll get a NullLogger
-            this.Application.DispatcherUnhandledException += (o, e) => LogManager.GetLogger(typeof(BootstrapperBase)).Error(e.Exception, "Unhandled exception");
-            this.Application.DispatcherUnhandledException += (o, e) => this.OnUnhandledExecption(e);
+            this.Application.DispatcherUnhandledException += (o, e) =>
+            {
+                LogManager.GetLogger(typeof(BootstrapperBase)).Error(e.Exception, "Unhandled exception");
+                this.OnUnhandledExecption(e);
+            };
         }
 
         /// <summary>
@@ -84,6 +87,7 @@ namespace Stylet
             View.ViewManager = (IViewManager)this.GetInstance(typeof(IViewManager));
 
             this.Launch();
+            this.OnStartup();
         }
 
         /// <summary>
@@ -93,7 +97,6 @@ namespace Stylet
         {
             var windowManager = (IWindowManager)this.GetInstance(typeof(IWindowManager));
             windowManager.ShowWindow(this.RootViewModel);
-            this.OnStartup();
         }
 
         /// <summary>
@@ -114,7 +117,7 @@ namespace Stylet
         protected virtual void OnStartup() { }
 
         /// <summary>
-        /// Hook used internall by the Bootstrapper to do things like dispose the IoC container
+        /// Hook used internally by the Bootstrapper to do things like dispose the IoC container
         /// </summary>
         /// <param name="e">The exit event data</param>
         protected virtual void OnExitInternal(ExitEventArgs e) { }
