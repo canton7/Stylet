@@ -51,6 +51,15 @@ namespace StyletUnitTests
             {
                 throw new InvalidOperationException("woo");
             }
+
+            public bool CanDoSomethingWithUnsuccessfulGuardMethod
+            {
+                get { throw new InvalidOperationException("foo"); }
+            }
+
+            public void DoSomethingWithUnsuccessfulGuardMethod()
+            {
+            }
         }
 
         private class Target2
@@ -220,6 +229,14 @@ namespace StyletUnitTests
             var cmd = new CommandAction(this.subject, "DoSomethingUnsuccessfully", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             var e = Assert.Throws<InvalidOperationException>(() => cmd.Execute(null));
             Assert.AreEqual("woo", e.Message);
+        }
+
+        [Test]
+        public void PropagatesGuardPropertException()
+        {
+            var cmd = new CommandAction(this.subject, "DoSomethingWithUnsuccessfulGuardMethod", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var e = Assert.Throws<InvalidOperationException>(() => cmd.CanExecute(null));
+            Assert.AreEqual("foo", e.Message);
         }
 
         [Test]
