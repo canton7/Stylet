@@ -49,6 +49,9 @@
   <ItemGroup>
     <Compile Include="IDispatcher.cs" />
     <Compile Include="INotifyCollectionChanging.cs" />
+    <Compile Include="Logging\ILogger.cs" />
+    <Compile Include="Logging\NullLogger.cs" />
+    <Compile Include="Logging\TraceLogger.cs" />
     <Compile Include="StyletIoC\Creation\ICreator.cs" />
     <Compile Include="StyletIoC\Creation\IRegistration.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderAbstractFactoryBinding.cs" />
