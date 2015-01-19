@@ -33,7 +33,7 @@ namespace StyletUnitTests
         public void ActivatingItemActivatesAndAddsToItems()
         {
             var screen = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
 
             screen.Verify(x => x.Activate());
@@ -46,7 +46,7 @@ namespace StyletUnitTests
         {
             var screen1 = new Mock<IScreen>();
             var screen2 = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
 
             this.conductor.ActivateItem(screen1.Object);
             this.conductor.ActivateItem(screen2.Object);
@@ -62,7 +62,7 @@ namespace StyletUnitTests
         public void SettingActiveItemActivatesItem()
         {
             var screen = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActiveItem = screen.Object;
             screen.Verify(x => x.Activate());
             Assert.AreEqual(this.conductor.ActiveItem, screen.Object);
@@ -74,7 +74,7 @@ namespace StyletUnitTests
             var screen1 = new Mock<IScreen>();
             var screen2 = new Mock<IScreen>();
             var screen3 = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
 
             this.conductor.Items.AddRange(new[] { screen1.Object, screen2.Object, screen3.Object });
             this.conductor.ActivateItem(screen2.Object);
@@ -92,7 +92,7 @@ namespace StyletUnitTests
             var screen1 = new Mock<IScreen>();
             var screen2 = new Mock<IScreen>();
             var screen3 = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
 
             this.conductor.Items.AddRange(new[] { screen1.Object, screen2.Object, screen3.Object });
             this.conductor.ActivateItem(screen3.Object);
@@ -116,7 +116,7 @@ namespace StyletUnitTests
         public void ActivateItemDoesActiveIfConductorIsActive()
         {
             var screen = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
             screen.Verify(x => x.Activate());
         }
@@ -125,9 +125,9 @@ namespace StyletUnitTests
         public void DeactiveDeactivatesItems()
         {
             var screen = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
-            ((IDeactivate)this.conductor).Deactivate();
+            ((IScreenState)this.conductor).Deactivate();
             screen.Verify(x => x.Deactivate());
         }
 
@@ -135,9 +135,9 @@ namespace StyletUnitTests
         public void ClosingClosesAllItems()
         {
             var screen = new Mock<IMyScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
-            ((IClose)this.conductor).Close();
+            ((IScreenState)this.conductor).Close();
             screen.Verify(x => x.Close());
             screen.Verify(x => x.Dispose());
             Assert.AreEqual(0, this.conductor.Items.Count);
@@ -182,7 +182,7 @@ namespace StyletUnitTests
         {
             var screen1 = new Mock<IScreen>();
             var screen2 = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen1.Object);
 
             // This is an implementation detail
@@ -229,7 +229,7 @@ namespace StyletUnitTests
         [Test]
         public void RemovingActiveItemActivatesAnotherItem()
         {
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             var screen1 = new Mock<IMyScreen>();
             var screen2 = new Mock<IMyScreen>();
             this.conductor.ActivateItem(screen1.Object);
@@ -310,7 +310,7 @@ namespace StyletUnitTests
             var screen1 = new Mock<IMyScreen>();
             screen1.SetupGet(x => x.Parent).Returns(this.conductor);
             this.conductor.ActivateItem(screen1.Object);
-            ((IClose)this.conductor).Close();
+            ((IScreenState)this.conductor).Close();
             screen1.Verify(x => x.Close());
             screen1.Verify(x => x.Dispose());
             screen1.VerifySet(x => x.Parent = null);

@@ -23,51 +23,80 @@ namespace Stylet
     }
 
     /// <summary>
-    /// Can be activated, and raises an event when it is actually activated
+    /// State in which a screen can be
     /// </summary>
-    public interface IActivate
+    public enum ScreenState
     {
         /// <summary>
-        /// Activate the object. May not actually cause activation (e.g. if it's already active)
+        /// Screen has been created, but has never had any further transitions
         /// </summary>
-        void Activate();
-        
+        Initial,
+
+        /// <summary>
+        /// Screen is active. It is likely being displayed to the user
+        /// </summary>
+        Active,
+
+        /// <summary>
+        /// Screen is deactivated. It has either been hidden in favour of another Screen, or the entire window has been minimised
+        /// </summary>
+        Deactivated,
+
+        /// <summary>
+        /// Screen has been closed. It has no associated View, but may yet be displayed again
+        /// </summary>
+        Closed,
+    }
+
+    /// <summary>
+    /// Has a concept of state, which can be manipulated by its Conductor
+    /// </summary>
+    public interface IScreenState
+    {
+        /// <summary>
+        /// Gets the current state of the Screen
+        /// </summary>
+        ScreenState State { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the current state is ScreenState.Active
+        /// </summary>
+        bool IsActive { get; }
+
+        /// <summary>
+        /// Raised when the Screen's state changed, for any reason
+        /// </summary>
+        event EventHandler<ScreenStateChangedEventArgs> StateChanged;
+
         /// <summary>
         /// Raised when the object is actually activated
         /// </summary>
         event EventHandler<ActivationEventArgs> Activated;
-    }
 
-    /// <summary>
-    /// Can be deactivated, and raises an event when it is actually deactivated
-    /// </summary>
-    public interface IDeactivate
-    {
+        /// <summary>
+        /// Raised when the object is actually deactivated
+        /// </summary>
+        event EventHandler<DeactivationEventArgs> Deactivated;
+
+        /// <summary>
+        /// Raised when the object is actually closed
+        /// </summary>
+        event EventHandler<CloseEventArgs> Closed;
+
+        /// <summary>
+        /// Activate the object. May not actually cause activation (e.g. if it's already active)
+        /// </summary>
+        void Activate();
+
         /// <summary>
         /// Deactivate the object. May not actually cause deactivation (e.g. if it's already deactive)
         /// </summary>
         void Deactivate();
 
         /// <summary>
-        /// Raised when the object is actually deactivated
-        /// </summary>
-        event EventHandler<DeactivationEventArgs> Deactivated;
-    }
-
-    /// <summary>
-    /// Can be closed, and raises an event when it is actually closed
-    /// </summary>
-    public interface IClose
-    {
-        /// <summary>
         /// Close the object. May not actually cause closure (e.g. if it's already closed)
         /// </summary>
         void Close();
-
-        /// <summary>
-        /// Raised when the object is actually closed
-        /// </summary>
-        event EventHandler<CloseEventArgs> Closed;
     }
 
     /// <summary>
@@ -120,28 +149,101 @@ namespace Stylet
     /// <summary>
     /// Generalised 'screen' composing all the behaviours expected of a screen
     /// </summary>
-    public interface IScreen : IViewAware, IHaveDisplayName, IActivate, IDeactivate, IChild, IClose, IGuardClose, IRequestClose
+    public interface IScreen : IViewAware, IHaveDisplayName, IScreenState, IChild, IGuardClose, IRequestClose
     {
     }
 
     /// <summary>
-    /// EventArgs associated with the IActivate.Activated event
+    /// EventArgs associated with the IScreenState.StateChanged event
+    /// </summary>
+    public class ScreenStateChangedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Gets the state being transitioned to
+        /// </summary>
+        public ScreenState NewState { get; private set; }
+
+        /// <summary>
+        /// Gets the state being transitioned away from
+        /// </summary>
+        public ScreenState PreviousState { get; private set; }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ScreenStateChangedEventArgs"/> class
+        /// </summary>
+        /// <param name="newState">State being transitioned to</param>
+        /// <param name="previousState">State being transitioned away from</param>
+        public ScreenStateChangedEventArgs(ScreenState newState, ScreenState previousState)
+        {
+            this.NewState = newState;
+            this.PreviousState = previousState;
+        }
+    }
+
+    /// <summary>
+    /// EventArgs associated with the IScreenState.Activated event
     /// </summary>
     public class ActivationEventArgs : EventArgs
     {
+        /// <summary>
+        /// Gets a value indicating whether this is the first time this Screen has been activated, ever
+        /// </summary>
+        public bool IsInitialActivate { get; private set; }
+
+        /// <summary>
+        /// Gets the state being transitioned away from
+        /// </summary>
+        public ScreenState PreviousState { get; private set; }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ActivationEventArgs"/> class
+        /// </summary>
+        /// <param name="previousState">State being transitioned away from</param>
+        /// <param name="isInitialActivate">True if this is the first time this screen has ever been activated</param>
+        public ActivationEventArgs(ScreenState previousState, bool isInitialActivate)
+        {
+            this.IsInitialActivate = isInitialActivate;
+            this.PreviousState = previousState;
+        }
     }
 
     /// <summary>
-    /// EventArgs associated with the IDeactivate.Deactivated event
+    /// EventArgs associated with the IScreenState.Deactivated event
     /// </summary>
     public class DeactivationEventArgs : EventArgs
     {
+        /// <summary>
+        /// Gets the state being transitioned away from
+        /// </summary>
+        public ScreenState PreviousState { get; private set; }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="DeactivationEventArgs"/> class
+        /// </summary>
+        /// <param name="previousState">State being transitioned away from</param>
+        public DeactivationEventArgs(ScreenState previousState)
+        {
+            this.PreviousState = previousState;
+        }
     }
 
     /// <summary>
-    /// EventArgs associated with the IClose.Closed event
+    /// EventArgs associated with the IScreenState.Closed event
     /// </summary>
     public class CloseEventArgs : EventArgs
     {
+        /// <summary>
+        /// Gets the state being transitioned away from
+        /// </summary>
+        public ScreenState PreviousState { get; private set; }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="CloseEventArgs"/> class
+        /// </summary>
+        /// <param name="previousState">State being transitioned away from</param>
+        public CloseEventArgs(ScreenState previousState)
+        {
+            this.PreviousState = previousState;
+        }
     }
 }

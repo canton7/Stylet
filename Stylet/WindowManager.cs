@@ -193,15 +193,15 @@ namespace Stylet
 
                 ScreenExtensions.TryActivate(this.viewModel);
 
-                var viewModelAsClose = this.viewModel as IClose;
-                if (viewModelAsClose != null)
+                var viewModelAsScreenState = this.viewModel as IScreenState;
+                if (viewModelAsScreenState != null)
+                {
+                    window.StateChanged += this.WindowStateChanged;
                     window.Closed += this.WindowClosed;
+                }
 
                 if (this.viewModel is IGuardClose)
                     window.Closing += this.WindowClosing;
-
-                if (this.viewModel is IActivate || this.viewModel is IDeactivate)
-                    window.StateChanged += this.WindowStateChanged;
             }
 
             private void WindowStateChanged(object sender, EventArgs e)

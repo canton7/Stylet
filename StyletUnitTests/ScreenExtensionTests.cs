@@ -26,39 +26,39 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void TryActivateActivatesIActivate()
+        public void TryActivateActivatesIScreenState()
         {
-            var screen = new Mock<IActivate>();
+            var screen = new Mock<IScreenState>();
             ScreenExtensions.TryActivate(screen.Object);
             screen.Verify(x => x.Activate());
         }
 
         [Test]
-        public void TryActivateDoesNothingToNonIActivate()
+        public void TryActivateDoesNothingToNonIScreenState()
         {
-            var screen = new Mock<IDeactivate>(MockBehavior.Strict);
+            var screen = new Mock<IGuardClose>(MockBehavior.Strict);
             ScreenExtensions.TryActivate(screen.Object);
         }
 
         [Test]
-        public void TryDeactivateDeactivatesIDeactivate()
+        public void TryDeactivateDeactivatesIScreenState()
         {
-            var screen = new Mock<IDeactivate>();
+            var screen = new Mock<IScreenState>();
             ScreenExtensions.TryDeactivate(screen.Object);
             screen.Verify(x => x.Deactivate());
         }
 
         [Test]
-        public void TryDeactivateDoesNothingToNonIDeactivate()
+        public void TryDeactivateDoesNothingToNonIScreenState()
         {
-            var screen = new Mock<IActivate>(MockBehavior.Strict);
+            var screen = new Mock<IGuardClose>(MockBehavior.Strict);
             ScreenExtensions.TryDeactivate(screen.Object);
         }
 
         [Test]
-        public void TryCloseClosesIClose()
+        public void TryCloseClosesIScreenState()
         {
-            var screen = new Mock<IClose>();
+            var screen = new Mock<IScreenState>();
             ScreenExtensions.TryClose(screen.Object);
             screen.Verify(x => x.Close());
         }
@@ -72,9 +72,9 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void TryCloseDoesNothingToNonIClose()
+        public void TryCloseDoesNothingToNonIScreenState()
         {
-            var screen = new Mock<IActivate>(MockBehavior.Strict);
+            var screen = new Mock<IGuardClose>(MockBehavior.Strict);
             ScreenExtensions.TryClose(screen.Object);
         }
 
@@ -82,7 +82,7 @@ namespace StyletUnitTests
         public void ConductWithActivates()
         {
             this.child.Object.ConductWith(this.parent);
-            ((IActivate)this.parent).Activate();
+            ((IScreenState)this.parent).Activate();
             this.child.Verify(x => x.Activate());
         }
 
@@ -90,9 +90,9 @@ namespace StyletUnitTests
         public void ConductWithDeactivates()
         {
             // Needs to be active....
-            ((IActivate)this.parent).Activate();
+            ((IScreenState)this.parent).Activate();
             this.child.Object.ConductWith(this.parent);
-            ((IDeactivate)this.parent).Deactivate();
+            ((IScreenState)this.parent).Deactivate();
             this.child.Verify(x => x.Deactivate());
         }
 
@@ -100,7 +100,7 @@ namespace StyletUnitTests
         public void ConductWithCloses()
         {
             this.child.Object.ConductWith(this.parent);
-            ((IClose)this.parent).Close();
+            ((IScreenState)this.parent).Close();
             this.child.Verify(x => x.Close());
         }
 

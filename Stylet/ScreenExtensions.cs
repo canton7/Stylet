@@ -14,9 +14,9 @@ namespace Stylet
         /// <param name="screen">Screen to activate</param>
         public static void TryActivate(object screen)
         {
-            var screenAsActivate = screen as IActivate;
-            if (screenAsActivate != null)
-                screenAsActivate.Activate();
+            var screenAsScreenState = screen as IScreenState;
+            if (screenAsScreenState != null)
+                screenAsScreenState.Activate();
         }
 
         /// <summary>
@@ -25,9 +25,9 @@ namespace Stylet
         /// <param name="screen">Screen to deactivate</param>
         public static void TryDeactivate(object screen)
         {
-            var screenAsDeactivate = screen as IDeactivate;
-            if (screenAsDeactivate != null)
-                screenAsDeactivate.Deactivate();
+            var screenAsScreenState = screen as IScreenState;
+            if (screenAsScreenState != null)
+                screenAsScreenState.Deactivate();
         }
 
         /// <summary>
@@ -36,9 +36,9 @@ namespace Stylet
         /// <param name="screen">Screen to close</param>
         public static void TryClose(object screen)
         {
-            var screenAsClose = screen as IClose;
-            if (screenAsClose != null)
-                screenAsClose.Close();
+            var screenAsScreenState = screen as IScreenState;
+            if (screenAsScreenState != null)
+                screenAsScreenState.Close();
         }
 
         /// <summary>
@@ -58,9 +58,9 @@ namespace Stylet
         /// <example>child.ActivateWith(this)</example>
         /// <param name="child">Child to activate whenever the parent is activated</param>
         /// <param name="parent">Parent to observe</param>
-        public static void ActivateWith(this IActivate child, IActivate parent)
+        public static void ActivateWith(this IScreenState child, IScreenState parent)
         {
-            WeakEventManager<IActivate, ActivationEventArgs>.AddHandler(parent, "Activated", (o, e) => child.Activate());
+            WeakEventManager<IScreenState, ActivationEventArgs>.AddHandler(parent, "Activated", (o, e) => child.Activate());
         }
 
         /// <summary>
@@ -69,9 +69,9 @@ namespace Stylet
         /// <example>child.DeactivateWith(this)</example>
         /// <param name="child">Child to deactivate whenever the parent is deacgtivated</param>
         /// <param name="parent">Parent to observe</param>
-        public static void DeactivateWith(this IDeactivate child, IDeactivate parent)
+        public static void DeactivateWith(this IScreenState child, IScreenState parent)
         {
-            WeakEventManager<IDeactivate, DeactivationEventArgs>.AddHandler(parent, "Deactivated", (o, e) => child.Deactivate());
+            WeakEventManager<IScreenState, DeactivationEventArgs>.AddHandler(parent, "Deactivated", (o, e) => child.Deactivate());
         }
 
         /// <summary>
@@ -80,23 +80,19 @@ namespace Stylet
         /// <example>child.CloseWith(this)</example>
         /// <param name="child">Child to close when the parent is closed</param>
         /// <param name="parent">Parent to observe</param>
-        public static void CloseWith(this IClose child, IClose parent)
+        public static void CloseWith(this IScreenState child, IScreenState parent)
         {
             // Using TryCloseAndDispose ensures that Dispose is called if necessary
-            WeakEventManager<IClose, CloseEventArgs>.AddHandler(parent, "Closed", (o, e) => TryClose(child));
+            WeakEventManager<IScreenState, CloseEventArgs>.AddHandler(parent, "Closed", (o, e) => TryClose(child));
         }
 
         /// <summary>
         /// Activate, Deactivate, or Close the child whenever the parent is Activated, Deactivated, or Closed
         /// </summary>
         /// <example>child.ConductWith(this)</example>
-        /// <typeparam name="TChild">Type of the child</typeparam>
-        /// <typeparam name="TParent">Type of the parent</typeparam>
         /// <param name="child">Child to conduct with the parent</param>
         /// <param name="parent">Parent to observe</param>
-        public static void ConductWith<TChild, TParent>(this TChild child, TParent parent)
-            where TChild : IActivate, IDeactivate, IClose
-            where TParent : IActivate, IDeactivate, IClose
+        public static void ConductWith(this IScreenState child, IScreenState parent)
         {
             child.ActivateWith(parent);
             child.DeactivateWith(parent);

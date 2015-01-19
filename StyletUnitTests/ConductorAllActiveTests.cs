@@ -57,7 +57,7 @@ namespace StyletUnitTests
         public void ActivateItemActivatesfConductorIsActive()
         {
             var screen = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
             screen.Verify(x => x.Activate());
         }
@@ -66,7 +66,7 @@ namespace StyletUnitTests
         public void ActivateItemDoesNotDeactivateIfConductorIsActive()
         {
             var screen = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
             screen.Verify(x => x.Deactivate(), Times.Never);
         }
@@ -75,9 +75,9 @@ namespace StyletUnitTests
         public void DeactiveDeactivatesItems()
         {
             var screen = new Mock<IScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
-            ((IDeactivate)this.conductor).Deactivate();
+            ((IScreenState)this.conductor).Deactivate();
             screen.Verify(x => x.Deactivate());
         }
 
@@ -85,9 +85,9 @@ namespace StyletUnitTests
         public void ClosingClosesAllItems()
         {
             var screen = new Mock<IMyScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
-            ((IClose)this.conductor).Close();
+            ((IScreenState)this.conductor).Close();
             screen.Verify(x => x.Close());
             screen.Verify(x => x.Dispose());
             Assert.AreEqual(0, this.conductor.Items.Count);
@@ -122,7 +122,7 @@ namespace StyletUnitTests
         [Test]
         public void AddingItemActivatesAndSetsParent()
         {
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
             var screen = new Mock<IScreen>();
             this.conductor.Items.Add(screen.Object);
             screen.VerifySet(x => x.Parent = this.conductor);
@@ -211,7 +211,7 @@ namespace StyletUnitTests
             this.conductor.ActivateItem(screen1.Object);
             this.conductor.ActivateItem(screen2.Object);
 
-            ((IClose)this.conductor).Close();
+            ((IScreenState)this.conductor).Close();
             screen1.Verify(x => x.Close());
             screen1.Verify(x => x.Dispose());
             screen1.VerifySet(x => x.Parent = null);
@@ -237,7 +237,7 @@ namespace StyletUnitTests
         public void AddRangeActivatesAddedItems()
         {
             var screen = new Mock<IMyScreen>();
-            ((IActivate)this.conductor).Activate();
+            ((IScreenState)this.conductor).Activate();
 
             this.conductor.Items.AddRange(new[] { screen.Object });
 
