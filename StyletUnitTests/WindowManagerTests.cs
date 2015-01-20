@@ -101,8 +101,39 @@ namespace StyletUnitTests
             this.windowManager.CreateWindow(model, false);
 
             var e = window.GetBindingExpression(Window.TitleProperty);
+            Assert.NotNull(e);
             Assert.AreEqual(BindingMode.TwoWay, e.ParentBinding.Mode);
             Assert.AreEqual("DisplayName", e.ParentBinding.Path.Path);
+        }
+
+        [Test]
+        public void CreateWindowDoesNotSetUpTitleBindingIfTitleHasAValueAlready()
+        {
+            var model = new Screen();
+            var window = new Window();
+            window.Title = "Foo";
+            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+
+            this.windowManager.CreateWindow(model, false);
+
+            var e = window.GetBindingExpression(Window.TitleProperty);
+            Assert.IsNull(e);
+            Assert.AreEqual("Foo", window.Title);
+        }
+
+        [Test]
+        public void CreateWindowDoesNotSetUpTitleBindingIfTitleHasABindingAlready()
+        {
+            var model = new Screen();
+            var window = new Window();
+            var binding = new Binding("Test") { Mode = BindingMode.TwoWay };
+            window.SetBinding(Window.TitleProperty, binding);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+
+            this.windowManager.CreateWindow(model, false);
+
+            var e = window.GetBindingExpression(Window.TitleProperty);
+            Assert.AreEqual("Test", e.ParentBinding.Path.Path);
         }
 
         [Test]
@@ -285,7 +316,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void SetsWindowStartupLocationToCenterScreenIfThereIsNoOwnerAndItHasNotBeenSetAlready()
+        public void CreateWindowSetsWindowStartupLocationToCenterScreenIfThereIsNoOwnerAndItHasNotBeenSetAlready()
         {
             var model = new object();
             var window = new Window();
@@ -297,7 +328,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void DoesNotSetStartupLocationIfItIsNotManual()
+        public void CreateWindowDoesNotSetStartupLocationIfItIsNotManual()
         {
             var model = new object();
             var window = new Window();
@@ -310,7 +341,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void DoesNotSetStartupLocationIfLeftSet()
+        public void CreateWindowDoesNotSetStartupLocationIfLeftSet()
         {
             var model = new object();
             var window = new Window();
@@ -323,7 +354,7 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void DoesNotSetStartupLocationIfTopSet()
+        public void CreateWindowDoesNotSetStartupLocationIfTopSet()
         {
             var model = new object();
             var window = new Window();
