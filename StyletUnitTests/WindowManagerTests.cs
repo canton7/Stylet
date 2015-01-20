@@ -283,5 +283,56 @@ namespace StyletUnitTests
 
             this.messageBoxViewModel.Verify(x => x.Setup("text", "title", MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxResult.Cancel, MessageBoxOptions.RtlReading, null));
         }
+
+        [Test]
+        public void SetsWindowStartupLocationToCenterScreenIfThereIsNoOwnerAndItHasNotBeenSetAlready()
+        {
+            var model = new object();
+            var window = new Window();
+            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+
+            this.windowManager.CreateWindow(model, false);
+
+            Assert.AreEqual(WindowStartupLocation.CenterScreen, window.WindowStartupLocation);
+        }
+
+        [Test]
+        public void DoesNotSetStartupLocationIfItIsNotManual()
+        {
+            var model = new object();
+            var window = new Window();
+            window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+
+            this.windowManager.CreateWindow(model, false);
+
+            Assert.AreEqual(WindowStartupLocation.CenterOwner, window.WindowStartupLocation);
+        }
+
+        [Test]
+        public void DoesNotSetStartupLocationIfLeftSet()
+        {
+            var model = new object();
+            var window = new Window();
+            window.Left = 1;
+            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+
+            this.windowManager.CreateWindow(model, false);
+
+            Assert.AreEqual(WindowStartupLocation.Manual, window.WindowStartupLocation);
+        }
+
+        [Test]
+        public void DoesNotSetStartupLocationIfTopSet()
+        {
+            var model = new object();
+            var window = new Window();
+            window.Top = 1;
+            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+
+            this.windowManager.CreateWindow(model, false);
+
+            Assert.AreEqual(WindowStartupLocation.Manual, window.WindowStartupLocation);
+        }
     }
 }

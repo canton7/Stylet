@@ -153,12 +153,18 @@ namespace Stylet
                         logger.Error(e, "This can occur when the application is closing down");
                     }
                 }
+
                 logger.Info("Displaying ViewModel {0} with View {1} as a Dialog", viewModel, window);
             }
             else
             {
                 logger.Info("Displaying ViewModel {0} with View {1} as a Window", viewModel, window);
             }
+
+            // If and only if they haven't tried to position the window themselves...
+            // Has to be done after we're attempted to set the owner
+            if (window.WindowStartupLocation == WindowStartupLocation.Manual && Double.IsNaN(window.Top) && Double.IsNaN(window.Left))
+                window.WindowStartupLocation = window.Owner == null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner;
 
             // This gets itself retained by the window, by registering events
             // ReSharper disable once ObjectCreationAsStatement
