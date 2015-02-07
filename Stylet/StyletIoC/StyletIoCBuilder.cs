@@ -174,6 +174,18 @@ namespace StyletIoC
         void Autobind(params Assembly[] assemblies);
 
         /// <summary>
+        /// Add a single module to this builder
+        /// </summary>
+        /// <param name="module">Module to add</param>
+        void AddModule(StyletIoCModule module);
+
+        /// <summary>
+        /// Add many modules to this builder
+        /// </summary>
+        /// <param name="modules">Modules to add</param>
+        void AddModules(params StyletIoCModule[] modules);
+
+        /// <summary>
         /// Once all bindings have been set, build an IContainer from which instances can be fetches
         /// </summary>
         /// <returns>An IContainer, which should be used from now on</returns>
