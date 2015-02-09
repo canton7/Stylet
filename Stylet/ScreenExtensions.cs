@@ -60,7 +60,17 @@ namespace Stylet
         /// <param name="parent">Parent to observe</param>
         public static void ActivateWith(this IScreenState child, IScreenState parent)
         {
-            WeakEventManager<IScreenState, ActivationEventArgs>.AddHandler(parent, "Activated", (o, e) => child.Activate());
+            var weakChild = new WeakReference<IScreenState>(child);
+            EventHandler<ActivationEventArgs> handler = null;
+            handler = (o, e) =>
+            {
+                IScreenState strongChild;
+                if (weakChild.TryGetTarget(out strongChild))
+                    strongChild.Activate();
+                else
+                    parent.Activated -= handler;
+            };
+            parent.Activated += handler;
         }
 
         /// <summary>
@@ -71,7 +81,17 @@ namespace Stylet
         /// <param name="parent">Parent to observe</param>
         public static void DeactivateWith(this IScreenState child, IScreenState parent)
         {
-            WeakEventManager<IScreenState, DeactivationEventArgs>.AddHandler(parent, "Deactivated", (o, e) => child.Deactivate());
+            var weakChild = new WeakReference<IScreenState>(child);
+            EventHandler<DeactivationEventArgs> handler = null;
+            handler = (o, e) =>
+            {
+                IScreenState strongChild;
+                if (weakChild.TryGetTarget(out strongChild))
+                    strongChild.Deactivate();
+                else
+                    parent.Deactivated -= handler;
+            };
+            parent.Deactivated += handler;
         }
 
         /// <summary>
@@ -82,8 +102,17 @@ namespace Stylet
         /// <param name="parent">Parent to observe</param>
         public static void CloseWith(this IScreenState child, IScreenState parent)
         {
-            // Using TryCloseAndDispose ensures that Dispose is called if necessary
-            WeakEventManager<IScreenState, CloseEventArgs>.AddHandler(parent, "Closed", (o, e) => TryClose(child));
+            var weakChild = new WeakReference<IScreenState>(child);
+            EventHandler<CloseEventArgs> handler = null;
+            handler = (o, e) =>
+            {
+                IScreenState strongChild;
+                if (weakChild.TryGetTarget(out strongChild))
+                    TryClose(strongChild);
+                else
+                    parent.Closed -= handler;
+            };
+            parent.Closed += handler;
         }
 
         /// <summary>
