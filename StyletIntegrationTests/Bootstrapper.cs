@@ -17,9 +17,9 @@ namespace StyletIntegrationTests
             LogManager.Enabled = true;
         }
 
-        protected override void OnUnhandledExecption(System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        protected override void OnUnhandledException(System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            base.OnUnhandledExecption(e); // Calling this just to trigger some code coverage
+            base.OnUnhandledException(e); // Calling this just to trigger some code coverage
             var message = e.Exception.Message;
             if (e.Exception is TargetInvocationException)
                 message = e.Exception.InnerException.Message;

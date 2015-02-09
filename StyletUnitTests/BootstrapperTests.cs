@@ -40,11 +40,6 @@ namespace StyletUnitTests
                 builder.Bind<I1>().To<C1>();
                 base.ConfigureIoC(builder);
             }
-
-            public new void OnExitInternal(ExitEventArgs e)
-            {
-                base.OnExitInternal(e);
-            }
         }
 
         private MyBootstrapper<RootViewModel> bootstrapper;
@@ -92,11 +87,11 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void OnExitInternalDisposesContainer()
+        public void DisposeDisposesContainer()
         {
             var container = new Mock<IContainer>();
             this.bootstrapper.Container = container.Object;
-            this.bootstrapper.OnExitInternal(null);
+            this.bootstrapper.Dispose();
             container.Verify(x => x.Dispose());
         }
     }

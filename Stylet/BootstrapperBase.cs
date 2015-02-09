@@ -12,7 +12,7 @@ namespace Stylet
     /// <summary>
     /// Bootstrapper to be extended by applications which don't want to use StyletIoC as the IoC container.
     /// </summary>
-    public abstract class BootstrapperBase : IBootstrapper, IViewManagerConfig
+    public abstract class BootstrapperBase : IBootstrapper, IViewManagerConfig, IDisposable
     {
         /// <summary>
         /// Gets the current application
@@ -23,7 +23,7 @@ namespace Stylet
         /// Gets or sets assemblies which are used for IoC container auto-binding and searching for Views.
         /// Set this in Configure() if you want to override it
         /// </summary>
-        public IList<Assembly> Assemblies { get; protected set; }
+        public IReadOnlyList<Assembly> Assemblies { get; protected set; }
 
         /// <summary>
         /// Gets the command line arguments that were passed to the application from either the command prompt or the desktop.
@@ -61,15 +61,15 @@ namespace Stylet
             // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
             this.Application.Exit += (o, e) =>
             {
-                this.OnExitInternal(e);
                 this.OnExit(e);
+                this.Dispose();
             };
 
             // Fetch this logger when needed. If we fetch it now, then no-one will have been given the change to enable the LogManager, and we'll get a NullLogger
             this.Application.DispatcherUnhandledException += (o, e) =>
             {
                 LogManager.GetLogger(typeof(BootstrapperBase)).Error(e.Exception, "Unhandled exception");
-                this.OnUnhandledExecption(e);
+                this.OnUnhandledException(e);
             };
         }
 
@@ -81,13 +81,14 @@ namespace Stylet
         {
             // Set this before anything else, so everything can use it
             this.Args = args;
+            this.OnStart();
 
             this.ConfigureBootstrapper();
 
             View.ViewManager = (IViewManager)this.GetInstance(typeof(IViewManager));
 
             this.Launch();
-            this.OnStartup();
+            this.OnLaunch();
         }
 
         /// <summary>
@@ -112,15 +113,14 @@ namespace Stylet
         public abstract object GetInstance(Type type);
 
         /// <summary>
-        /// Hook called on application startup. This occurs once the root view has been displayed
+        /// Called on application startup. This occur after this.Args has been assigned, but before the IoC container has been configured
         /// </summary>
-        protected virtual void OnStartup() { }
+        protected virtual void OnStart() { }
 
         /// <summary>
-        /// Hook used internally by the Bootstrapper to do things like dispose the IoC container
+        /// Called just after the root View has been displayed
         /// </summary>
-        /// <param name="e">The exit event data</param>
-        protected virtual void OnExitInternal(ExitEventArgs e) { }
+        protected virtual void OnLaunch() { }
 
         /// <summary>
         /// Hook called on application exit
@@ -132,6 +132,11 @@ namespace Stylet
         /// Hook called on an unhandled exception
         /// </summary>
         /// <param name="e">The event data</param>
-        protected virtual void OnUnhandledExecption(DispatcherUnhandledExceptionEventArgs e) { }
+        protected virtual void OnUnhandledException(DispatcherUnhandledExceptionEventArgs e) { }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public virtual void Dispose() { }
     }
 }
