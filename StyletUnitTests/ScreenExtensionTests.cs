@@ -79,11 +79,57 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void ActivateWithActivates()
+        {
+            this.child.Object.ActivateWith(this.parent);
+            ((IScreenState)this.parent).Activate();
+            this.child.Verify(x => x.Activate());
+        }
+
+        [Test]
+        public void ActivateWithDoesNotRetainChild()
+        {
+            var child = new Screen();
+            child.ActivateWith(this.parent);
+
+            var weakChild = new WeakReference(child);
+            child = null;
+            GC.Collect();
+
+            ((IScreenState)this.parent).Activate();
+            Assert.Null(weakChild.Target);
+        }
+
+        [Test]
         public void ConductWithActivates()
         {
             this.child.Object.ConductWith(this.parent);
             ((IScreenState)this.parent).Activate();
             this.child.Verify(x => x.Activate());
+        }
+
+        [Test]
+        public void DeactivateWithDeactivates()
+        {
+            // Needs to be active....
+            ((IScreenState)this.parent).Activate();
+            this.child.Object.DeactivateWith(this.parent);
+            ((IScreenState)this.parent).Deactivate();
+            this.child.Verify(x => x.Deactivate());
+        }
+
+        [Test]
+        public void DeactivateDoesNotRetainChild()
+        {
+            var child = new Screen();
+            child.DeactivateWith(this.parent);
+
+            var weakChild = new WeakReference(child);
+            child = null;
+            GC.Collect();
+
+            ((IScreenState)this.parent).Deactivate();
+            Assert.Null(weakChild.Target);
         }
 
         [Test]
@@ -94,6 +140,28 @@ namespace StyletUnitTests
             this.child.Object.ConductWith(this.parent);
             ((IScreenState)this.parent).Deactivate();
             this.child.Verify(x => x.Deactivate());
+        }
+
+        [Test]
+        public void CloseWithCloses()
+        {
+            this.child.Object.CloseWith(this.parent);
+            ((IScreenState)this.parent).Close();
+            this.child.Verify(x => x.Close());
+        }
+
+        [Test]
+        public void CloseWithDoesNotRetain()
+        {
+            var child = new Screen();
+            child.CloseWith(this.parent);
+
+            var weakChild = new WeakReference(child);
+            child = null;
+            GC.Collect();
+
+            ((IScreenState)this.parent).Close();
+            Assert.Null(weakChild.Target);
         }
 
         [Test]
