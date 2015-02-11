@@ -1,6 +1,17 @@
 Stylet Changelog
 ================
 
+v1.1.0
+------
+
+ - Backwards-incompatible changes to Bootstrapper: Configure is now called *after* ConfigureIoC, OnStart came before ConfigureIoC, and OnLaunch now happens after Launch
+ - Screen now uses a property enum-based state machine to manage state. IActivate, IDeactivate and IClose have all been rolled into IScreenState
+ - Fix incorrect use of WeakEventManager in ScreenExtensions: ConductWith won't have been working properly
+ - Set WindowStartupLocation to CenterOwner if the user hasn't set it themselves
+ - WindowManager does not set the Title binding (to DisplayName) if it's been set by the user
+ - Actions throw on execute if ActionTarget hasn't changed from the default. This catches an edge-case where Actions are used inside something like a ContextMenu which breaks the visual tree
+ - 
+
 v1.0.7
 ------
 
