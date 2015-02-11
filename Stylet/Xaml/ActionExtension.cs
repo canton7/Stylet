@@ -126,6 +126,15 @@ namespace Stylet.Xaml
     }
 
     /// <summary>
+    /// The View.ActionTarget was not set. This probably means the item is in a ContextMenu/Popup
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
+    public class ActionNotSetException : Exception
+    {
+        internal ActionNotSetException(string message) : base(message) { }
+    }
+
+    /// <summary>
     /// The Action Target was null, and shouldn't have been (NullTarget = Throw)
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]

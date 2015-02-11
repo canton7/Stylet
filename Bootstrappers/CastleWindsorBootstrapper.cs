@@ -60,7 +60,7 @@ namespace Bootstrappers
             return this.container.Resolve(type);
         }
 
-        protected override void OnExitInternal(ExitEventArgs e)
+        public override void Dispose()
         {
             this.container.Dispose();
         }

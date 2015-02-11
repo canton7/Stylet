@@ -130,7 +130,7 @@ namespace Stylet
             }
 
             var haveDisplayName = viewModel as IHaveDisplayName;
-            if (haveDisplayName != null && BindingOperations.GetBindingBase(window, Window.TitleProperty) == null)
+            if (haveDisplayName != null && String.IsNullOrEmpty(window.Title) && BindingOperations.GetBindingBase(window, Window.TitleProperty) == null)
             {
                 var binding = new Binding("DisplayName") { Mode = BindingMode.TwoWay };
                 window.SetBinding(Window.TitleProperty, binding);
@@ -153,12 +153,18 @@ namespace Stylet
                         logger.Error(e, "This can occur when the application is closing down");
                     }
                 }
+
                 logger.Info("Displaying ViewModel {0} with View {1} as a Dialog", viewModel, window);
             }
             else
             {
                 logger.Info("Displaying ViewModel {0} with View {1} as a Window", viewModel, window);
             }
+
+            // If and only if they haven't tried to position the window themselves...
+            // Has to be done after we're attempted to set the owner
+            if (window.WindowStartupLocation == WindowStartupLocation.Manual && Double.IsNaN(window.Top) && Double.IsNaN(window.Left))
+                window.WindowStartupLocation = window.Owner == null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner;
 
             // This gets itself retained by the window, by registering events
             // ReSharper disable once ObjectCreationAsStatement
@@ -193,15 +199,15 @@ namespace Stylet
 
                 ScreenExtensions.TryActivate(this.viewModel);
 
-                var viewModelAsClose = this.viewModel as IClose;
-                if (viewModelAsClose != null)
+                var viewModelAsScreenState = this.viewModel as IScreenState;
+                if (viewModelAsScreenState != null)
+                {
+                    window.StateChanged += this.WindowStateChanged;
                     window.Closed += this.WindowClosed;
+                }
 
                 if (this.viewModel is IGuardClose)
                     window.Closing += this.WindowClosing;
-
-                if (this.viewModel is IActivate || this.viewModel is IDeactivate)
-                    window.StateChanged += this.WindowStateChanged;
             }
 
             private void WindowStateChanged(object sender, EventArgs e)

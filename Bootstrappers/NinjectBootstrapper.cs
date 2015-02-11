@@ -51,7 +51,7 @@ namespace Bootstrappers
             return this.kernel.Get(type);
         }
 
-        protected override void OnExitInternal(ExitEventArgs e)
+        public override void Dispose()
         {
             this.kernel.Dispose();
         }

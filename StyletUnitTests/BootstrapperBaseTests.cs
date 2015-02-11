@@ -51,10 +51,10 @@ namespace StyletUnitTests
                 return null;
             }
 
-            public bool OnStartupCalled;
-            protected override void OnStartup()
+            public bool OnStartCalled;
+            protected override void OnStart()
             {
-                this.OnStartupCalled = true;
+                this.OnStartCalled = true;
             }
 
             public bool OnExitCalled;
@@ -147,7 +147,7 @@ namespace StyletUnitTests
         public void StartCallsOnStartup()
         {
             this.bootstrapper.Start(new string[0]);
-            Assert.True(this.bootstrapper.OnStartupCalled);
+            Assert.True(this.bootstrapper.OnStartCalled);
         }
     }
 }

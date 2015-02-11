@@ -53,7 +53,7 @@ namespace Stylet
         /// Gets the assemblies which are used for IoC container auto-binding and searching for Views.
         /// Set this in Configure() if you want to override it
         /// </summary>
-        IList<Assembly> Assemblies { get; }
+        IReadOnlyList<Assembly> Assemblies { get; }
 
         /// <summary>
         /// Given a type, use the IoC container to fetch an instance of it
@@ -73,7 +73,7 @@ namespace Stylet
         /// <summary>
         /// Gets or sets the assemblies searched for View types
         /// </summary>
-        protected IList<Assembly> Assemblies { get; set; }
+        protected IReadOnlyList<Assembly> Assemblies { get; set; }
 
         /// <summary>
         /// Gets or sets the factory used to create view instances from their type

@@ -26,6 +26,11 @@ namespace StyletUnitTests
             public MyScreen() { }
             public MyScreen(IModelValidator validator) : base(validator) { }
 
+            public new void SetState(ScreenState newState, Action<ScreenState, ScreenState> changedHandler)
+            {
+                base.SetState(newState, changedHandler);
+            }
+
             public bool OnActivateCalled;
             protected override void OnActivate()
             {
@@ -92,7 +97,7 @@ namespace StyletUnitTests
         [Test]
         public void ActivateActivatesIfNotAlreadyActive()
         {
-            ((IActivate)this.screen).Activate();
+            ((IScreenState)this.screen).Activate();
             Assert.IsTrue(this.screen.IsActive);
         }
 
@@ -101,41 +106,81 @@ namespace StyletUnitTests
         {
             bool fired = false;
             this.screen.Activated += (o, e) => fired = true;
-            ((IActivate)this.screen).Activate();
+            ((IScreenState)this.screen).Activate();
             Assert.IsTrue(fired);
         }
 
         [Test]
         public void ActivateCallsOnActivate()
         {
-            ((IActivate)this.screen).Activate();
+            ((IScreenState)this.screen).Activate();
             Assert.IsTrue(this.screen.OnActivateCalled);
         }
 
         [Test]
         public void DoubleActivationDoesntActivate()
         {
-            ((IActivate)this.screen).Activate();
+            ((IScreenState)this.screen).Activate();
             this.screen.OnActivateCalled = false;
-            ((IActivate)this.screen).Activate();
+            ((IScreenState)this.screen).Activate();
             Assert.IsFalse(this.screen.OnActivateCalled);
         }
 
         [Test]
         public void InitialActivationCallsOnInitialActivate()
         {
-            ((IActivate)this.screen).Activate();
+            ((IScreenState)this.screen).Activate();
             this.screen.OnInitialActivateCalled = false;
-            ((IDeactivate)this.screen).Deactivate();
-            ((IActivate)this.screen).Activate();
+            ((IScreenState)this.screen).Deactivate();
+            ((IScreenState)this.screen).Activate();
             Assert.IsFalse(this.screen.OnInitialActivateCalled);
+        }
+
+        [Test]
+        public void ActivateFiresCorrectEvents()
+        {
+            this.screen.SetState(ScreenState.Deactivated, (n, o) => { });
+            
+            var changedEventArgs = new List<ScreenStateChangedEventArgs>();
+            this.screen.StateChanged += (o, e) => changedEventArgs.Add(e);
+            var activatedEventArgs = new List<ActivationEventArgs>();
+            this.screen.Activated += (o, e) => activatedEventArgs.Add(e);
+
+            ((IScreenState)this.screen).Activate();
+
+            Assert.AreEqual(1, changedEventArgs.Count);
+            Assert.AreEqual(ScreenState.Active, changedEventArgs[0].NewState);
+            Assert.AreEqual(ScreenState.Deactivated, changedEventArgs[0].PreviousState);
+
+            Assert.AreEqual(1, activatedEventArgs.Count);
+            Assert.AreEqual(ScreenState.Deactivated, activatedEventArgs[0].PreviousState);
+            Assert.IsFalse(activatedEventArgs[0].IsInitialActivate);
+        }
+
+        [Test]
+        public void InitialActivateFiresCorrectEvents()
+        {
+            var changedEventArgs = new List<ScreenStateChangedEventArgs>();
+            this.screen.StateChanged += (o, e) => changedEventArgs.Add(e);
+            var activatedEventArgs = new List<ActivationEventArgs>();
+            this.screen.Activated += (o, e) => activatedEventArgs.Add(e);
+
+            ((IScreenState)this.screen).Activate();
+
+            Assert.AreEqual(1, changedEventArgs.Count);
+            Assert.AreEqual(ScreenState.Active, changedEventArgs[0].NewState);
+            Assert.AreEqual(ScreenState.Initial, changedEventArgs[0].PreviousState);
+
+            Assert.AreEqual(1, activatedEventArgs.Count);
+            Assert.AreEqual(ScreenState.Initial, activatedEventArgs[0].PreviousState);
+            Assert.IsTrue(activatedEventArgs[0].IsInitialActivate);
         }
 
         [Test]
         public void DeactivateDeactivates()
         {
-            ((IActivate)this.screen).Activate(); ;
-            ((IDeactivate)this.screen).Deactivate();
+            ((IScreenState)this.screen).Activate(); ;
+            ((IScreenState)this.screen).Deactivate();
             Assert.IsFalse(this.screen.IsActive);
         }
 
@@ -144,34 +189,54 @@ namespace StyletUnitTests
         {
             bool fired = false;
             this.screen.Deactivated += (o, e) => fired = true;
-            ((IActivate)this.screen).Activate(); ;
-            ((IDeactivate)this.screen).Deactivate();
+            ((IScreenState)this.screen).Activate(); ;
+            ((IScreenState)this.screen).Deactivate();
             Assert.IsTrue(fired);
         }
 
         [Test]
         public void DeactivateCallsOnDeactivate()
         {
-            ((IActivate)this.screen).Activate();
-            ((IDeactivate)this.screen).Deactivate();
+            ((IScreenState)this.screen).Activate();
+            ((IScreenState)this.screen).Deactivate();
             Assert.IsTrue(this.screen.OnDeactivateCalled);
         }
 
         [Test]
         public void DoubleDeactivationDoesntDeactivate()
         {
-            ((IActivate)this.screen).Activate();
-            ((IDeactivate)this.screen).Deactivate();
+            ((IScreenState)this.screen).Activate();
+            ((IScreenState)this.screen).Deactivate();
             this.screen.OnDeactivateCalled = false;
-            ((IDeactivate)this.screen).Deactivate();
+            ((IScreenState)this.screen).Deactivate();
             Assert.IsFalse(this.screen.OnDeactivateCalled);
+        }
+
+        [Test]
+        public void DeactivateFiresCorrectEvents()
+        {
+            this.screen.SetState(ScreenState.Active, (n, o) => { });
+
+            var changedEventArgs = new List<ScreenStateChangedEventArgs>();
+            this.screen.StateChanged += (o, e) => changedEventArgs.Add(e);
+            var deactivationEventArgs = new List<DeactivationEventArgs>();
+            this.screen.Deactivated += (o, e) => deactivationEventArgs.Add(e);
+
+            ((IScreenState)this.screen).Deactivate();
+
+            Assert.AreEqual(1, changedEventArgs.Count);
+            Assert.AreEqual(ScreenState.Deactivated, changedEventArgs[0].NewState);
+            Assert.AreEqual(ScreenState.Active, changedEventArgs[0].PreviousState);
+
+            Assert.AreEqual(1, deactivationEventArgs.Count);
+            Assert.AreEqual(ScreenState.Active, deactivationEventArgs[0].PreviousState);
         }
 
         [Test]
         public void CloseDeactivates()
         {
-            ((IActivate)this.screen).Activate();
-            ((IClose)this.screen).Close();
+            ((IScreenState)this.screen).Activate();
+            ((IScreenState)this.screen).Close();
             Assert.IsTrue(this.screen.OnDeactivateCalled);
         }
 
@@ -179,7 +244,7 @@ namespace StyletUnitTests
         public void CloseClearsView()
         {
             ((IViewAware)this.screen).AttachView(new UIElement());
-            ((IClose)this.screen).Close();
+            ((IScreenState)this.screen).Close();
             Assert.IsNull(this.screen.View);
         }
 
@@ -188,33 +253,53 @@ namespace StyletUnitTests
         {
             bool fired = false;
             this.screen.Closed += (o, e) => fired = true;
-            ((IClose)this.screen).Close();
+            ((IScreenState)this.screen).Close();
             Assert.IsTrue(fired);
         }
 
         [Test]
         public void CloseCallsOnClose()
         {
-            ((IClose)this.screen).Close();
+            ((IScreenState)this.screen).Close();
             Assert.IsTrue(this.screen.OnCloseCalled);
         }
 
         [Test]
         public void DoubleCloseDoesNotClose()
         {
-            ((IClose)this.screen).Close();
+            ((IScreenState)this.screen).Close();
             this.screen.OnCloseCalled = false;
-            ((IClose)this.screen).Close();
+            ((IScreenState)this.screen).Close();
             Assert.IsFalse(this.screen.OnCloseCalled);
+        }
+
+        [Test]
+        public void CloseFiresCorrectEvents()
+        {
+            this.screen.SetState(ScreenState.Deactivated, (n, o) => { });
+
+            var changedEventArgs = new List<ScreenStateChangedEventArgs>();
+            this.screen.StateChanged += (o, e) => changedEventArgs.Add(e);
+            var closeEventArgs = new List<CloseEventArgs>();
+            this.screen.Closed += (o, e) => closeEventArgs.Add(e);
+
+            ((IScreenState)this.screen).Close();
+
+            Assert.AreEqual(1, changedEventArgs.Count);
+            Assert.AreEqual(ScreenState.Closed, changedEventArgs[0].NewState);
+            Assert.AreEqual(ScreenState.Deactivated, changedEventArgs[0].PreviousState);
+
+            Assert.AreEqual(1, closeEventArgs.Count);
+            Assert.AreEqual(ScreenState.Deactivated, closeEventArgs[0].PreviousState);
         }
 
         [Test]
         public void ActivatingAllowsScreenToBeClosedAgain()
         {
-            ((IClose)this.screen).Close();
+            ((IScreenState)this.screen).Close();
             this.screen.OnCloseCalled = false;
-            ((IActivate)this.screen).Activate();
-            ((IClose)this.screen).Close();
+            ((IScreenState)this.screen).Activate();
+            ((IScreenState)this.screen).Close();
             Assert.IsTrue(this.screen.OnCloseCalled);
         }
 
