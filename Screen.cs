@@ -46,47 +46,50 @@ namespace Stylet
 
         #endregion
 
-        #region IActivate
+        #region IScreenState
+
+        private ScreenState _state = ScreenState.Initial;
+
+        /// <summary>
+        /// Gets or sets the current state of the Screen
+        /// </summary>
+        public virtual ScreenState State
+        {
+            get { return this._state; }
+            protected set
+            {
+                this.SetAndNotify(ref this._state, value);
+                this.NotifyOfPropertyChange(() => this.IsActive);
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the current state is ScreenState.Active
+        /// </summary>
+        public bool IsActive
+        {
+            get { return this.State == ScreenState.Active; }
+        }
+
+        /// <summary>
+        /// Raised when the Screen's state changed, for any reason
+        /// </summary>
+        public event EventHandler<ScreenStateChangedEventArgs> StateChanged;
 
         /// <summary>
         /// Fired whenever the Screen is activated
         /// </summary>
         public event EventHandler<ActivationEventArgs> Activated;
 
-        private bool hasBeenActivatedEver;
-
-        private bool _isActive;
+        /// <summary>
+        /// Fired whenever the Screen is deactivated
+        /// </summary>
+        public event EventHandler<DeactivationEventArgs> Deactivated;
 
         /// <summary>
-        /// Gets or sets a value indicating whether this Screen is currently active
+        /// Called whenever this Screen is closed
         /// </summary>
-        public bool IsActive
-        {
-            get { return this._isActive; }
-            set { this.SetAndNotify(ref this._isActive, value); }
-        }
-
-        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
-        void IActivate.Activate()
-        {
-            if (this.IsActive)
-                return;
-
-            this.IsActive = true;
-            this.isClosed = false;
-
-            this.logger.Info("Activating");
-
-            if (!this.hasBeenActivatedEver)
-                this.OnInitialActivate();
-            this.hasBeenActivatedEver = true;
-
-            this.OnActivate();
-
-            var handler = this.Activated;
-            if (handler != null)
-                handler(this, new ActivationEventArgs());
-        }
+        public event EventHandler<CloseEventArgs> Closed;
 
         /// <summary>
         /// Called the very first time this Screen is activated, and never again
@@ -98,74 +101,86 @@ namespace Stylet
         /// </summary>
         protected virtual void OnActivate() { }
 
-        #endregion
-
-        #region IDeactivate
-
-        /// <summary>
-        /// Fired whenever the Screen is deactivated
-        /// </summary>
-        public event EventHandler<DeactivationEventArgs> Deactivated;
-
-        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Scope = "member", Target = "Stylet.Screen.#Stylet.IDeactivate.Deactivate()", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
-        void IDeactivate.Deactivate()
-        {
-            if (!this.IsActive)
-                return;
-
-            this.IsActive = false;
-            this.isClosed = false;
-
-            this.logger.Info("Deactivating");
-
-            this.OnDeactivate();
-
-            var handler = this.Deactivated;
-            if (handler != null)
-                handler(this, new DeactivationEventArgs());
-        }
-
         /// <summary>
         /// Called every time this screen is deactivated
         /// </summary>
         protected virtual void OnDeactivate() { }
 
-        #endregion
-
-        #region IClose
-
-        private bool isClosed;
-
-        /// <summary>
-        /// Called whenever this Screen is closed
-        /// </summary>
-        public event EventHandler<CloseEventArgs> Closed;
-
-        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
-        void IClose.Close()
-        {
-            if (this.isClosed)
-                return;
-
-            // This will early-exit if it's already deactive
-            ((IDeactivate)this).Deactivate();
-
-            this.View = null;
-            this.isClosed = true;
-
-            this.logger.Info("Closing");
-
-            this.OnClose();
-
-            var handler = this.Closed;
-            if (handler != null)
-                handler(this, new CloseEventArgs());
-        }
-
         /// <summary>
         /// Called when this screen is closed
         /// </summary>
         protected virtual void OnClose() { }
+
+        /// <summary>
+        /// Sets the screen's state to the given state, if it differs from the current state
+        /// </summary>
+        /// <param name="newState">State to transition to</param>
+        /// <param name="changedHandler">Called if the transition occurs. Arguments are (newState, previousState)</param>
+        protected virtual void SetState(ScreenState newState, Action<ScreenState, ScreenState> changedHandler)
+        {
+            if (newState == this.State)
+                return;
+
+            var previousState = this.State;
+            this.State = newState;
+
+            this.logger.Info("Setting state from {0} to {1}", previousState, newState);
+
+            changedHandler(previousState, newState);
+
+            var handler = this.StateChanged;
+            if (handler != null)
+                Execute.OnUIThread(() => handler(this, new ScreenStateChangedEventArgs(newState, previousState)));
+        }
+
+        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
+        void IScreenState.Activate()
+        {
+            this.SetState(ScreenState.Active, (oldState, newState) =>
+            {
+                var isInitialActivate = oldState == ScreenState.Initial;
+                if (isInitialActivate)
+                    this.OnInitialActivate();
+
+                this.OnActivate();
+
+                var handler = this.Activated;
+                if (handler != null)
+                    Execute.OnUIThread(() => handler(this, new ActivationEventArgs(oldState, isInitialActivate)));
+            });
+        }
+
+        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
+        void IScreenState.Deactivate()
+        {
+            this.SetState(ScreenState.Deactivated, (oldState, newState) =>
+            {
+                this.OnDeactivate();
+
+                var handler = this.Deactivated;
+                if (handler != null)
+                    Execute.OnUIThread(() => handler(this, new DeactivationEventArgs(oldState)));
+            });
+        }
+
+        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
+        void IScreenState.Close()
+        {
+            // Avoid going from Closed back to Deactivated
+            if (this.State != ScreenState.Closed)
+                ((IScreenState)this).Deactivate();
+
+            this.View = null;
+
+            this.SetState(ScreenState.Closed, (oldState, newState) =>
+            {
+                this.OnClose();
+
+                var handler = this.Closed;
+                if (handler != null)
+                    Execute.OnUIThread(() => handler(this, new CloseEventArgs(oldState)));
+            });
+        }
 
         #endregion
 

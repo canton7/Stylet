@@ -81,7 +81,10 @@ namespace Stylet.Xaml
             // If they've opted to throw if the target is null, then this will cause that exception.
             // We'll just wait until the ActionTarget is assigned, and we're called again
             if (newTarget == View.InitialActionTarget)
+            {
+                this.target = newTarget;
                 return;
+            }
 
             this.guardPropertyGetter = null;
             if (newTarget == null)
@@ -95,7 +98,7 @@ namespace Stylet.Xaml
                 }
                 else
                 {
-                    logger.Info("ActionTarget on element {0} is null (method name is {1}), nut NullTarget is not Throw, so carrying on", this.Subject, this.MethodName);
+                    logger.Info("ActionTarget on element {0} is null (method name is {1}), but NullTarget is not Throw, so carrying on", this.Subject, this.MethodName);
                 }
             }
             else
@@ -147,12 +150,11 @@ namespace Stylet.Xaml
             if (oldTarget != null)
                 oldTarget.PropertyChanged -= this.PropertyChangedHandler;
 
-            this.target = newTarget;
-
             var inpc = newTarget as INotifyPropertyChanged;
             if (this.guardPropertyGetter != null && inpc != null)
                 inpc.PropertyChanged += this.PropertyChangedHandler;
 
+            this.target = newTarget;
             this.targetMethodInfo = targetMethodInfo;
 
             this.UpdateCanExecute();
@@ -183,6 +185,13 @@ namespace Stylet.Xaml
         /// <returns>true if this command can be executed; otherwise, false.</returns>
         public bool CanExecute(object parameter)
         {
+            // This can happen if the ActionTarget hasn't been set from its default - 
+            // e.g. if the button/etc in question is in a ContextMenu/Popup, which attached properties
+            // aren't inherited by.
+            // Show the control as enabled, but throw if they try and click on it
+            if (this.target == View.InitialActionTarget)
+                return true;
+
             // It's enabled only if both the targetNull and actionNonExistent tests pass
 
             // Throw is handled when the target is set
@@ -215,6 +224,17 @@ namespace Stylet.Xaml
         /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
         public void Execute(object parameter)
         {
+            // If we've made it this far and the target is still the default, then something's wrong
+            // Make sure they know
+            if (this.target == View.InitialActionTarget)
+            {
+                var e = new ActionNotSetException(String.Format("View.ActionTarget not on control {0} (method {1}). " +
+                    "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
+                    "You will need so set 's:View.ActionTarget' explicitly. See the wiki for more details.", this.Subject, this.MethodName));
+                logger.Error(e);
+                throw e;
+            }
+
             // Any throwing would have been handled prior to this
             if (this.target == null || this.targetMethodInfo == null)
                 return;

@@ -31,19 +31,18 @@ namespace Stylet
         /// </summary>
         protected override sealed void ConfigureBootstrapper()
         {
-            // This needs to be called before the container is set up, as it might affect the assemblies
-            this.Configure();
-
             var builder = new StyletIoCBuilder();
 
             this.DefaultConfigureIoC(builder);
             this.ConfigureIoC(builder);
 
             this.Container = builder.BuildContainer();
+
+            this.Configure();
         }
 
         /// <summary>
-        /// Override to configure your IoC container, and anything else
+        /// Hook called after the IoC container has been set up
         /// </summary>
         protected virtual void Configure() { }
 
@@ -80,13 +79,12 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Hook used internall by the Bootstrapper to do things like dispose the IoC container
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        /// <param name="e">The exit event data</param>
-        protected override void OnExitInternal(ExitEventArgs e)
+        public override void Dispose()
         {
-            base.OnExitInternal(e);
             this.Container.Dispose();
+            base.Dispose();
         }
     }
 }

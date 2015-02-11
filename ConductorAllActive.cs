@@ -86,7 +86,7 @@ namespace Stylet
                 /// </summary>
                 protected override void OnActivate()
                 {
-                    foreach (var item in this.items.OfType<IActivate>())
+                    foreach (var item in this.items.OfType<IScreenState>())
                     {
                         item.Activate();
                     }
@@ -97,7 +97,7 @@ namespace Stylet
                 /// </summary>
                 protected override void OnDeactivate()
                 {
-                    foreach (var item in this.items.OfType<IDeactivate>())
+                    foreach (var item in this.items.OfType<IScreenState>())
                     {
                         item.Deactivate();
                     }
