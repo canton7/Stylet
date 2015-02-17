@@ -209,6 +209,7 @@ namespace Stylet
             var view = (UIElement)this.ViewFactory(viewType);
 
             // If it doesn't have a code-behind, this won't be called
+            // We have to use this reflection here, since the InitializeComponent is a method on the View, not on any of its base classes
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
             if (initializer != null)
                 initializer.Invoke(view, null);
