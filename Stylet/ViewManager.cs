@@ -206,7 +206,7 @@ namespace Stylet
                 throw e;
             }
 
-            var view = this.ViewFactory(viewType) as UIElement;
+            var view = (UIElement)this.ViewFactory(viewType);
 
             // If it doesn't have a code-behind, this won't be called
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
