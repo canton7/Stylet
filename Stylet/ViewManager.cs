@@ -199,7 +199,7 @@ namespace Stylet
         {
             var viewType = this.LocateViewForModel(model.GetType());
 
-            if (viewType.IsInterface || viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
+            if (viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
             {
                 var e = new StyletViewLocationException(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name), viewType.Name);
                 logger.Error(e);
