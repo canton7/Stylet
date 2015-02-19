@@ -338,7 +338,7 @@ namespace StyletIoC.Internal
                 }
                 else
                 {
-                    // This will throw a StyletIoCRegistrationException is GetSingle is requested
+                    // This will throw a StyletIoCRegistrationException if GetSingle is requested
                     registrations = new EmptyRegistrationCollection(typeKey.Type);
                 }
             }
