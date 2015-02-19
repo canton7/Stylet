@@ -389,8 +389,8 @@ namespace StyletIoC.Internal
                 this.factoryBuilder = moduleBuilder;
             }
 
-            // If the service is 'ISomethingFactory', call out new class 'SomethingFactory'
-            var typeBuilder = this.factoryBuilder.DefineType(serviceType.Name.Substring(1), TypeAttributes.Public);
+            // If the service is 'ISomethingFactory', call our new class 'GeneratedSomethingFactory'
+            var typeBuilder = this.factoryBuilder.DefineType("Generated" + serviceType.Name.Substring(1), TypeAttributes.Public);
             typeBuilder.AddInterfaceImplementation(serviceType);
 
             // Define a field which holds a reference to the registration context
