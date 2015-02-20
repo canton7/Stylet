@@ -315,16 +315,21 @@ namespace StyletIoC.Internal
             return this.GetRegistrations(new TypeKey(type, key), searchGetAllTypes).GetAll();
         }
 
-        internal IRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
+        internal IReadOnlyRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
         {
             this.CheckDisposed();
 
-            IRegistrationCollection registrations;
+            IReadOnlyRegistrationCollection readOnlyRegistrations;
 
+            IRegistrationCollection registrations;
             // Try to get registrations. If there are none, see if we can add some from unbound generics
-            if (!this.registrations.TryGetValue(typeKey, out registrations) &&
-                !this.TryCreateFuncFactory(typeKey, out registrations) && 
-                !this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations))
+            if (this.registrations.TryGetValue(typeKey, out registrations) ||
+                this.TryCreateFuncFactory(typeKey, out registrations) ||
+                this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations))
+            {
+                readOnlyRegistrations = registrations;
+            }
+            else
             {
                 if (searchGetAllTypes)
                 {
@@ -334,16 +339,16 @@ namespace StyletIoC.Internal
                         throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", typeKey.Type.GetDescription()));
 
                     // Got this far? Good. There's actually a 'get all' collection type. Proceed with that
-                    registrations = new SingleRegistration(registration);
+                    readOnlyRegistrations = new SingleRegistration(registration);
                 }
                 else
                 {
                     // This will throw a StyletIoCRegistrationException if GetSingle is requested
-                    registrations = new EmptyRegistrationCollection(typeKey.Type);
+                    readOnlyRegistrations = new EmptyRegistrationCollection(typeKey.Type);
                 }
             }
 
-            return registrations;
+            return readOnlyRegistrations;
         }
 
         internal IRegistrationCollection AddRegistration(TypeKey typeKey, IRegistration registration)
