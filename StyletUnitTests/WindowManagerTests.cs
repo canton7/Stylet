@@ -76,7 +76,7 @@ namespace StyletUnitTests
         public void CreateWindowAsksViewManagerForView()
         {
             var model = new object();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Verifiable();
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Verifiable();
             // Don't care if this throws - that's OK
             try { this.windowManager.CreateWindow(model, false);  }
             catch (Exception) { }
@@ -87,7 +87,7 @@ namespace StyletUnitTests
         public void CreateWindowThrowsIfViewIsntAWindow()
         {
             var model = new object();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(new UIElement());
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(new UIElement());
             Assert.Throws<ArgumentException>(() => this.windowManager.CreateWindow(model, false));
         }
 
@@ -96,7 +96,7 @@ namespace StyletUnitTests
         {
             var model = new Screen();
             var window = new Window();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
             
             this.windowManager.CreateWindow(model, false);
 
@@ -112,7 +112,7 @@ namespace StyletUnitTests
             var model = new Screen();
             var window = new Window();
             window.Title = "Foo";
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
 
             this.windowManager.CreateWindow(model, false);
 
@@ -128,7 +128,7 @@ namespace StyletUnitTests
             var window = new Window();
             var binding = new Binding("Test") { Mode = BindingMode.TwoWay };
             window.SetBinding(Window.TitleProperty, binding);
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
 
             this.windowManager.CreateWindow(model, false);
 
@@ -140,7 +140,7 @@ namespace StyletUnitTests
         public void CreateWindowActivatesViewModel()
         {
             var model = new Mock<IScreen>();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(new Window());
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(new Window());
             this.windowManager.CreateWindow(model.Object, false);
             model.Verify(x => x.Activate());
         }
@@ -150,7 +150,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
             window.WindowState = WindowState.Maximized;
             window.OnStateChanged(EventArgs.Empty);
@@ -162,7 +162,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
             window.WindowState = WindowState.Normal;
             window.OnStateChanged(EventArgs.Empty);
@@ -174,7 +174,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
             window.WindowState = WindowState.Minimized;
             window.OnStateChanged(EventArgs.Empty);
@@ -186,7 +186,7 @@ namespace StyletUnitTests
         {
             var model = new Screen();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
             this.windowManager.CreateWindow(model, false);
             window.OnClosing(new CancelEventArgs(true));
         }
@@ -196,7 +196,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
             model.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(false));
             var ea = new CancelEventArgs();
@@ -209,7 +209,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
             model.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(true));
             var ea = new CancelEventArgs();
@@ -222,7 +222,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
             model.Setup(x => x.CanCloseAsync()).Returns(Task.Delay(1).ContinueWith(t => false));
             var ea = new CancelEventArgs();
@@ -235,7 +235,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
             model.Setup(x => x.CanCloseAsync()).Returns(Task.Delay(1).ContinueWith(t => true));
             var ea = new CancelEventArgs();
@@ -248,7 +248,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IMyScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
             var tcs = new TaskCompletionSource<bool>();
             model.Setup(x => x.CanCloseAsync()).Returns(tcs.Task);
@@ -268,7 +268,7 @@ namespace StyletUnitTests
         {
             var model = new Screen();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
             this.windowManager.CreateWindow(model, false);
             ((IChildDelegate)model.Parent).CloseItem(new object());
         }
@@ -278,7 +278,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             object parent = null;
             model.SetupSet(x => x.Parent = It.IsAny<object>()).Callback((object x) => parent = x);
             this.windowManager.CreateWindow(model.Object, false);
@@ -292,7 +292,7 @@ namespace StyletUnitTests
         {
             var model = new Mock<IMyScreen>();
             var window = new MyWindow();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model.Object)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             object parent = null;
             model.SetupSet(x => x.Parent = It.IsAny<object>()).Callback((object x) => parent = x);
             this.windowManager.CreateWindow(model.Object, true);
@@ -320,7 +320,7 @@ namespace StyletUnitTests
         {
             var model = new object();
             var window = new Window();
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
 
             this.windowManager.CreateWindow(model, false);
 
@@ -333,7 +333,7 @@ namespace StyletUnitTests
             var model = new object();
             var window = new Window();
             window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
 
             this.windowManager.CreateWindow(model, false);
 
@@ -346,7 +346,7 @@ namespace StyletUnitTests
             var model = new object();
             var window = new Window();
             window.Left = 1;
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
 
             this.windowManager.CreateWindow(model, false);
 
@@ -359,7 +359,7 @@ namespace StyletUnitTests
             var model = new object();
             var window = new Window();
             window.Top = 1;
-            this.viewManager.Setup(x => x.CreateAndBindViewForModel(model)).Returns(window);
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
 
             this.windowManager.CreateWindow(model, false);
 

@@ -120,7 +120,7 @@ namespace Stylet
         /// <returns>Window which was created and set up</returns>
         protected virtual Window CreateWindow(object viewModel, bool isDialog)
         {
-            var view = this.viewManager.CreateAndBindViewForModel(viewModel);
+            var view = this.viewManager.CreateAndBindViewForModelIfNecessary(viewModel);
             var window = view as Window;
             if (window == null)
             {

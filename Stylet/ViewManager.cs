@@ -37,11 +37,11 @@ namespace Stylet
         void BindViewToModel(UIElement view, object viewModel);
 
         /// <summary>
-        /// Create a View for the given ViewModel, and bind the two together
+        /// Create a View for the given ViewModel, and bind the two together, if the model doesn't already have a view
         /// </summary>
         /// <param name="model">ViewModel to create a Veiw for</param>
         /// <returns>Newly created View, bound to the given ViewModel</returns>
-        UIElement CreateAndBindViewForModel(object model);
+        UIElement CreateAndBindViewForModelIfNecessary(object model);
     }
 
     /// <summary>
@@ -103,26 +103,32 @@ namespace Stylet
 
             if (newValue != null)
             {
-                UIElement view;
-                var viewModelAsViewAware = newValue as IViewAware;
-                if (viewModelAsViewAware != null && viewModelAsViewAware.View != null)
-                {
-                    logger.Info("View.Model changed for {0} from {1} to {2}. The new View was already stored the new ViewModel", targetLocation, oldValue, newValue);
-                    view = viewModelAsViewAware.View;
-                }
-                else
-                {
-                    logger.Info("View.Model changed for {0} from {1} to {2}. Instantiating and binding a new View instance for the new ViewModel", targetLocation, oldValue, newValue);
-                    view = this.CreateAndBindViewForModel(newValue);
-                }
-
+                logger.Info("View.Model changed for {0} from {1} to {2}", targetLocation, oldValue, newValue);
+                var view = this.CreateAndBindViewForModelIfNecessary(newValue);
                 View.SetContentProperty(targetLocation, view);
             }
             else
             {
-                logger.Info("View.Model clear for {0}, from {1}", targetLocation, oldValue);
+                logger.Info("View.Model cleared for {0}, from {1}", targetLocation, oldValue);
                 View.SetContentProperty(targetLocation, null);
             }
+        }
+
+        /// <summary>
+        /// Create a View for the given ViewModel, and bind the two together, if the model doesn't already have a view
+        /// </summary>
+        /// <param name="model">ViewModel to create a Veiw for</param>
+        /// <returns>Newly created View, bound to the given ViewModel</returns>
+        public virtual UIElement CreateAndBindViewForModelIfNecessary(object model)
+        {
+            var modelAsViewAware = model as IViewAware;
+            if (modelAsViewAware != null && modelAsViewAware.View != null)
+            {
+                logger.Info("ViewModel {0} already has a View attached to it. Not attaching another", model);
+                return modelAsViewAware.View;
+            }
+
+            return this.CreateAndBindViewForModel(model);
         }
 
         /// <summary>
@@ -130,10 +136,11 @@ namespace Stylet
         /// </summary>
         /// <param name="model">ViewModel to create a Veiw for</param>
         /// <returns>Newly created View, bound to the given ViewModel</returns>
-        public virtual UIElement CreateAndBindViewForModel(object model)
+        protected virtual UIElement CreateAndBindViewForModel(object model)
         {
             // Need to bind before we initialize the view
             // Otherwise e.g. the Command bindings get evaluated (by InitializeComponent) but the ActionTarget hasn't been set yet
+            logger.Info("Instantiating and binding a new View to ViewModel {0}", model);
             var view = this.CreateViewForModel(model);
             this.BindViewToModel(view, model);
             return view;
