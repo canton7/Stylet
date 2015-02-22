@@ -185,22 +185,22 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void CreateViewForModelThrowsIfViewIsNotConcreteUIElement()
+        public void CreateViewForModelIfNecessaryThrowsIfViewIsNotConcreteUIElement()
         {
             var viewManager = new LocatingViewManager(this.viewManagerConfig.Object);
 
             viewManager.LocatedViewType = typeof(I1);
-            Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndBindViewForModel(new object()));
+            Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndBindViewForModelIfNecessary(new object()));
 
             viewManager.LocatedViewType = typeof(AC1);
-            Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndBindViewForModel(new object()));
+            Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndBindViewForModelIfNecessary(new object()));
 
             viewManager.LocatedViewType = typeof(C1);
-            Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndBindViewForModel(new object()));
+            Assert.Throws<StyletViewLocationException>(() => viewManager.CreateAndBindViewForModelIfNecessary(new object()));
         }
 
         [Test]
-        public void CreateViewForModelCallsFetchesViewAndCallsInitializeComponent()
+        public void CreateAndBindViewForModelIfNecessaryCallsFetchesViewAndCallsInitializeComponent()
         {
             var view = new TestView();
             var config = new Mock<IViewManagerConfig>();
@@ -208,9 +208,21 @@ namespace StyletUnitTests
             var viewManager = new LocatingViewManager(config.Object);
             viewManager.LocatedViewType = typeof(TestView);
 
-            var returnedView = viewManager.CreateAndBindViewForModel(new object());
+            var returnedView = viewManager.CreateAndBindViewForModelIfNecessary(new object());
 
             Assert.True(view.InitializeComponentCalled);
+            Assert.AreEqual(view, returnedView);
+        }
+
+        [Test]
+        public void CreateAndBindViewForModelReturnsViewIfAlreadySet()
+        {
+            var view = new TestView();
+            var viewModel = new Mock<IViewAware>();
+            viewModel.SetupGet(x => x.View).Returns(view);
+
+            var returnedView = this.viewManager.CreateAndBindViewForModelIfNecessary(viewModel.Object);
+
             Assert.AreEqual(view, returnedView);
         }
 
@@ -223,7 +235,7 @@ namespace StyletUnitTests
             var viewManager = new LocatingViewManager(config.Object);
             viewManager.LocatedViewType = typeof(UIElement);
 
-            var returnedView = viewManager.CreateAndBindViewForModel(new object());
+            var returnedView = viewManager.CreateAndBindViewForModelIfNecessary(new object());
 
             Assert.AreEqual(view, returnedView);
         }
@@ -260,6 +272,8 @@ namespace StyletUnitTests
 
             model.Verify(x => x.AttachView(view));
         }
+
+        
 
         [Test]
         public void ViewNameResolutionWorksAsExpected()

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace StyletIoC.Internal.RegistrationCollections
 {
-    internal class EmptyRegistrationCollection : IRegistrationCollection
+    internal class EmptyRegistrationCollection : IReadOnlyRegistrationCollection
     {
         private readonly Type type;
 
@@ -21,11 +21,6 @@ namespace StyletIoC.Internal.RegistrationCollections
         public List<IRegistration> GetAll()
         {
             return new List<IRegistration>();
-        }
-
-        public IRegistrationCollection AddRegistration(IRegistration registration)
-        {
-            return new SingleRegistration(registration);
         }
     }
 }

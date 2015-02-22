@@ -20,9 +20,14 @@ namespace StyletUnitTests
                 this.C1Func = c1Func;
             }
         }
-        private interface I1 { }
+        public interface I1 { }
         private class C11 : I1 { }
         private class C12 : I1 { }
+
+        public interface I1Factory
+        {
+            I1 GetI1();
+        }
 
         [Test]
         public void FuncFactoryWorksForGetNoKey()
@@ -100,6 +105,20 @@ namespace StyletUnitTests
             Assert.AreEqual(2, funcCollection.Count);
             Assert.IsInstanceOf<C11>(funcCollection[0]());
             Assert.IsInstanceOf<C12>(funcCollection[1]());
+        }
+
+        [Test]
+        public void FuncFactoryOfAbstractFactoryWorksAsExpected()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().To<C11>();
+            builder.Bind<I1Factory>().ToAbstractFactory();
+            var ioc = builder.BuildContainer();
+
+            var func = ioc.Get<Func<I1Factory>>();
+            Assert.IsNotNull(func);
+            var i1 = func().GetI1();
+            Assert.IsInstanceOf<C11>(i1);
         }
     }
 }

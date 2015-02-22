@@ -139,7 +139,7 @@ namespace StyletUnitTests
         public void ThrowsIfServiceTypeIsNotInterface()
         {
             var builder = new StyletIoCBuilder();
-             builder.Bind<C1>().ToAbstractFactory();
+            builder.Bind<C1>().ToAbstractFactory();
             Assert.Throws<StyletIoCCreateFactoryException>(() => builder.BuildContainer());
         }
 

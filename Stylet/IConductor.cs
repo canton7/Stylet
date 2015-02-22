@@ -51,6 +51,11 @@ namespace Stylet
     public interface IConductor<T>
     {
         /// <summary>
+        /// Gets or sets a value indicating whether to dispose a child when it's closed. True by default
+        /// </summary>
+        bool DisposeChildren { get; set; }
+
+        /// <summary>
         /// Activate the given item
         /// </summary>
         /// <param name="item">Item to activate</param>
