@@ -63,7 +63,7 @@ namespace Stylet.Xaml
             this.UpdateGuardAndMethod();
 
             // Observe the View.ActionTarget for changes, and re-bind the guard property and MethodInfo if it changes
-            PropertyChangeNotifier.AddValueChanged(this.Subject, View.ActionTargetProperty, (o, e) => this.UpdateGuardAndMethod());
+            DependencyPropertyChangeNotifier.AddValueChanged(this.Subject, View.ActionTargetProperty, (o, e) => this.UpdateGuardAndMethod());
         }
 
         private string GuardName

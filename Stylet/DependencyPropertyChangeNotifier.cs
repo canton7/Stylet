@@ -9,7 +9,7 @@ namespace Stylet
     /// DependencyProperty change notifier which does not root the DependencyObject
     /// </summary>
     // Adapted from https://agsmith.wordpress.com/2008/04/07/propertydescriptor-addvaluechanged-alternative/
-    public class PropertyChangeNotifier : DependencyObject, IDisposable
+    public class DependencyPropertyChangeNotifier : DependencyObject, IDisposable
     {
         /// <summary>
         /// Watch for changes of the given property on the given propertySource
@@ -18,9 +18,9 @@ namespace Stylet
         /// <param name="property">Property on the object to observe</param>
         /// <param name="handler">Handler to invoke when the property changes</param>
         /// <returns>The constructed PropertyChangeNotifier</returns>
-        public static PropertyChangeNotifier AddValueChanged(DependencyObject propertySource, PropertyPath property, PropertyChangedCallback handler)
+        public static DependencyPropertyChangeNotifier AddValueChanged(DependencyObject propertySource, PropertyPath property, PropertyChangedCallback handler)
         {
-            return new PropertyChangeNotifier(propertySource, property, handler);
+            return new DependencyPropertyChangeNotifier(propertySource, property, handler);
         }
 
         /// <summary>
@@ -30,15 +30,17 @@ namespace Stylet
         /// <param name="property">Property on the object to observe</param>
         /// <param name="handler">Handler to invoke when the property changes</param>
         /// <returns>The constructed PropertyChangeNotifier</returns>
-        public static PropertyChangeNotifier AddValueChanged(DependencyObject propertySource, DependencyProperty property, PropertyChangedCallback handler)
+        public static DependencyPropertyChangeNotifier AddValueChanged(DependencyObject propertySource, DependencyProperty property, PropertyChangedCallback handler)
         {
+            if (property == null)
+                throw new ArgumentNullException("property");
             return AddValueChanged(propertySource, new PropertyPath(property), handler);
         }
 
-        private readonly PropertyChangedCallback handler;
+        private PropertyChangedCallback handler;
         private readonly WeakReference<DependencyObject> propertySource;
 
-        private PropertyChangeNotifier(DependencyObject propertySource, PropertyPath property, PropertyChangedCallback handler)
+        private DependencyPropertyChangeNotifier(DependencyObject propertySource, PropertyPath property, PropertyChangedCallback handler)
         {
             if (propertySource == null)
                 throw new ArgumentNullException("propertySource");
@@ -48,7 +50,6 @@ namespace Stylet
                 throw new ArgumentNullException("handler");
 
             this.propertySource = new WeakReference<DependencyObject>(propertySource);
-            this.handler = handler;
 
             var binding = new Binding()
             {
@@ -57,21 +58,29 @@ namespace Stylet
                 Source = propertySource
             };
             BindingOperations.SetBinding(this, ValueProperty, binding);
+
+            // Needs to be set after binding set, so it doesn't catch the initial property set
+            this.handler = handler;
         }
 
         private void OnValueChanged(DependencyPropertyChangedEventArgs e)
         {
+            // This happens on the firsrt invocation ever, when the initial value is set
+            // and on disposal
+            if (this.handler == null)
+                return;
+
             // Target *should* never be null at this point...
-            DependencyObject propertySource;
-            if (!this.propertySource.TryGetTarget(out propertySource))
-                Debug.Assert(false);
+            DependencyObject propertySource = null;
+            this.propertySource.TryGetTarget(out propertySource);
+            Debug.Assert(propertySource != null);
             this.handler(propertySource, e);
         }
 
         private static readonly DependencyProperty ValueProperty =
-            DependencyProperty.Register("Value", typeof(object), typeof(PropertyChangeNotifier), new FrameworkPropertyMetadata(null, (d, e) =>
+            DependencyProperty.Register("Value", typeof(object), typeof(DependencyPropertyChangeNotifier), new FrameworkPropertyMetadata(null, (d, e) =>
             {
-                ((PropertyChangeNotifier)d).OnValueChanged(e);
+                ((DependencyPropertyChangeNotifier)d).OnValueChanged(e);
             }));
 
         /// <summary>
@@ -79,6 +88,7 @@ namespace Stylet
         /// </summary>
         public void Dispose()
         {
+            this.handler = null; // Otherwise it's called as the binding is unset
             BindingOperations.ClearBinding(this, ValueProperty);
         }
     }
