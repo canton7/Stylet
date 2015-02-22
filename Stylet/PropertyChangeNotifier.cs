@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Data;
 
@@ -19,13 +16,11 @@ namespace Stylet
         /// </summary>
         /// <param name="propertySource">Object to observe a property on</param>
         /// <param name="property">Property on the object to observe</param>
-        /// <param name="notifier">Handler to invoke when the property changes</param>
+        /// <param name="handler">Handler to invoke when the property changes</param>
         /// <returns>The constructed PropertyChangeNotifier</returns>
-        public static PropertyChangeNotifier AddValueChanged(DependencyObject propertySource, PropertyPath property, PropertyChangedCallback notifier)
+        public static PropertyChangeNotifier AddValueChanged(DependencyObject propertySource, PropertyPath property, PropertyChangedCallback handler)
         {
-            var not = new PropertyChangeNotifier(propertySource, property);
-            not.ValueChanged += notifier;
-            return not;
+            return new PropertyChangeNotifier(propertySource, property, handler);
         }
 
         /// <summary>
@@ -33,29 +28,27 @@ namespace Stylet
         /// </summary>
         /// <param name="propertySource">Object to observe a property on</param>
         /// <param name="property">Property on the object to observe</param>
-        /// <param name="notifier">Handler to invoke when the property changes</param>
+        /// <param name="handler">Handler to invoke when the property changes</param>
         /// <returns>The constructed PropertyChangeNotifier</returns>
-        public static PropertyChangeNotifier AddValueChanged(DependencyObject propertySource, DependencyProperty property, PropertyChangedCallback notifier)
+        public static PropertyChangeNotifier AddValueChanged(DependencyObject propertySource, DependencyProperty property, PropertyChangedCallback handler)
         {
-            return AddValueChanged(propertySource, new PropertyPath(property), notifier);
+            return AddValueChanged(propertySource, new PropertyPath(property), handler);
         }
 
-        /// <summary>
-        /// Event raised when the selected property changed
-        /// </summary>
-        public event PropertyChangedCallback ValueChanged;
+        private readonly PropertyChangedCallback handler;
+        private readonly WeakReference<DependencyObject> propertySource;
 
-        /// <summary>
-        /// Initialises a new instance of the <see cref="PropertyChangeNotifier"/> class, using a PropertyPath
-        /// </summary>
-        /// <param name="propertySource">Object to observe a property on</param>
-        /// <param name="property">Property on the object to observe</param>
-        public PropertyChangeNotifier(DependencyObject propertySource, PropertyPath property)
+        private PropertyChangeNotifier(DependencyObject propertySource, PropertyPath property, PropertyChangedCallback handler)
         {
             if (propertySource == null)
                 throw new ArgumentNullException("propertySource");
             if (property == null)
                 throw new ArgumentNullException("property");
+            if (handler == null)
+                throw new ArgumentNullException("handler");
+
+            this.propertySource = new WeakReference<DependencyObject>(propertySource);
+            this.handler = handler;
 
             var binding = new Binding()
             {
@@ -68,9 +61,11 @@ namespace Stylet
 
         private void OnValueChanged(DependencyPropertyChangedEventArgs e)
         {
-            var handler = this.ValueChanged;
-            if (handler != null)
-                handler(this, e);
+            // Target *should* never be null at this point...
+            DependencyObject propertySource;
+            if (!this.propertySource.TryGetTarget(out propertySource))
+                Debug.Assert(false);
+            this.handler(propertySource, e);
         }
 
         private static readonly DependencyProperty ValueProperty =
