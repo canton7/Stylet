@@ -63,7 +63,7 @@ namespace Stylet.Xaml
             this.UpdateGuardAndMethod();
 
             // Observe the View.ActionTarget for changes, and re-bind the guard property and MethodInfo if it changes
-            DependencyPropertyDescriptor.FromProperty(View.ActionTargetProperty, typeof(View)).AddValueChanged(this.Subject, (o, e) => this.UpdateGuardAndMethod());
+            PropertyChangeNotifier.AddValueChanged(this.Subject, View.ActionTargetProperty, (o, e) => this.UpdateGuardAndMethod());
         }
 
         private string GuardName
@@ -148,11 +148,11 @@ namespace Stylet.Xaml
 
             var oldTarget = this.target as INotifyPropertyChanged;
             if (oldTarget != null)
-                oldTarget.PropertyChanged -= this.PropertyChangedHandler;
+                PropertyChangedEventManager.RemoveHandler(oldTarget, this.PropertyChangedHandler, this.GuardName);
 
             var inpc = newTarget as INotifyPropertyChanged;
             if (this.guardPropertyGetter != null && inpc != null)
-                inpc.PropertyChanged += this.PropertyChangedHandler;
+                PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.GuardName);
 
             this.target = newTarget;
             this.targetMethodInfo = targetMethodInfo;
@@ -162,10 +162,7 @@ namespace Stylet.Xaml
 
         private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
-            if (String.IsNullOrEmpty(e.PropertyName) || e.PropertyName == this.GuardName)
-            {
-                this.UpdateCanExecute();
-            }
+            this.UpdateCanExecute();
         }
 
         private void UpdateCanExecute()
