@@ -119,7 +119,6 @@ namespace Stylet.Xaml
         }
 
         // Stop someone from instantiating us
-        private View()
-        { }
+        private View() { }
     }
 }
