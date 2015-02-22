@@ -4,6 +4,14 @@ Stylet Changelog
 v1.1.0
 ------
 
+ - WindowManager.ShowWindow/ShowDialog won't create a new View for the ViewModel if one is already attached
+ - Add DisposeChildren to IConductor
+ - Improve error message when WindowManager.ShowWindow/ShowDialog is used to show something that isn't a Window
+ - Minor semantic fixes and code coverage improvements
+
+v1.1.0
+------
+
  - Backwards-incompatible changes to Bootstrapper: Configure is now called *after* ConfigureIoC, OnStart came before ConfigureIoC, and OnLaunch now happens after Launch
  - Screen now uses a property enum-based state machine to manage state. IActivate, IDeactivate and IClose have all been rolled into IScreenState
  - Fix incorrect use of WeakEventManager in ScreenExtensions: ConductWith won't have been working properly
