@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using Expressions = System.Linq.Expressions;
 
@@ -17,7 +18,7 @@ namespace Stylet.Xaml
     /// Watches the current View.ActionTarget, and looks for a method with the given name, calling it when the ICommand is called.
     /// If a bool property with name Get(methodName) exists, it will be observed and used to enable/disable the ICommand.
     /// </remarks>
-    public class CommandAction : ICommand
+    public class CommandAction : DependencyObject, ICommand
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(CommandAction));
 
@@ -41,10 +42,19 @@ namespace Stylet.Xaml
         /// </summary>
         private MethodInfo targetMethodInfo;
 
-        private object target;
-
         private readonly ActionUnavailableBehaviour targetNullBehaviour;
         private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
+
+        private object target
+        {
+            get { return (object)GetValue(targetProperty); }
+        }
+
+        private static readonly DependencyProperty targetProperty =
+            DependencyProperty.Register("target", typeof(object), typeof(CommandAction), new PropertyMetadata(null, (d, e) =>
+            {
+                ((CommandAction)d).UpdateGuardAndMethod(e.OldValue, e.NewValue);
+            }));
 
         /// <summary>
         /// Initialises a new instance of the <see cref="CommandAction"/> class
@@ -60,10 +70,13 @@ namespace Stylet.Xaml
             this.targetNullBehaviour = targetNullBehaviour;
             this.actionNonExistentBehaviour = actionNonExistentBehaviour;
 
-            this.UpdateGuardAndMethod();
-
-            // Observe the View.ActionTarget for changes, and re-bind the guard property and MethodInfo if it changes
-            DependencyPropertyChangeNotifier.AddValueChanged(this.Subject, View.ActionTargetProperty, (o, e) => this.UpdateGuardAndMethod());
+            var binding = new Binding()
+            {
+                Path = new PropertyPath(View.ActionTargetProperty),
+                Mode = BindingMode.OneWay,
+                Source = this.Subject,
+            };
+            BindingOperations.SetBinding(this, targetProperty, binding);
         }
 
         private string GuardName
@@ -71,9 +84,8 @@ namespace Stylet.Xaml
             get { return "Can" + this.MethodName; }
         }
 
-        private void UpdateGuardAndMethod()
+        private void UpdateGuardAndMethod(object oldTarget, object newTarget)
         {
-            var newTarget = View.GetActionTarget(this.Subject);
             MethodInfo targetMethodInfo = null;
 
             // If it's being set to the initial value, ignore it
@@ -82,7 +94,6 @@ namespace Stylet.Xaml
             // We'll just wait until the ActionTarget is assigned, and we're called again
             if (newTarget == View.InitialActionTarget)
             {
-                this.target = newTarget;
                 return;
             }
 
@@ -146,15 +157,14 @@ namespace Stylet.Xaml
                 }
             }
 
-            var oldTarget = this.target as INotifyPropertyChanged;
-            if (oldTarget != null)
-                PropertyChangedEventManager.RemoveHandler(oldTarget, this.PropertyChangedHandler, this.GuardName);
+            var oldInpc = oldTarget as INotifyPropertyChanged;
+            if (oldInpc != null)
+                PropertyChangedEventManager.RemoveHandler(oldInpc, this.PropertyChangedHandler, this.GuardName);
 
             var inpc = newTarget as INotifyPropertyChanged;
             if (this.guardPropertyGetter != null && inpc != null)
                 PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.GuardName);
 
-            this.target = newTarget;
             this.targetMethodInfo = targetMethodInfo;
 
             this.UpdateCanExecute();

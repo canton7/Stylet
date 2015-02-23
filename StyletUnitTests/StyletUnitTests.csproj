@@ -64,7 +64,6 @@
     <Compile Include="ConductorOneActiveTests.cs" />
     <Compile Include="ConductorTests.cs" />
     <Compile Include="DebugConverterTests.cs" />
-    <Compile Include="DependencyPropertyChangeNotifierTests.cs" />
     <Compile Include="StyletIoC\StyletIoCFuncFactoryTests.cs" />
     <Compile Include="StyletIoC\StyletIoCInstanceBindingTests.cs" />
     <Compile Include="StyletIoC\StyletIoCModuleTests.cs" />

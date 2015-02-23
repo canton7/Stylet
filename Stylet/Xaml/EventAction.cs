@@ -4,13 +4,14 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Windows;
+using System.Windows.Data;
 
 namespace Stylet.Xaml
 {
     /// <summary>
     /// Created by ActionExtension, this can return a delegate suitable adding binding to an event, and can call a method on the View.ActionTarget
     /// </summary>
-    public class EventAction
+    public class EventAction : DependencyObject
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(EventAction));
         private static readonly MethodInfo invokeCommandMethodInfo = typeof(EventAction).GetMethod("InvokeCommand", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -38,7 +39,17 @@ namespace Stylet.Xaml
         /// </summary>
         private MethodInfo targetMethodInfo;
 
-        private object target;
+        private object target
+        {
+            get { return (object)GetValue(targetProperty); }
+        }
+
+        // Using a DependencyProperty as the backing store for target.  This enables animation, styling, binding, etc...
+        private static readonly DependencyProperty targetProperty =
+            DependencyProperty.Register("target", typeof(object), typeof(EventAction), new PropertyMetadata(null, (d, e) =>
+            {
+                ((EventAction)d).UpdateMethod(e.NewValue);
+            }));
 
         /// <summary>
         /// Initialises a new instance of the <see cref="EventAction"/> class
@@ -61,15 +72,17 @@ namespace Stylet.Xaml
             this.targetNullBehaviour = targetNullBehaviour;
             this.actionNonExistentBehaviour = actionNonExistentBehaviour;
 
-            this.UpdateMethod();
-
-            // Observe the View.ActionTarget for changes, and re-bind the guard property and MethodInfo if it changes
-            DependencyPropertyChangeNotifier.AddValueChanged(this.subject, View.ActionTargetProperty, (o, e) => this.UpdateMethod());
+            var binding = new Binding()
+            {
+                Path = new PropertyPath(View.ActionTargetProperty),
+                Mode = BindingMode.OneWay,
+                Source = this.subject,
+            };
+            BindingOperations.SetBinding(this, targetProperty, binding);
         }
 
-        private void UpdateMethod()
+        private void UpdateMethod(object newTarget)
         {
-            var newTarget = View.GetActionTarget(this.subject);
             MethodInfo targetMethodInfo = null;
 
             // If it's being set to the initial value, ignore it
@@ -78,7 +91,6 @@ namespace Stylet.Xaml
             // We'll just wait until the ActionTarget is assigned, and we're called again
             if (newTarget == View.InitialActionTarget)
             {
-                this.target = newTarget;
                 return;
             }
 
@@ -126,7 +138,6 @@ namespace Stylet.Xaml
                 }
             }
 
-            this.target = newTarget;
             this.targetMethodInfo = targetMethodInfo;
         }
 
