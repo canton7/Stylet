@@ -1,7 +1,13 @@
 Stylet Changelog
 ================
 
-v1.1.0
+v1.1.2
+------
+
+ - Avoid potential memory leak caused CommandAction and EventAction using DependencyPropertyDescriptor.AddValueChanged
+ - StyletIoC registers IContainer with the builder by default
+
+v1.1.1
 ------
 
  - WindowManager.ShowWindow/ShowDialog won't create a new View for the ViewModel if one is already attached

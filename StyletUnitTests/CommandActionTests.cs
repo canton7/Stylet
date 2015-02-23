@@ -254,5 +254,21 @@ namespace StyletUnitTests
             var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             Assert.Throws<ActionNotSetException>(() => cmd.Execute(null));
         }
+
+        [Test]
+        public void DoesNotRetainTarget()
+        {
+            var view = new DependencyObject();
+            var weakView = new WeakReference(view);
+            View.SetActionTarget(view, this.target);
+            var cmd = new CommandAction(view, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+
+            view = null;
+            cmd = null;
+            
+            GC.Collect();
+
+            Assert.False(weakView.IsAlive);
+        }
     }
 }

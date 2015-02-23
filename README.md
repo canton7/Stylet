@@ -66,4 +66,5 @@ Contributing
 
 Contributions are always welcome.
 If you've got a problem or a question, [raise an issue](https://github.com/canton7/Stylet/issues).
-If you've got code you want to contribute, create a feature branch off the `develop` branch, add your changes there, and submit it as a pull request.
+If you've got code you want to contribute, please read [the Contributing guidelines](https://github.com/canton7/Stylet/wiki/Contributing) first of all.
+Create a feature branch off the `develop` branch, add your changes there, and submit it as a pull request.

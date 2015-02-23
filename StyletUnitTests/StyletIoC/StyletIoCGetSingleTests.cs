@@ -289,7 +289,15 @@ namespace StyletUnitTests
             Assert.Throws<ObjectDisposedException>(() => ioc.Get(typeof(C1)));
             Assert.Throws<ObjectDisposedException>(() => ioc.GetTypeOrAll<C1>());
             Assert.Throws<ObjectDisposedException>(() => ioc.GetTypeOrAll(typeof(C1)));
+        }
 
+        [Test]
+        public void IContainerIsAvailable()
+        {
+            var builder = new StyletIoCBuilder();
+            var ioc = builder.BuildContainer();
+
+            Assert.AreEqual(ioc, ioc.Get<IContainer>());
         }
     }
 }

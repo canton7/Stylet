@@ -199,5 +199,20 @@ namespace StyletUnitTests
             var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, null));
             Assert.IsInstanceOf<ActionNotSetException>(e.InnerException);
         }
+
+        [Test]
+        public void DoesNotRetainTarget()
+        {
+            var view = new DependencyObject();
+            var weakView = new WeakReference(view);
+            View.SetActionTarget(view, this.target);
+            var cmd = new EventAction(view, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+
+            cmd = null;
+            view = null;
+            GC.Collect();
+
+            Assert.IsFalse(weakView.IsAlive);
+        }
     }
 }
