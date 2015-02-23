@@ -300,6 +300,9 @@ namespace StyletIoC
 
             var container = new Container();
 
+            // Just in case they want it
+            this.Bind<IContainer>().ToInstance(container).AsWeakBinding();
+
             // For each TypeKey, we remove any weak bindings if there are any strong bindings
             var groups = this.bindings.GroupBy(x => new { Key = x.Key, Type = x.ServiceType });
             var filtered = groups.SelectMany(group => group.Any(x => !x.IsWeak) ? group.Where(x => !x.IsWeak) : group);
