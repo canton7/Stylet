@@ -13,7 +13,7 @@ namespace StyletIoC.Internal.Registrations
         public Type Type { get { return this.Creator.Type; } }
 
         private readonly object generatorLock = new object();
-        protected Func<IRegistrationContext, object> Generator { get; set; }
+        private Func<IRegistrationContext, object> generator;
 
         protected RegistrationBase(ICreator creator)
         {
@@ -22,12 +22,13 @@ namespace StyletIoC.Internal.Registrations
 
         public virtual Func<IRegistrationContext, object> GetGenerator()
         {
-            if (this.Generator != null)
-                return this.Generator;
+            if (this.generator != null)
+                return this.generator;
 
             lock (this.generatorLock)
             {
-                return this.Generator ?? (this.Generator = this.GetGeneratorInternal());
+                this.generator = this.GetGeneratorInternal();
+                return this.generator;
             }
         }
 
