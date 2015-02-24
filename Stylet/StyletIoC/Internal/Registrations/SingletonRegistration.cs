@@ -25,6 +25,7 @@ namespace StyletIoC.Internal.Registrations
                     disposable.Dispose();
 
                 this.instance = this.instanceExpression = null;
+                this.ClearGenerator();
             };
         }
 

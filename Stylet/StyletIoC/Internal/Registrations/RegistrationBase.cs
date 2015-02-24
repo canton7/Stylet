@@ -38,6 +38,14 @@ namespace StyletIoC.Internal.Registrations
             return Expression.Lambda<Func<IRegistrationContext, object>>(this.GetInstanceExpression(registrationContext), registrationContext).Compile();
         }
 
+        protected void ClearGenerator()
+        {
+            lock(this.generatorLock)
+            {
+                this.generator = null;
+            }
+        }
+
         public abstract Expression GetInstanceExpression(ParameterExpression registrationContext);
     }
 }
