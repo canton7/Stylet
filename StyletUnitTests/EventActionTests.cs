@@ -214,5 +214,19 @@ namespace StyletUnitTests
 
             Assert.IsFalse(weakView.IsAlive);
         }
+
+        [Test]
+        public void OperatesAfterCollection()
+        {
+            var view = new DependencyObject();
+            var cmd = new EventAction(view, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+
+            GC.Collect();
+
+            View.SetActionTarget(view, this.target);
+
+            cmd.GetDelegate().DynamicInvoke(null, null);
+            Assert.IsTrue(this.target.DoSomethingCalled);
+        }
     }
 }

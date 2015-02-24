@@ -52,7 +52,6 @@
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\NullLogger.cs" />
     <Compile Include="Logging\TraceLogger.cs" />
-    <Compile Include="DependencyPropertyChangeNotifier.cs" />
     <Compile Include="StyletIoC\Creation\ICreator.cs" />
     <Compile Include="StyletIoC\Creation\IRegistration.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderAbstractFactoryBinding.cs" />
@@ -82,6 +81,7 @@
     <Compile Include="StyletIoC\Internal\TypeKey.cs" />
     <Compile Include="StyletIoC\StyletIoCContainer.cs" />
     <Compile Include="StyletIoC\StyletIoCModule.cs" />
+    <Compile Include="Xaml\ActionBase.cs" />
     <Compile Include="Xaml\ApplicationLoader.cs" />
     <Compile Include="ConductorNavigating.cs" />
     <Compile Include="IBootstrapper.cs" />
