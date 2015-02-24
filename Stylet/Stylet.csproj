@@ -81,6 +81,7 @@
     <Compile Include="StyletIoC\Internal\TypeKey.cs" />
     <Compile Include="StyletIoC\StyletIoCContainer.cs" />
     <Compile Include="StyletIoC\StyletIoCModule.cs" />
+    <Compile Include="Xaml\ActionBase.cs" />
     <Compile Include="Xaml\ApplicationLoader.cs" />
     <Compile Include="ConductorNavigating.cs" />
     <Compile Include="IBootstrapper.cs" />

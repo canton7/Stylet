@@ -18,43 +18,14 @@ namespace Stylet.Xaml
     /// Watches the current View.ActionTarget, and looks for a method with the given name, calling it when the ICommand is called.
     /// If a bool property with name Get(methodName) exists, it will be observed and used to enable/disable the ICommand.
     /// </remarks>
-    public class CommandAction : DependencyObject, ICommand
+    public class CommandAction : ActionBase, ICommand
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(CommandAction));
-
-        /// <summary>
-        /// Gets the View to grab the View.ActionTarget from
-        /// </summary>
-        public DependencyObject Subject { get; private set; }
-
-        /// <summary>
-        /// Gets the method name. E.g. if someone's gone Buttom Command="{s:Action MyMethod}", this is MyMethod.
-        /// </summary>
-        public string MethodName { get; private set; }
 
         /// <summary>
         /// Generated accessor to grab the value of the guard property, or null if there is none
         /// </summary>
         private Func<bool> guardPropertyGetter;
-
-        /// <summary>
-        /// MethodInfo for the method to call. This has to exist, or we throw a wobbly
-        /// </summary>
-        private MethodInfo targetMethodInfo;
-
-        private readonly ActionUnavailableBehaviour targetNullBehaviour;
-        private readonly ActionUnavailableBehaviour actionNonExistentBehaviour;
-
-        private object target
-        {
-            get { return (object)GetValue(targetProperty); }
-        }
-
-        private static readonly DependencyProperty targetProperty =
-            DependencyProperty.Register("target", typeof(object), typeof(CommandAction), new PropertyMetadata(null, (d, e) =>
-            {
-                ((CommandAction)d).UpdateGuardAndMethod(e.OldValue, e.NewValue);
-            }));
 
         /// <summary>
         /// Initialises a new instance of the <see cref="CommandAction"/> class
@@ -64,99 +35,60 @@ namespace Stylet.Xaml
         /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
         public CommandAction(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
-        {
-            this.Subject = subject;
-            this.MethodName = methodName;
-            this.targetNullBehaviour = targetNullBehaviour;
-            this.actionNonExistentBehaviour = actionNonExistentBehaviour;
-
-            var binding = new Binding()
-            {
-                Path = new PropertyPath(View.ActionTargetProperty),
-                Mode = BindingMode.OneWay,
-                Source = this.Subject,
-            };
-            BindingOperations.SetBinding(this, targetProperty, binding);
-        }
+            : base(subject, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
+        { }
 
         private string GuardName
         {
             get { return "Can" + this.MethodName; }
         }
 
-        private void UpdateGuardAndMethod(object oldTarget, object newTarget)
+        /// <summary>
+        /// Invoked when a new non-null target is set
+        /// </summary>
+        /// <param name="newTarget">New target</param>
+        /// <param name="newTargetType">Result of newTarget.GetType()</param>
+        protected internal override void OnNewNonNullTarget(object newTarget, Type newTargetType)
         {
-            MethodInfo targetMethodInfo = null;
-
-            // If it's being set to the initial value, ignore it
-            // At this point, we're executing the View's InitializeComponent method, and the ActionTarget hasn't yet been assigned
-            // If they've opted to throw if the target is null, then this will cause that exception.
-            // We'll just wait until the ActionTarget is assigned, and we're called again
-            if (newTarget == View.InitialActionTarget)
+            var guardPropertyInfo = newTargetType.GetProperty(this.GuardName);
+            if (guardPropertyInfo != null)
             {
-                return;
-            }
-
-            this.guardPropertyGetter = null;
-            if (newTarget == null)
-            {
-                // If it's Enable or Disable we don't do anything - CanExecute will handle this
-                if (this.targetNullBehaviour == ActionUnavailableBehaviour.Throw)
+                if (guardPropertyInfo.PropertyType == typeof(bool))
                 {
-                    var e = new ActionTargetNullException(String.Format("ActionTarget on element {0} is null (method name is {1})", this.Subject, this.MethodName));
-                    logger.Error(e);
-                    throw e;
+                    var targetExpression = Expressions.Expression.Constant(newTarget);
+                    var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
+                    this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
                 }
                 else
                 {
-                    logger.Info("ActionTarget on element {0} is null (method name is {1}), but NullTarget is not Throw, so carrying on", this.Subject, this.MethodName);
+                    logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
                 }
             }
-            else
+        }
+
+        /// <summary>
+        /// Invoked when a new non-null target is set, which has non-null MethodInfo. Used to assert that the method signature is correct
+        /// </summary>
+        /// <param name="targetMethodInfo">MethodInfo of method on new target</param>
+        /// <param name="newTargetType">Type of new target</param>
+        protected internal override void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType)
+        {
+            var methodParameters = targetMethodInfo.GetParameters();
+            if (methodParameters.Length > 1)
             {
-                var newTargetType = newTarget.GetType();
-
-                var guardPropertyInfo = newTargetType.GetProperty(this.GuardName);
-                if (guardPropertyInfo != null)
-                {
-                    if (guardPropertyInfo.PropertyType == typeof(bool))
-                    {
-                        var targetExpression = Expressions.Expression.Constant(newTarget);
-                        var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
-                        this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
-                    }
-                    else
-                    {
-                        logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
-                    }
-                }
-
-                targetMethodInfo = newTargetType.GetMethod(this.MethodName);
-                if (targetMethodInfo == null)
-                {
-                    if (this.actionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
-                    {
-                        var e = new ActionNotFoundException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
-                        logger.Error(e);
-                        throw e;
-                    }
-                    else
-                    {
-                        logger.Warn("Unable to find method {0} on {1}, but ActionNotFound is not Throw, so carrying on", this.MethodName, newTargetType.Name);
-                    }
-                }
-                else
-                {
-                    var methodParameters = targetMethodInfo.GetParameters();
-                    if (methodParameters.Length > 1)
-                    {
-                        var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
-                        logger.Error(e);
-                        throw e;
-                    }
-                }
+                var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
+                logger.Error(e);
+                throw e;
             }
+        }
 
+        /// <summary>
+        /// Invoked when a new target is set, after all other action has been taken
+        /// </summary>
+        /// <param name="oldTarget">Previous target</param>
+        /// <param name="newTarget">New target</param>
+        protected internal override void OnTargetChanged(object oldTarget, object newTarget)
+        {
             var oldInpc = oldTarget as INotifyPropertyChanged;
             if (oldInpc != null)
                 PropertyChangedEventManager.RemoveHandler(oldInpc, this.PropertyChangedHandler, this.GuardName);
@@ -164,8 +96,6 @@ namespace Stylet.Xaml
             var inpc = newTarget as INotifyPropertyChanged;
             if (this.guardPropertyGetter != null && inpc != null)
                 PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.GuardName);
-
-            this.targetMethodInfo = targetMethodInfo;
 
             this.UpdateCanExecute();
         }
@@ -196,19 +126,19 @@ namespace Stylet.Xaml
             // e.g. if the button/etc in question is in a ContextMenu/Popup, which attached properties
             // aren't inherited by.
             // Show the control as enabled, but throw if they try and click on it
-            if (this.target == View.InitialActionTarget)
+            if (this.Target == View.InitialActionTarget)
                 return true;
 
             // It's enabled only if both the targetNull and actionNonExistent tests pass
 
             // Throw is handled when the target is set
-            if (this.target == null)
-                return this.targetNullBehaviour != ActionUnavailableBehaviour.Disable;
+            if (this.Target == null)
+                return this.TargetNullBehaviour != ActionUnavailableBehaviour.Disable;
 
             // Throw is handled when the target is set
-            if (this.targetMethodInfo == null)
+            if (this.TargetMethodInfo == null)
             {
-                if (this.actionNonExistentBehaviour == ActionUnavailableBehaviour.Disable)
+                if (this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Disable)
                     return false;
                 else
                     return true;
@@ -233,7 +163,7 @@ namespace Stylet.Xaml
         {
             // If we've made it this far and the target is still the default, then something's wrong
             // Make sure they know
-            if (this.target == View.InitialActionTarget)
+            if (this.Target == View.InitialActionTarget)
             {
                 var e = new ActionNotSetException(String.Format("View.ActionTarget not on control {0} (method {1}). " +
                     "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
@@ -243,22 +173,22 @@ namespace Stylet.Xaml
             }
 
             // Any throwing would have been handled prior to this
-            if (this.target == null || this.targetMethodInfo == null)
+            if (this.Target == null || this.TargetMethodInfo == null)
                 return;
 
             // This is not going to be called very often, so don't bother to generate a delegate, in the way that we do for the method guard
-            var parameters = this.targetMethodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
-            logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.target, parameters == null ? "none" : String.Join(", ", parameters));
+            var parameters = this.TargetMethodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
+            logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters));
 
             try
             {
-                this.targetMethodInfo.Invoke(this.target, parameters);
+                this.TargetMethodInfo.Invoke(this.Target, parameters);
             }
             catch (TargetInvocationException e)
             {
                 // Be nice and unwrap this for them
                 // They want a stack track for their VM method, not us
-                logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.target, parameters == null ? "none" : String.Join(", ", parameters)));
+                logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
             }
