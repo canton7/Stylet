@@ -40,7 +40,7 @@ namespace StyletIoC.Internal.Registrations
 
         protected void ClearGenerator()
         {
-            lock(this.generatorLock)
+            lock (this.generatorLock)
             {
                 this.generator = null;
             }

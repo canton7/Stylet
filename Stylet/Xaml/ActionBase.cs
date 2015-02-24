@@ -28,7 +28,7 @@ namespace Stylet.Xaml
         public string MethodName { get; private set; }
 
         /// <summary>
-        /// MethodInfo for the method to call. This has to exist, or we throw a wobbly
+        /// Gets the MethodInfo for the method to call. This has to exist, or we throw a wobbly
         /// </summary>
         protected MethodInfo TargetMethodInfo { get; private set; }
 
