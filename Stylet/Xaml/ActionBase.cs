@@ -1,10 +1,7 @@
 ﻿using Stylet.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Data;
 
@@ -47,7 +44,7 @@ namespace Stylet.Xaml
         /// </summary>
         public object Target
         {
-            get { return (object)GetValue(targetProperty); }
+            get { return this.GetValue(targetProperty); }
         }
 
         private static readonly DependencyProperty targetProperty =
@@ -160,5 +157,44 @@ namespace Stylet.Xaml
         /// <param name="oldTarget">Previous target</param>
         /// <param name="newTarget">New target</param>
         protected internal virtual void OnTargetChanged(object oldTarget, object newTarget) { }
+
+        /// <summary>
+        /// Assert that the target is not View.InitialActionTarget
+        /// </summary>
+        protected internal void AssertTargetSet()
+        {
+            // If we've made it this far and the target is still the default, then something's wrong
+            // Make sure they know
+            if (this.Target == View.InitialActionTarget)
+            {
+                var ex = new ActionNotSetException(String.Format("View.ActionTarget not on control {0} (method {1}). " +
+                    "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
+                    "You will need so set 's:View.ActionTarget' explicitly. See the wiki section \"Actions\" for more details.", this.Subject, this.MethodName));
+                this.logger.Error(ex);
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// Invoke the target method with the given parameters
+        /// </summary>
+        /// <param name="parameters">Parameters to pass to the target method</param>
+        protected internal void InvokeTargetMethod(object[] parameters)
+        {
+            this.logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters));
+
+            try
+            {
+                this.TargetMethodInfo.Invoke(this.Target, parameters);
+            }
+            catch (TargetInvocationException e)
+            {
+                // Be nice and unwrap this for them
+                // They want a stack track for their VM method, not us
+                this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
+                // http://stackoverflow.com/a/17091351/1086121
+                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+            }
+        }
     }
 }

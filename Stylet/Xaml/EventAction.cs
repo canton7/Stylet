@@ -1,10 +1,7 @@
 ﻿using Stylet.Logging;
 using System;
-using System.ComponentModel;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Windows;
-using System.Windows.Data;
 
 namespace Stylet.Xaml
 {
@@ -103,16 +100,7 @@ namespace Stylet.Xaml
         // ReSharper disable once UnusedMember.Local
         private void InvokeCommand(object sender, object e)
         {
-            // If we've made it this far and the target is still the default, then something's wrong
-            // Make sure they know
-            if (this.Target == View.InitialActionTarget)
-            {
-                var ex = new ActionNotSetException(String.Format("View.ActionTarget not on control {0} (method {1}). " +
-                    "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
-                    "You will need so set 's:View.ActionTarget' explicitly. See the wiki section \"Actions\" for more details.", this.Subject, this.MethodName));
-                logger.Error(ex);
-                throw ex;
-            }
+            this.AssertTargetSet();
 
             // Any throwing will have been handled above
             if (this.Target == null || this.TargetMethodInfo == null)
@@ -133,21 +121,7 @@ namespace Stylet.Xaml
                     parameters = null;
                     break;
             }
-
-            logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters));
-
-            try
-            {
-                this.TargetMethodInfo.Invoke(this.Target, parameters);
-            }
-            catch (TargetInvocationException ex)
-            {
-                // Be nice and unwrap this for them
-                // They want a stack track for their VM method, not us
-                logger.Error(ex.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
-                // http://stackoverflow.com/a/17091351/1086121
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-            }
+            this.InvokeTargetMethod(parameters);
         }
     }
 

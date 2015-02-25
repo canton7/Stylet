@@ -2,9 +2,7 @@
 using System;
 using System.ComponentModel;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
 using Expressions = System.Linq.Expressions;
 
@@ -161,16 +159,7 @@ namespace Stylet.Xaml
         /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
         public void Execute(object parameter)
         {
-            // If we've made it this far and the target is still the default, then something's wrong
-            // Make sure they know
-            if (this.Target == View.InitialActionTarget)
-            {
-                var e = new ActionNotSetException(String.Format("View.ActionTarget not on control {0} (method {1}). " +
-                    "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
-                    "You will need so set 's:View.ActionTarget' explicitly. See the wiki for more details.", this.Subject, this.MethodName));
-                logger.Error(e);
-                throw e;
-            }
+            this.AssertTargetSet();
 
             // Any throwing would have been handled prior to this
             if (this.Target == null || this.TargetMethodInfo == null)
@@ -178,20 +167,7 @@ namespace Stylet.Xaml
 
             // This is not going to be called very often, so don't bother to generate a delegate, in the way that we do for the method guard
             var parameters = this.TargetMethodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
-            logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters));
-
-            try
-            {
-                this.TargetMethodInfo.Invoke(this.Target, parameters);
-            }
-            catch (TargetInvocationException e)
-            {
-                // Be nice and unwrap this for them
-                // They want a stack track for their VM method, not us
-                logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
-                // http://stackoverflow.com/a/17091351/1086121
-                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
-            }
+            this.InvokeTargetMethod(parameters);
         }
     }
 }
