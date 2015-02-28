@@ -10,7 +10,6 @@
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
         FlowDirection="{Binding FlowDirection}"
-        WindowStartupLocation="CenterScreen"
         ShowInTaskbar="False"
         MinWidth="160" MaxWidth="485"
         x:Name="RootObject">
@@ -25,12 +24,24 @@
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
-        <Image Grid.Row="0" Grid.Column="1" Margin="19,0,0,0" VerticalAlignment="Center"
+        <Image Grid.Row="0" Grid.Column="1"
                Source="{Binding ImageIcon, Converter={x:Static s:IconToBitmapSourceConverter.Instance}}"
                Visibility="{Binding ImageIcon, Converter={x:Static s:BoolToVisibilityConverter.Instance}}">
+            <Image.Style>
+                <Style TargetType="Image">
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="Margin" Value="19,0,0,0"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding TextIsMultiline}" Value="True">
+                            <Setter Property="VerticalAlignment" Value="Top"/>
+                            <Setter Property="Margin" Value="19,25,0,0"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Image.Style>
         </Image>
 
-        <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Text}" Margin="8,30,15,30" TextWrapping="Wrap" TextAlignment="{Binding TextAlignment}"/>
+        <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Text}" Margin="8,25,15,30" TextWrapping="Wrap" TextAlignment="{Binding TextAlignment}"/>
 
         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
             <ItemsControl ItemsSource="{Binding ButtonList}"
