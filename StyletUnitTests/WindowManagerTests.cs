@@ -137,6 +137,20 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void CreateWindowDoesSetUpTitleBindingIfTitleIsNameOfTheClass()
+        {
+            var model = new Screen();
+            var window = new Window();
+            window.Title = "Window";
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
+
+            this.windowManager.CreateWindow(model, false);
+
+            var e = window.GetBindingExpression(Window.TitleProperty);
+            Assert.AreEqual("DisplayName", e.ParentBinding.Path.Path);
+        }
+
+        [Test]
         public void CreateWindowActivatesViewModel()
         {
             var model = new Mock<IScreen>();

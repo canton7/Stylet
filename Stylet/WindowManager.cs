@@ -130,8 +130,9 @@ namespace Stylet
                 throw e;
             }
 
+            // Only set this it hasn't been set / bound to anything
             var haveDisplayName = viewModel as IHaveDisplayName;
-            if (haveDisplayName != null && String.IsNullOrEmpty(window.Title) && BindingOperations.GetBindingBase(window, Window.TitleProperty) == null)
+            if (haveDisplayName != null && (String.IsNullOrEmpty(window.Title) || window.Title == view.GetType().Name) && BindingOperations.GetBindingBase(window, Window.TitleProperty) == null)
             {
                 var binding = new Binding("DisplayName") { Mode = BindingMode.TwoWay };
                 window.SetBinding(Window.TitleProperty, binding);
