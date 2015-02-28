@@ -15,7 +15,22 @@ namespace Stylet.Xaml
         /// <summary>
         /// Singleton instance of this converter. Usage e.g. Converter="{x:Static s:BoolToVisibilityConverter.Instance}"
         /// </summary>
-        public static readonly BoolToVisibilityConverter Instance = new BoolToVisibilityConverter();
+        public static readonly BoolToVisibilityConverter Instance;
+
+        /// <summary>
+        /// Singleton instance of this converter, which provides Visibility.Hidden when input is truthsy.
+        /// </summary>
+        public static readonly BoolToVisibilityConverter InverseInstance;
+
+        static BoolToVisibilityConverter()
+        {
+            Instance = new BoolToVisibilityConverter();
+
+            // Need to set this in static ctor, otherwise property setter fails (dp is null)
+            InverseInstance = new BoolToVisibilityConverter();
+            InverseInstance.TrueVisibility = Visibility.Collapsed;
+            InverseInstance.FalseVisibility = Visibility.Visible;
+        }
 
         /// <summary>
         /// Gets or sets the visibility to use if value is true
