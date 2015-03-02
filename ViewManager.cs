@@ -154,17 +154,7 @@ namespace Stylet
         protected virtual Type ViewTypeForViewName(string viewName)
         {
             // TODO: This might need some more thinking
-            var viewType = this.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
-            if (viewType == null)
-            {
-                var e = new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
-                logger.Error(e);
-                throw e;
-            }
-
-            logger.Info("Searching for a View with name {0}, and found {1}", viewName, viewType);
-
-            return viewType;
+            return this.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
         }
 
         /// <summary>
@@ -194,6 +184,17 @@ namespace Stylet
                 throw new StyletViewLocationException(String.Format("Unable to transform ViewModel name {0} into a suitable View name", modelName), viewName);
 
             var viewType = this.ViewTypeForViewName(viewName);
+            if (viewType == null)
+            {
+                var e = new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
+                logger.Error(e);
+                throw e;
+            }
+            else
+            {
+                logger.Info("Searching for a View with name {0}, and found {1}", viewName, viewType);
+            }
+
             return viewType;
         }
 

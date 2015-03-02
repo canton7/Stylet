@@ -183,6 +183,14 @@ namespace Stylet
         public virtual string Text { get; protected set; }
 
         /// <summary>
+        /// Gets a value indicating whether the Text contains many lines
+        /// </summary>
+        public virtual bool TextIsMultiline
+        {
+            get { return this.Text.Contains("\n"); }
+        }
+
+        /// <summary>
         /// Gets or sets the icon which the user specified
         /// </summary>
         public virtual MessageBoxImage Icon { get; protected set; }
