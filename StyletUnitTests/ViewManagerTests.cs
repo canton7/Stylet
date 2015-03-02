@@ -92,6 +92,27 @@ namespace StyletUnitTests
             }
         }
 
+        private class ResolvingViewManager : ViewManager
+        {
+            public ResolvingViewManager(IViewManagerConfig config) : base(config) { }
+
+            public Type ViewType;
+            protected override Type ViewTypeForViewName(string viewName)
+            {
+                return ViewType;
+            }
+
+            public new Type LocateViewForModel(Type modelType)
+            {
+                return base.LocateViewForModel(modelType);
+            }
+
+            protected override string ViewTypeNameForModelTypeName(string modelTypeName)
+            {
+                return "testy";
+            }
+        }
+
 
         private class TestView : UIElement
         {
@@ -158,20 +179,29 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void CreateViewForModelThrowsIfViewNotFound()
+        public void CreateViewForModelReturnsNullIfViewNotFound()
         {
             var config = new Mock<IViewManagerConfig>();
             config.Setup(x => x.GetInstance(typeof(C1))).Returns(null);
             config.SetupGet(x => x.Assemblies).Returns(new List<Assembly>());
 
             var viewManager = new AccessibleViewManager(config.Object);
-            Assert.Throws<StyletViewLocationException>(() => viewManager.ViewTypeForViewName("Test"));
+            Assert.IsNull(viewManager.ViewTypeForViewName("Test"));
         }
 
         [Test]
         public void LocateViewForModelThrowsIfNameTranslationDoesntWork()
         {
            Assert.Throws<StyletViewLocationException>(() => this.viewManager.LocateViewForModel(typeof(C1)));
+        }
+
+        [Test]
+        public void LocateViewForModelThrowsIfTypeLocationDoesntWork()
+        {
+            var config = new Mock<IViewManagerConfig>();
+            var viewManager = new ResolvingViewManager(config.Object);
+            viewManager.ViewType = null;
+            Assert.Throws<StyletViewLocationException>(() => viewManager.LocateViewForModel(typeof(C1)));
         }
 
         [Test]

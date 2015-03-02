@@ -1,10 +1,7 @@
 ﻿using Stylet.Logging;
 using System;
-using System.ComponentModel;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Windows;
-using System.Windows.Data;
 
 namespace Stylet.Xaml
 {
@@ -14,7 +11,11 @@ namespace Stylet.Xaml
     public class EventAction : ActionBase
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(EventAction));
-        private static readonly MethodInfo invokeCommandMethodInfo = typeof(EventAction).GetMethod("InvokeCommand", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly MethodInfo[] invokeCommandMethodInfos = new[]
+        {
+            typeof(EventAction).GetMethod("InvokeEventArgsCommand", BindingFlags.NonPublic | BindingFlags.Instance),
+            typeof(EventAction).GetMethod("InvokeDependencyCommand", BindingFlags.NonPublic | BindingFlags.Instance),
+        };
 
         /// <summary>
         /// Type of event handler
@@ -49,8 +50,8 @@ namespace Stylet.Xaml
         {
             var methodParameters = targetMethodInfo.GetParameters();
             if (!(methodParameters.Length == 0 ||
-                (methodParameters.Length == 1 && typeof(EventArgs).IsAssignableFrom(methodParameters[0].ParameterType)) ||
-                (methodParameters.Length == 2 && typeof(EventArgs).IsAssignableFrom(methodParameters[1].ParameterType))))
+                (methodParameters.Length == 1 && (typeof(EventArgs).IsAssignableFrom(methodParameters[0].ParameterType) || methodParameters[0].ParameterType == typeof(DependencyPropertyChangedEventArgs))) ||
+                (methodParameters.Length == 2 && (typeof(EventArgs).IsAssignableFrom(methodParameters[1].ParameterType) || methodParameters[1].ParameterType == typeof(DependencyPropertyChangedEventArgs)))))
             {
                 var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have the signatures void Method(), void Method(EventArgsOrSubClass e), or void Method(object sender, EventArgsOrSubClass e)", this.MethodName, newTargetType.Name));
                 logger.Error(e);
@@ -64,29 +65,42 @@ namespace Stylet.Xaml
         /// <returns>An event hander, which, when invoked, will invoke the action</returns>
         public Delegate GetDelegate()
         {
-            var del = Delegate.CreateDelegate(this.eventHandlerType, this, invokeCommandMethodInfo, false);
+            Delegate del = null;
+            foreach (var invokeCommandMethodInfo in invokeCommandMethodInfos)
+            {
+                del = Delegate.CreateDelegate(this.eventHandlerType, this, invokeCommandMethodInfo, false);
+                if (del != null)
+                    break;
+            }
+
             if (del == null)
             {
-                var e = new ActionEventSignatureInvalidException(String.Format("Event being bound to does not have the '(object sender, EventArgsOrSubclass e)' signature we were expecting. Method {0} on target {1}", this.MethodName, this.Target));
+                var msg = String.Format("Event being bound to does not have a signature we know about. Method {0} on target {1}. Valid signatures are:" +
+                    "Valid signatures are:\n" +
+                    " - '(object sender, EventArgsOrSubclass e)'\n" +
+                    " - '(object sender, DependencyPropertyChangedEventArgs e)'", this.MethodName, this.Target);
+                var e = new ActionEventSignatureInvalidException(msg);
                 logger.Error(e);
                 throw e;
             }
+
             return del;
         }
 
-        // ReSharper disable once UnusedMember.Local
-        private void InvokeCommand(object sender, EventArgs e)
+        private void InvokeDependencyCommand(object sender, DependencyPropertyChangedEventArgs e)
         {
-            // If we've made it this far and the target is still the default, then something's wrong
-            // Make sure they know
-            if (this.Target == View.InitialActionTarget)
-            {
-                var ex = new ActionNotSetException(String.Format("View.ActionTarget not on control {0} (method {1}). " +
-                    "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
-                    "You will need so set 's:View.ActionTarget' explicitly. See the wiki for more details.", this.Subject, this.MethodName));
-                logger.Error(ex);
-                throw ex;
-            }
+            this.InvokeCommand(sender, e);
+        }
+
+        private void InvokeEventArgsCommand(object sender, EventArgs e)
+        {
+            this.InvokeCommand(sender, e);
+        }
+
+        // ReSharper disable once UnusedMember.Local
+        private void InvokeCommand(object sender, object e)
+        {
+            this.AssertTargetSet();
 
             // Any throwing will have been handled above
             if (this.Target == null || this.TargetMethodInfo == null)
@@ -107,21 +121,7 @@ namespace Stylet.Xaml
                     parameters = null;
                     break;
             }
-
-            logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters));
-
-            try
-            {
-                this.TargetMethodInfo.Invoke(this.Target, parameters);
-            }
-            catch (TargetInvocationException ex)
-            {
-                // Be nice and unwrap this for them
-                // They want a stack track for their VM method, not us
-                logger.Error(ex.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
-                // http://stackoverflow.com/a/17091351/1086121
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-            }
+            this.InvokeTargetMethod(parameters);
         }
     }
 

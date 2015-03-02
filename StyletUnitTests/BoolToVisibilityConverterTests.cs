@@ -25,6 +25,17 @@ namespace StyletUnitTests
         {
             Assert.IsNotNull(BoolToVisibilityConverter.Instance);
             Assert.AreEqual(BoolToVisibilityConverter.Instance, BoolToVisibilityConverter.Instance);
+            Assert.AreEqual(Visibility.Visible, BoolToVisibilityConverter.Instance.TrueVisibility);
+            Assert.AreEqual(Visibility.Collapsed, BoolToVisibilityConverter.Instance.FalseVisibility);
+        }
+
+        [Test]
+        public void InverseInstanceReturnsSingleton()
+        {
+            Assert.IsNotNull(BoolToVisibilityConverter.InverseInstance);
+            Assert.AreEqual(BoolToVisibilityConverter.InverseInstance, BoolToVisibilityConverter.InverseInstance);
+            Assert.AreEqual(Visibility.Collapsed, BoolToVisibilityConverter.InverseInstance.TrueVisibility);
+            Assert.AreEqual(Visibility.Visible, BoolToVisibilityConverter.InverseInstance.FalseVisibility);
         }
 
         [Test]

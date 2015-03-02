@@ -112,6 +112,13 @@ namespace Stylet
         protected virtual void OnClose() { }
 
         /// <summary>
+        /// Called on any state transition
+        /// </summary>
+        /// <param name="previousState">Previous state state</param>
+        /// <param name="newState">New state</param>
+        protected virtual void OnStateChanged(ScreenState previousState, ScreenState newState) { }
+
+        /// <summary>
         /// Sets the screen's state to the given state, if it differs from the current state
         /// </summary>
         /// <param name="newState">State to transition to</param>
@@ -126,6 +133,7 @@ namespace Stylet
 
             this.logger.Info("Setting state from {0} to {1}", previousState, newState);
 
+            this.OnStateChanged(previousState, newState);
             changedHandler(previousState, newState);
 
             var handler = this.StateChanged;

@@ -21,6 +21,7 @@ namespace StyletUnitTests
 #pragma warning disable 0067
             public event EventHandler SimpleEventHandler;
             public event Action BadEventHandler;
+            public event DependencyPropertyChangedEventHandler DependencyChangedEventHandler;
 #pragma warning restore 0067
         }
 
@@ -57,6 +58,18 @@ namespace StyletUnitTests
                 this.EventArgs = e;
             }
 
+            public DependencyPropertyChangedEventArgs DependencyChangedEventArgs;
+            public void DoSomethingWithDependencyChangedEventArgs(DependencyPropertyChangedEventArgs e)
+            {
+                this.DependencyChangedEventArgs = e;
+            }
+
+            public void DoSomethingWithObjectAndDependencyChangedEventArgs(object sender, DependencyPropertyChangedEventArgs e)
+            {
+                this.Sender = sender;
+                this.DependencyChangedEventArgs = e;
+            }
+
             public void DoSomethingUnsuccessfully()
             {
                 throw new InvalidOperationException("foo");
@@ -70,6 +83,7 @@ namespace StyletUnitTests
         private DependencyObject subject;
         private Target target;
         private EventInfo eventInfo;
+        private EventInfo dependencyChangedEventInfo;
 
         [SetUp]
         public void SetUp()
@@ -77,6 +91,7 @@ namespace StyletUnitTests
             this.target = new Target();
             this.subject = new Subject();
             this.eventInfo = typeof(Subject).GetEvent("SimpleEventHandler");
+            this.dependencyChangedEventInfo = typeof(Subject).GetEvent("DependencyChangedEventHandler");
             View.SetActionTarget(this.subject, this.target);
         }
 
@@ -173,6 +188,27 @@ namespace StyletUnitTests
 
             Assert.AreEqual(sender, this.target.Sender);
             Assert.AreEqual(arg, this.target.EventArgs);
+        }
+
+        [Test]
+        public void InvokingCommandCallsMethodWithDependencyChangedEventArgs()
+        {
+            var cmd = new EventAction(this.subject, this.dependencyChangedEventInfo.EventHandlerType, "DoSomethingWithDependencyChangedEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var arg = new DependencyPropertyChangedEventArgs();
+            cmd.GetDelegate().DynamicInvoke(null, arg);
+            Assert.AreEqual(arg, this.target.DependencyChangedEventArgs);
+        }
+
+        [Test]
+        public void InvokingCommandCallsMethodWithSenderAndDependencyChangedEventArgs()
+        {
+            var cmd = new EventAction(this.subject, this.dependencyChangedEventInfo.EventHandlerType, "DoSomethingWithObjectAndDependencyChangedEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var sender = new object();
+            var arg = new DependencyPropertyChangedEventArgs();
+            cmd.GetDelegate().DynamicInvoke(sender, arg);
+
+            Assert.AreEqual(sender, this.target.Sender);
+            Assert.AreEqual(arg, this.target.DependencyChangedEventArgs);
         }
 
         [Test]

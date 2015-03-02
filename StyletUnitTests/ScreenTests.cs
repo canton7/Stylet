@@ -55,6 +55,14 @@ namespace StyletUnitTests
                 this.OnCloseCalled = true;
             }
 
+            public ScreenState PreviousState;
+            public ScreenState NewState;
+            protected override void OnStateChanged(ScreenState oldState, ScreenState newState)
+            {
+                this.PreviousState = oldState;
+                this.NewState = newState;
+            }
+
             public bool OnViewLoadedCalled;
             protected override void OnViewLoaded()
             {
@@ -152,6 +160,9 @@ namespace StyletUnitTests
             Assert.AreEqual(ScreenState.Active, changedEventArgs[0].NewState);
             Assert.AreEqual(ScreenState.Deactivated, changedEventArgs[0].PreviousState);
 
+            Assert.AreEqual(ScreenState.Deactivated, this.screen.PreviousState);
+            Assert.AreEqual(ScreenState.Active, this.screen.NewState);
+
             Assert.AreEqual(1, activatedEventArgs.Count);
             Assert.AreEqual(ScreenState.Deactivated, activatedEventArgs[0].PreviousState);
             Assert.IsFalse(activatedEventArgs[0].IsInitialActivate);
@@ -170,6 +181,9 @@ namespace StyletUnitTests
             Assert.AreEqual(1, changedEventArgs.Count);
             Assert.AreEqual(ScreenState.Active, changedEventArgs[0].NewState);
             Assert.AreEqual(ScreenState.Initial, changedEventArgs[0].PreviousState);
+
+            Assert.AreEqual(ScreenState.Initial, this.screen.PreviousState);
+            Assert.AreEqual(ScreenState.Active, this.screen.NewState);
 
             Assert.AreEqual(1, activatedEventArgs.Count);
             Assert.AreEqual(ScreenState.Initial, activatedEventArgs[0].PreviousState);
@@ -227,6 +241,9 @@ namespace StyletUnitTests
             Assert.AreEqual(1, changedEventArgs.Count);
             Assert.AreEqual(ScreenState.Deactivated, changedEventArgs[0].NewState);
             Assert.AreEqual(ScreenState.Active, changedEventArgs[0].PreviousState);
+
+            Assert.AreEqual(ScreenState.Active, this.screen.PreviousState);
+            Assert.AreEqual(ScreenState.Deactivated, this.screen.NewState);
 
             Assert.AreEqual(1, deactivationEventArgs.Count);
             Assert.AreEqual(ScreenState.Active, deactivationEventArgs[0].PreviousState);
@@ -288,6 +305,9 @@ namespace StyletUnitTests
             Assert.AreEqual(1, changedEventArgs.Count);
             Assert.AreEqual(ScreenState.Closed, changedEventArgs[0].NewState);
             Assert.AreEqual(ScreenState.Deactivated, changedEventArgs[0].PreviousState);
+
+            Assert.AreEqual(ScreenState.Deactivated, this.screen.PreviousState);
+            Assert.AreEqual(ScreenState.Closed, this.screen.NewState);
 
             Assert.AreEqual(1, closeEventArgs.Count);
             Assert.AreEqual(ScreenState.Deactivated, closeEventArgs[0].PreviousState);

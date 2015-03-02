@@ -1,6 +1,16 @@
 Stylet Changelog
 ================
 
+v1.1.4
+------
+
+ - Add support for DepencencyPropertyChangedEventHandler to Actions
+ - Add OnStateChanged hook to Screen
+ - Re-arrange ViewManager slightly to make it easier to override
+ - Make the MessageBox display properly with multi-line content and an icon
+ - WindowManager stes window title if it's the same as the window name (which is the default, set by the VS template)
+ - Add InverseInstance to BoolToVisibilityConverter
+
 v1.1.3
 ------
 

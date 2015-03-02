@@ -38,6 +38,16 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void DeterminesTextIsMultilineCorrectly()
+        {
+            this.vm.Setup("this is the text", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            Assert.IsFalse(this.vm.TextIsMultiline);
+
+            this.vm.Setup("hello\nworld", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            Assert.IsTrue(this.vm.TextIsMultiline);
+        }
+
+        [Test]
         public void SetsTitleCorrectly()
         {
             this.vm.Setup(null, "this is the title", MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
