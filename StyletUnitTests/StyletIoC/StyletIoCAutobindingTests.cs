@@ -146,5 +146,24 @@ namespace StyletUnitTests
             var results = ioc.GetAll<I1>().ToList();
             Assert.AreEqual(2, results.Count);
         }
+
+        [Test]
+        public void AutoBindWithNoAssembliesThrows()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Assemblies = null;
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.Autobind());
+        }
+
+        [Test]
+        public void AutobindSearchesPassedAssemblie()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Assemblies = null;
+            builder.Autobind(typeof(StyletIoCAutobindingTests).Assembly);
+            var ioc = builder.BuildContainer();
+
+            Assert.IsInstanceOf<C11>(ioc.Get<C11>());
+        }
     }
 }

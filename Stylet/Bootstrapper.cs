@@ -1,6 +1,7 @@
 ﻿using StyletIoC;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Windows;
 
 namespace Stylet
@@ -32,9 +33,11 @@ namespace Stylet
         protected override sealed void ConfigureBootstrapper()
         {
             var builder = new StyletIoCBuilder();
+            builder.Assemblies = new List<Assembly>(this.Assemblies);
 
-            this.DefaultConfigureIoC(builder);
+            // Call DefaultConfigureIoC *after* ConfigureIoIC, so that they can customize builder.Assemblies
             this.ConfigureIoC(builder);
+            this.DefaultConfigureIoC(builder);
 
             this.Container = builder.BuildContainer();
 
@@ -59,7 +62,7 @@ namespace Stylet
             builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();
             builder.Bind<IMessageBoxViewModel>().To<MessageBoxViewModel>().AsWeakBinding();
 
-            builder.Autobind(this.Assemblies);
+            builder.Autobind();
         }
 
         /// <summary>

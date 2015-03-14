@@ -1,6 +1,7 @@
 ﻿using StyletIoC.Internal.Builders;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace StyletIoC
 {
@@ -9,7 +10,8 @@ namespace StyletIoC
     /// </summary>
     public abstract class StyletIoCModule
     {
-        private readonly List<BuilderBindTo> bindings = new List<BuilderBindTo>();
+        private StyletIoCBuilder builder;
+        private Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies;
 
         /// <summary>
         /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
@@ -18,8 +20,11 @@ namespace StyletIoC
         /// <returns>Fluent interface to continue configuration</returns>
         protected IBindTo Bind(Type serviceType)
         {
-            var builderBindTo = new BuilderBindTo(serviceType);
-            this.bindings.Add(builderBindTo);
+            if (this.builder == null || this.getAssemblies == null)
+                throw new InvalidOperationException("Bind should only be called from inside Load, and you must not call Load yourself");
+
+            var builderBindTo = new BuilderBindTo(serviceType, this.getAssemblies);
+            builder.AddBinding(builderBindTo);
             return builderBindTo;
         }
 
@@ -38,16 +43,15 @@ namespace StyletIoC
         /// </summary>
         protected abstract void Load();
 
-        internal void AddToBuilder(StyletIoCBuilder builder)
+        internal void AddToBuilder(StyletIoCBuilder builder, Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies)
         {
-            this.bindings.Clear();
+            this.builder = builder;
+            this.getAssemblies = getAssemblies;
 
             this.Load();
 
-            foreach (var binding in this.bindings)
-            {
-                builder.AddBinding(binding);
-            }
+            this.builder = null;
+            this.getAssemblies = null;
         }
     }
 }
