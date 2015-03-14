@@ -42,7 +42,7 @@ namespace Stylet.Samples.RedditBrowser.Pages
 
             // If we're setting the ActiveItem to null, that means everything's been closed - close ourselves
             if (newItem == null)
-                this.TryClose();
+                this.RequestClose();
         }
     }
 

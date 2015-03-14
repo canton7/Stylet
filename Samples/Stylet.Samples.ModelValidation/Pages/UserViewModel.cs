@@ -27,6 +27,10 @@ namespace Stylet.Samples.ModelValidation.Pages
         public UserViewModel(IWindowManager windowManager, IModelValidator<UserViewModel> validator) : base(validator)
         {
             this.windowManager = windowManager;
+            // Force initial validation
+            this.Validate();
+            // Whenever password changes, we need to re-validate PasswordConfirmation
+            this.Bind(x => x.Password, (o, e) => this.ValidateProperty(() => this.PasswordConfirmation));
         }
 
         protected override void OnValidationStateChanged(IEnumerable<string> changedProperties)
