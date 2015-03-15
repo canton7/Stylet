@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace StyletIoC
 {
@@ -203,12 +204,13 @@ namespace StyletIoC
     public class StyletIoCBuilder : IStyletIoCBuilder
     {
         private readonly List<BuilderBindTo> bindings = new List<BuilderBindTo>();
+        private List<Assembly> autobindAssemblies;
 
         /// <summary>
         /// Gets or sets the list of assemblies searched by Autobind and ToAllImplementatinos
         /// </summary>
         public List<Assembly> Assemblies { get; set; }
-
+        
         /// <summary>
         /// Initialises a new instance of the <see cref="StyletIoCBuilder"/> class
         /// </summary>
@@ -254,14 +256,9 @@ namespace StyletIoC
         /// <param name="assemblies">Assemblies to search, in addition to the Assemblies property</param>
         public void Autobind(IEnumerable<Assembly> assemblies)
         {
-            // We self-bind concrete classes only
-            var classes = this.GetAssemblies(assemblies, "Autobind").SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
-            foreach (var cls in classes)
-            {
-                // It's not actually possible for this to fail with a StyletIoCRegistrationException (at least currently)
-                // It's a self-binding, and those are always safe (at this stage - it could fall over when the containing's actually build)
-                this.Bind(cls).To(cls).AsWeakBinding();
-            }
+            // If they've called Autobind before, then add the new set of assemblies on
+            var existing = this.autobindAssemblies ?? Enumerable.Empty<Assembly>();
+            this.autobindAssemblies = existing.Concat(this.GetAssemblies(assemblies, "Autobind")).Distinct().ToList();
         }
 
         /// <summary>
@@ -300,7 +297,7 @@ namespace StyletIoC
         /// <returns>An IContainer, which should be used from now on</returns>
         public IContainer BuildContainer()
         {
-            var container = new Container();
+            var container = new Container(this.autobindAssemblies);
 
             // Just in case they want it
             this.Bind<IContainer>().ToInstance(container).AsWeakBinding();

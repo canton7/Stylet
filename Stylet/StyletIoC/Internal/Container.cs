@@ -1,4 +1,5 @@
 ﻿using StyletIoC.Creation;
+using StyletIoC.Internal.Creators;
 using StyletIoC.Internal.RegistrationCollections;
 using StyletIoC.Internal.Registrations;
 using System;
@@ -18,6 +19,8 @@ namespace StyletIoC.Internal
     // ReSharper disable once RedundantExtendsListEntry
     internal class Container : IContainer, IRegistrationContext
     {
+        private readonly List<Assembly> autobindAssemblies;
+
         /// <summary>
         /// Maps a [type, key] pair to a collection of registrations for that keypair. You can retrieve an instance of the type from the registration
         /// </summary>
@@ -52,6 +55,11 @@ namespace StyletIoC.Internal
         public event EventHandler Disposing;
 
         private bool disposed;
+
+        public Container(List<Assembly> autobindAssemblies)
+        {
+            this.autobindAssemblies = autobindAssemblies ?? new List<Assembly>();
+        }
 
         /// <summary>
         /// Compile all known bindings (which would otherwise be compiled when needed), checking the dependency graph for consistency
@@ -161,7 +169,8 @@ namespace StyletIoC.Internal
 
             if (this.registrations.TryGetValue(typeKey, out registrations) ||
                 this.TryCreateFuncFactory(typeKey, out registrations) ||
-                this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations))
+                this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations) ||
+                this.TryCreateSelfBinding(typeKey, out registrations))
             {
                 return true;
             }
@@ -220,6 +229,27 @@ namespace StyletIoC.Internal
                 return false;
 
             return this.TryRetrieveGetAllRegistrationFromElementType(new TypeKey(elementType, typeKey.Key), typeKey.Type, out registration);
+        }
+
+        private bool TryCreateSelfBinding(TypeKey typeKey, out IRegistrationCollection registrations)
+        {
+            registrations = null;
+
+            if (typeKey.Type.IsAbstract || !typeKey.Type.IsClass)
+                return false;
+
+            var injectAttribute = typeKey.Type.GetCustomAttribute<InjectAttribute>(true);
+            if (injectAttribute != null && injectAttribute.Key != typeKey.Key)
+                return false;
+
+            // Only allow types in our whitelisted assemblies
+            // This stops us trying to charge off and create List<T> or some other BCL class which we don't have a hope in hell of creating
+            // This in turn leads to some very hard-to-debug error cases where we descend into infinite recursion on some random type
+            if (!this.autobindAssemblies.Contains(typeKey.Type.Assembly))
+                return false;
+
+            registrations = this.AddRegistration(typeKey, new TransientRegistration(new TypeCreator(typeKey.Type, this)));
+            return true;
         }
 
         /// <summary>
@@ -325,7 +355,8 @@ namespace StyletIoC.Internal
             // Try to get registrations. If there are none, see if we can add some from unbound generics
             if (this.registrations.TryGetValue(typeKey, out registrations) ||
                 this.TryCreateFuncFactory(typeKey, out registrations) ||
-                this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations))
+                this.TryCreateGenericTypesForUnboundGeneric(typeKey, out registrations) ||
+                this.TryCreateSelfBinding(typeKey, out registrations))
             {
                 readOnlyRegistrations = registrations;
             }
