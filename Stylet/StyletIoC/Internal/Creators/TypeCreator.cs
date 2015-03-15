@@ -109,8 +109,15 @@ namespace StyletIoC.Internal.Creators
 
             var completeExpression = this.CompleteExpressionFromCreator(creator, registrationContext);
 
-            Interlocked.CompareExchange(ref this.creationExpression, completeExpression, null);
-            return this.creationExpression;
+            if (StyletIoCContainer.CacheGeneratedExpressions)
+            {
+                Interlocked.CompareExchange(ref this.creationExpression, completeExpression, null);
+                return this.creationExpression;
+            }
+            else
+            {
+                return completeExpression;
+            }
         }
     }
 }

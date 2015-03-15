@@ -60,8 +60,15 @@ namespace StyletIoC.Internal.Registrations
             var listNew = Expression.New(listCtor, Expression.Constant(instanceExpressions.Length));
             Expression list = instanceExpressions.Any() ? (Expression)Expression.ListInit(listNew, instanceExpressions) : listNew;
 
-            Interlocked.CompareExchange(ref this.expression, list, null);
-            return this.expression;
+            if (StyletIoCContainer.CacheGeneratedExpressions)
+            {
+                Interlocked.CompareExchange(ref this.expression, list, null);
+                return this.expression;
+            }
+            else
+            {
+                return list;
+            }
         }
     }
 }
