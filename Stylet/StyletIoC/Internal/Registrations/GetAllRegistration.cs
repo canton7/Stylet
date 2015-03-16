@@ -56,7 +56,7 @@ namespace StyletIoC.Internal.Registrations
 
             var type = Type.GetTypeFromHandle(this.TypeHandle);
 
-            var instanceExpressions = this.parentContext.GetAllRegistrations(type.GenericTypeArguments[0].TypeHandle, this.Key, false).Select(x => x.GetInstanceExpression(registrationContext)).ToArray();
+            var instanceExpressions = this.parentContext.GetAllRegistrations(type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(registrationContext)).ToArray();
             var listCtor = type.GetConstructor(new[] { typeof(int) }); // ctor which takes capacity
             Debug.Assert(listCtor != null);
             var listNew = Expression.New(listCtor, Expression.Constant(instanceExpressions.Length));

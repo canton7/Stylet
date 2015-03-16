@@ -96,7 +96,7 @@ namespace StyletIoC.Internal.Creators
                 {
                     try
                     {
-                        return this.ParentContext.GetSingleRegistration(x.ParameterType.TypeHandle, key, true).GetInstanceExpression(registrationContext);
+                        return this.ParentContext.GetSingleRegistration(x.ParameterType, key, true).GetInstanceExpression(registrationContext);
                     }
                     catch (StyletIoCRegistrationException e)
                     {

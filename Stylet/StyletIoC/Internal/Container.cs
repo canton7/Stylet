@@ -91,7 +91,7 @@ namespace StyletIoC.Internal
         {
             if (type == null)
                 throw new ArgumentNullException("type");
-            return this.Get(type.TypeHandle, key);
+            return this.Get(type.TypeHandle, key, type);
         }
 
         /// <summary>
@@ -102,9 +102,9 @@ namespace StyletIoC.Internal
             return (T)this.Get(typeof(T).TypeHandle, key);
         }
 
-        private object Get(RuntimeTypeHandle typeHandle, string key = null)
+        private object Get(RuntimeTypeHandle typeHandle, string key = null, Type typeIfAvailable = null)
         {
-            var generator = this.GetRegistrations(new TypeKey(typeHandle, key), false).GetSingle().GetGenerator();
+            var generator = this.GetRegistrations(new TypeKey(typeHandle, key), false, typeIfAvailable).GetSingle().GetGenerator();
             return generator(this);
         }
 
@@ -115,7 +115,7 @@ namespace StyletIoC.Internal
         {
             if (type == null)
                 throw new ArgumentNullException("type");
-            return this.GetAll(type.TypeHandle, key);
+            return this.GetAll(type.TypeHandle, key, type);
         }
 
         /// <summary>
@@ -126,12 +126,12 @@ namespace StyletIoC.Internal
             return this.GetAll(typeof(T).TypeHandle, key).Cast<T>();
         }
 
-        private IEnumerable<object> GetAll(RuntimeTypeHandle typeHandle, string key = null)
+        private IEnumerable<object> GetAll(RuntimeTypeHandle typeHandle, string key = null, Type elementTypeIfAvailable = null)
         {
             var typeKey = new TypeKey(typeHandle, key);
             IRegistration registration;
             // This can currently never fail, since we pass in null
-            var result = this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration);
+            var result = this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration, elementTypeIfAvailable);
             Debug.Assert(result);
             var generator = registration.GetGenerator();
             return (IEnumerable<object>)generator(this);
@@ -144,7 +144,7 @@ namespace StyletIoC.Internal
         {
             if (type == null)
                 throw new ArgumentNullException("type");
-            return this.GetTypeOrAll(type.TypeHandle, key);
+            return this.GetTypeOrAll(type.TypeHandle, key, type);
         }
 
         /// <summary>
@@ -155,9 +155,9 @@ namespace StyletIoC.Internal
             return (T)this.GetTypeOrAll(typeof(T).TypeHandle, key);
         }
 
-        private object GetTypeOrAll(RuntimeTypeHandle typeHandle, string key = null)
+        private object GetTypeOrAll(RuntimeTypeHandle typeHandle, string key = null, Type typeIfAvailable = null)
         {
-            var generator = this.GetRegistrations(new TypeKey(typeHandle, key), true).GetSingle().GetGenerator();
+            var generator = this.GetRegistrations(new TypeKey(typeHandle, key), true, typeIfAvailable).GetSingle().GetGenerator();
             return generator(this);
         }
 
@@ -208,8 +208,9 @@ namespace StyletIoC.Internal
         /// <param name="elementTypeKey">Element type and key to create an IRegistration for</param>
         /// <param name="collectionTypeOrNull">If given (not null), ensures that the generated implementation of the collection is compatible with this</param>
         /// <param name="registration">Returned IRegistration, or null if the method returns false</param>
+        /// <param name="elementTypeIfAvailable">Type corresponding to elementTypeKey, if available. Used for a small optimization</param>
         /// <returns>Whether such an IRegistration could be created or retrieved</returns>
-        private bool TryRetrieveGetAllRegistrationFromElementType(TypeKey elementTypeKey, Type collectionTypeOrNull, out IRegistration registration)
+        private bool TryRetrieveGetAllRegistrationFromElementType(TypeKey elementTypeKey, Type collectionTypeOrNull, out IRegistration registration, Type elementTypeIfAvailable = null)
         {
             // TryGet first, as making the generic type is expensive
             // If it isn't present, and can be made, GetOrAdd to try and add it, but return the now-existing registration if someone beat us to it
@@ -217,7 +218,7 @@ namespace StyletIoC.Internal
                 return true;
 
             // Failed :( Have to fetch the Type
-            var elementType = Type.GetTypeFromHandle(elementTypeKey.TypeHandle);
+            var elementType = elementTypeIfAvailable ?? Type.GetTypeFromHandle(elementTypeKey.TypeHandle);
             var listType = typeof(List<>).MakeGenericType(elementType);
             if (collectionTypeOrNull != null && !collectionTypeOrNull.IsAssignableFrom(listType))
                 return false;
@@ -240,7 +241,7 @@ namespace StyletIoC.Internal
             if (elementType == null)
                 return false;
 
-            return this.TryRetrieveGetAllRegistrationFromElementType(new TypeKey(elementType.TypeHandle, key), type, out registration);
+            return this.TryRetrieveGetAllRegistrationFromElementType(new TypeKey(elementType.TypeHandle, key), type, out registration, elementType);
         }
 
         private bool TryCreateSelfBinding(Type type, string key, out IRegistrationCollection registrations)
@@ -281,7 +282,7 @@ namespace StyletIoC.Internal
             if (genericType == typeof(Func<>))
             {
                 var typeKey = new TypeKey(type.TypeHandle, key);
-                foreach (var registration in this.GetRegistrations(new TypeKey(genericArguments[0].TypeHandle, key), true).GetAll())
+                foreach (var registration in this.GetRegistrations(new TypeKey(genericArguments[0].TypeHandle, key), true, genericArguments[0]).GetAll())
                 {
                     registrations = this.AddRegistration(typeKey, new FuncNoKeyRegistration(registration));
                 }
@@ -347,17 +348,17 @@ namespace StyletIoC.Internal
             return registrations != null;
         }
 
-        IRegistration IRegistrationContext.GetSingleRegistration(RuntimeTypeHandle typeHandle, string key, bool searchGetAllTypes)
+        IRegistration IRegistrationContext.GetSingleRegistration(Type type, string key, bool searchGetAllTypes)
         {
-            return this.GetRegistrations(new TypeKey(typeHandle, key), searchGetAllTypes).GetSingle();
+            return this.GetRegistrations(new TypeKey(type.TypeHandle, key), searchGetAllTypes, type).GetSingle();
         }
 
-        IReadOnlyList<IRegistration> IRegistrationContext.GetAllRegistrations(RuntimeTypeHandle typeHandle, string key, bool searchGetAllTypes)
+        IReadOnlyList<IRegistration> IRegistrationContext.GetAllRegistrations(Type type, string key, bool searchGetAllTypes)
         {
-            return this.GetRegistrations(new TypeKey(typeHandle, key), searchGetAllTypes).GetAll();
+            return this.GetRegistrations(new TypeKey(type.TypeHandle, key), searchGetAllTypes, type).GetAll();
         }
 
-        internal IReadOnlyRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes)
+        internal IReadOnlyRegistrationCollection GetRegistrations(TypeKey typeKey, bool searchGetAllTypes, Type typeIfAvailable = null)
         {
             this.CheckDisposed();
 
@@ -372,30 +373,27 @@ namespace StyletIoC.Internal
             {
                 // At this point we need to fetch the type from its handle
                 // This is the rare path - once we've hit it once, the result is cached in registrations
-                var type = Type.GetTypeFromHandle(typeKey.TypeHandle);
+                var type = typeIfAvailable ?? Type.GetTypeFromHandle(typeKey.TypeHandle);
                 if (this.TryCreateFuncFactory(type, typeKey.Key, out registrations) ||
                     this.TryCreateGenericTypesForUnboundGeneric(type, typeKey.Key, out registrations) ||
                     this.TryCreateSelfBinding(type, typeKey.Key, out registrations))
                 {
                     readOnlyRegistrations = registrations;
                 }
+                else if (searchGetAllTypes)
+                {
+                    // Couldn't find this type - is it a 'get all' collection type? (i.e. they've put IEnumerable<TypeWeCanResolve> in a ctor param)
+                    IRegistration registration;
+                    if (!this.TryRetrieveGetAllRegistration(type, typeKey.Key, out registration))
+                        throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", type.GetDescription()));
+
+                    // Got this far? Good. There's actually a 'get all' collection type. Proceed with that
+                    readOnlyRegistrations = new SingleRegistration(registration);
+                }
                 else
                 {
-                    if (searchGetAllTypes)
-                    {
-                        // Couldn't find this type - is it a 'get all' collection type? (i.e. they've put IEnumerable<TypeWeCanResolve> in a ctor param)
-                        IRegistration registration;
-                        if (!this.TryRetrieveGetAllRegistration(type, typeKey.Key, out registration))
-                            throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", type.GetDescription()));
-
-                        // Got this far? Good. There's actually a 'get all' collection type. Proceed with that
-                        readOnlyRegistrations = new SingleRegistration(registration);
-                    }
-                    else
-                    {
-                        // This will throw a StyletIoCRegistrationException if GetSingle is requested
-                        readOnlyRegistrations = new EmptyRegistrationCollection(type);
-                    }
+                    // This will throw a StyletIoCRegistrationException if GetSingle is requested
+                    readOnlyRegistrations = new EmptyRegistrationCollection(type);
                 }
             }
 

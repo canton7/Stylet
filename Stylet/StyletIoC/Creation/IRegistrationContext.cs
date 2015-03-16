@@ -30,27 +30,27 @@ namespace StyletIoC.Creation
         /// <summary>
         /// Retrieve a single IRegistration for the type+key combination, or throw an exception if non, or more than one, are avaiable
         /// </summary>
-        /// <param name="typeHandle">Type to search for</param>
+        /// <param name="type">Type to search for</param>
         /// <param name="key">Key to search for</param>
         /// <param name="searchGetAllTypes">
         /// If true, a Type of IEnumerableI{Something} can return a registration which can generate a List{ISomething},
         /// where each element in that list is a different instance implementing ISomething
         /// </param>
         /// <returns>The appropriate registration</returns>
-        IRegistration GetSingleRegistration(RuntimeTypeHandle typeHandle, string key, bool searchGetAllTypes);
+        IRegistration GetSingleRegistration(Type type, string key, bool searchGetAllTypes);
 
         /// <summary>
         /// Retrieve all IRegistrations for the type+key combination
         /// </summary>
         /// <remarks>If a single registration exists, then the returned list will contain a single entry</remarks>
-        /// <param name="typeHandle">Type to search for</param>
+        /// <param name="type">Type to search for</param>
         /// <param name="key">Key to search for</param>
         /// <param name="searchGetAllTypes">
         /// If true, a Type of IEnumerableI{Something} can return a registration which can generate a List{ISomething},
         /// where each element in that list is a different instance implementing ISomething
         /// </param>
         /// <returns>The appropriate registrations</returns>
-        IReadOnlyList<IRegistration> GetAllRegistrations(RuntimeTypeHandle typeHandle, string key, bool searchGetAllTypes);
+        IReadOnlyList<IRegistration> GetAllRegistrations(Type type, string key, bool searchGetAllTypes);
 
         /// <summary>
         /// Fired when Dispose is called on the container.
