@@ -42,7 +42,7 @@ namespace StyletIoC.Internal
         /// <summary>
         /// Maps a type onto a BuilderUpper for that type, which can create an Expresson/Delegate to build up that type.
         /// </summary>
-        private readonly ConcurrentDictionary<Type, BuilderUpper> builderUppers = new ConcurrentDictionary<Type, BuilderUpper>();
+        private readonly ConcurrentDictionary<RuntimeTypeHandle, BuilderUpper> builderUppers = new ConcurrentDictionary<RuntimeTypeHandle, BuilderUpper>();
 
         /// <summary>
         /// Cached ModuleBuilder used for building factory implementations
@@ -536,7 +536,8 @@ namespace StyletIoC.Internal
 
         public BuilderUpper GetBuilderUpper(Type type)
         {
-            return this.builderUppers.GetOrAdd(type, x => new BuilderUpper(type, this));
+            var typeHandle = type.TypeHandle;
+            return this.builderUppers.GetOrAdd(typeHandle, x => new BuilderUpper(typeHandle, this));
         }
 
         public void Dispose()
