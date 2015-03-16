@@ -81,14 +81,14 @@ namespace StyletIoC.Internal.Builders
             if (serviceType.IsGenericTypeDefinition)
             {
                 var unboundGeneric = new UnboundGeneric(serviceType, implementationType, container, this.RegistrationFactory);
-                container.AddUnboundGeneric(new TypeKey(serviceType, this.Key), unboundGeneric);
+                container.AddUnboundGeneric(new TypeKey(serviceType.TypeHandle, this.Key), unboundGeneric);
             }
             else
             {
                 var creator = new TypeCreator(implementationType, container);
                 var registration = this.CreateRegistration(container, creator);
 
-                container.AddRegistration(new TypeKey(serviceType, this.Key ?? creator.AttributeKey), registration);
+                container.AddRegistration(new TypeKey(serviceType.TypeHandle, this.Key ?? creator.AttributeKey), registration);
             }
         }
 

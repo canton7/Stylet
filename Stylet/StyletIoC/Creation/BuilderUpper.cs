@@ -55,7 +55,7 @@ namespace StyletIoC.Creation
                 return null;
 
             var memberAccess = Expression.MakeMemberAccess(objExpression, member);
-            var memberValue = this.parentContext.GetSingleRegistration(memberType, attribute.Key, true).GetInstanceExpression(registrationContext);
+            var memberValue = this.parentContext.GetSingleRegistration(memberType.TypeHandle, attribute.Key, true).GetInstanceExpression(registrationContext);
             var assign = Expression.Assign(memberAccess, memberValue);
             // Only actually do the assignment if the field/property is currently null
             return Expression.IfThen(Expression.Equal(memberAccess, Expression.Constant(null, memberType)), assign);

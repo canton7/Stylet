@@ -22,7 +22,7 @@ namespace StyletIoC.Internal.Builders
             var creator = new FactoryCreator<TImplementation>(this.factory, container);
             var registration = this.CreateRegistration(container, creator);
 
-            container.AddRegistration(new TypeKey(this.ServiceType, this.Key), registration);
+            container.AddRegistration(new TypeKey(this.ServiceType.TypeHandle, this.Key), registration);
         }
     }
 }

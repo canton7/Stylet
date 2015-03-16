@@ -10,11 +10,11 @@ namespace StyletIoC.Internal.Registrations
     // We're only created when we're needed, so no point in trying to be lazy
     internal class FuncNoKeyRegistration : IRegistration
     {
-        private readonly Type funcType;
+        private readonly RuntimeTypeHandle funcType;
         private readonly Func<IRegistrationContext, object> generator;
         private readonly IRegistration delegateRegistration;
 
-        public Type Type
+        public RuntimeTypeHandle TypeHandle
         {
             get { return this.funcType; }
         }
@@ -22,7 +22,7 @@ namespace StyletIoC.Internal.Registrations
         public FuncNoKeyRegistration(IRegistration delegateRegistration)
         {
             this.delegateRegistration = delegateRegistration;
-            this.funcType = Expression.GetFuncType(this.delegateRegistration.Type);
+            this.funcType = Expression.GetFuncType(Type.GetTypeFromHandle(delegateRegistration.TypeHandle)).TypeHandle;
 
             var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
             this.generator = Expression.Lambda<Func<IRegistrationContext, object>>(this.GetInstanceExpression(registrationContext), registrationContext).Compile();

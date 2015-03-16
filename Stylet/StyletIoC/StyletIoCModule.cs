@@ -24,7 +24,7 @@ namespace StyletIoC
                 throw new InvalidOperationException("Bind should only be called from inside Load, and you must not call Load yourself");
 
             var builderBindTo = new BuilderBindTo(serviceType, this.getAssemblies);
-            builder.AddBinding(builderBindTo);
+            this.builder.AddBinding(builderBindTo);
             return builderBindTo;
         }
 

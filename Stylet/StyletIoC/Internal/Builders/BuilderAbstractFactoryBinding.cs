@@ -19,7 +19,7 @@ namespace StyletIoC.Internal.Builders
             var creator = new AbstractFactoryCreator(factoryType);
             var registration = new TransientRegistration(creator);
 
-            container.AddRegistration(new TypeKey(this.ServiceType, this.Key), registration);
+            container.AddRegistration(new TypeKey(this.ServiceType.TypeHandle, this.Key), registration);
         }
     }
 }

@@ -16,8 +16,8 @@ namespace StyletIoC.Internal.Registrations
         private readonly IRegistrationContext parentContext;
 
         public string Key { get; private set; }
-        private readonly Type _type;
-        public Type Type
+        private readonly RuntimeTypeHandle _type;
+        public RuntimeTypeHandle TypeHandle
         {
             get { return this._type; }
         }
@@ -26,10 +26,10 @@ namespace StyletIoC.Internal.Registrations
         private readonly object generatorLock = new object();
         private Func<IRegistrationContext, object> generator;
 
-        public GetAllRegistration(Type type, IRegistrationContext parentContext, string key)
+        public GetAllRegistration(RuntimeTypeHandle typeHandle, IRegistrationContext parentContext, string key)
         {
             this.Key = key;
-            this._type = type;
+            this._type = typeHandle;
             this.parentContext = parentContext;
         }
 
@@ -54,8 +54,10 @@ namespace StyletIoC.Internal.Registrations
             if (this.expression != null)
                 return this.expression;
 
-            var instanceExpressions = this.parentContext.GetAllRegistrations(this.Type.GenericTypeArguments[0], this.Key, false).Select(x => x.GetInstanceExpression(registrationContext)).ToArray();
-            var listCtor = this.Type.GetConstructor(new[] { typeof(int) }); // ctor which takes capacity
+            var type = Type.GetTypeFromHandle(this.TypeHandle);
+
+            var instanceExpressions = this.parentContext.GetAllRegistrations(type.GenericTypeArguments[0].TypeHandle, this.Key, false).Select(x => x.GetInstanceExpression(registrationContext)).ToArray();
+            var listCtor = type.GetConstructor(new[] { typeof(int) }); // ctor which takes capacity
             Debug.Assert(listCtor != null);
             var listNew = Expression.New(listCtor, Expression.Constant(instanceExpressions.Length));
             Expression list = instanceExpressions.Any() ? (Expression)Expression.ListInit(listNew, instanceExpressions) : listNew;
