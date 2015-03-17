@@ -10,7 +10,7 @@ namespace StyletIoC.Creation
     /// </summary>
     public class BuilderUpper
     {
-        private readonly Type type;
+        private readonly RuntimeTypeHandle typeHandle;
         private readonly IRegistrationContext parentContext;
         private readonly object implementorLock = new object();
         private Action<IRegistrationContext, object> implementor;
@@ -18,11 +18,11 @@ namespace StyletIoC.Creation
         /// <summary>
         /// Initialises a new instance of the <see cref="BuilderUpper"/> class
         /// </summary>
-        /// <param name="type">Type of object that the BuilderUpper will work on</param>
+        /// <param name="typeHandle">Type of object that the BuilderUpper will work on</param>
         /// <param name="parentContext">IRegistrationContext on which this BuilderUpper is registered</param>
-        public BuilderUpper(Type type, IRegistrationContext parentContext)
+        public BuilderUpper(RuntimeTypeHandle typeHandle, IRegistrationContext parentContext)
         {
-            this.type = type;
+            this.typeHandle = typeHandle;
             this.parentContext = parentContext;
         }
 
@@ -34,8 +34,13 @@ namespace StyletIoC.Creation
         /// <returns>Expression which will build up inputParameterExpression</returns>
         public Expression GetExpression(Expression inputParameterExpression, ParameterExpression registrationContext)
         {
-            var expressions = this.type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.FieldType, registrationContext))
-                .Concat(this.type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.PropertyType, registrationContext)))
+            return this.GetExpression(inputParameterExpression, registrationContext, Type.GetTypeFromHandle(this.typeHandle));
+        }
+
+        private Expression GetExpression(Expression inputParameterExpression, ParameterExpression registrationContext, Type type)
+        {
+            var expressions = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.FieldType, registrationContext))
+                .Concat(type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Select(x => this.ExpressionForMember(inputParameterExpression, x, x.PropertyType, registrationContext)))
                 .Where(x => x != null)
                 .ToList();
 
@@ -72,10 +77,12 @@ namespace StyletIoC.Creation
                 if (this.implementor != null)
                     return this.implementor;
 
+                var type = Type.GetTypeFromHandle(this.typeHandle);
+
                 var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
                 var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
-                var typedParameterExpression = Expression.Convert(parameterExpression, this.type);
-                this.implementor = Expression.Lambda<Action<IRegistrationContext, object>>(this.GetExpression(typedParameterExpression, registrationContext), registrationContext, parameterExpression).Compile();
+                var typedParameterExpression = Expression.Convert(parameterExpression, type);
+                this.implementor = Expression.Lambda<Action<IRegistrationContext, object>>(this.GetExpression(typedParameterExpression, registrationContext, type), registrationContext, parameterExpression).Compile();
 
                 return this.implementor;
             }

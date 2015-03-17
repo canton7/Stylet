@@ -11,7 +11,7 @@ namespace StyletIoC.Creation
         /// <summary>
         /// Gets the type of object that will be created
         /// </summary>
-        Type Type { get; }
+        RuntimeTypeHandle TypeHandle { get; }
 
         /// <summary>
         /// Fetches an expression evaluating to an instance on demand

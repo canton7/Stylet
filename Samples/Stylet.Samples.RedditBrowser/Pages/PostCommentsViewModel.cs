@@ -23,7 +23,7 @@ namespace Stylet.Samples.RedditBrowser.Pages
 
         public void GoBack()
         {
-            this.TryClose();
+            this.RequestClose();
         }
     }
 }

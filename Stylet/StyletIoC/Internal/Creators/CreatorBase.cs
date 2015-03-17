@@ -10,7 +10,7 @@ namespace StyletIoC.Internal.Creators
     /// </summary>
     internal abstract class CreatorBase : ICreator
     {
-        public virtual Type Type { get; protected set; }
+        public virtual RuntimeTypeHandle TypeHandle { get; protected set; }
         protected IRegistrationContext ParentContext { get; set; }
 
         protected CreatorBase(IRegistrationContext parentContext)
@@ -21,10 +21,12 @@ namespace StyletIoC.Internal.Creators
         // Common utility method
         protected Expression CompleteExpressionFromCreator(Expression creator, ParameterExpression registrationContext)
         {
-            var instanceVar = Expression.Variable(this.Type, "instance");
+            var type = Type.GetTypeFromHandle(this.TypeHandle);
+
+            var instanceVar = Expression.Variable(type, "instance");
             var assignment = Expression.Assign(instanceVar, creator);
 
-            var buildUpExpression = this.ParentContext.GetBuilderUpper(this.Type).GetExpression(instanceVar, registrationContext);
+            var buildUpExpression = this.ParentContext.GetBuilderUpper(type).GetExpression(instanceVar, registrationContext);
 
             // We always start with:
             // var instance = new Class(.....)
@@ -33,7 +35,7 @@ namespace StyletIoC.Internal.Creators
             var blockItems = new List<Expression>() { assignment, buildUpExpression };
             // If it implements IInjectionAware, follow that up with:
             // instance.ParametersInjected()
-            if (typeof(IInjectionAware).IsAssignableFrom(this.Type))
+            if (typeof(IInjectionAware).IsAssignableFrom(type))
                 blockItems.Add(Expression.Call(instanceVar, typeof(IInjectionAware).GetMethod("ParametersInjected")));
             // Final appearance of instanceVar, as this sets the return value of the block
             blockItems.Add(instanceVar);

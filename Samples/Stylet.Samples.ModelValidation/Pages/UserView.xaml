@@ -21,7 +21,7 @@
                         <DockPanel LastChildFill="False">
                             <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Left" Width="{Binding ElementName=CustomAdorner, Path=ActualWidth}"
                                        Foreground="OrangeRed" TextTrimming="WordEllipsis"
-                                       Text="{Binding ElementName=CustomAdorner,Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"/>
+                                       Text="{Binding ElementName=CustomAdorner, Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"/>
                             <Border Background="OrangeRed" DockPanel.Dock="Right" Margin="5,0,0,0" VerticalAlignment="Top"
                                 Width="20" Height="20" CornerRadius="5">
                                 <TextBlock Text="!" VerticalAlignment="center" HorizontalAlignment="center" FontWeight="Bold" Foreground="white" />
@@ -53,19 +53,19 @@
         </Grid.RowDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Target="{Binding ElementName=UserName}">UserName:</Label>
-        <TextBox Grid.Row="0" Grid.Column="1" x:Name="UserName" Text="{Binding UserName}"/>
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="UserName" Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}"/>
 
         <Label Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=Email}">Email:</Label>
-        <TextBox Grid.Row="1" Grid.Column="1" x:Name="Email" Text="{Binding Email}"/>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="Email" Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"/>
 
         <Label Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=Age}">Age:</Label>
-        <TextBox Grid.Row="2" Grid.Column="1" x:Name="Age" Text="{Binding Age}"/>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="Age" Text="{Binding Age, UpdateSourceTrigger=PropertyChanged}"/>
 
         <Label Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=Password}">Password:</Label>
-        <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="Password" xaml:Secure.Password="{Binding Password}"/>
+        <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="Password" xaml:Secure.Password="{Binding Password, UpdateSourceTrigger=PropertyChanged}"/>
 
         <Label Grid.Row="4" Grid.Column="0" Target="{Binding ElementName=PasswordConfirmation}">Password Confirmation:</Label>
-        <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="PasswordConfirmation" xaml:Secure.Password="{Binding PasswordConfirmation}"/>
+        <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="PasswordConfirmation" xaml:Secure.Password="{Binding PasswordConfirmation, UpdateSourceTrigger=PropertyChanged}"/>
         
         <CheckBox Grid.Row="5" Grid.Column="0" IsChecked="{Binding ShouldAutoValidate}">Auto-Validate</CheckBox>
         <Button Grid.Row="5" Grid.Column="1" Command="{s:Action Submit}" HorizontalAlignment="Left">Submit</Button>

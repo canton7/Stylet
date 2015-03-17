@@ -10,7 +10,7 @@ namespace StyletIoC.Internal.Registrations
     internal abstract class RegistrationBase : IRegistration
     {
         protected readonly ICreator Creator;
-        public Type Type { get { return this.Creator.Type; } }
+        public RuntimeTypeHandle TypeHandle { get { return this.Creator.TypeHandle; } }
 
         private readonly object generatorLock = new object();
         private Func<IRegistrationContext, object> generator;

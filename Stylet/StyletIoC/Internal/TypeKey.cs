@@ -7,20 +7,20 @@ namespace StyletIoC.Internal
     /// </summary>
     internal class TypeKey : IEquatable<TypeKey>
     {
-        public readonly Type Type;
+        public readonly RuntimeTypeHandle TypeHandle;
         public readonly string Key;
 
-        public TypeKey(Type type, string key)
+        public TypeKey(RuntimeTypeHandle typeHandle, string key)
         {
-            this.Type = type;
+            this.TypeHandle = typeHandle;
             this.Key = key;
         }
 
         public override int GetHashCode()
         {
             if (this.Key == null)
-                return this.Type.GetHashCode();
-            return this.Type.GetHashCode() ^ this.Key.GetHashCode();
+                return this.TypeHandle.GetHashCode();
+            return this.TypeHandle.GetHashCode() ^ this.Key.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -30,7 +30,7 @@ namespace StyletIoC.Internal
 
         public bool Equals(TypeKey other)
         {
-            return other != null && this.Type == other.Type && this.Key == other.Key;
+            return other != null && this.TypeHandle.Equals(other.TypeHandle) && this.Key == other.Key;
         }
     }
 }

@@ -29,13 +29,13 @@ namespace Stylet.Samples.RedditBrowser.Pages
             }
             catch (Exception)
             {
-                this.TryClose();
+                this.RequestClose();
             }
         }
 
         public void Close()
         {
-            this.TryClose();
+            this.RequestClose();
         }
 
         public bool CanNext

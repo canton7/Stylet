@@ -1,6 +1,13 @@
 Stylet Changelog
 ================
 
+v1.1.5
+------
+ 
+  - Improve memory usage in StyletIoC
+  - Avoid potential small memory leak in MessageBoxView
+  - Improve Stylet.Samples.Validation
+
 v1.1.4
 ------
 

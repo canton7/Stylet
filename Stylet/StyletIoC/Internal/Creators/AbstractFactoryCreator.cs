@@ -12,9 +12,9 @@ namespace StyletIoC.Internal.Creators
     internal class AbstractFactoryCreator : ICreator
     {
         private readonly Type abstractFactoryType;
-        public Type Type
+        public RuntimeTypeHandle TypeHandle
         {
-            get { return this.abstractFactoryType; }
+            get { return this.abstractFactoryType.TypeHandle; }
         }
 
         public AbstractFactoryCreator(Type abstractFactoryType)

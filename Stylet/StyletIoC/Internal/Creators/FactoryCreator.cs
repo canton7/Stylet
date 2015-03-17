@@ -12,7 +12,7 @@ namespace StyletIoC.Internal.Creators
     {
         private readonly Func<IRegistrationContext, T> factory;
 
-        public override Type Type { get { return typeof(T); } }
+        public override RuntimeTypeHandle TypeHandle { get { return typeof(T).TypeHandle; } }
 
         public FactoryCreator(Func<IRegistrationContext, T> factory, IRegistrationContext parentContext)
             : base(parentContext)
