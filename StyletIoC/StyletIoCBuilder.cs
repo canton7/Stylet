@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace StyletIoC
 {
@@ -148,6 +149,11 @@ namespace StyletIoC
     public interface IStyletIoCBuilder
     {
         /// <summary>
+        /// Gets or sets the list of assemblies searched by Autobind and ToAllImplementatinos
+        /// </summary>
+        List<Assembly> Assemblies { get; set; }
+
+        /// <summary>
         /// Bind the specified service (interface, abstract class, concrete class, unbound generic, etc) to something
         /// </summary>
         /// <param name="serviceType">Service to bind</param>
@@ -198,20 +204,28 @@ namespace StyletIoC
     public class StyletIoCBuilder : IStyletIoCBuilder
     {
         private readonly List<BuilderBindTo> bindings = new List<BuilderBindTo>();
-        private readonly List<StyletIoCModule> modules = new List<StyletIoCModule>();
+        private List<Assembly> autobindAssemblies;
 
+        /// <summary>
+        /// Gets or sets the list of assemblies searched by Autobind and ToAllImplementatinos
+        /// </summary>
+        public List<Assembly> Assemblies { get; set; }
+        
         /// <summary>
         /// Initialises a new instance of the <see cref="StyletIoCBuilder"/> class
         /// </summary>
-        public StyletIoCBuilder() { }
+        public StyletIoCBuilder()
+        {
+            this.Assemblies = new List<Assembly>() { Assembly.GetCallingAssembly() };
+        }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="StyletIoCBuilder"/> class, which contains the given modules
         /// </summary>
         /// <param name="modules">Modules to add to the builder</param>
-        public StyletIoCBuilder(params StyletIoCModule[] modules)
+        public StyletIoCBuilder(params StyletIoCModule[] modules) : this()
         {
-            this.modules.AddRange(modules);
+            this.AddModules(modules);
         }
 
         /// <summary>
@@ -221,7 +235,7 @@ namespace StyletIoC
         /// <returns>Fluent interface to continue configuration</returns>
         public IBindTo Bind(Type serviceType)
         {
-            var builderBindTo = new BuilderBindTo(serviceType);
+            var builderBindTo = new BuilderBindTo(serviceType, this.GetAssemblies);
             this.bindings.Add(builderBindTo);
             return builderBindTo;
         }
@@ -237,35 +251,22 @@ namespace StyletIoC
         }
 
         /// <summary>
-        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
+        /// Search assemblies for concrete types, and self-bind them
         /// </summary>
-        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
+        /// <param name="assemblies">Assemblies to search, in addition to the Assemblies property</param>
         public void Autobind(IEnumerable<Assembly> assemblies)
         {
-            var assembliesArray = (assemblies == null) ? new Assembly[0] : (assemblies as Assembly[] ?? assemblies.ToArray());
-            // If they haven't given any assemblies, use the assembly of the caller
-            if (assembliesArray.Length == 0)
-                assembliesArray = new[] { Assembly.GetCallingAssembly() };
-
-            // We self-bind concrete classes only
-            var classes = assembliesArray.Distinct().SelectMany(x => x.GetTypes()).Where(c => c.IsClass && !c.IsAbstract);
-            foreach (var cls in classes)
-            {
-                // It's not actually possible for this to fail with a StyletIoCRegistrationException (at least currently)
-                // It's a self-binding, and those are always safe (at this stage - it could fall over when the containing's actually build)
-                this.Bind(cls).To(cls).AsWeakBinding();
-            }
+            // If they've called Autobind before, then add the new set of assemblies on
+            var existing = this.autobindAssemblies ?? Enumerable.Empty<Assembly>();
+            this.autobindAssemblies = existing.Concat(this.GetAssemblies(assemblies, "Autobind")).Distinct().ToList();
         }
 
         /// <summary>
-        /// Search the specified assembly(s) / the current assembly for concrete types, and self-bind them
+        /// Search assemblies for concrete types, and self-bind them
         /// </summary>
-        /// <param name="assemblies">Assembly(s) to search, or leave empty / null to search the current assembly</param>
+        /// <param name="assemblies">Assemblies to search, in addition to the Assemblies property</param>
         public void Autobind(params Assembly[] assemblies)
         {
-            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
-            if (assemblies == null || assemblies.Length == 0)
-                assemblies = new[] { Assembly.GetCallingAssembly() };
             this.Autobind(assemblies.AsEnumerable());
         }
 
@@ -275,7 +276,7 @@ namespace StyletIoC
         /// <param name="module">Module to add</param>
         public void AddModule(StyletIoCModule module)
         {
-            this.modules.Add(module);
+            module.AddToBuilder(this, this.GetAssemblies);
         }
 
         /// <summary>
@@ -284,7 +285,10 @@ namespace StyletIoC
         /// <param name="modules">Modules to add</param>
         public void AddModules(params StyletIoCModule[] modules)
         {
-            this.modules.AddRange(modules);
+            foreach (var module in modules)
+            {
+                this.AddModule(module);
+            }
         }
 
         /// <summary>
@@ -293,12 +297,7 @@ namespace StyletIoC
         /// <returns>An IContainer, which should be used from now on</returns>
         public IContainer BuildContainer()
         {
-            foreach (var module in this.modules)
-            {
-                module.AddToBuilder(this);
-            }
-
-            var container = new Container();
+            var container = new Container(this.autobindAssemblies);
 
             // Just in case they want it
             this.Bind<IContainer>().ToInstance(container).AsWeakBinding();
@@ -316,6 +315,16 @@ namespace StyletIoC
         internal void AddBinding(BuilderBindTo binding)
         {
             this.bindings.Add(binding);
+        }
+
+        private IEnumerable<Assembly> GetAssemblies(IEnumerable<Assembly> extras, string methodName)
+        {
+            IEnumerable<Assembly> assemblies = this.Assemblies ?? Enumerable.Empty<Assembly>();
+            if (extras != null)
+                assemblies = assemblies.Concat(extras);
+            if (!assemblies.Any())
+                throw new StyletIoCRegistrationException(String.Format("{0} called but Assemblies is empty, and no extra assemblies given", methodName));
+            return assemblies.Distinct();
         }
     }
 }

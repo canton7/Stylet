@@ -19,9 +19,9 @@ namespace StyletIoC.Internal
             this.RegistrationFactory = registrationFactory;
         }
 
-        public IRegistration CreateRegistrationForTypeKey(TypeKey boundTypeKey)
+        public IRegistration CreateRegistrationForTypeAndKey(Type boundType, string boundKey)
         {
-            return this.RegistrationFactory(this.parentContext, this.serviceType, new TypeCreator(boundTypeKey.Type, this.parentContext), boundTypeKey.Key);
+            return this.RegistrationFactory(this.parentContext, this.serviceType, new TypeCreator(boundType, this.parentContext), boundKey);
         }
     }
 }

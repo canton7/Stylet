@@ -24,7 +24,7 @@ namespace StyletIoC.Internal.Creators
         public TypeCreator(Type type, IRegistrationContext parentContext)
             : base(parentContext)
         {
-            this.Type = type;
+            this.TypeHandle = type.TypeHandle;
 
             // Use the key from InjectAttribute (if present), and let someone else override it if they want
             var attribute = type.GetCustomAttribute<InjectAttribute>(true);
@@ -44,12 +44,14 @@ namespace StyletIoC.Internal.Creators
             if (this.creationExpression != null)
                 return this.creationExpression;
 
+            var type = Type.GetTypeFromHandle(this.TypeHandle);
+
             // Find the constructor which has the most parameters which we can fulfill, accepting default values which we can't fulfill
             ConstructorInfo ctor;
-            var ctorsWithAttribute = this.Type.GetConstructors().Where(x => x.GetCustomAttribute<InjectAttribute>(true) != null).ToList();
+            var ctorsWithAttribute = type.GetConstructors().Where(x => x.GetCustomAttribute<InjectAttribute>(true) != null).ToList();
             if (ctorsWithAttribute.Count > 1)
             {
-                throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", this.Type.GetDescription()));
+                throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", type.GetDescription()));
             }
             else if (ctorsWithAttribute.Count == 1)
             {
@@ -57,11 +59,11 @@ namespace StyletIoC.Internal.Creators
                 var key = ctorsWithAttribute[0].GetCustomAttribute<InjectAttribute>(true).Key;
                 var cantResolve = ctor.GetParameters().FirstOrDefault(p => !this.ParentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue);
                 if (cantResolve != null)
-                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", this.Type.GetDescription(), cantResolve.Name, cantResolve.ParameterType.GetDescription()));
+                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", type.GetDescription(), cantResolve.Name, cantResolve.ParameterType.GetDescription()));
             }
             else
             {
-                ctor = this.Type.GetConstructors()
+                ctor = type.GetConstructors()
                     .Where(c => c.GetParameters().All(p => this.ParentContext.CanResolve(p.ParameterType, this.KeyForParameter(p)) || p.HasDefaultValue))
                     .OrderByDescending(c => c.GetParameters().Count(p => !p.HasDefaultValue))
                     .FirstOrDefault();
@@ -78,9 +80,9 @@ namespace StyletIoC.Internal.Creators
                         return String.Format("   {0}{1}: {2}{3}", p.ParameterType.GetDescription(), keyStr, canResolve ? "Success" : "Failure", usingDefaultStr);
                     };
 
-                    var info = String.Join("\n\n", this.Type.GetConstructors().Select(c => String.Format("Constructor:\n{0}\n\n", String.Join("\n", c.GetParameters().Select(ctorParameterPrinter)))));
+                    var info = String.Join("\n\n", type.GetConstructors().Select(c => String.Format("Constructor:\n{0}\n\n", String.Join("\n", c.GetParameters().Select(ctorParameterPrinter)))));
 
-                    throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call:\n{1}", this.Type.GetDescription(), info));
+                    throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call:\n{1}", type.GetDescription(), info));
                 }
             }
 
@@ -98,7 +100,7 @@ namespace StyletIoC.Internal.Creators
                     }
                     catch (StyletIoCRegistrationException e)
                     {
-                        throw new StyletIoCRegistrationException(String.Format("{0} Required by parameter '{1}' of type {2} (which is a {3}).", e.Message, x.Name, this.Type.GetDescription(), x.ParameterType.GetDescription()), e);
+                        throw new StyletIoCRegistrationException(String.Format("{0} Required by parameter '{1}' of type {2} (which is a {3}).", e.Message, x.Name, type.GetDescription(), x.ParameterType.GetDescription()), e);
                     }
                 }
                 // For some reason we need this cast...
@@ -109,8 +111,15 @@ namespace StyletIoC.Internal.Creators
 
             var completeExpression = this.CompleteExpressionFromCreator(creator, registrationContext);
 
-            Interlocked.CompareExchange(ref this.creationExpression, completeExpression, null);
-            return this.creationExpression;
+            if (StyletIoCContainer.CacheGeneratedExpressions)
+            {
+                Interlocked.CompareExchange(ref this.creationExpression, completeExpression, null);
+                return this.creationExpression;
+            }
+            else
+            {
+                return completeExpression;
+            }
         }
     }
 }

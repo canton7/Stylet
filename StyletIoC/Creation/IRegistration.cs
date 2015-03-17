@@ -22,7 +22,7 @@ namespace StyletIoC.Creation
         /// <summary>
         /// Gets the type of the object returned by the registration
         /// </summary>
-        Type Type { get; }
+        RuntimeTypeHandle TypeHandle { get; }
 
         /// <summary>
         /// Fetches an instance of the relevaent type

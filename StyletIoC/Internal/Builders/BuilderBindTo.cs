@@ -8,14 +8,16 @@ namespace StyletIoC.Internal.Builders
 {
     internal class BuilderBindTo : IBindTo
     {
+        private readonly Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies;
         public Type ServiceType { get; private set; }
         private BuilderBindingBase builderBinding;
         public bool IsWeak { get { return this.builderBinding.IsWeak; } }
         public string Key { get { return this.builderBinding.Key; } }
 
-        public BuilderBindTo(Type serviceType)
+        public BuilderBindTo(Type serviceType, Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies)
         {
             this.ServiceType = serviceType;
+            this.getAssemblies = getAssemblies;
         }
 
         public IInScopeOrWithKeyOrAsWeakBinding ToSelf()
@@ -54,18 +56,12 @@ namespace StyletIoC.Internal.Builders
 
         public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(IEnumerable<Assembly> assemblies)
         {
-            var assembliesArray = (assemblies == null) ? new Assembly[0] : (assemblies as Assembly[] ?? assemblies.ToArray());
-            if (assembliesArray.Length == 0)
-                assembliesArray = new[] { Assembly.GetCallingAssembly() };
-            this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceType, assembliesArray);
+            this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceType, this.getAssemblies(assemblies, "ToAllImplementations"));
             return this.builderBinding;
         }
 
         public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies)
         {
-            // Have to do null-or-empty check here as well, otherwise GetCallingAssembly returns this one....
-            if (assemblies == null || assemblies.Length == 0)
-                assemblies = new[] { Assembly.GetCallingAssembly() };
             return this.ToAllImplementations(assemblies.AsEnumerable());
         }
 
