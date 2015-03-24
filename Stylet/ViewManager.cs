@@ -105,6 +105,13 @@ namespace Stylet
             {
                 logger.Info("View.Model changed for {0} from {1} to {2}", targetLocation, oldValue, newValue);
                 var view = this.CreateAndBindViewForModelIfNecessary(newValue);
+                if (view is Window)
+                {
+                    var e = new StyletInvalidViewTypeException(String.Format("s:View.Model=\"...\" tried to show a View of type '{0}', but that View derives from the Window class. " +
+                    "Make sure any Views you display using s:View.Model=\"...\" do not derive from Window (use UserControl or similar)", view.GetType().Name));
+                    logger.Error(e);
+                    throw e;
+                }
                 View.SetContentProperty(targetLocation, view);
             }
             else
@@ -272,5 +279,20 @@ namespace Stylet
         {
             this.ViewTypeName = viewTypeName;
         }
+    }
+
+    /// <summary>
+    /// Exception raise when the located View is of the wrong type (Window when expected UserControl, etc)
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
+    public class StyletInvalidViewTypeException : Exception
+    {
+        /// <summary>
+        /// Initialises a new instance of the <see cref="StyletInvalidViewException"/> class
+        /// </summary>
+        /// <param name="message">Message associated with the Exception</param>
+        public StyletInvalidViewTypeException(string message)
+            : base(message)
+        { }
     }
 }

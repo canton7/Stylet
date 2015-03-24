@@ -88,7 +88,7 @@ namespace StyletUnitTests
         {
             var model = new object();
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(new UIElement());
-            Assert.Throws<ArgumentException>(() => this.windowManager.CreateWindow(model, false));
+            Assert.Throws<StyletInvalidViewTypeException>(() => this.windowManager.CreateWindow(model, false));
         }
 
         [Test]

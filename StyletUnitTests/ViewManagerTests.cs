@@ -179,6 +179,19 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void OnModelChangedThrowsIfViewIsAWindow()
+        {
+            var target = new ContentControl();
+            var model = new object();
+            var view = new Window();
+            var viewManager = new CreatingAndBindingViewManager(this.viewManagerConfig.Object);
+
+            viewManager.View = view;
+
+            Assert.Throws<StyletInvalidViewTypeException>(() => viewManager.OnModelChanged(target, null, model));
+        }
+
+        [Test]
         public void CreateViewForModelReturnsNullIfViewNotFound()
         {
             var config = new Mock<IViewManagerConfig>();
