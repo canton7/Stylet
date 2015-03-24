@@ -124,8 +124,9 @@ namespace Stylet
             var window = view as Window;
             if (window == null)
             {
-                var e = new ArgumentException(String.Format("WindowManager.ShowWindow or .ShowDialog tried to show a View of type '{0}', but that View doesn't derive from the Window class. " +
-                    "Make sure any Views you display derive from Window (not UserControl, etc)", view == null ? "(null)" : view.GetType().Name));
+                var e = new StyletInvalidViewTypeException(String.Format("WindowManager.ShowWindow or .ShowDialog tried to show a View of type '{0}', but that View doesn't derive from the Window class. " +
+                    "Make sure any Views you display using WindowManager.ShowWindow or .ShowDialog derive from Window (not UserControl, etc)",
+                    view == null ? "(null)" : view.GetType().Name));
                 logger.Error(e);
                 throw e;
             }

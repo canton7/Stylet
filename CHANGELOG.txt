@@ -1,6 +1,12 @@
 Stylet Changelog
 ================
 
+v1.1.6
+------
+
+ - s:Action supports a wider range of events (including KeyDown)
+ - Display a clearer message if the user tries to display a Window using s:View.Model
+
 v1.1.5
 ------
  

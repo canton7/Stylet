@@ -114,7 +114,7 @@ namespace Stylet.Xaml
             if (propertyAsMethodInfo != null)
             {
                 var parameters = propertyAsMethodInfo.GetParameters();
-                if (parameters.Length == 2 && typeof(RoutedEventHandler).IsAssignableFrom(parameters[1].ParameterType))
+                if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
                 {
                     var ec = new EventAction((DependencyObject)valueService.TargetObject, parameters[1].ParameterType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
                     return ec.GetDelegate();
