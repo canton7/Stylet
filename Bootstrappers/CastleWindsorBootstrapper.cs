@@ -38,7 +38,7 @@ namespace Bootstrappers
         {
             container.AddFacility<TypedFactoryFacility>();
             container.Register(
-                Component.For<IViewManagerConfig>().Instance(this),
+                Component.For<IViewManagerConfig, IWindowManagerConfig>().Instance(this),
                 Component.For<IViewManager>().ImplementedBy<ViewManager>().LifestyleSingleton(),
                 Component.For<IWindowManager>().ImplementedBy<WindowManager>().LifestyleSingleton(),
                 Component.For<IEventAggregator>().ImplementedBy<EventAggregator>().LifestyleSingleton(),

@@ -25,7 +25,7 @@ namespace Bootstrappers
             var viewManager = new ViewManager(this);
             this.Container.Add(typeof(IViewManager), () => viewManager);
 
-            var windowManager = new WindowManager(viewManager, () => (IMessageBoxViewModel)this.Container[typeof(IMessageBoxViewModel)]());
+            var windowManager = new WindowManager(viewManager, () => (IMessageBoxViewModel)this.Container[typeof(IMessageBoxViewModel)](), this);
             this.Container.Add(typeof(IWindowManager), () => windowManager);
 
             var eventAggregator = new EventAggregator();

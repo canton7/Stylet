@@ -39,6 +39,7 @@ namespace Bootstrappers
         {
             config.For<IViewManagerConfig>().Add(this);
             config.For<IViewManager>().Add<ViewManager>().LifecycleIs<SingletonLifecycle>();
+            config.For<IWindowManagerConfig>().Add(this);
             config.For<IWindowManager>().Add<WindowManager>().LifecycleIs<SingletonLifecycle>();
             config.For<IEventAggregator>().Add<EventAggregator>().LifecycleIs<SingletonLifecycle>();
             config.For<IMessageBoxViewModel>().Add<MessageBoxViewModel>().LifecycleIs<UniquePerRequestLifecycle>();

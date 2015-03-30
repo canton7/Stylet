@@ -38,7 +38,7 @@ namespace Bootstrappers
             // This is a workaround
             var viewManager = new ViewManager(this);
             container.RegisterInstance<IViewManager>(viewManager);
-            container.RegisterInstance<IWindowManager>(new WindowManager(viewManager, () => container.Resolve<IMessageBoxViewModel>()));
+            container.RegisterInstance<IWindowManager>(new WindowManager(viewManager, () => container.Resolve<IMessageBoxViewModel>(), this));
             container.RegisterInstance<IEventAggregator>(new EventAggregator());
             container.RegisterType<IMessageBoxViewModel, MessageBoxViewModel>(new PerResolveLifetimeManager());
             container.RegisterTypes(AllClasses.FromAssemblies(this.Assemblies), WithMappings.None, WithName.Default, WithLifetime.PerResolve);

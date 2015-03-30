@@ -57,6 +57,7 @@ namespace Stylet
         {
             // Mark these as auto-bindings, so the user can replace them if they want
             builder.Bind<IViewManagerConfig>().ToInstance(this).AsWeakBinding();
+            builder.Bind<IWindowManagerConfig>().ToInstance(this).AsWeakBinding();
             builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();
