@@ -10,15 +10,9 @@ namespace Bootstrappers
 
         protected override void ConfigureBootstrapper()
         {
-            this.Configure();
             this.DefaultConfigureContainer();
             this.ConfigureContainer();
         }
-
-        /// <summary>
-        /// Override to configure anything that needs configuring
-        /// </summary>
-        protected virtual void Configure() { }
 
         protected virtual void DefaultConfigureContainer()
         {

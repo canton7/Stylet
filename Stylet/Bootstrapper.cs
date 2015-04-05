@@ -40,14 +40,7 @@ namespace Stylet
             this.DefaultConfigureIoC(builder);
 
             this.Container = builder.BuildContainer();
-
-            this.Configure();
         }
-
-        /// <summary>
-        /// Hook called after the IoC container has been set up
-        /// </summary>
-        protected virtual void Configure() { }
 
         /// <summary>
         /// Carries out default configuration of StyletIoC. Override if you don't want to do this

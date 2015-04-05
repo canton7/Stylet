@@ -87,9 +87,15 @@ namespace Stylet
 
             View.ViewManager = (IViewManager)this.GetInstance(typeof(IViewManager));
 
+            this.Configure();
             this.Launch();
             this.OnLaunch();
         }
+
+        /// <summary>
+        /// Hook called after the IoC container has been set up
+        /// </summary>
+        protected virtual void Configure() { }
 
         /// <summary>
         /// Launch the root view

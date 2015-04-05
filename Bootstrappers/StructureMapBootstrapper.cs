@@ -18,19 +18,12 @@ namespace Bootstrappers
 
         protected override void ConfigureBootstrapper()
         {
-            this.Configure();
-
             this.container = new Container(config =>
             {
                 this.DefaultConfigureIoC(config);
                 this.ConfigureIoC(config);
             });
         }
-
-        /// <summary>
-        /// Override to configure anything that needs configuring
-        /// </summary>
-        protected virtual void Configure() { }
 
         /// <summary>
         /// Carries out default configuration of the IoC container. Override if you don't want to do this
