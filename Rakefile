@@ -10,6 +10,9 @@ CONFIG = ENV['CONFIG'] || 'Debug'
 COVERAGE_DIR = 'Coverage'
 COVERAGE_FILE = File.join(COVERAGE_DIR, 'coverage.xml')
 
+GITLINK_REMOTE = 'https://github.com/canton7/stylet'
+NUSPEC = 'NuGet/Stylet.nuspec'
+
 directory COVERAGE_DIR
 
 desc "Build Stylet.sln using the current CONFIG (or Debug)"
@@ -94,6 +97,15 @@ end
 def coverage(coverage_files)
   coverage_files = [*coverage_files]
   sh REPORT_GENERATOR, %Q{-reports:"#{coverage_files.join(';')}" "-targetdir:#{COVERAGE_DIR}"}
+end
+
+desc "Create NuGet package"
+task :package do
+  local_hash = `git rev-parse HEAD`.chomp
+  sh "NuGet/GitLink.exe . -s #{local_hash} -u #{GITLINK_REMOTE} -f Stylet.sln -ignore StyletUnitTests,StyletIntegrationTests"
+  Dir.chdir(File.dirname(NUSPEC)) do
+    sh "nuget.exe pack #{File.basename(NUSPEC)}"
+  end
 end
 
 desc "Extract StyletIoC as a standalone file"
