@@ -85,7 +85,9 @@ namespace Stylet
 
             this.ConfigureBootstrapper();
 
-            View.ViewManager = (IViewManager)this.GetInstance(typeof(IViewManager));
+            // Cater for the unit tests, which can't sensibly stub Application
+            if (this.Application != null)
+                this.Application.Resources.Add(View.ViewManagerResourceKey, this.GetInstance(typeof(IViewManager)));
 
             this.Configure();
             this.Launch();

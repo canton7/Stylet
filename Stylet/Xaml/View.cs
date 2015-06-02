@@ -12,17 +12,17 @@ namespace Stylet.Xaml
     public class View : DependencyObject
     {
         /// <summary>
+        /// Key which will be used to retrieve the ViewManager associated with the current application, from application's resources
+        /// </summary>
+        public const string ViewManagerResourceKey = "b9a38199-8cb3-4103-8526-c6cfcd089df7";
+
+        /// <summary>
         /// Initial value of the ActionTarget property.
         /// This can be used as a marker - if the property has this value, it hasn't yet been assigned to anything else.
         /// </summary>
         public static readonly object InitialActionTarget = new object();
 
         private static readonly ContentPropertyAttribute defaultContentProperty = new ContentPropertyAttribute("Content");
-
-        /// <summary>
-        /// Gets or sets the <see cref="IViewManager"/> to be used. This should be set by the Bootstrapper.
-        /// </summary>
-        public static IViewManager ViewManager { get; set; }
 
         /// <summary>
         /// Get the ActionTarget associated with the given object
@@ -78,7 +78,9 @@ namespace Stylet.Xaml
         public static readonly DependencyProperty ModelProperty =
             DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(defaultModelValue, (d, e) =>
             {
-                if (ViewManager == null)
+                var viewManager = ((FrameworkElement)d).Resources[ViewManagerResourceKey] as IViewManager;
+
+                if (viewManager == null)
                 {
                     if (Execute.InDesignMode)
                     {
@@ -94,14 +96,14 @@ namespace Stylet.Xaml
                     }
                     else
                     {
-                        throw new InvalidOperationException("View.ViewManager is unassigned. This should have been set by the Bootstrapper");
+                        throw new InvalidOperationException("The ViewManager resource is unassigned. This should have been set by the Bootstrapper");
                     }
                 }
                 else
                 {
                     // It appears we can be reset to the default value on destruction
                     var newValue = e.NewValue == defaultModelValue ? null : e.NewValue;
-                    ViewManager.OnModelChanged(d, e.OldValue, newValue);
+                    viewManager.OnModelChanged(d, e.OldValue, newValue);
                 }
             }));
 
