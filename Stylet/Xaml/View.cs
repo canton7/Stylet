@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
+using System.Reflection;
 
 namespace Stylet.Xaml
 {
@@ -21,8 +22,6 @@ namespace Stylet.Xaml
         /// This can be used as a marker - if the property has this value, it hasn't yet been assigned to anything else.
         /// </summary>
         public static readonly object InitialActionTarget = new object();
-
-        private static readonly ContentPropertyAttribute defaultContentProperty = new ContentPropertyAttribute("Content");
 
         /// <summary>
         /// Get the ActionTarget associated with the given object
@@ -115,9 +114,13 @@ namespace Stylet.Xaml
         public static void SetContentProperty(DependencyObject targetLocation, UIElement view)
         {
             var type = targetLocation.GetType();
-            var contentProperty = Attribute.GetCustomAttributes(type, true).OfType<ContentPropertyAttribute>().FirstOrDefault() ?? defaultContentProperty;
-
-            type.GetProperty(contentProperty.Name).SetValue(targetLocation, view, null);
+            var attribute = type.GetCustomAttribute<ContentPropertyAttribute>();
+            // No attribute? Try a property called 'Content'...
+            string propertyName = attribute != null ? attribute.Name : "Content";
+            var property = type.GetProperty(propertyName);
+            if (property == null)
+                throw new InvalidOperationException(String.Format("Unable to find a Content property on type {0}. Make sure you're using 's:View.Model' on a suitable container, e.g. a ContentControl", type.Name));
+            property.SetValue(targetLocation, view);
         }
 
         // Stop someone from instantiating us

@@ -94,6 +94,15 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void SetContentControlThrowsIfNoContentProperty()
+        {
+            var obj = new DependencyObject();
+            var view = new UIElement();
+
+            Assert.Throws<InvalidOperationException>(() => View.SetContentProperty(obj, view));
+        }
+
+        [Test]
         public void SettingModelThrowsExceptionIfViewManagerNotSet()
         {
             var view = new FrameworkElement();
