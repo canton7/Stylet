@@ -10,7 +10,7 @@ namespace Stylet.Xaml
     /// <summary>
     /// Holds attached properties relating to various bits of the View which are used by Stylet
     /// </summary>
-    public class View : DependencyObject
+    public static class View
     {
         /// <summary>
         /// Key which will be used to retrieve the ViewManager associated with the current application, from application's resources
@@ -122,8 +122,5 @@ namespace Stylet.Xaml
                 throw new InvalidOperationException(String.Format("Unable to find a Content property on type {0}. Make sure you're using 's:View.Model' on a suitable container, e.g. a ContentControl", type.Name));
             property.SetValue(targetLocation, view);
         }
-
-        // Stop someone from instantiating us
-        private View() { }
     }
 }
