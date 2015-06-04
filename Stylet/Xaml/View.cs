@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 using System.Reflection;
+using Stylet.Logging;
 
 namespace Stylet.Xaml
 {
@@ -12,10 +13,13 @@ namespace Stylet.Xaml
     /// </summary>
     public static class View
     {
-        /// <summary>
-        /// Key which will be used to retrieve the ViewManager associated with the current application, from application's resources
-        /// </summary>
-        public const string ViewManagerResourceKey = "b9a38199-8cb3-4103-8526-c6cfcd089df7";
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(View));
+
+        internal const string ViewManagerResourceKey = "b9a38199-8cb3-4103-8526-c6cfcd089df7";
+
+        internal const string ActionTargetProxyResourceKey = "8b7cb732-8a14-4813-a580-b1f3cccea7b7";
+
+        internal const string DataContextProxyResourceKey = "982a3cb4-68b8-464f-9f65-8835d86d94dd";
 
         /// <summary>
         /// Initial value of the ActionTarget property.
@@ -30,7 +34,23 @@ namespace Stylet.Xaml
         /// <returns>ActionTarget associated with the given object</returns>
         public static object GetActionTarget(DependencyObject obj)
         {
-            return obj.GetValue(ActionTargetProperty);
+            var actionTarget = obj.GetValue(ActionTargetProperty);
+
+            if (actionTarget == InitialActionTarget)
+            {
+                var frameworkElement = obj as FrameworkElement;
+                if (frameworkElement != null)
+                {
+                    var bindingProxy = frameworkElement.TryFindResource(ActionTargetProxyResourceKey) as BindingProxy;
+                    if (bindingProxy != null)
+                    {
+                        logger.Info("ActionTarget not set on object {0}, but a BindingProxy containing an ActionTarget was, so using that", obj);
+                        actionTarget = bindingProxy.Data;
+                    }
+                }
+            }
+
+            return actionTarget;
         }
 
         /// <summary>
@@ -47,7 +67,20 @@ namespace Stylet.Xaml
         /// The object's ActionTarget. This is used to determine what object to call Actions on by the ActionExtension markup extension.
         /// </summary>
         public static readonly DependencyProperty ActionTargetProperty =
-            DependencyProperty.RegisterAttached("ActionTarget", typeof(object), typeof(View), new FrameworkPropertyMetadata(InitialActionTarget, FrameworkPropertyMetadataOptions.Inherits));
+            DependencyProperty.RegisterAttached("ActionTarget", typeof(object), typeof(View), new FrameworkPropertyMetadata(InitialActionTarget, FrameworkPropertyMetadataOptions.Inherits, (d, e) =>
+            {
+                // Also set a binding proxy if we can, in case there's something weird in the way
+                var frameworkElement = d as FrameworkElement;
+                if (frameworkElement == null)
+                    return;
+
+                var bindingProxy = new BindingProxy()
+                {
+                    Data = e.NewValue,
+                };
+                bindingProxy.Freeze();
+                frameworkElement.Resources[ActionTargetProxyResourceKey] = bindingProxy;
+            }));
 
         /// <summary>
         /// Fetch the ViewModel currently associated with a given object
@@ -104,6 +137,44 @@ namespace Stylet.Xaml
                     var newValue = e.NewValue == defaultModelValue ? null : e.NewValue;
                     viewManager.OnModelChanged(d, e.OldValue, newValue);
                 }
+            }));
+
+
+        internal static void SetDataContext(FrameworkElement obj, object value)
+        {
+            obj.DataContext = value;
+            var bindingProxy = new BindingProxy()
+            {
+                Data = value,
+            };
+            obj.Resources[DataContextProxyResourceKey] = bindingProxy;
+        }
+
+        public static bool GetRestoreDataContext(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(RestoreDataContextProperty);
+        }
+
+        public static void SetRestoreDataContext(DependencyObject obj, bool value)
+        {
+            obj.SetValue(RestoreDataContextProperty, value);
+        }
+
+        public static readonly DependencyProperty RestoreDataContextProperty =
+            DependencyProperty.RegisterAttached("RestoreDataContext", typeof(bool), typeof(View), new PropertyMetadata(false, (d, e) =>
+            {
+                if (!(e.NewValue is bool) || !(bool)e.NewValue)
+                    return;
+
+                var frameworkElement = d as FrameworkElement;
+                if (frameworkElement == null)
+                    return;
+
+                var bindingProxy = frameworkElement.Resources[DataContextProxyResourceKey] as BindingProxy;
+                if (bindingProxy == null)
+                    return;
+
+                frameworkElement.DataContext = bindingProxy.Data;
             }));
 
         /// <summary>

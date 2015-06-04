@@ -101,6 +101,7 @@
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="BindableCollection.cs" />
     <Compile Include="BootstrapperBase.cs" />
+    <Compile Include="Xaml\BindingProxy.cs" />
     <Compile Include="Xaml\BoolToVisibilityConverter.cs" />
     <Compile Include="Xaml\CommandAction.cs" />
     <Compile Include="Conductor.cs" />

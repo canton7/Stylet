@@ -5,6 +5,7 @@ using Stylet.Xaml;
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 
 namespace StyletUnitTests
@@ -51,7 +52,7 @@ namespace StyletUnitTests
         public void ModelStores()
         {
             var obj = new FrameworkElement();
-            obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
+            obj.Resources.Add("b9a38199-8cb3-4103-8526-c6cfcd089df7", this.viewManager.Object);
             View.SetModel(obj, 5);
             Assert.AreEqual(5, View.GetModel(obj));
         }
@@ -60,7 +61,7 @@ namespace StyletUnitTests
         public void ChangingModelCallsOnModelChanged()
         {
             var obj = new FrameworkElement();
-            obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
+            obj.Resources.Add("b9a38199-8cb3-4103-8526-c6cfcd089df7", this.viewManager.Object);
             var model = new object();
             View.SetModel(obj, null);
 
@@ -154,6 +155,27 @@ namespace StyletUnitTests
 
             var content = (TextBlock)element.Content;
             Assert.AreEqual("View for TestViewModel.SubViewModel", content.Text);
+        }
+
+        [Test]
+        public void ActionTargetIsRestoredAcrossPopupBoundaries()
+        {
+            Execute.InDesignMode = true;
+
+            var userControl = new UserControl();
+            var grid = new Grid();
+            userControl.Content = grid;
+
+            var button = new Button();
+            grid.Children.Add(button);
+
+            var contextMenu = new ContextMenu();
+            button.ContextMenu = contextMenu;
+
+            var actionTarget = new object();
+
+            View.SetActionTarget(userControl, actionTarget);
+            Assert.AreEqual(actionTarget, View.GetActionTarget(button));
         }
     }
 }
