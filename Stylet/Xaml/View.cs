@@ -77,7 +77,7 @@ namespace Stylet.Xaml
         public static readonly DependencyProperty ModelProperty =
             DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(defaultModelValue, (d, e) =>
             {
-                var viewManager = ((FrameworkElement)d).Resources[ViewManagerResourceKey] as IViewManager;
+                var viewManager = ((FrameworkElement)d).TryFindResource(ViewManagerResourceKey) as IViewManager;
 
                 if (viewManager == null)
                 {
