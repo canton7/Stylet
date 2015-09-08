@@ -413,5 +413,12 @@ namespace StyletUnitTests
             var screen = new MyScreen(adapter.Object);
             Assert.AreEqual(adapter.Object, screen.Validator);
         }
+
+        [Test]
+        public void DeactivatingInitialScreenLeavesItInInactive()
+        {
+            ((IScreenState)this.screen).Deactivate();
+            Assert.AreEqual(ScreenState.Initial, this.screen.State);
+        }
     }
 }

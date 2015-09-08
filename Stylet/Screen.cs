@@ -161,6 +161,12 @@ namespace Stylet
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IScreenState.Deactivate()
         {
+            // Avoid going from Initial -> Deactivated. This can happen with children of OneActive conductors.
+            // This means that children of OneActive conductors which aren't active will stay in Initial for a while.
+            // I think this is for the best: we don't want to move to Deactivated without a corresponding Activated.
+            if (this.State == ScreenState.Initial)
+                return;
+
             this.SetState(ScreenState.Deactivated, (oldState, newState) =>
             {
                 this.OnDeactivate();
