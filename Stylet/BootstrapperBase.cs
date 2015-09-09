@@ -2,7 +2,7 @@
 using Stylet.Xaml;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
@@ -12,7 +12,7 @@ namespace Stylet
     /// <summary>
     /// Bootstrapper to be extended by applications which don't want to use StyletIoC as the IoC container.
     /// </summary>
-    public abstract class BootstrapperBase : IBootstrapper, IViewManagerConfig, IDisposable
+    public abstract class BootstrapperBase : IBootstrapper, IViewManagerConfig, IWindowManagerConfig, IDisposable
     {
         /// <summary>
         /// Gets the current application
@@ -85,11 +85,19 @@ namespace Stylet
 
             this.ConfigureBootstrapper();
 
-            View.ViewManager = (IViewManager)this.GetInstance(typeof(IViewManager));
+            // Cater for the unit tests, which can't sensibly stub Application
+            if (this.Application != null)
+                this.Application.Resources.Add(View.ViewManagerResourceKey, this.GetInstance(typeof(IViewManager)));
 
+            this.Configure();
             this.Launch();
             this.OnLaunch();
         }
+
+        /// <summary>
+        /// Hook called after the IoC container has been set up
+        /// </summary>
+        protected virtual void Configure() { }
 
         /// <summary>
         /// Launch the root view
@@ -98,6 +106,15 @@ namespace Stylet
         {
             var windowManager = (IWindowManager)this.GetInstance(typeof(IWindowManager));
             windowManager.ShowWindow(this.RootViewModel);
+        }
+
+        /// <summary>
+        /// Returns the currently-displayed window, or null if there is none (or it can't be determined)
+        /// </summary>
+        /// <returns>The currently-displayed window, or null</returns>
+        public virtual Window GetActiveWindow()
+        {
+            return this.Application.Windows.OfType<Window>().FirstOrDefault(x => x.IsActive) ?? this.Application.MainWindow;
         }
 
         /// <summary>

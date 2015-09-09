@@ -19,17 +19,10 @@ namespace Bootstrappers
 
         protected override void ConfigureBootstrapper()
         {
-            this.Configure();
-
             this.container = new WindsorContainer();
             this.DefaultConfigureIoC(this.container);
             this.ConfigureIoC(this.container);
         }
-
-        /// <summary>
-        /// Override to configure anything that needs configuring
-        /// </summary>
-        protected virtual void Configure() { }
 
         /// <summary>
         /// Carries out default configuration of the IoC container. Override if you don't want to do this
@@ -38,7 +31,7 @@ namespace Bootstrappers
         {
             container.AddFacility<TypedFactoryFacility>();
             container.Register(
-                Component.For<IViewManagerConfig>().Instance(this),
+                Component.For<IViewManagerConfig, IWindowManagerConfig>().Instance(this),
                 Component.For<IViewManager>().ImplementedBy<ViewManager>().LifestyleSingleton(),
                 Component.For<IWindowManager>().ImplementedBy<WindowManager>().LifestyleSingleton(),
                 Component.For<IEventAggregator>().ImplementedBy<EventAggregator>().LifestyleSingleton(),

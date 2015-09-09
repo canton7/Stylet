@@ -1,6 +1,13 @@
 Stylet Changelog
 ================
 
+v1.1.7
+------
+
+ - Fix issue where OnInitialActivate may not be invoked if Screen was deactivated before being activated
+ - Action s:Action to be instantiated with zero parameters
+ - Make Stylet more modular by removing dependency on Application.Current from WindowManager, and View.ViewManager static property
+
 v1.1.6
 ------
 

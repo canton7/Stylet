@@ -110,7 +110,9 @@ namespace Stylet
                 {
                     // We've already been deactivated by this point    
                     foreach (var item in this.items)
+                    {
                         this.CloseAndCleanUp(item, this.DisposeChildren);
+                    }
                     
                     this.items.Clear();
                 }

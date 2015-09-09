@@ -147,6 +147,8 @@ namespace StyletUnitTests
         [Test]
         public void ActivateFiresCorrectEvents()
         {
+            // Get the initial activate out of the way
+            ((IScreenState)this.screen).Activate();
             this.screen.SetState(ScreenState.Deactivated, (n, o) => { });
             
             var changedEventArgs = new List<ScreenStateChangedEventArgs>();
@@ -412,6 +414,14 @@ namespace StyletUnitTests
             var adapter = new Mock<IModelValidator>();
             var screen = new MyScreen(adapter.Object);
             Assert.AreEqual(adapter.Object, screen.Validator);
+        }
+
+        [Test]
+        public void InitialActivateFiredWhenComingFromDeactivated()
+        {
+            ((IScreenState)this.screen).Deactivate();
+            ((IScreenState)this.screen).Activate();
+            Assert.True(this.screen.OnInitialActivateCalled);
         }
     }
 }

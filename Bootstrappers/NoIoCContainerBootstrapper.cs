@@ -10,22 +10,16 @@ namespace Bootstrappers
 
         protected override void ConfigureBootstrapper()
         {
-            this.Configure();
             this.DefaultConfigureContainer();
             this.ConfigureContainer();
         }
-
-        /// <summary>
-        /// Override to configure anything that needs configuring
-        /// </summary>
-        protected virtual void Configure() { }
 
         protected virtual void DefaultConfigureContainer()
         {
             var viewManager = new ViewManager(this);
             this.Container.Add(typeof(IViewManager), () => viewManager);
 
-            var windowManager = new WindowManager(viewManager, () => (IMessageBoxViewModel)this.Container[typeof(IMessageBoxViewModel)]());
+            var windowManager = new WindowManager(viewManager, () => (IMessageBoxViewModel)this.Container[typeof(IMessageBoxViewModel)](), this);
             this.Container.Add(typeof(IWindowManager), () => windowManager);
 
             var eventAggregator = new EventAggregator();

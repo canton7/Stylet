@@ -71,6 +71,8 @@ namespace Stylet
             get { return this.State == ScreenState.Active; }
         }
 
+        private bool haveActivated = false;
+
         /// <summary>
         /// Raised when the Screen's state changed, for any reason
         /// </summary>
@@ -146,9 +148,12 @@ namespace Stylet
         {
             this.SetState(ScreenState.Active, (oldState, newState) =>
             {
-                var isInitialActivate = oldState == ScreenState.Initial;
-                if (isInitialActivate)
+                bool isInitialActivate = !this.haveActivated;
+                if (!this.haveActivated)
+                {
                     this.OnInitialActivate();
+                    this.haveActivated = true;
+                }
 
                 this.OnActivate();
 
@@ -174,7 +179,7 @@ namespace Stylet
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IScreenState.Close()
         {
-            // Avoid going from Closed back to Deactivated
+            // Avoid going from Activated -> Closed without going via Deactivated
             if (this.State != ScreenState.Closed)
                 ((IScreenState)this).Deactivate();
 

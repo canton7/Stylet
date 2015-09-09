@@ -18,8 +18,6 @@ namespace Bootstrappers
 
         protected override void ConfigureBootstrapper()
         {
-            this.Configure();
-
             this.container = new Container(config =>
             {
                 this.DefaultConfigureIoC(config);
@@ -28,17 +26,13 @@ namespace Bootstrappers
         }
 
         /// <summary>
-        /// Override to configure anything that needs configuring
-        /// </summary>
-        protected virtual void Configure() { }
-
-        /// <summary>
         /// Carries out default configuration of the IoC container. Override if you don't want to do this
         /// </summary>
         protected virtual void DefaultConfigureIoC(ConfigurationExpression config)
         {
             config.For<IViewManagerConfig>().Add(this);
             config.For<IViewManager>().Add<ViewManager>().LifecycleIs<SingletonLifecycle>();
+            config.For<IWindowManagerConfig>().Add(this);
             config.For<IWindowManager>().Add<WindowManager>().LifecycleIs<SingletonLifecycle>();
             config.For<IEventAggregator>().Add<EventAggregator>().LifecycleIs<SingletonLifecycle>();
             config.For<IMessageBoxViewModel>().Add<MessageBoxViewModel>().LifecycleIs<UniquePerRequestLifecycle>();

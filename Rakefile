@@ -10,6 +10,11 @@ CONFIG = ENV['CONFIG'] || 'Debug'
 COVERAGE_DIR = 'Coverage'
 COVERAGE_FILE = File.join(COVERAGE_DIR, 'coverage.xml')
 
+GITLINK_REMOTE = 'https://github.com/canton7/stylet'
+NUSPEC = 'NuGet/Stylet.nuspec'
+
+ASSEMBLY_INFO = 'Stylet/Properties/AssemblyInfo.cs'
+
 directory COVERAGE_DIR
 
 desc "Build Stylet.sln using the current CONFIG (or Debug)"
@@ -96,6 +101,31 @@ def coverage(coverage_files)
   sh REPORT_GENERATOR, %Q{-reports:"#{coverage_files.join(';')}" "-targetdir:#{COVERAGE_DIR}"}
 end
 
+desc "Create NuGet package"
+task :package do
+  local_hash = `git rev-parse HEAD`.chomp
+  sh "NuGet/GitLink.exe . -s #{local_hash} -u #{GITLINK_REMOTE} -f Stylet.sln -ignore StyletUnitTests,StyletIntegrationTests"
+  Dir.chdir(File.dirname(NUSPEC)) do
+    sh "nuget.exe pack #{File.basename(NUSPEC)}"
+  end
+end
+
+desc "Bump version number"
+task :version, [:version] do |t, args|
+  parts = args[:version].split('.')
+  parts << '0' if parts.length == 3
+  version = parts.join('.')
+
+  content = IO.read(ASSEMBLY_INFO)
+  content[/^\[assembly: AssemblyVersion\(\"(.+?)\"\)\]/, 1] = version
+  content[/^\[assembly: AssemblyFileVersion\(\"(.+?)\"\)\]/, 1] = version
+  File.open(ASSEMBLY_INFO, 'w'){ |f| f.write(content) }
+
+  content = IO.read(NUSPEC)
+  content[/<version>(.+?)<\/version>/, 1] = args[:version]
+  File.open(NUSPEC, 'w'){ |f| f.write(content) }
+end
+
 desc "Extract StyletIoC as a standalone file"
 task :"extract-stylet-ioc" do
   filenames = Dir['Stylet/StyletIoC/**/*.cs']
@@ -139,3 +169,4 @@ task :"extract-stylet-ioc" do
   # puts merged_contents
 
 end
+

@@ -35,7 +35,6 @@ namespace StyletUnitTests
         public void SetUp()
         {
             this.viewManager = new Mock<IViewManager>();
-            View.ViewManager = this.viewManager.Object;
         }
 
         [TearDown]
@@ -55,7 +54,8 @@ namespace StyletUnitTests
         [Test]
         public void ModelStores()
         {
-            var obj = new DependencyObject();
+            var obj = new FrameworkElement();
+            obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
             View.SetModel(obj, 5);
             Assert.AreEqual(5, View.GetModel(obj));
         }
@@ -63,7 +63,8 @@ namespace StyletUnitTests
         [Test]
         public void ChangingModelCallsOnModelChanged()
         {
-            var obj = new DependencyObject();
+            var obj = new FrameworkElement();
+            obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
             var model = new object();
             View.SetModel(obj, null);
 
@@ -93,10 +94,18 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void SetContentControlThrowsIfNoContentProperty()
+        {
+            var obj = new DependencyObject();
+            var view = new UIElement();
+
+            Assert.Throws<InvalidOperationException>(() => View.SetContentProperty(obj, view));
+        }
+
+        [Test]
         public void SettingModelThrowsExceptionIfViewManagerNotSet()
         {
-            View.ViewManager = null;
-            var view = new UIElement();
+            var view = new FrameworkElement();
             Assert.Throws<InvalidOperationException>(() => View.SetModel(view, new object()));
         }
 
@@ -104,7 +113,6 @@ namespace StyletUnitTests
         public void InDesignModeSettingViewModelWithBrokenBindingGivesAppropriateMessage()
         {
             Execute.InDesignMode = true;
-            View.ViewManager = null;
 
             var element = new ContentControl();
             // Don't set View.Model to a binding - just a random object
@@ -120,7 +128,6 @@ namespace StyletUnitTests
         public void InDesignModeSettingViewModelWithCollectionBindingGivesAppropriateMessage()
         {
             Execute.InDesignMode = true;
-            View.ViewManager = null;
 
             var element = new ContentControl();
             var vm = new TestViewModel();
@@ -139,7 +146,6 @@ namespace StyletUnitTests
         public void InDesignModeSettingViewModelWithGoodBindingGivesAppropriateMessage()
         {
             Execute.InDesignMode = true;
-            View.ViewManager = null;
 
             var element = new ContentControl();
             var vm = new TestViewModel();

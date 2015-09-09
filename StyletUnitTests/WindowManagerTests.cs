@@ -22,7 +22,8 @@ namespace StyletUnitTests
 
         private class MyWindowManager : WindowManager
         {
-            public MyWindowManager(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory) : base(viewManager, messageBoxViewModelFactory) { }
+            public MyWindowManager(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory, IWindowManagerConfig config)
+                : base(viewManager, messageBoxViewModelFactory, config) { }
 
             public new Window CreateWindow(object viewModel, bool isDialog)
             {
@@ -32,7 +33,8 @@ namespace StyletUnitTests
 
         private class WindowManagerWithoutCreateWindow : WindowManager
         {
-            public WindowManagerWithoutCreateWindow(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory) : base(viewManager, messageBoxViewModelFactory) { }
+            public WindowManagerWithoutCreateWindow(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory, IWindowManagerConfig config)
+                : base(viewManager, messageBoxViewModelFactory, config) { }
 
             protected override Window CreateWindow(object viewModel, bool isDialog)
             {
@@ -62,6 +64,7 @@ namespace StyletUnitTests
 
         private Mock<IViewManager> viewManager;
         private Mock<IMessageBoxViewModel> messageBoxViewModel;
+        private Mock<IWindowManagerConfig> config;
         private MyWindowManager windowManager;
 
         [SetUp]
@@ -69,7 +72,8 @@ namespace StyletUnitTests
         {
             this.viewManager = new Mock<IViewManager>();
             this.messageBoxViewModel = new Mock<IMessageBoxViewModel>();
-            this.windowManager = new MyWindowManager(this.viewManager.Object, () => this.messageBoxViewModel.Object);
+            this.config = new Mock<IWindowManagerConfig>();
+            this.windowManager = new MyWindowManager(this.viewManager.Object, () => this.messageBoxViewModel.Object, this.config.Object);
         }
 
         [Test]
@@ -238,20 +242,21 @@ namespace StyletUnitTests
             var window = new MyWindow();
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
-            model.Setup(x => x.CanCloseAsync()).Returns(Task.Delay(1).ContinueWith(t => false));
+            model.Setup(x => x.CanCloseAsync()).Returns(Task.Delay(10).ContinueWith(t => false));
             var ea = new CancelEventArgs();
             window.OnClosing(ea);
             Assert.True(ea.Cancel);
         }
 
         [Test]
-        public void WindowClosingCancelsIfCanCloseAsyncReturnsAsynchronousTrue()
+        public void WindowClosingCancelsIfCanCloseAsyncReturnsAsynchronous()
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
-            model.Setup(x => x.CanCloseAsync()).Returns(Task.Delay(1).ContinueWith(t => true));
+            var tcs = new TaskCompletionSource<bool>();
+            model.Setup(x => x.CanCloseAsync()).Returns(tcs.Task);
             var ea = new CancelEventArgs();
             window.OnClosing(ea);
             Assert.True(ea.Cancel);
@@ -297,7 +302,7 @@ namespace StyletUnitTests
             model.SetupSet(x => x.Parent = It.IsAny<object>()).Callback((object x) => parent = x);
             this.windowManager.CreateWindow(model.Object, false);
 
-            model.Setup(x => x.CanCloseAsync()).Returns(Task.Delay(1).ContinueWith(t => false));
+            model.Setup(x => x.CanCloseAsync()).Returns(Task.Delay(10).ContinueWith(t => false));
             ((IChildDelegate)parent).CloseItem(model.Object);
         }
 
@@ -321,7 +326,7 @@ namespace StyletUnitTests
         [Test]
         public void ShowMessageBoxShowsMessageBox()
         {
-            var wm = new WindowManagerWithoutCreateWindow(this.viewManager.Object, () => this.messageBoxViewModel.Object);
+            var wm = new WindowManagerWithoutCreateWindow(this.viewManager.Object, () => this.messageBoxViewModel.Object, this.config.Object);
 
             try { wm.ShowMessageBox("text", "title", MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxResult.Cancel, MessageBoxOptions.RtlReading); }
             catch (TestException) { }
@@ -378,6 +383,24 @@ namespace StyletUnitTests
             this.windowManager.CreateWindow(model, false);
 
             Assert.AreEqual(WindowStartupLocation.Manual, window.WindowStartupLocation);
+        }
+
+        [Test]
+        public void CreateWindowSetsOwnerIfAvailable()
+        {
+            // We can't actually set the window successfully, since it'll throw an InvalidOperationException
+            // ("can't set owner to a window which has not been shown previously")
+
+            var model = new object();
+            var window = new Window();
+            var activeWindow = new Window();
+
+            this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
+            this.config.Setup(x => x.GetActiveWindow()).Returns(activeWindow).Verifiable();
+
+            this.windowManager.CreateWindow(model, true);
+
+            this.config.VerifyAll();
         }
     }
 }

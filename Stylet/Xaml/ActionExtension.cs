@@ -40,6 +40,7 @@ namespace Stylet.Xaml
         /// <summary>
         /// Gets or sets the name of the method to call
         /// </summary>
+        [ConstructorArgument("method")]
         public string Method { get; set; }
 
         /// <summary>
@@ -54,6 +55,13 @@ namespace Stylet.Xaml
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ActionExtension"/> class
+        /// </summary>
+        public ActionExtension()
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ActionExtension"/> class with the given method name
         /// </summary>
         /// <param name="method">Name of the method to call</param>
         public ActionExtension(string method)
@@ -88,6 +96,9 @@ namespace Stylet.Xaml
         /// <returns>The object value to set on the property where the extension is applied.</returns>
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
+            if (this.Method == null)
+                throw new InvalidOperationException("Method has not been set");
+
             var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
 
             // Seems this is the case when we're in a template. We'll get called again properly in a second.

@@ -130,13 +130,6 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void StartAssignsViewManager()
-        {
-            this.bootstrapper.Start(new string[0]);
-            Assert.AreEqual(View.ViewManager, this.viewManager.Object);
-        }
-
-        [Test]
         public void StartAssignsArgs()
         {
             this.bootstrapper.Start(new[] { "one", "two" });

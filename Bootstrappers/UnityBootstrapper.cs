@@ -17,17 +17,10 @@ namespace Bootstrappers
 
         protected override void ConfigureBootstrapper()
         {
-            this.Configure();
-
             this.container = new UnityContainer();
             this.DefaultConfigureIoC(this.container);
             this.ConfigureIoC(this.container);
         }
-
-        /// <summary>
-        /// Override to configure anything that needs configuring
-        /// </summary>
-        protected virtual void Configure() { }
 
         /// <summary>
         /// Carries out default configuration of the IoC container. Override if you don't want to do this
@@ -38,7 +31,7 @@ namespace Bootstrappers
             // This is a workaround
             var viewManager = new ViewManager(this);
             container.RegisterInstance<IViewManager>(viewManager);
-            container.RegisterInstance<IWindowManager>(new WindowManager(viewManager, () => container.Resolve<IMessageBoxViewModel>()));
+            container.RegisterInstance<IWindowManager>(new WindowManager(viewManager, () => container.Resolve<IMessageBoxViewModel>(), this));
             container.RegisterInstance<IEventAggregator>(new EventAggregator());
             container.RegisterType<IMessageBoxViewModel, MessageBoxViewModel>(new PerResolveLifetimeManager());
             container.RegisterTypes(AllClasses.FromAssemblies(this.Assemblies), WithMappings.None, WithName.Default, WithLifetime.PerResolve);

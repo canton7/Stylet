@@ -48,6 +48,18 @@ namespace Stylet
     }
 
     /// <summary>
+    /// Configuration passed to WindowManager (normally implemented by BootstrapperBase)
+    /// </summary>
+    public interface IWindowManagerConfig
+    {
+        /// <summary>
+        /// Returns the currently-displayed window, or null if there is none (or it can't be determined)
+        /// </summary>
+        /// <returns>The currently-displayed window, or null</returns>
+        Window GetActiveWindow();
+    }
+
+    /// <summary>
     /// Default implementation of IWindowManager, is capable of showing a ViewModel's View as a dialog or a window
     /// </summary>
     public class WindowManager : IWindowManager
@@ -55,16 +67,19 @@ namespace Stylet
         private static readonly ILogger logger = LogManager.GetLogger(typeof(WindowManager));
         private readonly IViewManager viewManager;
         private readonly Func<IMessageBoxViewModel> messageBoxViewModelFactory;
+        private readonly Func<Window> getActiveWindow;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="WindowManager"/> class, using the given <see cref="IViewManager"/>
         /// </summary>
         /// <param name="viewManager">IViewManager to use when creating views</param>
         /// <param name="messageBoxViewModelFactory">Delegate which returns a new IMessageBoxViewModel instance when invoked</param>
-        public WindowManager(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory)
+        /// <param name="config">Configuration object</param>
+        public WindowManager(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory, IWindowManagerConfig config)
         {
             this.viewManager = viewManager;
             this.messageBoxViewModelFactory = messageBoxViewModelFactory;
+            this.getActiveWindow = config.GetActiveWindow;
         }
 
         /// <summary>
@@ -178,10 +193,7 @@ namespace Stylet
 
         private Window InferOwnerOf(Window window)
         {
-            if (Application.Current == null)
-                return null;
-
-            var active = Application.Current.Windows.OfType<Window>().FirstOrDefault(x => x.IsActive) ?? Application.Current.MainWindow;
+            var active = this.getActiveWindow();
             return ReferenceEquals(active, window) ? null : active;
         }
 

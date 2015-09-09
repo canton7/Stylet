@@ -40,14 +40,7 @@ namespace Stylet
             this.DefaultConfigureIoC(builder);
 
             this.Container = builder.BuildContainer();
-
-            this.Configure();
         }
-
-        /// <summary>
-        /// Hook called after the IoC container has been set up
-        /// </summary>
-        protected virtual void Configure() { }
 
         /// <summary>
         /// Carries out default configuration of StyletIoC. Override if you don't want to do this
@@ -57,6 +50,7 @@ namespace Stylet
         {
             // Mark these as auto-bindings, so the user can replace them if they want
             builder.Bind<IViewManagerConfig>().ToInstance(this).AsWeakBinding();
+            builder.Bind<IWindowManagerConfig>().ToInstance(this).AsWeakBinding();
             builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();

@@ -288,7 +288,7 @@ namespace Stylet
     public class StyletInvalidViewTypeException : Exception
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="StyletInvalidViewException"/> class
+        /// Initialises a new instance of the <see cref="StyletInvalidViewTypeException"/> class
         /// </summary>
         /// <param name="message">Message associated with the Exception</param>
         public StyletInvalidViewTypeException(string message)
