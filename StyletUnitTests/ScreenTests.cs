@@ -147,6 +147,8 @@ namespace StyletUnitTests
         [Test]
         public void ActivateFiresCorrectEvents()
         {
+            // Get the initial activate out of the way
+            ((IScreenState)this.screen).Activate();
             this.screen.SetState(ScreenState.Deactivated, (n, o) => { });
             
             var changedEventArgs = new List<ScreenStateChangedEventArgs>();
@@ -415,10 +417,11 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void DeactivatingInitialScreenLeavesItInInactive()
+        public void InitialActivateFiredWhenComingFromDeactivated()
         {
             ((IScreenState)this.screen).Deactivate();
-            Assert.AreEqual(ScreenState.Initial, this.screen.State);
+            ((IScreenState)this.screen).Activate();
+            Assert.True(this.screen.OnInitialActivateCalled);
         }
     }
 }
