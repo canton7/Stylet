@@ -249,13 +249,14 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void WindowClosingCancelsIfCanCloseAsyncReturnsAsynchronousTrue()
+        public void WindowClosingCancelsIfCanCloseAsyncReturnsAsynchronous()
         {
             var model = new Mock<IScreen>();
             var window = new MyWindow();
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model.Object)).Returns(window);
             this.windowManager.CreateWindow(model.Object, false);
-            model.Setup(x => x.CanCloseAsync()).Returns(Task.Delay(10).ContinueWith(t => true));
+            var tcs = new TaskCompletionSource<bool>();
+            model.Setup(x => x.CanCloseAsync()).Returns(tcs.Task);
             var ea = new CancelEventArgs();
             window.OnClosing(ea);
             Assert.True(ea.Cancel);
