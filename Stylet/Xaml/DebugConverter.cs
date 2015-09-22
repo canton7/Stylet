@@ -74,9 +74,9 @@ namespace Stylet.Xaml
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (parameter == null)
-                this.Logger(String.Format("Convert: Value = '{0}' TargetType = '{1}'", value, targetType), this.Name);
+                this.Logger(String.Format(culture, "Convert: Value = '{0}' TargetType = '{1}'", value, targetType), this.Name);
             else
-                this.Logger(String.Format("Convert: Value = '{0}' TargetType = '{1}' Parameter = '{2}'", value, targetType, parameter), this.Name);
+                this.Logger(String.Format(culture, "Convert: Value = '{0}' TargetType = '{1}' Parameter = '{2}'", value, targetType, parameter), this.Name);
 
             return value;
         }
@@ -92,9 +92,9 @@ namespace Stylet.Xaml
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (parameter == null)
-                this.Logger(String.Format("ConvertBack: Value = '{0}' TargetType = '{1}'", value, targetType), this.Name);
+                this.Logger(String.Format(culture, "ConvertBack: Value = '{0}' TargetType = '{1}'", value, targetType), this.Name);
             else
-                this.Logger(String.Format("ConvertBack: Value = '{0}' TargetType = '{1}' Parameter = '{2}'", value, targetType, parameter), this.Name);
+                this.Logger(String.Format(culture, "ConvertBack: Value = '{0}' TargetType = '{1}' Parameter = '{2}'", value, targetType, parameter), this.Name);
 
             return value;
         }
