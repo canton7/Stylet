@@ -1,16 +1,12 @@
 ﻿using NUnit.Framework;
 using Stylet.Xaml;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StyletUnitTests
 {
-	using System.Globalization;
+    using System.Globalization;
 
-	[TestFixture]
+    [TestFixture]
     public class DebugConverterTests
     {
         private DebugConverter converter;
