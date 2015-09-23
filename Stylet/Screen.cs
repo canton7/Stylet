@@ -48,7 +48,7 @@ namespace Stylet
 
         #region IScreenState
 
-        private ScreenState _state = ScreenState.Initial;
+        private ScreenState _state = ScreenState.Deactivated;
 
         /// <summary>
         /// Gets or sets the current state of the Screen

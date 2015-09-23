@@ -103,6 +103,12 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void ScreenIsInitiallyDeactivated()
+        {
+            Assert.AreEqual(ScreenState.Deactivated, this.screen.State);
+        }
+
+        [Test]
         public void ActivateActivatesIfNotAlreadyActive()
         {
             ((IScreenState)this.screen).Activate();
@@ -182,13 +188,13 @@ namespace StyletUnitTests
 
             Assert.AreEqual(1, changedEventArgs.Count);
             Assert.AreEqual(ScreenState.Active, changedEventArgs[0].NewState);
-            Assert.AreEqual(ScreenState.Initial, changedEventArgs[0].PreviousState);
+            Assert.AreEqual(ScreenState.Deactivated, changedEventArgs[0].PreviousState);
 
-            Assert.AreEqual(ScreenState.Initial, this.screen.PreviousState);
+            Assert.AreEqual(ScreenState.Deactivated, this.screen.PreviousState);
             Assert.AreEqual(ScreenState.Active, this.screen.NewState);
 
             Assert.AreEqual(1, activatedEventArgs.Count);
-            Assert.AreEqual(ScreenState.Initial, activatedEventArgs[0].PreviousState);
+            Assert.AreEqual(ScreenState.Deactivated, activatedEventArgs[0].PreviousState);
             Assert.IsTrue(activatedEventArgs[0].IsInitialActivate);
         }
 

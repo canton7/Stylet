@@ -28,8 +28,9 @@ namespace Stylet
     public enum ScreenState
     {
         /// <summary>
-        /// Screen has been created, but has never had any further transitions
+        /// Deprecated: Screens now start in Deactivated
         /// </summary>
+        [Obsolete("Screens now start in the Deactivated state")]
         Initial,
 
         /// <summary>
@@ -38,7 +39,7 @@ namespace Stylet
         Active,
 
         /// <summary>
-        /// Screen is deactivated. It has either been hidden in favour of another Screen, or the entire window has been minimised
+        /// Screen is deactivated. It is either new, has been hidden in favour of another Screen, or the entire window has been minimised
         /// </summary>
         Deactivated,
 
