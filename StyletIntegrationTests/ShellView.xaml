@@ -35,5 +35,16 @@
                 <Button DockPanel.Dock="Top" Command="{s:Action TestDispatcher}">Test Dispatcher</Button>
             </DockPanel>
         </GroupBox>
+
+        <GroupBox DockPanel.Dock="Top" Header="ActionTarget" Padding="10">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top">Verify that pressing ctrl+s in the text box creates a dialog</TextBlock>
+                <TextBox DockPanel.Dock="Top">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="S" Modifiers="Ctrl" Command="{s:Action ShowActionTargetSaved}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+            </DockPanel>
+        </GroupBox>
     </DockPanel>
 </Window>
