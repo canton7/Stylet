@@ -1,6 +1,8 @@
 ﻿using Microsoft.Practices.Unity;
 using Stylet;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Windows;
 
 namespace Bootstrappers
@@ -27,14 +29,19 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(IUnityContainer container)
         {
-            // For some reason using ContainerControlledLifetimeManager results in a transient registration....
             // This is a workaround
-            var viewManager = new ViewManager(this);
+            var viewManagerConfig = new ViewManagerConfig()
+            {
+                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly },
+                ViewFactory = this.GetInstance,
+            };
+            // For some reason using ContainerControlledLifetimeManager results in a transient registration....
+            var viewManager = new ViewManager(viewManagerConfig);
             container.RegisterInstance<IViewManager>(viewManager);
             container.RegisterInstance<IWindowManager>(new WindowManager(viewManager, () => container.Resolve<IMessageBoxViewModel>(), this));
             container.RegisterInstance<IEventAggregator>(new EventAggregator());
             container.RegisterType<IMessageBoxViewModel, MessageBoxViewModel>(new PerResolveLifetimeManager());
-            container.RegisterTypes(AllClasses.FromAssemblies(this.Assemblies), WithMappings.None, WithName.Default, WithLifetime.PerResolve);
+            container.RegisterTypes(AllClasses.FromAssemblies(this.GetType().Assembly), WithMappings.None, WithName.Default, WithLifetime.PerResolve);
         }
 
         /// <summary>

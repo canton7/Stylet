@@ -32,7 +32,7 @@ namespace Stylet
         protected override sealed void ConfigureBootstrapper()
         {
             var builder = new StyletIoCBuilder();
-            builder.Assemblies = new List<Assembly>(this.Assemblies);
+            builder.Assemblies = new List<Assembly>(new List<Assembly>() { this.GetType().Assembly });
 
             // Call DefaultConfigureIoC *after* ConfigureIoIC, so that they can customize builder.Assemblies
             this.ConfigureIoC(builder);
@@ -48,7 +48,12 @@ namespace Stylet
         protected virtual void DefaultConfigureIoC(StyletIoCBuilder builder)
         {
             // Mark these as auto-bindings, so the user can replace them if they want
-            builder.Bind<IViewManagerConfig>().ToInstance(this).AsWeakBinding();
+            var viewManagerConfig = new ViewManagerConfig()
+            {
+                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly },
+                ViewFactory = this.GetInstance,
+            };
+            builder.Bind<ViewManagerConfig>().ToInstance(viewManagerConfig).AsWeakBinding();
             builder.Bind<IWindowManagerConfig>().ToInstance(this).AsWeakBinding();
             builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();

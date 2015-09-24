@@ -3,6 +3,8 @@ using Castle.MicroKernel.Registration;
 using Castle.Windsor;
 using Stylet;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Windows;
 
 namespace Bootstrappers
@@ -30,17 +32,20 @@ namespace Bootstrappers
         protected virtual void DefaultConfigureIoC(IWindsorContainer container)
         {
             container.AddFacility<TypedFactoryFacility>();
+            var viewManagerConfig = new ViewManagerConfig()
+            {
+                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly },
+                ViewFactory = this.GetInstance,
+            };
             container.Register(
-                Component.For<IViewManagerConfig, IWindowManagerConfig>().Instance(this),
+                Component.For<ViewManagerConfig>().Instance(viewManagerConfig),
+                Component.For<IWindowManagerConfig>().Instance(this),
                 Component.For<IViewManager>().ImplementedBy<ViewManager>().LifestyleSingleton(),
                 Component.For<IWindowManager>().ImplementedBy<WindowManager>().LifestyleSingleton(),
                 Component.For<IEventAggregator>().ImplementedBy<EventAggregator>().LifestyleSingleton(),
                 Component.For<IMessageBoxViewModel>().ImplementedBy<MessageBoxViewModel>().LifestyleTransient()
             );
-            foreach (var assembly in this.Assemblies)
-            {
-                container.Register(Classes.FromAssembly(assembly).Pick().LifestyleTransient());
-            }
+            container.Register(Classes.FromAssembly(this.GetType().Assembly).Pick().LifestyleTransient());
         }
 
         /// <summary>

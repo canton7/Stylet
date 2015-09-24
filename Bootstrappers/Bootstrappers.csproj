@@ -82,6 +82,7 @@
     <Compile Include="Tests\NinjectTests.cs" />
     <Compile Include="Tests\NoIoCContainerTests.cs" />
     <Compile Include="Tests\StructureMapTests.cs" />
+    <Compile Include="Tests\StubType.cs" />
     <Compile Include="Tests\UnityTests.cs" />
     <Compile Include="UnityBootstrapper.cs" />
   </ItemGroup>

@@ -45,22 +45,19 @@ namespace Stylet
     }
 
     /// <summary>
-    /// Configuration passed to ViewManager (normally implemented by BootstrapperBase)
+    /// Configuration passed to ViewManager
     /// </summary>
-    public interface IViewManagerConfig
+    public class ViewManagerConfig
     {
         /// <summary>
-        /// Gets the assemblies which are used for IoC container auto-binding and searching for Views.
-        /// Set this in Configure() if you want to override it
+        /// Gets and sets the assemblies which are used for IoC container auto-binding and searching for Views.
         /// </summary>
-        IReadOnlyList<Assembly> Assemblies { get; }
+        public List<Assembly> ViewAssemblies { get; set; }
 
         /// <summary>
-        /// Given a type, use the IoC container to fetch an instance of it
+        /// Gets and sets the delegate used to retrieve an instance of a view
         /// </summary>
-        /// <param name="type">Type of instance to fetch</param>
-        /// <returns>Fetched instance</returns>
-        object GetInstance(Type type);
+        public Func<Type, object> ViewFactory { get; set; }
     }
 
     /// <summary>
@@ -73,7 +70,7 @@ namespace Stylet
         /// <summary>
         /// Gets or sets the assemblies searched for View types
         /// </summary>
-        protected IReadOnlyList<Assembly> Assemblies { get; set; }
+        protected List<Assembly> ViewAssemblies { get; set; }
 
         /// <summary>
         /// Gets or sets the factory used to create view instances from their type
@@ -84,10 +81,10 @@ namespace Stylet
         /// Initialises a new instance of the <see cref="ViewManager"/> class, with the given viewFactory
         /// </summary>
         /// <param name="config">Configuration to use</param>
-        public ViewManager(IViewManagerConfig config)
+        public ViewManager(ViewManagerConfig config)
         {
-            this.Assemblies = config.Assemblies;
-            this.ViewFactory = config.GetInstance;
+            this.ViewAssemblies = config.ViewAssemblies;
+            this.ViewFactory = config.ViewFactory;
         }
 
         /// <summary>
@@ -160,8 +157,7 @@ namespace Stylet
         /// <returns>Type for that view name</returns>
         protected virtual Type ViewTypeForViewName(string viewName)
         {
-            // TODO: This might need some more thinking
-            return this.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+            return this.ViewAssemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
         }
 
         /// <summary>
@@ -223,13 +219,23 @@ namespace Stylet
 
             var view = (UIElement)this.ViewFactory(viewType);
 
+            this.InitializeView(view, viewType);
+
+            return view;
+        }
+
+        /// <summary>
+        /// Given a view, take steps to initialize it (for example calling InitializeComponent)
+        /// </summary>
+        /// <param name="view">View to initialize</param>
+        /// <param name="viewType">Type of view, passed for efficiency reasons</param>
+        public virtual void InitializeView(UIElement view, Type viewType)
+        {
             // If it doesn't have a code-behind, this won't be called
             // We have to use this reflection here, since the InitializeComponent is a method on the View, not on any of its base classes
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
             if (initializer != null)
                 initializer.Invoke(view, null);
-
-            return view;
         }
 
         /// <summary>
