@@ -78,13 +78,7 @@ namespace Stylet.Xaml
                 Mode = BindingMode.OneWay,
                 Source = this.Subject,
             });
-            multiBinding.Bindings.Add(new Binding()
-            {
-                Path = new PropertyPath(View.BackupActionTargetBindingProxyProperty),
-                Mode = BindingMode.OneWay,
-                Source = this.Subject,
-                Converter = new BindingProxyToValueConverter(),
-            });
+            multiBinding.Bindings.Add(View.GetBindingToViewModel(this.Subject));
 
             //var binding = new Binding()
             //{

@@ -41,7 +41,7 @@
                     </TextBox.InputBindings>
                     <TextBox.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Click Here" Command="{s:Action ShowActionTargetSaved}"/>
+                            <MenuItem Header="{Binding Foo}" DataContext="{s:ViewModel}" Command="{s:Action ShowActionTargetSaved}"/>
                         </ContextMenu>
                     </TextBox.ContextMenu>
                 </TextBox>

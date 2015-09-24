@@ -12,6 +12,8 @@ namespace StyletIntegrationTests
     {
         private IWindowManager windowManager;
 
+        public string Foo => "Foo";
+
         public ShellViewModel(IWindowManager windowManager)
         {
             this.windowManager = windowManager;

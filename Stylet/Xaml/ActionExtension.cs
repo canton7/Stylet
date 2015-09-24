@@ -107,11 +107,6 @@ namespace Stylet.Xaml
             if (targetObjectAsDependencyObject == null)
                 return this;
 
-            // In some cases, the View.ActionTarget attached property won't be propagated - think popups, context menus, KeyBindings, etc
-            // In this case, we can grab a reference to the last-set View.ActionTarget using the dynamic resources mechanism
-            var resourceReference = new DynamicResourceExtension(View.ActionTargetProxyResourceKey).ProvideValue(serviceProvider);
-            targetObjectAsDependencyObject.SetValue(View.BackupActionTargetBindingProxyProperty, resourceReference);
-
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {

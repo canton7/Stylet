@@ -17,7 +17,7 @@ namespace Stylet.Xaml
 
         internal const string ViewManagerResourceKey = "b9a38199-8cb3-4103-8526-c6cfcd089df7";
 
-        internal const string ActionTargetProxyResourceKey = "8b7cb732-8a14-4813-a580-b1f3cccea7b7";
+        internal const string ViewModelProxyResourceKey = "8b7cb732-8a14-4813-a580-b1f3cccea7b7";
 
         /// <summary>
         /// Initial value of the ActionTarget property.
@@ -49,28 +49,7 @@ namespace Stylet.Xaml
         /// The object's ActionTarget. This is used to determine what object to call Actions on by the ActionExtension markup extension.
         /// </summary>
         public static readonly DependencyProperty ActionTargetProperty =
-            DependencyProperty.RegisterAttached("ActionTarget", typeof(object), typeof(View), new FrameworkPropertyMetadata(InitialActionTarget, FrameworkPropertyMetadataOptions.Inherits, (d, e) =>
-            {
-                // Also set a binding proxy if we can, in case there's something weird in the way
-                var frameworkElement = d as FrameworkElement;
-                if (frameworkElement == null)
-                    return;
-
-                // Don't set if it's been set already
-                var currentValue = (BindingProxy)d.GetValue(BackupActionTargetBindingProxyProperty);
-                if (currentValue != null && currentValue.Data == e.NewValue)
-                    return;
-                
-                var bindingProxy = new BindingProxy()
-                {
-                    Data = e.NewValue,
-                };
-                frameworkElement.Resources[ActionTargetProxyResourceKey] = bindingProxy;
-            }));
-
-        internal static readonly DependencyProperty BackupActionTargetBindingProxyProperty =
-            DependencyProperty.RegisterAttached("BackupActionTargetBindingProxy", typeof(BindingProxy), typeof(View), new PropertyMetadata(null));
-
+            DependencyProperty.RegisterAttached("ActionTarget", typeof(object), typeof(View), new FrameworkPropertyMetadata(InitialActionTarget));
 
         /// <summary>
         /// Fetch the ViewModel currently associated with a given object
@@ -128,6 +107,47 @@ namespace Stylet.Xaml
                     viewManager.OnModelChanged(d, e.OldValue, newValue);
                 }
             }));
+
+        /// <summary>
+        /// Set the ViewModel which can be subsequently retrieved using {s:ViewModel}
+        /// </summary>
+        /// <param name="view">View to store the ViewModel for</param>
+        /// <param name="viewModel">ViewModel to store</param>
+        public static void SetViewModel(FrameworkElement view, object viewModel)
+        {
+            var bindingProxy = new BindingProxy()
+            {
+                Data = viewModel,
+            };
+            view.Resources[ViewModelProxyResourceKey] = bindingProxy;
+        }
+
+        /// <summary>
+        /// Fetch a binding which can be used to retrieve the ViewModel associated with a View
+        /// </summary>
+        /// <param name="view">View to fetch the ViewModel for</param>
+        /// <returns>Binding which can retrieve the ViewModel</returns>
+        public static Binding GetBindingToViewModel(DependencyObject view)
+        {
+            if (view.GetValue(ViewModelProxyProperty) == null)
+            {
+                var resource = new DynamicResourceExtension(ViewModelProxyResourceKey).ProvideValue(null);
+                view.SetValue(ViewModelProxyProperty, resource);
+            }
+
+            var binding = new Binding()
+            {
+                Source = view,
+                Path = new PropertyPath(View.ViewModelProxyProperty),
+                Mode = BindingMode.OneWay,
+                Converter = BindingProxyToValueConverter.Instance,
+            };
+
+            return binding;
+        }
+
+        internal static readonly DependencyProperty ViewModelProxyProperty =
+            DependencyProperty.RegisterAttached("ViewModelProxy", typeof(BindingProxy), typeof(View), new PropertyMetadata(null));
 
         /// <summary>
         /// Helper to set the Content property of a given object to a particular View

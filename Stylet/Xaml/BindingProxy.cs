@@ -28,6 +28,8 @@ namespace Stylet.Xaml
 
     internal class BindingProxyToValueConverter : IValueConverter
     {
+        public static readonly BindingProxyToValueConverter Instance = new BindingProxyToValueConverter();
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var proxy = value as BindingProxy;

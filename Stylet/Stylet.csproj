@@ -131,6 +131,7 @@
     <Compile Include="Xaml\View.cs" />
     <Compile Include="ViewManager.cs" />
     <Compile Include="WindowManager.cs" />
+    <Compile Include="Xaml\ViewModelExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="MessageBoxView.xaml">
