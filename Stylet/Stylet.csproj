@@ -101,6 +101,7 @@
     <Compile Include="Xaml\ActionExtension.cs" />
     <Compile Include="BindableCollection.cs" />
     <Compile Include="BootstrapperBase.cs" />
+    <Compile Include="Xaml\BindingProxy.cs" />
     <Compile Include="Xaml\BoolToVisibilityConverter.cs" />
     <Compile Include="Xaml\CommandAction.cs" />
     <Compile Include="Conductor.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="Xaml\View.cs" />
     <Compile Include="ViewManager.cs" />
     <Compile Include="WindowManager.cs" />
+    <Compile Include="Xaml\ViewModelExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="MessageBoxView.xaml">

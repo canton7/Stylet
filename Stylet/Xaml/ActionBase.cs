@@ -4,6 +4,8 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Data;
+using System.Globalization;
+using System.Diagnostics;
 
 namespace Stylet.Xaml
 {
@@ -69,13 +71,17 @@ namespace Stylet.Xaml
             this.ActionNonExistentBehaviour = actionNonExistentBehaviour;
             this.logger = logger;
 
-            var binding = new Binding()
+            var multiBinding = new MultiBinding();
+            multiBinding.Converter = new ActionTargetMultiValueConverter();
+            multiBinding.Bindings.Add(new Binding()
             {
                 Path = new PropertyPath(View.ActionTargetProperty),
                 Mode = BindingMode.OneWay,
                 Source = this.Subject,
-            };
-            BindingOperations.SetBinding(this, targetProperty, binding);
+            });
+            multiBinding.Bindings.Add(View.GetBindingToViewModel(this.Subject));
+
+            BindingOperations.SetBinding(this, targetProperty, multiBinding);
         }
 
         private void UpdateActionTarget(object oldTarget, object newTarget)
@@ -194,6 +200,28 @@ namespace Stylet.Xaml
                 this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+            }
+        }
+
+        private class ActionTargetMultiValueConverter : IMultiValueConverter
+        {
+            public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+            {
+                // We expect 2 values: [0] is the actiontarget, and [1] is the viewmodel from resource
+                Debug.Assert(values.Length == 2);
+
+                if (values[0] != View.InitialActionTarget)
+                    return values[0];
+
+                if (values[1] != null)
+                    return values[1];
+
+                return View.InitialActionTarget;
+            }
+
+            public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            {
+                throw new InvalidOperationException();
             }
         }
     }

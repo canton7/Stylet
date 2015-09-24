@@ -5,7 +5,9 @@ using Stylet.Xaml;
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 
 namespace StyletUnitTests
 {
@@ -23,6 +25,19 @@ namespace StyletUnitTests
                 this.SubViewModels = new BindableCollection<object>() { new object() };
                 this.SubViewModel = new object();
             }
+        }
+
+
+        private class TestObjectWithDP : DependencyObject
+        {
+            public object DP
+            {
+                get { return (object)GetValue(DPProperty); }
+                set { SetValue(DPProperty, value); }
+            }
+
+            public static readonly DependencyProperty DPProperty =
+                DependencyProperty.Register("DP", typeof(object), typeof(TestObjectWithDP), new PropertyMetadata(null));
         }
 
         private Mock<IViewManager> viewManager;
@@ -51,7 +66,7 @@ namespace StyletUnitTests
         public void ModelStores()
         {
             var obj = new FrameworkElement();
-            obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
+            obj.Resources.Add("b9a38199-8cb3-4103-8526-c6cfcd089df7", this.viewManager.Object);
             View.SetModel(obj, 5);
             Assert.AreEqual(5, View.GetModel(obj));
         }
@@ -60,7 +75,7 @@ namespace StyletUnitTests
         public void ChangingModelCallsOnModelChanged()
         {
             var obj = new FrameworkElement();
-            obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
+            obj.Resources.Add("b9a38199-8cb3-4103-8526-c6cfcd089df7", this.viewManager.Object);
             var model = new object();
             View.SetModel(obj, null);
 
@@ -154,6 +169,25 @@ namespace StyletUnitTests
 
             var content = (TextBlock)element.Content;
             Assert.AreEqual("View for TestViewModel.SubViewModel", content.Text);
+        }
+
+        [Test]
+        public void ViewModelCanBeRetrievedByChildren()
+        {
+            var view = new UserControl();
+            var viewModel = new object();
+            View.SetViewModel(view, viewModel);
+
+            // Use something that doesn't inherit attached properties
+            var keyBinding = new KeyBinding();
+            view.InputBindings.Add(keyBinding);
+
+            var binding = View.GetBindingToViewModel(keyBinding);
+
+            var receiver = new TestObjectWithDP();
+            BindingOperations.SetBinding(receiver, TestObjectWithDP.DPProperty, binding);
+
+            Assert.AreEqual(viewModel, receiver.DP);
         }
     }
 }

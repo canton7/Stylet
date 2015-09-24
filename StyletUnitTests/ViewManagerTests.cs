@@ -281,14 +281,13 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void BindViewToModelSetsActionTarget()
+        public void BindViewToModelDoesNotSetActionTarget()
         {
             var view = new UIElement();
-            var model = new object();
             var viewManager = new AccessibleViewManager(this.viewManagerConfig.Object);
-            viewManager.BindViewToModel(view, model);
+            viewManager.BindViewToModel(view, new object());
 
-            Assert.AreEqual(model, View.GetActionTarget(view));
+            Assert.AreEqual(View.InitialActionTarget, View.GetActionTarget(view));
         }
 
         [Test]
