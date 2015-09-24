@@ -51,7 +51,7 @@
         <GroupBox DockPanel.Dock="Top" Header="{}{ViewModel}" Padding="10">
             <DockPanel DataContext="{x:Null}">
                 <TextBlock DockPanel.Dock="Top">Ensure that the label below displays the text "Pass":</TextBlock>
-                <TextBlock DockPanel.Dock="Top" DataContext="{s:ViewModel}" Text="{Binding ViewModelTestLabel}"/>
+                <TextBlock DockPanel.Dock="Top" Text="{s:ViewModelBinding ViewModelTestLabel}"/>
             </DockPanel>
         </GroupBox>
     </DockPanel>

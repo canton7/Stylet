@@ -150,6 +150,15 @@ namespace Stylet.Xaml
             view.Resources[ViewModelProxyResourceKey] = bindingProxy;
         }
 
+        internal static void EnsureViewModelProxyValueSetUp(DependencyObject view)
+        {
+            if (view.GetValue(ViewModelProxyProperty) == null)
+            {
+                var resource = new DynamicResourceExtension(ViewModelProxyResourceKey).ProvideValue(null);
+                view.SetValue(ViewModelProxyProperty, resource);
+            }
+        }
+
         /// <summary>
         /// Fetch a binding which can be used to retrieve the ViewModel associated with a View
         /// </summary>
@@ -157,11 +166,7 @@ namespace Stylet.Xaml
         /// <returns>Binding which can retrieve the ViewModel</returns>
         public static Binding GetBindingToViewModel(DependencyObject view)
         {
-            if (view.GetValue(ViewModelProxyProperty) == null)
-            {
-                var resource = new DynamicResourceExtension(ViewModelProxyResourceKey).ProvideValue(null);
-                view.SetValue(ViewModelProxyProperty, resource);
-            }
+            EnsureViewModelProxyValueSetUp(view);
 
             var binding = new Binding()
             {
@@ -174,7 +179,7 @@ namespace Stylet.Xaml
             return binding;
         }
 
-        private static readonly DependencyProperty ViewModelProxyProperty =
+        internal static readonly DependencyProperty ViewModelProxyProperty =
             DependencyProperty.RegisterAttached("ViewModelProxy", typeof(BindingProxy), typeof(View), new PropertyMetadata(null));
 
         /// <summary>
