@@ -167,7 +167,7 @@ namespace Stylet.Xaml
             var binding = new Binding()
             {
                 Source = view,
-                Path = new PropertyPath(View.ViewModelProxyProperty),
+                Path = new PropertyPath(ViewModelProxyProperty),
                 Mode = BindingMode.OneWay,
                 Converter = BindingProxyToValueConverter.Instance,
             };
@@ -175,7 +175,7 @@ namespace Stylet.Xaml
             return binding;
         }
 
-        internal static readonly DependencyProperty ViewModelProxyProperty =
+        private static readonly DependencyProperty ViewModelProxyProperty =
             DependencyProperty.RegisterAttached("ViewModelProxy", typeof(BindingProxy), typeof(View), new PropertyMetadata(null));
 
         /// <summary>

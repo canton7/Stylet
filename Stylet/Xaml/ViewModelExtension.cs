@@ -15,7 +15,7 @@ namespace Stylet.Xaml
     public class ViewModelExtension : MarkupExtension
     {
         /// <summary>
-        /// Instantiates a new instsance of the <see cref="ViewModelExtension"/> class
+        /// Instantiates a new instance of the <see cref="ViewModelExtension"/> class
         /// </summary>
         public ViewModelExtension()
         {

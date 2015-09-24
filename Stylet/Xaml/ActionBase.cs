@@ -5,6 +5,7 @@ using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Data;
 using System.Globalization;
+using System.Diagnostics;
 
 namespace Stylet.Xaml
 {
@@ -80,12 +81,6 @@ namespace Stylet.Xaml
             });
             multiBinding.Bindings.Add(View.GetBindingToViewModel(this.Subject));
 
-            //var binding = new Binding()
-            //{
-            //    Path = new PropertyPath(View.ActionTargetProperty),
-            //    Mode = BindingMode.OneWay,
-            //    Source = this.Subject,
-            //};
             BindingOperations.SetBinding(this, targetProperty, multiBinding);
         }
 
@@ -213,8 +208,7 @@ namespace Stylet.Xaml
             public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
             {
                 // We expect 2 values: [0] is the actiontarget, and [1] is the viewmodel from resource
-                if (values.Length != 2)
-                    throw new ArgumentException("Values must have 2 elements");
+                Debug.Assert(values.Length == 2);
 
                 if (values[0] != View.InitialActionTarget)
                     return values[0];
