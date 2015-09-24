@@ -6,13 +6,7 @@
     <DockPanel LastChildFill="False">
         <GroupBox DockPanel.Dock="Top" Header="ShowDialog and DialogResult" Padding="10">
             <StackPanel Orientation="Horizontal">
-                <Button Command="{s:Action ShowDialogAndDialogResult}" Content="Show Dialog">
-                    <Button.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Foo" Command="{s:Action Foo}"/>
-                        </ContextMenu>
-                    </Button.ContextMenu>
-                </Button>
+                <Button Command="{s:Action ShowDialogAndDialogResult}" Content="Show Dialog"/>
                 <TextBlock Margin="50,0,0,0">Result: </TextBlock>
                 <TextBlock Margin="10,0,0,0" Text="{Binding ShowDialogAndDialogResultDialogResult}"/>
             </StackPanel>
@@ -38,11 +32,18 @@
 
         <GroupBox DockPanel.Dock="Top" Header="ActionTarget" Padding="10">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Top">Verify that pressing ctrl+s in the text box creates a dialog</TextBlock>
+                <TextBlock DockPanel.Dock="Top" TextWrapping="WrapWithOverflow">
+                    Verify that pressing ctrl+s in the text box creates a dialog. Also verify that right-clicking in the text box and clicking the menu item shows a dialog.
+                </TextBlock>
                 <TextBox DockPanel.Dock="Top">
                     <TextBox.InputBindings>
                         <KeyBinding Key="S" Modifiers="Ctrl" Command="{s:Action ShowActionTargetSaved}"/>
                     </TextBox.InputBindings>
+                    <TextBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Click Here" Command="{s:Action ShowActionTargetSaved}"/>
+                        </ContextMenu>
+                    </TextBox.ContextMenu>
                 </TextBox>
             </DockPanel>
         </GroupBox>

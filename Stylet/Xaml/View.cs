@@ -19,8 +19,6 @@ namespace Stylet.Xaml
 
         internal const string ActionTargetProxyResourceKey = "8b7cb732-8a14-4813-a580-b1f3cccea7b7";
 
-        internal const string DataContextProxyResourceKey = "982a3cb4-68b8-464f-9f65-8835d86d94dd";
-
         /// <summary>
         /// Initial value of the ActionTarget property.
         /// This can be used as a marker - if the property has this value, it hasn't yet been assigned to anything else.
@@ -34,23 +32,7 @@ namespace Stylet.Xaml
         /// <returns>ActionTarget associated with the given object</returns>
         public static object GetActionTarget(DependencyObject obj)
         {
-            var actionTarget = obj.GetValue(ActionTargetProperty);
-
-            if (actionTarget == InitialActionTarget)
-            {
-                var frameworkElement = obj as FrameworkElement;
-                if (frameworkElement != null)
-                {
-                    var bindingProxy = frameworkElement.TryFindResource(ActionTargetProxyResourceKey) as BindingProxy;
-                    if (bindingProxy != null)
-                    {
-                        logger.Info("ActionTarget not set on object {0}, but a BindingProxy containing an ActionTarget was, so using that", obj);
-                        actionTarget = bindingProxy.Data;
-                    }
-                }
-            }
-
-            return actionTarget;
+            return obj.GetValue(ActionTargetProperty);
         }
 
         /// <summary>
@@ -74,13 +56,21 @@ namespace Stylet.Xaml
                 if (frameworkElement == null)
                     return;
 
+                // Don't set if it's been set already
+                var currentValue = (BindingProxy)d.GetValue(BackupActionTargetBindingProxyProperty);
+                if (currentValue != null && currentValue.Data == e.NewValue)
+                    return;
+                
                 var bindingProxy = new BindingProxy()
                 {
                     Data = e.NewValue,
                 };
-                bindingProxy.Freeze();
                 frameworkElement.Resources[ActionTargetProxyResourceKey] = bindingProxy;
             }));
+
+        internal static readonly DependencyProperty BackupActionTargetBindingProxyProperty =
+            DependencyProperty.RegisterAttached("BackupActionTargetBindingProxy", typeof(BindingProxy), typeof(View), new PropertyMetadata(null));
+
 
         /// <summary>
         /// Fetch the ViewModel currently associated with a given object
@@ -137,44 +127,6 @@ namespace Stylet.Xaml
                     var newValue = e.NewValue == defaultModelValue ? null : e.NewValue;
                     viewManager.OnModelChanged(d, e.OldValue, newValue);
                 }
-            }));
-
-
-        internal static void SetDataContext(FrameworkElement obj, object value)
-        {
-            obj.DataContext = value;
-            var bindingProxy = new BindingProxy()
-            {
-                Data = value,
-            };
-            obj.Resources[DataContextProxyResourceKey] = bindingProxy;
-        }
-
-        public static bool GetRestoreDataContext(DependencyObject obj)
-        {
-            return (bool)obj.GetValue(RestoreDataContextProperty);
-        }
-
-        public static void SetRestoreDataContext(DependencyObject obj, bool value)
-        {
-            obj.SetValue(RestoreDataContextProperty, value);
-        }
-
-        public static readonly DependencyProperty RestoreDataContextProperty =
-            DependencyProperty.RegisterAttached("RestoreDataContext", typeof(bool), typeof(View), new PropertyMetadata(false, (d, e) =>
-            {
-                if (!(e.NewValue is bool) || !(bool)e.NewValue)
-                    return;
-
-                var frameworkElement = d as FrameworkElement;
-                if (frameworkElement == null)
-                    return;
-
-                var bindingProxy = frameworkElement.Resources[DataContextProxyResourceKey] as BindingProxy;
-                if (bindingProxy == null)
-                    return;
-
-                frameworkElement.DataContext = bindingProxy.Data;
             }));
 
         /// <summary>

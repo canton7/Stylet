@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Data;
+using System.Globalization;
 
 namespace Stylet.Xaml
 {
@@ -69,13 +70,29 @@ namespace Stylet.Xaml
             this.ActionNonExistentBehaviour = actionNonExistentBehaviour;
             this.logger = logger;
 
-            var binding = new Binding()
+            var multiBinding = new MultiBinding();
+            multiBinding.Converter = new ActionTargetMultiValueConverter();
+            multiBinding.Bindings.Add(new Binding()
             {
                 Path = new PropertyPath(View.ActionTargetProperty),
                 Mode = BindingMode.OneWay,
                 Source = this.Subject,
-            };
-            BindingOperations.SetBinding(this, targetProperty, binding);
+            });
+            multiBinding.Bindings.Add(new Binding()
+            {
+                Path = new PropertyPath(View.BackupActionTargetBindingProxyProperty),
+                Mode = BindingMode.OneWay,
+                Source = this.Subject,
+                Converter = new BindingProxyToValueConverter(),
+            });
+
+            //var binding = new Binding()
+            //{
+            //    Path = new PropertyPath(View.ActionTargetProperty),
+            //    Mode = BindingMode.OneWay,
+            //    Source = this.Subject,
+            //};
+            BindingOperations.SetBinding(this, targetProperty, multiBinding);
         }
 
         private void UpdateActionTarget(object oldTarget, object newTarget)
@@ -194,6 +211,25 @@ namespace Stylet.Xaml
                 this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+            }
+        }
+
+        private class ActionTargetMultiValueConverter : IMultiValueConverter
+        {
+            public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+            {
+                foreach (var value in values)
+                {
+                    if (value != View.InitialActionTarget)
+                        return value;
+                }
+
+                return View.InitialActionTarget;
+            }
+
+            public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            {
+                throw new InvalidOperationException();
             }
         }
     }

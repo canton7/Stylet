@@ -246,7 +246,7 @@ namespace Stylet
             if (viewAsFrameworkElement != null)
             {
                 logger.Info("Setting {0}'s DataContext to {1}", view, viewModel);
-                View.SetDataContext(viewAsFrameworkElement, viewModel);
+                viewAsFrameworkElement.DataContext = viewModel;
             }
 
             var viewModelAsViewAware = viewModel as IViewAware;
