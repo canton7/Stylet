@@ -1,12 +1,10 @@
 ﻿using StyletIoC.Creation;
 using StyletIoC.Internal;
 using StyletIoC.Internal.Builders;
-using StyletIoC.Internal.Registrations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace StyletIoC
 {

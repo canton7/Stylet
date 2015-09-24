@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace StyletIoC
+﻿namespace StyletIoC
 {
     /// <summary>
     /// Lightweight, very fast IoC container
