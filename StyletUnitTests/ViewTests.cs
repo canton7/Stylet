@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 
 namespace StyletUnitTests
 {
@@ -24,6 +25,19 @@ namespace StyletUnitTests
                 this.SubViewModels = new BindableCollection<object>() { new object() };
                 this.SubViewModel = new object();
             }
+        }
+
+
+        private class TestObjectWithDP : DependencyObject
+        {
+            public object DP
+            {
+                get { return (object)GetValue(DPProperty); }
+                set { SetValue(DPProperty, value); }
+            }
+
+            public static readonly DependencyProperty DPProperty =
+                DependencyProperty.Register("DP", typeof(object), typeof(TestObjectWithDP), new PropertyMetadata(null));
         }
 
         private Mock<IViewManager> viewManager;
@@ -158,24 +172,22 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void ActionTargetIsRestoredAcrossPopupBoundaries()
+        public void ViewModelCanBeRetrievedByChildren()
         {
-            Execute.InDesignMode = true;
+            var view = new UserControl();
+            var viewModel = new object();
+            View.SetViewModel(view, viewModel);
 
-            var userControl = new UserControl();
-            var grid = new Grid();
-            userControl.Content = grid;
+            // Use something that doesn't inherit attached properties
+            var keyBinding = new KeyBinding();
+            view.InputBindings.Add(keyBinding);
 
-            var button = new Button();
-            grid.Children.Add(button);
+            var binding = View.GetBindingToViewModel(keyBinding);
 
-            var contextMenu = new ContextMenu();
-            button.ContextMenu = contextMenu;
+            var receiver = new TestObjectWithDP();
+            BindingOperations.SetBinding(receiver, TestObjectWithDP.DPProperty, binding);
 
-            var actionTarget = new object();
-
-            View.SetActionTarget(userControl, actionTarget);
-            Assert.AreEqual(actionTarget, View.GetActionTarget(button));
+            Assert.AreEqual(viewModel, receiver.DP);
         }
     }
 }

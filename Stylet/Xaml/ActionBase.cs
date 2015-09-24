@@ -212,11 +212,15 @@ namespace Stylet.Xaml
         {
             public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
             {
-                foreach (var value in values)
-                {
-                    if (value != View.InitialActionTarget)
-                        return value;
-                }
+                // We expect 2 values: [0] is the actiontarget, and [1] is the viewmodel from resource
+                if (values.Length != 2)
+                    throw new ArgumentException("Values must have 2 elements");
+
+                if (values[0] != View.InitialActionTarget)
+                    return values[0];
+
+                if (values[1] != null)
+                    return values[1];
 
                 return View.InitialActionTarget;
             }

@@ -108,6 +108,35 @@ namespace Stylet.Xaml
                 }
             }));
 
+        // Dependency Properties with 'inherit' set are great, except when they're not. In particular, they lose their
+        // value when you cross a boundary into an element which does not sit inside the visual (or logica?) tree.
+        // For example, trying to get the value of a previously-set View.ActionTarget from a KeyBinding will fail, because
+        // the KeyBinding does not sit inside either the visual or logical tree, and so View.ActionTarget loses its value.
+        // However, there are ways around this. If you create an instance of an object inheriting from Freezable and set it
+        // as a resource on some parent, you can later retrieve that resource even from children where inherited Dependency
+        // Properties will fail, using {DynamicResource}.
+        // Therefore. We have a class called BindingProxy, which has a single object 'Data' property and which inherits from
+        // freezable. View.SetViewModel sets this as a resource (with key ViewModelProxyResourceKey) on whatever FrameworkElement
+        // it's given, and sets the ViewModel as the 'Data' property. Later on, we can retrieve that BindingProxy from its
+        // key, and extract the ViewModel from it.
+        // Normally we'd be able to use FrameworkElement.SetResourceReference to emulate {DynamicResource} from code, but
+        // irritatingly that's defined on FrameworkElement and not DependencyObject (even though it does nothing specific to
+        // FrameworkElement), so won't work with e.g. KeyBinding (which inherits from DependencyObject but not FrameworkElement).
+        // However, DynamicResourceExtension.ProvideValue doesn't actually require a service provider, so we can get away with
+        // using it directly (it just wraps ResourceReferenceExpression, but that's internal, boo).
+        // Because the result of {DynamicResource} can change, we need to assign it to a Dependency Property (we use
+        // View.ViewModelProxy), and we return a binding which binds to that Dependency Property, and also has a converter
+        // which extracts the 'Data' property from the BindingProxy.
+        // The final step in the puzzle is that ActionBase will first look for a View.ActionTarget, and if not set, it will
+        // then look for a ViewModel using View.GetBindingToViewModel.
+        // The ViewModelExtension Markup Extension also uses this mechanism.
+
+        // To recap: if someone wants to get the ViewModel associated with a particular UI element, they can call
+        // View.GetBindingToViewModel. This will create a lookup to our previously-stored BindingProxy resource (whose 'Data'
+        // property is set to the ViewModel) using DynamicResourceExtension, and attach that to the View.ViewModelProxy
+        // Dependency Property. It will then return a binding, which can be used to fetch the ViewModel. This mechanism
+        // is used by {s:ViewModel}, and by ActionBase when an ActionTarget is otherwise not available.
+
         /// <summary>
         /// Set the ViewModel which can be subsequently retrieved using {s:ViewModel}
         /// </summary>

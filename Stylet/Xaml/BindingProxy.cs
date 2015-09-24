@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
@@ -18,7 +14,7 @@ namespace Stylet.Xaml
 
         public object Data
         {
-            get { return (object)GetValue(DataProperty); }
+            get { return GetValue(DataProperty); }
             set { SetValue(DataProperty, value); }
         }
 
@@ -26,6 +22,9 @@ namespace Stylet.Xaml
             DependencyProperty.Register("Data", typeof(object), typeof(BindingProxy), new PropertyMetadata(null));        
     }
 
+    /// <summary>
+    /// Converter which extracts the 'Data' property from a BindingProxy.
+    /// </summary>
     internal class BindingProxyToValueConverter : IValueConverter
     {
         public static readonly BindingProxyToValueConverter Instance = new BindingProxyToValueConverter();

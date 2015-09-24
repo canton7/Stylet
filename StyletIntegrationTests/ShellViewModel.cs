@@ -12,8 +12,6 @@ namespace StyletIntegrationTests
     {
         private IWindowManager windowManager;
 
-        public string Foo => "Foo";
-
         public ShellViewModel(IWindowManager windowManager)
         {
             this.windowManager = windowManager;
@@ -69,7 +67,12 @@ namespace StyletIntegrationTests
         
         public void ShowActionTargetSaved()
         {
-            this.windowManager.ShowMessageBox("Saved!");
+            this.windowManager.ShowMessageBox("PASS!");
+        }
+
+        public string ViewModelTestLabel
+        {
+            get { return "Pass"; }
         }
     }
 }

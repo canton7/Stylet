@@ -239,8 +239,8 @@ namespace Stylet
         /// <param name="viewModel">ViewModel to bind the View to</param>
         public virtual void BindViewToModel(UIElement view, object viewModel)
         {
-            logger.Info("Setting {0}'s ActionTarget to {1}", view, viewModel);
-            View.SetActionTarget(view, viewModel);
+            //logger.Info("Setting {0}'s ActionTarget to {1}", view, viewModel);
+            //View.SetActionTarget(view, viewModel);
 
             var viewAsFrameworkElement = view as FrameworkElement;
             if (viewAsFrameworkElement != null)
