@@ -147,6 +147,20 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void ViewManagerConfigRejectsNullViewNameSuffix()
+        {
+            var config = new ViewManagerConfig();
+            Assert.Throws<ArgumentNullException>(() => config.ViewNameSuffix = null);
+        }
+
+        [Test]
+        public void ViewManagerConfigRejectsNullViewModelNameSuffix()
+        {
+            var config = new ViewManagerConfig();
+            Assert.Throws<ArgumentNullException>(() => config.ViewModelNameSuffix = null);
+        }
+
+        [Test]
         public void ViewManagerRejectsNullViewFactory()
         {
             var config = new ViewManagerConfig();
@@ -366,6 +380,16 @@ namespace StyletUnitTests
             Assert.AreEqual("Root.NamespaceOfView.ThingView", viewManager.ViewTypeNameForModelTypeName("Root.NamespaceOfViewModel.ThingViewModel"));
 
             Assert.AreEqual("ViewModels.TestView", viewManager.ViewTypeNameForModelTypeName("ViewModels.TestViewModel"));
+        }
+
+        [Test]
+        public void ViewNameResolutionUsesConfig()
+        {
+            this.viewManagerConfig.ViewNameSuffix = "Viiiiew";
+            this.viewManagerConfig.ViewModelNameSuffix = "ViiiiiewModel";
+            var viewManager = new AccessibleViewManager(this.viewManagerConfig);
+
+            Assert.AreEqual("Root.Test.ThingViiiiew", viewManager.ViewTypeNameForModelTypeName("Root.Test.ThingViiiiiewModel"));
         }
 
         [Test]

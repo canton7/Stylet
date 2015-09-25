@@ -86,6 +86,38 @@ namespace Stylet
                 this._namespaceTransformations = value;
             }
         }
+
+        private string _viewNameSuffix = "View";
+
+        /// <summary>
+        /// Gets or sets the suffix replacing 'ViewModel' (see <see cref="ViewModelNameSuffix"/>). Defaults to 'View'
+        /// </summary>
+        public string ViewNameSuffix
+        {
+            get { return this._viewNameSuffix; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._viewNameSuffix = value;
+            }
+        }
+
+        private string _viewModelNameSuffix = "ViewModel";
+
+        /// <summary>
+        /// Gets or sets the suffix of ViewModel names, defaults to 'ViewModel'. This will be replaced by <see cref="ViewNameSuffix"/>
+        /// </summary>
+        public string ViewModelNameSuffix
+        {
+            get { return this._viewModelNameSuffix; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._viewModelNameSuffix = value;
+            }
+        }
     }
 
     /// <summary>
@@ -96,19 +128,10 @@ namespace Stylet
         private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
 
         /// <summary>
-        /// Gets or sets the assemblies searched for View types
+        /// Gets or sets the configuration object provided to this ViewManager
         /// </summary>
-        protected List<Assembly> ViewAssemblies { get; set; }
+        protected ViewManagerConfig Config { get; set; }
 
-        /// <summary>
-        /// Gets or sets the factory used to create view instances from their type
-        /// </summary>
-        protected Func<Type, object> ViewFactory { get; set; }
-
-        /// <summary>
-        /// Gets and sets a set of transformations to be applied to the ViewModel's namespace: string to find -> string to replace it with
-        /// </summary>
-        protected Dictionary<string, string> NamespaceTransformations { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ViewManager"/> class, with the given viewFactory
@@ -120,9 +143,7 @@ namespace Stylet
             if (config.ViewFactory == null)
                 throw new ArgumentNullException("config.ViewFactory");
 
-            this.ViewAssemblies = config.ViewAssemblies;
-            this.ViewFactory = config.ViewFactory;
-            this.NamespaceTransformations = config.NamespaceTransformations;
+            this.Config = config;
         }
 
         /// <summary>
@@ -195,7 +216,7 @@ namespace Stylet
         /// <returns>Type for that view name</returns>
         protected virtual Type ViewTypeForViewName(string viewName)
         {
-            return this.ViewAssemblies.Select(x => x.GetType(viewName)).FirstOrDefault();
+            return this.Config.ViewAssemblies.Select(x => x.GetType(viewName)).FirstOrDefault();
         }
 
         /// <summary>
@@ -211,7 +232,7 @@ namespace Stylet
         {
             string transformed = modelTypeName;
 
-            foreach (var transformation in this.NamespaceTransformations)
+            foreach (var transformation in this.Config.NamespaceTransformations)
             {
                 if (transformed.StartsWith(transformation.Key + "."))
                 {
@@ -220,7 +241,10 @@ namespace Stylet
                 }
             }
 
-            transformed = Regex.Replace(transformed, @"(?<=.)ViewModel(?=s?\.)|ViewModel$", "View");
+            transformed = Regex.Replace(transformed,
+                String.Format(@"(?<=.){0}(?=s?\.)|{0}$", Regex.Escape(this.Config.ViewModelNameSuffix)),
+                Regex.Escape(this.Config.ViewNameSuffix));
+
             return transformed;
         }
 
@@ -267,7 +291,7 @@ namespace Stylet
                 throw e;
             }
 
-            var view = (UIElement)this.ViewFactory(viewType);
+            var view = (UIElement)this.Config.ViewFactory(viewType);
 
             this.InitializeView(view, viewType);
 
