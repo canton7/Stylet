@@ -157,7 +157,7 @@ namespace Stylet
         /// <returns>Type for that view name</returns>
         protected virtual Type ViewTypeForViewName(string viewName)
         {
-            return this.ViewAssemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+            return this.ViewAssemblies.Select(x => x.GetType(viewName)).FirstOrDefault();
         }
 
         /// <summary>
