@@ -125,7 +125,10 @@ namespace StyletUnitTests
         [SetUp]
         public void SetUp()
         {
-            this.viewManagerConfig = new ViewManagerConfig();
+            this.viewManagerConfig = new ViewManagerConfig()
+            {
+                ViewFactory = type => null,
+            };
             this.viewManager = new AccessibleViewManager(this.viewManagerConfig);
         }
 
@@ -210,7 +213,10 @@ namespace StyletUnitTests
         [Test]
         public void LocateViewForModelThrowsIfTypeLocationDoesntWork()
         {
-            var config = new ViewManagerConfig();
+            var config = new ViewManagerConfig()
+            {
+                ViewFactory = type => null,
+            };
             var viewManager = new ResolvingViewManager(config);
             viewManager.ViewType = null;
             Assert.Throws<StyletViewLocationException>(() => viewManager.LocateViewForModel(typeof(C1)));
@@ -221,6 +227,7 @@ namespace StyletUnitTests
         {
             var config = new ViewManagerConfig()
             {
+                ViewFactory = type => null,
                 ViewAssemblies = new List<Assembly>() { Assembly.GetExecutingAssembly() }
             };
             var viewManager = new AccessibleViewManager(config);

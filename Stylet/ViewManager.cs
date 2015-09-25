@@ -49,15 +49,34 @@ namespace Stylet
     /// </summary>
     public class ViewManagerConfig
     {
+        private List<Assembly> _viewAssemblies;
+
         /// <summary>
         /// Gets and sets the assemblies which are used for IoC container auto-binding and searching for Views.
         /// </summary>
-        public List<Assembly> ViewAssemblies { get; set; }
+        public List<Assembly> ViewAssemblies
+        {
+            get { return this._viewAssemblies; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._viewAssemblies = value;
+            }
+        }
 
         /// <summary>
         /// Gets and sets the delegate used to retrieve an instance of a view
         /// </summary>
         public Func<Type, object> ViewFactory { get; set; }
+
+        /// <summary>
+        /// Instantiates a new instance of the <see cref="ViewManagerConfig"/> class
+        /// </summary>
+        public ViewManagerConfig()
+        {
+            this.ViewAssemblies = new List<Assembly>();
+        }
     }
 
     /// <summary>
@@ -83,6 +102,9 @@ namespace Stylet
         /// <param name="config">Configuration to use</param>
         public ViewManager(ViewManagerConfig config)
         {
+            // Config.ViewAssemblies cannot be null - ViewManagerConfig ensures this
+            if (config.ViewFactory == null)
+                throw new ArgumentNullException("config.ViewFactory");
             this.ViewAssemblies = config.ViewAssemblies;
             this.ViewFactory = config.ViewFactory;
         }
