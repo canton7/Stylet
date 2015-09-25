@@ -69,7 +69,7 @@ namespace StyletIoC.Internal.Builders
                     throw new StyletIoCRegistrationException(String.Format("You cannot bind the non-generic type {0} to the unbound generic service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
             }
 
-            if (!implementationType.Implements(this.ServiceType))
+            if (!implementationType.Implements(serviceType))
                 throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
         }
 
