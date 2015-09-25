@@ -29,13 +29,9 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(IKernel kernel)
         {
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly },
-                ViewFactory = this.GetInstance,
-            };
-            kernel.Bind<ViewManagerConfig>().ToConstant(viewManagerConfig);
-            kernel.Bind<IViewManager>().To<ViewManager>().InSingletonScope();
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
+            kernel.Bind<IViewManager>().ToConstant(viewManager);
+
             kernel.Bind<IWindowManagerConfig>().ToConstant(this);
             kernel.Bind<IWindowManager>().ToMethod(c => new WindowManager(c.Kernel.Get<IViewManager>(), () => c.Kernel.Get<IMessageBoxViewModel>(), c.Kernel.Get<IWindowManagerConfig>())).InSingletonScope();
             kernel.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope();

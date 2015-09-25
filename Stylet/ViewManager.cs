@@ -45,11 +45,28 @@ namespace Stylet
     }
 
     /// <summary>
-    /// Configuration passed to ViewManager
+    /// Default implementation of ViewManager. Responsible for locating, creating, and settings up Views. Also owns the View.Model and View.ActionTarget attached properties
     /// </summary>
-    public class ViewManagerConfig
+    public class ViewManager : IViewManager
     {
-        private List<Assembly> _viewAssemblies = new List<Assembly>();
+        private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
+
+        private Func<Type, object> _viewFactory; // This is assigned by the ctor
+
+        /// <summary>
+        /// Gets and sets the delegate used to retrieve an instance of a view
+        /// </summary>
+        public Func<Type, object> ViewFactory
+        {
+            get { return this._viewFactory; }set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._viewFactory = value;
+            }
+        }
+
+        private List<Assembly> _viewAssemblies; // This is assigned by the ctor
 
         /// <summary>
         /// Gets and sets the assemblies which are used for IoC container auto-binding and searching for Views.
@@ -64,12 +81,6 @@ namespace Stylet
                 this._viewAssemblies = value;
             }
         }
-
-        /// <summary>
-        /// Gets and sets the delegate used to retrieve an instance of a view
-        /// </summary>
-        public Func<Type, object> ViewFactory { get; set; }
-
 
         private Dictionary<string, string> _namespaceTransformations = new Dictionary<string, string>();
 
@@ -118,32 +129,22 @@ namespace Stylet
                 this._viewModelNameSuffix = value;
             }
         }
-    }
-
-    /// <summary>
-    /// Default implementation of ViewManager. Responsible for locating, creating, and settings up Views. Also owns the View.Model and View.ActionTarget attached properties
-    /// </summary>
-    public class ViewManager : IViewManager
-    {
-        private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
-
-        /// <summary>
-        /// Gets or sets the configuration object provided to this ViewManager
-        /// </summary>
-        protected ViewManagerConfig Config { get; set; }
-
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ViewManager"/> class, with the given viewFactory
         /// </summary>
-        /// <param name="config">Configuration to use</param>
-        public ViewManager(ViewManagerConfig config)
+        /// <param name="viewFactory">ViewFactory to use</param>
+        /// <param name="viewAssemblies">Assembles to search for views in</param>
+        public ViewManager(Func<Type, object> viewFactory, List<Assembly> viewAssemblies)
         {
             // Config.ViewAssemblies cannot be null - ViewManagerConfig ensures this
-            if (config.ViewFactory == null)
-                throw new ArgumentNullException("config.ViewFactory");
+            if (viewFactory == null)
+                throw new ArgumentNullException("viewFactoryy");
+            if (viewAssemblies == null)
+                throw new ArgumentNullException("viewAssemblies");
 
-            this.Config = config;
+            this.ViewFactory = viewFactory;
+            this.ViewAssemblies = viewAssemblies;
         }
 
         /// <summary>
@@ -216,7 +217,7 @@ namespace Stylet
         /// <returns>Type for that view name</returns>
         protected virtual Type ViewTypeForViewName(string viewName)
         {
-            return this.Config.ViewAssemblies.Select(x => x.GetType(viewName)).FirstOrDefault();
+            return this.ViewAssemblies.Select(x => x.GetType(viewName)).FirstOrDefault();
         }
 
         /// <summary>
@@ -232,7 +233,7 @@ namespace Stylet
         {
             string transformed = modelTypeName;
 
-            foreach (var transformation in this.Config.NamespaceTransformations)
+            foreach (var transformation in this.NamespaceTransformations)
             {
                 if (transformed.StartsWith(transformation.Key + "."))
                 {
@@ -242,8 +243,8 @@ namespace Stylet
             }
 
             transformed = Regex.Replace(transformed,
-                String.Format(@"(?<=.){0}(?=s?\.)|{0}$", Regex.Escape(this.Config.ViewModelNameSuffix)),
-                Regex.Escape(this.Config.ViewNameSuffix));
+                String.Format(@"(?<=.){0}(?=s?\.)|{0}$", Regex.Escape(this.ViewModelNameSuffix)),
+                Regex.Escape(this.ViewNameSuffix));
 
             return transformed;
         }
@@ -291,7 +292,7 @@ namespace Stylet
                 throw e;
             }
 
-            var view = (UIElement)this.Config.ViewFactory(viewType);
+            var view = (UIElement)this.ViewFactory(viewType);
 
             this.InitializeView(view, viewType);
 

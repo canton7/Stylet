@@ -32,13 +32,9 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(ConfigurationExpression config)
         {
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly },
-                ViewFactory = this.GetInstance,
-            };
-            config.For<ViewManagerConfig>().Add(viewManagerConfig);
-            config.For<IViewManager>().Add<ViewManager>().LifecycleIs<SingletonLifecycle>();
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
+            config.For<IViewManager>().Add(viewManager);
+
             config.For<IWindowManagerConfig>().Add(this);
             config.For<IWindowManager>().Add<WindowManager>().LifecycleIs<SingletonLifecycle>();
             config.For<IEventAggregator>().Add<EventAggregator>().LifecycleIs<SingletonLifecycle>();

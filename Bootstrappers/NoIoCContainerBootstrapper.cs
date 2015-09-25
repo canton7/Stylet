@@ -17,12 +17,7 @@ namespace Bootstrappers
 
         protected virtual void DefaultConfigureContainer()
         {
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly },
-                ViewFactory = this.GetInstance,
-            };
-            var viewManager = new ViewManager(viewManagerConfig);
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
             this.Container.Add(typeof(IViewManager), () => viewManager);
 
             var windowManager = new WindowManager(viewManager, () => (IMessageBoxViewModel)this.Container[typeof(IMessageBoxViewModel)](), this);

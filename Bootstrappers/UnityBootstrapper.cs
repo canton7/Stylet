@@ -29,14 +29,8 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(IUnityContainer container)
         {
-            // This is a workaround
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly },
-                ViewFactory = this.GetInstance,
-            };
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
             // For some reason using ContainerControlledLifetimeManager results in a transient registration....
-            var viewManager = new ViewManager(viewManagerConfig);
             container.RegisterInstance<IViewManager>(viewManager);
             container.RegisterInstance<IWindowManager>(new WindowManager(viewManager, () => container.Resolve<IMessageBoxViewModel>(), this));
             container.RegisterInstance<IEventAggregator>(new EventAggregator());

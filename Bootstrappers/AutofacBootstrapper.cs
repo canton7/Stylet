@@ -31,13 +31,9 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(ContainerBuilder builder)
         {
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly },
-                ViewFactory = this.GetInstance,
-            };
-            builder.RegisterInstance<ViewManagerConfig>(viewManagerConfig);
-            builder.RegisterType<ViewManager>().As<IViewManager>().SingleInstance();
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
+            builder.RegisterInstance<IViewManager>(viewManager);
+
             builder.RegisterInstance<IWindowManagerConfig>(this);
             builder.RegisterType<WindowManager>().As<IWindowManager>().SingleInstance();
             builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();

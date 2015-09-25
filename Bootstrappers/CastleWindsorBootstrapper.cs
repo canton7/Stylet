@@ -31,19 +31,15 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(IWindsorContainer container)
         {
-            container.AddFacility<TypedFactoryFacility>();
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly },
-                ViewFactory = this.GetInstance,
-            };
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
             container.Register(
-                Component.For<ViewManagerConfig>().Instance(viewManagerConfig),
+                Component.For<IViewManager>().Instance(viewManager),
                 Component.For<IWindowManagerConfig>().Instance(this),
-                Component.For<IViewManager>().ImplementedBy<ViewManager>().LifestyleSingleton(),
+                Component.For<IMessageBoxViewModel>().ImplementedBy<MessageBoxViewModel>().LifestyleTransient(),
+                // For some reason we need to register the delegate separately?
+                Component.For<Func<IMessageBoxViewModel>>().Instance(() => new MessageBoxViewModel()),
                 Component.For<IWindowManager>().ImplementedBy<WindowManager>().LifestyleSingleton(),
-                Component.For<IEventAggregator>().ImplementedBy<EventAggregator>().LifestyleSingleton(),
-                Component.For<IMessageBoxViewModel>().ImplementedBy<MessageBoxViewModel>().LifestyleTransient()
+                Component.For<IEventAggregator>().ImplementedBy<EventAggregator>().LifestyleSingleton()
             );
             container.Register(Classes.FromAssembly(this.GetType().Assembly).Pick().LifestyleTransient());
         }
