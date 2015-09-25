@@ -29,8 +29,8 @@ task :test_environment => [:build] do
   NUNIT_CONSOLE = Dir[File.join(NUNIT_TOOLS, 'nunit-console.exe')].first
   NUNIT_EXE = Dir[File.join(NUNIT_TOOLS, 'nunit.exe')].first
 
-  OPENCOVER_CONSOLE = Dir['packages/OpenCover.*/OpenCover.Console.exe'].first
-  REPORT_GENERATOR = Dir['packages/ReportGenerator.*/ReportGenerator.exe'].first
+  OPENCOVER_CONSOLE = Dir['packages/OpenCover.*/tools/OpenCover.Console.exe'].first
+  REPORT_GENERATOR = Dir['packages/ReportGenerator.*/tools/ReportGenerator.exe'].first
 
   UNIT_TESTS_DLL = "StyletUnitTests/bin/#{CONFIG}/StyletUnitTests.dll"
   INTEGRATION_TESTS_EXE = "StyletIntegrationTests/bin/#{CONFIG}/StyletIntegrationTests.exe"
