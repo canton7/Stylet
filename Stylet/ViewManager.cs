@@ -49,7 +49,7 @@ namespace Stylet
     /// </summary>
     public class ViewManagerConfig
     {
-        private List<Assembly> _viewAssemblies;
+        private List<Assembly> _viewAssemblies = new List<Assembly>();
 
         /// <summary>
         /// Gets and sets the assemblies which are used for IoC container auto-binding and searching for Views.
@@ -70,12 +70,21 @@ namespace Stylet
         /// </summary>
         public Func<Type, object> ViewFactory { get; set; }
 
+
+        private Dictionary<string, string> _namespaceTransformations = new Dictionary<string, string>();
+
         /// <summary>
-        /// Instantiates a new instance of the <see cref="ViewManagerConfig"/> class
+        /// Gets and sets a set of transformations to be applied to the ViewModel's namespace: string to find -> string to replace it with
         /// </summary>
-        public ViewManagerConfig()
+        public Dictionary<string, string> NamespaceTransformations
         {
-            this.ViewAssemblies = new List<Assembly>();
+            get { return this._namespaceTransformations; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._namespaceTransformations = value;
+            }
         }
     }
 
@@ -97,6 +106,11 @@ namespace Stylet
         protected Func<Type, object> ViewFactory { get; set; }
 
         /// <summary>
+        /// Gets and sets a set of transformations to be applied to the ViewModel's namespace: string to find -> string to replace it with
+        /// </summary>
+        protected Dictionary<string, string> NamespaceTransformations { get; set; }
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="ViewManager"/> class, with the given viewFactory
         /// </summary>
         /// <param name="config">Configuration to use</param>
@@ -105,8 +119,10 @@ namespace Stylet
             // Config.ViewAssemblies cannot be null - ViewManagerConfig ensures this
             if (config.ViewFactory == null)
                 throw new ArgumentNullException("config.ViewFactory");
+
             this.ViewAssemblies = config.ViewAssemblies;
             this.ViewFactory = config.ViewFactory;
+            this.NamespaceTransformations = config.NamespaceTransformations;
         }
 
         /// <summary>
@@ -193,7 +209,19 @@ namespace Stylet
         /// <returns>View type name</returns>
         protected virtual string ViewTypeNameForModelTypeName(string modelTypeName)
         {
-            return Regex.Replace(modelTypeName, @"(?<=.)ViewModel(?=s?\.)|ViewModel$", "View");
+            string transformed = modelTypeName;
+
+            foreach (var transformation in this.NamespaceTransformations)
+            {
+                if (transformed.StartsWith(transformation.Key + "."))
+                {
+                    transformed = transformation.Value + transformed.Substring(transformation.Key.Length);
+                    break;
+                }
+            }
+
+            transformed = Regex.Replace(transformed, @"(?<=.)ViewModel(?=s?\.)|ViewModel$", "View");
+            return transformed;
         }
 
         /// <summary>

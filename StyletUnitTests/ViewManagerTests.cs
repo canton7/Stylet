@@ -133,6 +133,27 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void ViewManagerConfigRejectsNullViewAssemblies()
+        {
+            var config = new ViewManagerConfig();
+            Assert.Throws<ArgumentNullException>(() => config.ViewAssemblies = null);
+        }
+
+        [Test]
+        public void ViewManagerConfigRejectsNullNamespaceTransformations()
+        {
+            var config = new ViewManagerConfig();
+            Assert.Throws<ArgumentNullException>(() => config.NamespaceTransformations = null);
+        }
+
+        [Test]
+        public void ViewManagerRejectsNullViewFactory()
+        {
+            var config = new ViewManagerConfig();
+            Assert.Throws<ArgumentNullException>(() => new ViewManager(config));
+        }
+
+        [Test]
         public void OnModelChangedDoesNothingIfNoChange()
         {
             var val = new object();
@@ -327,8 +348,6 @@ namespace StyletUnitTests
             model.Verify(x => x.AttachView(view));
         }
 
-        
-
         [Test]
         public void ViewNameResolutionWorksAsExpected()
         {
@@ -347,6 +366,26 @@ namespace StyletUnitTests
             Assert.AreEqual("Root.NamespaceOfView.ThingView", viewManager.ViewTypeNameForModelTypeName("Root.NamespaceOfViewModel.ThingViewModel"));
 
             Assert.AreEqual("ViewModels.TestView", viewManager.ViewTypeNameForModelTypeName("ViewModels.TestViewModel"));
+        }
+
+        [Test]
+        public void NamespaceTransformationsTransformsNamespace()
+        {
+            this.viewManagerConfig.NamespaceTransformations["Foo.Bar"] = "Baz.Yay";
+            var viewManager = new AccessibleViewManager(this.viewManagerConfig);
+
+            Assert.AreEqual("Baz.Yay.ThingView", viewManager.ViewTypeNameForModelTypeName("Foo.Bar.ThingViewModel"));
+            Assert.AreEqual("Baz.Yay.Thing", viewManager.ViewTypeNameForModelTypeName("Foo.Bar.Thing"));
+        }
+
+        [Test]
+        public void NamespaceTransformationsTransformOnlyFirstMatch()
+        {
+            this.viewManagerConfig.NamespaceTransformations["Foo.Bar"] = "Baz.Yay";
+            this.viewManagerConfig.NamespaceTransformations["Baz.Yay"] = "One.Two";
+
+            Assert.AreEqual("Baz.Yay.ThingView", viewManager.ViewTypeNameForModelTypeName("Foo.Bar.ThingViewModel"));
+            Assert.AreEqual("One.Two.ThingView", viewManager.ViewTypeNameForModelTypeName("Baz.Yay.ThingViewModel"));
         }
     }
 }
