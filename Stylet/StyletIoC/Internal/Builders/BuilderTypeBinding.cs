@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using StyletIoC.Creation;
 
 namespace StyletIoC.Internal.Builders
 {
@@ -6,16 +8,16 @@ namespace StyletIoC.Internal.Builders
     {
         private readonly Type implementationType;
 
-        public BuilderTypeBinding(Type serviceType, Type implementationType)
-            : base(serviceType)
+        public BuilderTypeBinding(List<BuilderTypeKey> serviceTypes, Type implementationType)
+            : base(serviceTypes)
         {
-            this.EnsureType(implementationType);
+            this.EnsureTypeAgainstServiceTypes(implementationType);
             this.implementationType = implementationType;
         }
 
         public override void Build(Container container)
         {
-            this.BindImplementationToService(container, this.implementationType);
+            this.BindImplementationToServices(container, this.implementationType);
         }
     }
 }

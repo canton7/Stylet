@@ -1,25 +1,33 @@
 ﻿using StyletIoC.Internal.Creators;
 using StyletIoC.Internal.Registrations;
 using System;
+using StyletIoC.Creation;
+using System.Collections.Generic;
 
 namespace StyletIoC.Internal.Builders
 {
     internal class BuilderAbstractFactoryBinding : BuilderBindingBase
     {
-        public BuilderAbstractFactoryBinding(Type serviceType)
-            : base(serviceType)
+        public BuilderAbstractFactoryBinding(List<BuilderTypeKey> serviceTypes)
+            : base(serviceTypes)
         {
-            if (serviceType.IsGenericTypeDefinition)
-                throw new StyletIoCRegistrationException(String.Format("Unbound generic type {0} can't be used as an abstract factory", serviceType.GetDescription()));
+            foreach (var serviceType in this.ServiceTypes)
+            {
+                if (serviceType.Type.IsGenericTypeDefinition)
+                    throw new StyletIoCRegistrationException(String.Format("Unbound generic type {0} can't be used as an abstract factory", serviceType.Type.GetDescription()));
+            }
         }
 
         public override void Build(Container container)
         {
-            var factoryType = container.GetFactoryForType(this.ServiceType);
-            var creator = new AbstractFactoryCreator(factoryType);
-            var registration = new TransientRegistration(creator);
+            foreach (var serviceType in this.ServiceTypes)
+            {
+                var factoryType = container.GetFactoryForType(serviceType.Type);
+                var creator = new AbstractFactoryCreator(factoryType);
+                var registration = new TransientRegistration(creator);
 
-            container.AddRegistration(new TypeKey(this.ServiceType.TypeHandle, this.Key), registration);
+                container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key), registration);
+            }
         }
     }
 }

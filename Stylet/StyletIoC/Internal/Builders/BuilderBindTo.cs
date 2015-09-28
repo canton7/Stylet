@@ -9,25 +9,24 @@ namespace StyletIoC.Internal.Builders
     internal class BuilderBindTo : IBindTo
     {
         private readonly Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies;
-        public Type ServiceType { get; private set; }
+        public List<BuilderTypeKey> ServiceTypes { get; private set; }
         private BuilderBindingBase builderBinding;
         public bool IsWeak { get { return this.builderBinding.IsWeak; } }
-        public string Key { get { return this.builderBinding.Key; } }
 
         public BuilderBindTo(Type serviceType, Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies)
         {
-            this.ServiceType = serviceType;
+            this.ServiceTypes = new List<BuilderTypeKey>() { new BuilderTypeKey(serviceType) };
             this.getAssemblies = getAssemblies;
         }
 
         public IInScopeOrWithKeyOrAsWeakBinding ToSelf()
         {
-            return this.To(this.ServiceType);
+            return this.To(this.ServiceTypes);
         }
 
         public IInScopeOrWithKeyOrAsWeakBinding To(Type implementationType)
         {
-            this.builderBinding = new BuilderTypeBinding(this.ServiceType, implementationType);
+            this.builderBinding = new BuilderTypeBinding(this.ServiceTypes, implementationType);
             return this.builderBinding;
         }
 
@@ -38,25 +37,25 @@ namespace StyletIoC.Internal.Builders
 
         public IInScopeOrWithKeyOrAsWeakBinding ToFactory<TImplementation>(Func<IRegistrationContext, TImplementation> factory)
         {
-            this.builderBinding = new BuilderFactoryBinding<TImplementation>(this.ServiceType, factory);
+            this.builderBinding = new BuilderFactoryBinding<TImplementation>(this.ServiceTypes, factory);
             return this.builderBinding;
         }
 
         public IWithKeyOrAsWeakBinding ToInstance(object instance)
         {
-            this.builderBinding = new BuilderInstanceBinding(this.ServiceType, instance);
+            this.builderBinding = new BuilderInstanceBinding(this.ServiceTypes, instance);
             return this.builderBinding;
         }
 
         public IWithKeyOrAsWeakBinding ToAbstractFactory()
         {
-            this.builderBinding = new BuilderAbstractFactoryBinding(this.ServiceType);
+            this.builderBinding = new BuilderAbstractFactoryBinding(this.ServiceTypes);
             return this.builderBinding;
         }
 
         public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(IEnumerable<Assembly> assemblies)
         {
-            this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceType, this.getAssemblies(assemblies, "ToAllImplementations"));
+            this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceTypes, this.getAssemblies(assemblies, "ToAllImplementations"));
             return this.builderBinding;
         }
 

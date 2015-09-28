@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using StyletIoC.Creation;
 using StyletIoC.Internal.Creators;
 
 namespace StyletIoC.Internal.Builders
@@ -7,10 +9,10 @@ namespace StyletIoC.Internal.Builders
     {
         private readonly object instance;
 
-        public BuilderInstanceBinding(Type serviceType, object instance)
-            : base(serviceType)
+        public BuilderInstanceBinding(List<BuilderTypeKey> serviceTypes, object instance)
+            : base(serviceTypes)
         {
-            this.EnsureType(instance.GetType(), assertImplementation: false);
+            this.EnsureTypeAgainstServiceTypes(instance.GetType(), assertImplementation: false);
             this.instance = instance;
         }
 
@@ -19,7 +21,10 @@ namespace StyletIoC.Internal.Builders
             var creator = new InstanceCreator(this.instance);
             var registration = this.CreateRegistration(container, creator);
 
-            container.AddRegistration(new TypeKey(this.ServiceType.TypeHandle, this.Key), registration);
+            foreach (var serviceType in this.ServiceTypes)
+            {
+                container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key), registration);
+            }
         }
     }
 }

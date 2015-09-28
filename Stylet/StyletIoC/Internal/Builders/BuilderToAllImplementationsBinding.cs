@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using StyletIoC.Creation;
 
 namespace StyletIoC.Internal.Builders
 {
@@ -10,8 +11,8 @@ namespace StyletIoC.Internal.Builders
     {
         private readonly IEnumerable<Assembly> assemblies;
 
-        public BuilderToAllImplementationsBinding(Type serviceType, IEnumerable<Assembly> assemblies)
-            : base(serviceType)
+        public BuilderToAllImplementationsBinding(List<BuilderTypeKey> serviceTypes, IEnumerable<Assembly> assemblies)
+            : base(serviceTypes)
         {
             this.assemblies = assemblies;
         }
@@ -19,7 +20,7 @@ namespace StyletIoC.Internal.Builders
         public override void Build(Container container)
         {
             var candidates = from type in this.assemblies.Distinct().SelectMany(x => x.GetTypes())
-                             let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x == this.ServiceType || (x.IsGenericType && x.GetGenericTypeDefinition() == this.ServiceType))
+                             let baseType = type.GetBaseTypesAndInterfaces().FirstOrDefault(x => x == this.ServiceTypes || (x.IsGenericType && x.GetGenericTypeDefinition() == this.ServiceTypes))
                              where baseType != null
                              select new { Type = type, Base = baseType.ContainsGenericParameters ? baseType.GetGenericTypeDefinition() : baseType };
 
