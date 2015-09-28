@@ -1,12 +1,13 @@
 ﻿using StyletIoC.Creation;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
 namespace StyletIoC.Internal.Builders
 {
-    internal class BuilderBindTo : IBindTo
+    internal class BuilderBindTo : IBindTo, IAndOrToMultipleServices
     {
         private readonly Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies;
         public List<BuilderTypeKey> ServiceTypes { get; private set; }
@@ -19,9 +20,32 @@ namespace StyletIoC.Internal.Builders
             this.getAssemblies = getAssemblies;
         }
 
+        public IWithKeyOrAndOrToMultipleServices And<TService>()
+        {
+            return this.And(typeof(TService));
+        }
+
+        public IWithKeyOrAndOrToMultipleServices And(Type serviceType)
+        {
+            this.ServiceTypes.Add(new BuilderTypeKey(serviceType));
+            return this;
+        }
+
+        public IAndOrToMultipleServices WithKey(string key)
+        {
+            // Should have been ensured by the fluent interface
+            Trace.Assert(this.ServiceTypes.Count > 0);
+
+            this.ServiceTypes[this.ServiceTypes.Count - 1].Key = key;
+            return this;
+        }
+
         public IInScopeOrWithKeyOrAsWeakBinding ToSelf()
         {
-            return this.To(this.ServiceTypes);
+            // This should be ensured by the fluent interfaces
+            Trace.Assert(this.ServiceTypes.Count == 1);
+
+            return this.To(this.ServiceTypes[0].Type);
         }
 
         public IInScopeOrWithKeyOrAsWeakBinding To(Type implementationType)
