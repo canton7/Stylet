@@ -52,6 +52,8 @@ namespace StyletUnitTests
             Assert.IsInstanceOf<WindowManager>(ioc.Get<IWindowManager>());
             Assert.IsInstanceOf<IEventAggregator>(ioc.Get<IEventAggregator>());
             Assert.IsInstanceOf<ViewManager>(ioc.Get<IViewManager>());
+            Assert.IsInstanceOf<ViewManager>(ioc.Get<ViewManager>());
+            Assert.IsInstanceOf<MessageBoxViewModel>(ioc.Get<IMessageBoxViewModel>());
 
             // Test autobinding
             Assert.DoesNotThrow(() => ioc.Get<RootViewModel>());
