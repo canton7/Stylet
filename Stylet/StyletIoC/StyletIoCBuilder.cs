@@ -174,8 +174,8 @@ namespace StyletIoC
                           .ToLookup(x => x.ServiceType);
 
             var filtered = from binding in this.bindings
-                           where !binding.IsWeak ||
-                                binding.ServiceTypes.Any(serviceType => groups.Contains(serviceType) && groups[serviceType].Any(groupItem => groupItem.Binding.IsWeak))
+                           where !(binding.IsWeak &&
+                                binding.ServiceTypes.Any(serviceType => groups.Contains(serviceType) && groups[serviceType].Any(groupItem => !groupItem.Binding.IsWeak)))
                            select binding;
 
             foreach (var binding in filtered)

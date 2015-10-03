@@ -13,6 +13,9 @@ namespace StyletIoC
     {
     }
 
+    /// <summary>
+    /// Interface providing further options once a binding has been created which binds to multiple services
+    /// </summary>
     public interface IToMultipleServices
     {
         /// <summary>
@@ -45,6 +48,9 @@ namespace StyletIoC
         IWithKeyOrAsWeakBinding ToInstance(object instance);
     }
 
+    /// <summary>
+    /// Interface providing binding options for a single service, or multiple services
+    /// </summary>
     public interface IToAnyService : IToMultipleServices
     {
         /// <summary>
@@ -74,21 +80,49 @@ namespace StyletIoC
         IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies);
     }
 
+    /// <summary>
+    /// Interface providing 'And' binding options
+    /// </summary>
     public interface IAndTo
     {
+        /// <summary>
+        /// Add another service to this binding
+        /// </summary>
+        /// <param name="serviceType">Service type to add to this binding</param>
+        /// <returns>Fluent interface to continue configuration</returns>
         IWithKeyOrAndOrToMultipleServices And(Type serviceType);
+
+        /// <summary>
+        /// Add another service to this binding
+        /// </summary>
+        /// <typeparam name="TService">Service type to add to this binding</typeparam>
+        /// <returns>Fluent interface to continue configuration</returns>
         IWithKeyOrAndOrToMultipleServices And<TService>();
     }
 
+    /// <summary>
+    /// Interface providing options 'WithKey' or 'ToXXX' for multiple services
+    /// </summary>
     public interface IWithKeyOrToMulipleServices : IToMultipleServices
     {
+        /// <summary>
+        /// Add a key to this part of the multiple-service binding
+        /// </summary>
+        /// <param name="key">Key to add to this part of the multiple-service binding</param>
+        /// <returns>Fluent interface to continue configuration</returns>
         IAndOrToMultipleServices WithKey(string key);
     }
 
+    /// <summary>
+    /// Interface providing 'And' or 'ToXXX' for multiple services
+    /// </summary>
     public interface IAndOrToMultipleServices : IToMultipleServices, IAndTo
     {
     }
 
+    /// <summary>
+    /// Interface providing 'WithKey' or 'And' or 'ToXXX' for multiple services
+    /// </summary>
     public interface IWithKeyOrAndOrToMultipleServices : IWithKeyOrToMulipleServices, IAndTo
     {
     }

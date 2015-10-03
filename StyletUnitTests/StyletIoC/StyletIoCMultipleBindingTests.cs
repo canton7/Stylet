@@ -12,9 +12,10 @@ namespace StyletUnitTests
     public class StyletIoCMultipleBindingTests
     {
 
-        private interface I1 { }
+        private interface I11 { }
+        private interface I12 { }
 
-        private class C1 : I1 { }
+        private class C1 : I11, I12 { }
 
         private interface I2<T> { }
         private class C2<T> : I2<T> { }
@@ -23,30 +24,30 @@ namespace StyletUnitTests
         public void SingletonMultipleTypeBindingIsSingleton()
         {
             var builder = new StyletIoCBuilder();
-            builder.Bind<I1>().And<C1>().To<C1>().InSingletonScope();
+            builder.Bind<I11>().And<C1>().To<C1>().InSingletonScope();
             var ioc = builder.BuildContainer();
 
-            Assert.AreEqual(ioc.Get<C1>(), ioc.Get<I1>());
+            Assert.AreEqual(ioc.Get<C1>(), ioc.Get<I11>());
         }
 
         [Test]
         public void SingletonMultipleFactoryBindingIsSingleton()
         {
             var builder = new StyletIoCBuilder();
-            builder.Bind<I1>().And<C1>().ToFactory(x => new C1()).InSingletonScope();
+            builder.Bind<I11>().And<C1>().ToFactory(x => new C1()).InSingletonScope();
             var ioc = builder.BuildContainer();
 
-            Assert.AreEqual(ioc.Get<C1>(), ioc.Get<I1>());
+            Assert.AreEqual(ioc.Get<C1>(), ioc.Get<I11>());
         }
 
         [Test]
         public void SingletonMultipleInstanceBindingWorks()
         {
             var builder = new StyletIoCBuilder();
-            builder.Bind<I1>().And<C1>().ToInstance(new C1());
+            builder.Bind<I11>().And<C1>().ToInstance(new C1());
             var ioc = builder.BuildContainer();
 
-            Assert.AreEqual(ioc.Get<C1>(), ioc.Get<I1>());
+            Assert.AreEqual(ioc.Get<C1>(), ioc.Get<I11>());
         }
 
         [Test]
@@ -61,7 +62,7 @@ namespace StyletUnitTests
         public void RejectsMultipleBindingsForTheSameType()
         {
             var builder = new StyletIoCBuilder();
-            builder.Bind<I1>().And<I1>().To<C1>();
+            builder.Bind<I11>().And<I11>().To<C1>();
             Assert.Throws<StyletIoCRegistrationException>(() => builder.BuildContainer());
         }
 
@@ -69,22 +70,35 @@ namespace StyletUnitTests
         public void AllowsMultipleBindingsWithDifferentKeys()
         {
             var builder = new StyletIoCBuilder();
-            builder.Bind<I1>().WithKey("foo").And<I1>().To<C1>().InSingletonScope();
+            builder.Bind<I11>().WithKey("foo").And<I11>().To<C1>().InSingletonScope();
             var ioc = builder.BuildContainer();
 
-            Assert.AreEqual(ioc.Get<I1>(), ioc.Get<I1>("foo"));
+            Assert.AreEqual(ioc.Get<I11>(), ioc.Get<I11>("foo"));
         }
 
         [Test]
         public void FinalWithKeyAppliesToAllBindings()
         {
             var builder = new StyletIoCBuilder();
-            builder.Bind<I1>().And<C1>().To<C1>().WithKey("foo").InSingletonScope();
+            builder.Bind<I11>().And<C1>().To<C1>().WithKey("foo").InSingletonScope();
             var ioc = builder.BuildContainer();
 
-            Assert.DoesNotThrow(() => ioc.Get<I1>("foo"));
+            Assert.DoesNotThrow(() => ioc.Get<I11>("foo"));
             Assert.DoesNotThrow(() => ioc.Get<C1>("foo"));
-            Assert.AreEqual(ioc.Get<I1>("foo"), ioc.Get<C1>("foo"));
+            Assert.AreEqual(ioc.Get<I11>("foo"), ioc.Get<C1>("foo"));
+        }
+
+        [Test]
+        public void WeakBindingsRemoveIfAnyOtherStrongBindingWithSameTypeAndKeyExists()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I11>().And<C1>().To<C1>().AsWeakBinding();
+            builder.Bind<I12>().And<C1>().To<C1>();
+            var ioc = builder.BuildContainer();
+
+            Assert.AreEqual(0, ioc.GetAll<I11>().Count());
+            Assert.AreEqual(1, ioc.GetAll<C1>().Count());
+            Assert.AreEqual(1, ioc.GetAll<I12>().Count());
         }
     }
 }
