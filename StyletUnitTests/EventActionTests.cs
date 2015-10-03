@@ -109,10 +109,12 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void ThrowsIfActionNonExistentBehaviourIsThrowAndActionIsNonExistent()
+        public void ThrowsWhenClickedIfActionNonExistentBehaviourIsThrowAndActionIsNonExistent()
         {
             var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Throw);
-            Assert.Throws<ActionNotFoundException>(() => View.SetActionTarget(this.subject, new Target2()));
+            Assert.DoesNotThrow(() => View.SetActionTarget(this.subject, new Target2()));
+            var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, new RoutedEventArgs()));
+            Assert.IsInstanceOf<ActionNotFoundException>(e.InnerException);
         }
 
         [Test]

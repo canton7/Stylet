@@ -100,7 +100,8 @@ namespace StyletUnitTests
         public void ThrowsIfActionNonExistentBehaviourIsThrowAndActionIsNonExistent()
         {
             var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
-            Assert.Throws<ActionNotFoundException>(() => View.SetActionTarget(this.subject, new Target2()));
+            Assert.DoesNotThrow(() => View.SetActionTarget(this.subject, new Target2()));
+            Assert.Throws<ActionNotFoundException>(() => cmd.Execute(null));
         }
 
         [Test]

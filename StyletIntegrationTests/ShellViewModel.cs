@@ -10,14 +10,18 @@ namespace StyletIntegrationTests
 {
     public class ShellViewModel : Screen
     {
-        private IWindowManager windowManager;
+        private readonly IWindowManager windowManager;
+
+        public ChildViewModel ChildViewModel { get; private set; }
 
         public ShellViewModel(IWindowManager windowManager)
         {
             this.windowManager = windowManager;
+            this.ChildViewModel = new ChildViewModel(windowManager);
 
             this.DisplayName = "ShellViewModel";
         }
+
 
 
         private bool? _showDialogAndDialogResultDialogResult;
@@ -73,6 +77,21 @@ namespace StyletIntegrationTests
         public string ViewModelTestLabel
         {
             get { return "Pass"; }
+        }
+    }
+
+    public class ChildViewModel
+    {
+        private readonly IWindowManager windowManager;
+
+        public ChildViewModel(IWindowManager windowManager)
+        {
+            this.windowManager = windowManager;
+        }
+
+        public void Foo()
+        {
+            this.windowManager.ShowMessageBox("Success!");
         }
     }
 }

@@ -42,29 +42,6 @@ namespace Stylet.Xaml
         }
 
         /// <summary>
-        /// Invoked when a new non-null target is set
-        /// </summary>
-        /// <param name="newTarget">New target</param>
-        /// <param name="newTargetType">Result of newTarget.GetType()</param>
-        protected internal override void OnNewNonNullTarget(object newTarget, Type newTargetType)
-        {
-            var guardPropertyInfo = newTargetType.GetProperty(this.GuardName);
-            if (guardPropertyInfo != null)
-            {
-                if (guardPropertyInfo.PropertyType == typeof(bool))
-                {
-                    var targetExpression = Expressions.Expression.Constant(newTarget);
-                    var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
-                    this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
-                }
-                else
-                {
-                    logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
-                }
-            }
-        }
-
-        /// <summary>
         /// Invoked when a new non-null target is set, which has non-null MethodInfo. Used to assert that the method signature is correct
         /// </summary>
         /// <param name="targetMethodInfo">MethodInfo of method on new target</param>
@@ -91,9 +68,29 @@ namespace Stylet.Xaml
             if (oldInpc != null)
                 PropertyChangedEventManager.RemoveHandler(oldInpc, this.PropertyChangedHandler, this.GuardName);
 
+            this.guardPropertyGetter = null;
+
             var inpc = newTarget as INotifyPropertyChanged;
-            if (this.guardPropertyGetter != null && inpc != null)
-                PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.GuardName);
+            if (inpc != null)
+            {
+                var guardPropertyInfo = newTarget.GetType().GetProperty(this.GuardName);
+                if (guardPropertyInfo != null)
+                {
+                    if (guardPropertyInfo.PropertyType == typeof(bool))
+                    {
+                        var targetExpression = Expressions.Expression.Constant(newTarget);
+                        var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
+                        this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
+                    }
+                    else
+                    {
+                        logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
+                    }
+                }
+
+                if (this.guardPropertyGetter != null)
+                    PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.GuardName);
+            }
 
             this.UpdateCanExecute();
         }

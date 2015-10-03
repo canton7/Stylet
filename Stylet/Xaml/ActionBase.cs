@@ -93,9 +93,7 @@ namespace Stylet.Xaml
             // If they've opted to throw if the target is null, then this will cause that exception.
             // We'll just wait until the ActionTarget is assigned, and we're called again
             if (newTarget == View.InitialActionTarget)
-            {
                 return;
-            }
 
             if (newTarget == null)
             {
@@ -114,41 +112,18 @@ namespace Stylet.Xaml
             else
             {
                 var newTargetType = newTarget.GetType();
-
-                this.OnNewNonNullTarget(newTarget, newTargetType);
-                
                 targetMethodInfo = newTargetType.GetMethod(this.MethodName);
 
                 if (targetMethodInfo == null)
-                {
-                    if (this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
-                    {
-                        var e = new ActionNotFoundException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
-                        this.logger.Error(e);
-                        throw e;
-                    }
-                    else
-                    {
-                        this.logger.Warn("Unable to find method {0} on {1}, but ActionNotFound is not Throw, so carrying on", this.MethodName, newTargetType.Name);
-                    }
-                }
+                    this.logger.Warn("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name);
                 else
-                {
                     this.AssertTargetMethodInfo(targetMethodInfo, newTargetType);
-                }
             }
 
             this.TargetMethodInfo = targetMethodInfo;
 
             this.OnTargetChanged(oldTarget, newTarget);
         }
-
-        /// <summary>
-        /// Invoked when a new non-null target is set
-        /// </summary>
-        /// <param name="newTarget">New target</param>
-        /// <param name="newTargetType">Result of newTarget.GetType()</param>
-        protected internal virtual void OnNewNonNullTarget(object newTarget, Type newTargetType) { }
 
         /// <summary>
         /// Invoked when a new non-null target is set, which has non-null MethodInfo. Used to assert that the method signature is correct
@@ -177,6 +152,13 @@ namespace Stylet.Xaml
                     "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
                     "You will need so set 's:View.ActionTarget' explicitly. See the wiki section \"Actions\" for more details.", this.Subject, this.MethodName));
                 this.logger.Error(ex);
+                throw ex;
+            }
+
+            if (this.TargetMethodInfo == null && this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
+            {
+                var ex = new ActionNotFoundException(String.Format("Unable to find method {0} on target {1}", this.MethodName, this.Target.GetType().Name));
+                logger.Error(ex);
                 throw ex;
             }
         }

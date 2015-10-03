@@ -27,7 +27,7 @@ namespace Stylet.Xaml
         Disable,
 
         /// <summary>
-        /// Throw an exception
+        /// An exception will be thrown when the control is clicked
         /// </summary>
         Throw
     }

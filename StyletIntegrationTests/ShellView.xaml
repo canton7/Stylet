@@ -45,6 +45,7 @@
                         </ContextMenu>
                     </TextBox.ContextMenu>
                 </TextBox>
+                <Button DockPanel.Dock="Top" s:View.ActionTarget="{Binding ChildViewModel}" Command="{s:Action Foo}">Click Me</Button>
             </DockPanel>
         </GroupBox>
 
