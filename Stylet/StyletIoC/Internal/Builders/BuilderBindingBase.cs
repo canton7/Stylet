@@ -3,22 +3,23 @@ using StyletIoC.Internal.Creators;
 using StyletIoC.Internal.Registrations;
 using System;
 using System.Reflection;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace StyletIoC.Internal.Builders
 {
     internal abstract class BuilderBindingBase : IInScopeOrWithKeyOrAsWeakBinding, IWithKeyOrAsWeakBinding
     {
-        protected Type ServiceType { get; set; }
+        protected List<BuilderTypeKey> ServiceTypes { get; private set; }
         protected RegistrationFactory RegistrationFactory { get; set; }
-        public string Key { get; protected set; }
         public bool IsWeak { get; protected set; }
 
-        protected BuilderBindingBase(Type serviceType)
+        protected BuilderBindingBase(List<BuilderTypeKey> serviceTypes)
         {
-            this.ServiceType = serviceType;
+            this.ServiceTypes = serviceTypes;
 
             // Default is transient
-            this.RegistrationFactory = (ctx, service, creator, key) => new TransientRegistration(creator);
+            this.RegistrationFactory = (ctx, services, creator) => new TransientRegistration(creator);
         }
 
         public IAsWeakBinding WithRegistrationFactory(RegistrationFactory registrationFactory)
@@ -35,19 +36,28 @@ namespace StyletIoC.Internal.Builders
         /// <returns>Fluent interface to continue configuration</returns>
         public IAsWeakBinding InSingletonScope()
         {
-            return this.WithRegistrationFactory((ctx, serviceType, creator, key) => new SingletonRegistration(ctx, creator));
+            return this.WithRegistrationFactory((ctx, serviceTypes, creator) => new SingletonRegistration(ctx, creator));
         }
 
         public IInScopeOrAsWeakBinding WithKey(string key)
         {
-            this.Key = key;
+            foreach (var serviceType in this.ServiceTypes)
+            {
+                serviceType.Key = key;
+            }
             return this;
         }
 
-        protected void EnsureType(Type implementationType, Type serviceType = null, bool assertImplementation = true)
+        protected void EnsureTypeAgainstServiceTypes(Type implementationType, bool assertImplementation = true)
         {
-            serviceType = serviceType ?? this.ServiceType;
+            foreach (var serviceType in this.ServiceTypes)
+            {
+                EnsureType(implementationType, serviceType.Type, assertImplementation);
+            }
+        }
 
+        protected static void EnsureType(Type implementationType, Type serviceType, bool assertImplementation = true)
+        {
             if (assertImplementation && (!implementationType.IsClass || implementationType.IsAbstract))
                 throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
 
@@ -73,34 +83,55 @@ namespace StyletIoC.Internal.Builders
                 throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
         }
 
-        // Convenience...
-        protected void BindImplementationToService(Container container, Type implementationType, Type serviceType = null)
+        protected void BindImplementationToServices(Container container, Type implementationType)
         {
-            serviceType = serviceType ?? this.ServiceType;
+            if (this.ServiceTypes.Count > 1)
+            {
+                var firstGenericType = this.ServiceTypes.FirstOrDefault(x => x.Type.IsGenericTypeDefinition);
 
+                if (firstGenericType != null)
+                    throw new StyletIoCRegistrationException(String.Format("Cannot create a multiple-service binding with an unbound generic type {0}", firstGenericType.Type.GetDescription()));
+
+                var creator = new TypeCreator(implementationType, container);
+                var registration = this.CreateRegistration(container, creator);
+
+                foreach (var serviceType in this.ServiceTypes)
+                {
+                    container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key ?? creator.AttributeKey), registration);
+                }
+            }
+            else
+            {
+                this.BindImplementationToSpecificService(container, implementationType, this.ServiceTypes[0].Type, this.ServiceTypes[0].Key);
+            }
+        }
+
+        // Convenience...
+        protected void BindImplementationToSpecificService(Container container, Type implementationType, Type serviceType, string key)
+        {
             if (serviceType.IsGenericTypeDefinition)
             {
                 var unboundGeneric = new UnboundGeneric(serviceType, implementationType, container, this.RegistrationFactory);
-                container.AddUnboundGeneric(new TypeKey(serviceType.TypeHandle, this.Key), unboundGeneric);
+                container.AddUnboundGeneric(new TypeKey(serviceType.TypeHandle, key), unboundGeneric);
             }
             else
             {
                 var creator = new TypeCreator(implementationType, container);
                 var registration = this.CreateRegistration(container, creator);
 
-                container.AddRegistration(new TypeKey(serviceType.TypeHandle, this.Key ?? creator.AttributeKey), registration);
+                container.AddRegistration(new TypeKey(serviceType.TypeHandle, key ?? creator.AttributeKey), registration);
             }
         }
 
         // Convenience...
         protected IRegistration CreateRegistration(IRegistrationContext registrationContext, ICreator creator)
         {
-            return this.RegistrationFactory(registrationContext, this.ServiceType, creator, this.Key);
+            return this.RegistrationFactory(registrationContext, this.ServiceTypes, creator);
         }
 
         IAsWeakBinding IWithKeyOrAsWeakBinding.WithKey(string key)
         {
-            this.Key = key;
+            this.ServiceTypes[this.ServiceTypes.Count - 1].Key = key;
             return this;
         }
 
