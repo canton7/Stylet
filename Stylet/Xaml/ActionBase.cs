@@ -4,6 +4,8 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Data;
+using System.Globalization;
+using System.Diagnostics;
 
 namespace Stylet.Xaml
 {
@@ -57,11 +59,12 @@ namespace Stylet.Xaml
         /// Initialises a new instance of the <see cref="ActionBase"/> class
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
+        /// <param name="backupSubject">Backup subject to use if no ActionTarget could be retrieved from the subject</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
         /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
         /// <param name="logger">Logger to use</param>
-        public ActionBase(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
+        public ActionBase(DependencyObject subject, DependencyObject backupSubject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
         {
             this.Subject = subject;
             this.MethodName = methodName;
@@ -69,13 +72,30 @@ namespace Stylet.Xaml
             this.ActionNonExistentBehaviour = actionNonExistentBehaviour;
             this.logger = logger;
 
-            var binding = new Binding()
+            var actionTargetBinding = new Binding()
             {
                 Path = new PropertyPath(View.ActionTargetProperty),
                 Mode = BindingMode.OneWay,
                 Source = this.Subject,
             };
-            BindingOperations.SetBinding(this, targetProperty, binding);
+
+            if (backupSubject == null)
+            {
+                BindingOperations.SetBinding(this, targetProperty, actionTargetBinding);
+            }
+            else
+            {
+                var multiBinding = new MultiBinding();
+                multiBinding.Converter = new MultiBindingToActionTargetConverter();
+                multiBinding.Bindings.Add(actionTargetBinding);
+                multiBinding.Bindings.Add(new Binding()
+                {
+                    Path = new PropertyPath(View.ActionTargetProperty),
+                    Mode = BindingMode.OneWay,
+                    Source = backupSubject,
+                });
+                BindingOperations.SetBinding(this, targetProperty, multiBinding);
+            }
         }
 
         private void UpdateActionTarget(object oldTarget, object newTarget)
@@ -176,6 +196,27 @@ namespace Stylet.Xaml
                 this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+            }
+        }
+
+        private class MultiBindingToActionTargetConverter : IMultiValueConverter
+        {
+            public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+            {
+                Debug.Assert(values.Length == 2);
+
+                if (values[0] != View.InitialActionTarget)
+                    return values[0];
+
+                if (values[1] != View.InitialActionTarget)
+                    return values[1];
+
+                return View.InitialActionTarget;
+            }
+
+            public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            {
+                throw new InvalidOperationException();
             }
         }
     }

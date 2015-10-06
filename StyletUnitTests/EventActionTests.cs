@@ -92,26 +92,26 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfNullTargetBehaviourIsDisable()
         {
-            Assert.Throws<ArgumentException>(() => new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Disable, ActionUnavailableBehaviour.Enable));
+            Assert.Throws<ArgumentException>(() => new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Disable, ActionUnavailableBehaviour.Enable));
         }
 
         [Test]
         public void ThrowsIfNonExistentActionBehaviourIsDisable()
         {
-            Assert.Throws<ArgumentException>(() => new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Disable));
+            Assert.Throws<ArgumentException>(() => new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Disable));
         }
 
         [Test]
         public void ThrowsIfTargetNullBehaviourIsThrowAndTargetBecomesNull()
         {
-            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Enable);
             Assert.Throws<ActionTargetNullException>(() => View.SetActionTarget(this.subject, null));
         }
 
         [Test]
         public void ThrowsWhenClickedIfActionNonExistentBehaviourIsThrowAndActionIsNonExistent()
         {
-            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Throw);
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Throw);
             Assert.DoesNotThrow(() => View.SetActionTarget(this.subject, new Target2()));
             var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, new RoutedEventArgs()));
             Assert.IsInstanceOf<ActionNotFoundException>(e.InnerException);
@@ -120,31 +120,31 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfMethodHasTooManyArguments()
         {
-            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomethingWithTooManyArguments", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
+            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomethingWithTooManyArguments", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
         }
 
         [Test]
         public void ThrowsIfMethodHasBadParameter()
         {
-            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomethingWithBadArgument", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
+            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomethingWithBadArgument", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
         }
 
         [Test]
         public void ThrowsIfMethodHasBadEventArgsParameter()
         {
-            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomethingWithSenderAndBadArgument", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
+            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomethingWithSenderAndBadArgument", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
         }
 
         [Test]
         public void ThrowsIfMethodHasTooManyParameters()
         {
-            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomethingWithTooManyArguments", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
+            Assert.Throws<ActionSignatureInvalidException>(() => new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomethingWithTooManyArguments", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
         }
 
         [Test]
         public void InvokingCommandDoesNothingIfTargetIsNull()
         {
-            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             View.SetActionTarget(this.subject, null);
             cmd.GetDelegate().DynamicInvoke(null, null);
         }
@@ -152,7 +152,7 @@ namespace StyletUnitTests
         [Test]
         public void InvokingCommandDoesNothingIfActionIsNonExistent()
         {
-            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             View.SetActionTarget(this.subject, new Target2());
             cmd.GetDelegate().DynamicInvoke(null, null);
         }
@@ -160,7 +160,7 @@ namespace StyletUnitTests
         [Test]
         public void InvokingCommandCallsMethod()
         {
-            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             cmd.GetDelegate().DynamicInvoke(null, null);
             Assert.True(this.target.DoSomethingCalled);
         }
@@ -168,7 +168,7 @@ namespace StyletUnitTests
         [Test]
         public void InvokingCommandCallsMethodWithEventArgs()
         {
-            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomethingWithEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomethingWithEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             var arg = new RoutedEventArgs();
             cmd.GetDelegate().DynamicInvoke(null, arg);
             Assert.AreEqual(arg, this.target.EventArgs);
@@ -177,7 +177,7 @@ namespace StyletUnitTests
         [Test]
         public void InvokingCommandCallsMethodWithSenderAndEventArgs()
         {
-            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomethingWithObjectAndEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomethingWithObjectAndEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             var sender = new object();
             var arg = new RoutedEventArgs();
             cmd.GetDelegate().DynamicInvoke(sender, arg);
@@ -189,7 +189,7 @@ namespace StyletUnitTests
         [Test]
         public void InvokingCommandCallsMethodWithDependencyChangedEventArgs()
         {
-            var cmd = new EventAction(this.subject, this.dependencyChangedEventInfo.EventHandlerType, "DoSomethingWithDependencyChangedEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, this.dependencyChangedEventInfo.EventHandlerType, "DoSomethingWithDependencyChangedEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             var arg = new DependencyPropertyChangedEventArgs();
             cmd.GetDelegate().DynamicInvoke(null, arg);
             Assert.AreEqual(arg, this.target.DependencyChangedEventArgs);
@@ -198,7 +198,7 @@ namespace StyletUnitTests
         [Test]
         public void InvokingCommandCallsMethodWithSenderAndDependencyChangedEventArgs()
         {
-            var cmd = new EventAction(this.subject, this.dependencyChangedEventInfo.EventHandlerType, "DoSomethingWithObjectAndDependencyChangedEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, this.dependencyChangedEventInfo.EventHandlerType, "DoSomethingWithObjectAndDependencyChangedEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             var sender = new object();
             var arg = new DependencyPropertyChangedEventArgs();
             cmd.GetDelegate().DynamicInvoke(sender, arg);
@@ -210,14 +210,14 @@ namespace StyletUnitTests
         [Test]
         public void BadEventHandlerSignatureThrows()
         {
-            var cmd = new EventAction(this.subject, typeof(Subject).GetEvent("BadEventHandler").EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, typeof(Subject).GetEvent("BadEventHandler").EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             Assert.Throws<ActionEventSignatureInvalidException>(() => cmd.GetDelegate());
         }
 
         [Test]
         public void PropagatesActionException()
         {
-            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomethingUnsuccessfully", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomethingUnsuccessfully", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, null));
             Assert.IsInstanceOf<InvalidOperationException>(e.InnerException);
             Assert.AreEqual("foo", e.InnerException.Message);
@@ -227,7 +227,7 @@ namespace StyletUnitTests
         public void ExecuteThrowsIfActionTargetIsDefault()
         {
             View.SetActionTarget(this.subject, View.InitialActionTarget);
-            var cmd = new EventAction(this.subject, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, null));
             Assert.IsInstanceOf<ActionNotSetException>(e.InnerException);
         }
@@ -238,7 +238,7 @@ namespace StyletUnitTests
             var view = new DependencyObject();
             var weakView = new WeakReference(view);
             View.SetActionTarget(view, this.target);
-            var cmd = new EventAction(view, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new EventAction(view, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
 
             cmd = null;
             view = null;
@@ -251,13 +251,27 @@ namespace StyletUnitTests
         public void OperatesAfterCollection()
         {
             var view = new DependencyObject();
-            var cmd = new EventAction(view, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new EventAction(view, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
 
             GC.Collect();
 
             View.SetActionTarget(view, this.target);
 
             cmd.GetDelegate().DynamicInvoke(null, null);
+            Assert.IsTrue(this.target.DoSomethingCalled);
+        }
+
+        [Test]
+        public void UsesBackupSubjectIfActionTargetNotAvailable()
+        {
+            var view = new DependencyObject();
+            var backupView = new DependencyObject();
+            var cmd = new CommandAction(view, backupView, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+
+            View.SetActionTarget(backupView, this.target);
+            view.SetValue(FrameworkElement.DataContextProperty, this.target);
+
+            cmd.Execute(null);
             Assert.IsTrue(this.target.DoSomethingCalled);
         }
     }

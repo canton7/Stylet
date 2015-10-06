@@ -29,11 +29,12 @@ namespace Stylet.Xaml
         /// Initialises a new instance of the <see cref="CommandAction"/> class
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
+        /// <param name="backupSubject">Backup subject to use if no ActionTarget could be retrieved from the subject</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
         /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
-        public CommandAction(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
-            : base(subject, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
+        public CommandAction(DependencyObject subject, DependencyObject backupSubject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+            : base(subject, backupSubject, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
         { }
 
         private string GuardName

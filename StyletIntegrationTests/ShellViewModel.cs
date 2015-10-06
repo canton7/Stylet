@@ -12,12 +12,9 @@ namespace StyletIntegrationTests
     {
         private readonly IWindowManager windowManager;
 
-        public ChildViewModel ChildViewModel { get; private set; }
-
         public ShellViewModel(IWindowManager windowManager)
         {
             this.windowManager = windowManager;
-            this.ChildViewModel = new ChildViewModel(windowManager);
 
             this.DisplayName = "ShellViewModel";
         }
@@ -68,18 +65,8 @@ namespace StyletIntegrationTests
             else
                 this.windowManager.ShowMessageBox("Failure");
         }
-    }
 
-    public class ChildViewModel
-    {
-        private readonly IWindowManager windowManager;
-
-        public ChildViewModel(IWindowManager windowManager)
-        {
-            this.windowManager = windowManager;
-        }
-
-        public void Foo()
+        public void ShowActionTargetSaved()
         {
             this.windowManager.ShowMessageBox("Success!");
         }
