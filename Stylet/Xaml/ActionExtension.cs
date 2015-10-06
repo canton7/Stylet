@@ -103,21 +103,20 @@ namespace Stylet.Xaml
 
             // Seems this is the case when we're in a template. We'll get called again properly in a second.
             // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
-            var targetObjectAsDependencyObject = valueService.TargetObject as DependencyObject;
-            if (targetObjectAsDependencyObject == null)
+            if (!(valueService.TargetObject is DependencyObject))
                 return this;
 
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
                 // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
-                return new CommandAction(targetObjectAsDependencyObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
+                return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
             }
 
             var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
             if (propertyAsEventInfo != null)
             {
-                var ec = new EventAction(targetObjectAsDependencyObject, propertyAsEventInfo.EventHandlerType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo.EventHandlerType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
                 return ec.GetDelegate();
             }
 
@@ -128,7 +127,7 @@ namespace Stylet.Xaml
                 var parameters = propertyAsMethodInfo.GetParameters();
                 if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
                 {
-                    var ec = new EventAction(targetObjectAsDependencyObject, parameters[1].ParameterType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                    var ec = new EventAction((DependencyObject)valueService.TargetObject, parameters[1].ParameterType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
                     return ec.GetDelegate();
                 }
             }

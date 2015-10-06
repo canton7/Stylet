@@ -2,16 +2,16 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:s="https://github.com/canton7/Stylet"
-        Title="ShellView" Height="500" Width="500" SizeToContent="Height">
+        Title="ShellView" Height="500" Width="500">
     <DockPanel LastChildFill="False">
         <GroupBox DockPanel.Dock="Top" Header="ShowDialog and DialogResult" Padding="10">
             <StackPanel Orientation="Horizontal">
-                <Button Command="{s:Action ShowDialogAndDialogResult}" Content="Show Dialog"/>
-                <TextBlock Margin="50,0,0,0">Result: </TextBlock>
+                <Button Command="{s:Action ShowDialogAndDialogResult}">Show Dialog</Button>
+                <TextBlock Margin="50,0,0,0">Result:</TextBlock>
                 <TextBlock Margin="10,0,0,0" Text="{Binding ShowDialogAndDialogResultDialogResult}"/>
             </StackPanel>
         </GroupBox>
-        
+
         <GroupBox DockPanel.Dock="Top" Header="Window Lifecycle" Padding="10">
             <Button Command="{s:Action ShowWindowLifecycle}">Show Window</Button>
         </GroupBox>
@@ -29,11 +29,10 @@
                 <Button DockPanel.Dock="Top" Command="{s:Action TestDispatcher}">Test Dispatcher</Button>
             </DockPanel>
         </GroupBox>
-
         <GroupBox DockPanel.Dock="Top" Header="ActionTarget" Padding="10">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top" TextWrapping="WrapWithOverflow">
-                    Verify that pressing ctrl+s in the text box creates a dialog. Also verify that right-clicking in the text box and clicking the menu item shows a dialog.
+                Verify that pressing ctrl+s in the text box creates a dialog. Also verify that right-clicking in the text box and clicking the menu item shows a dialog.
                 </TextBlock>
                 <TextBox DockPanel.Dock="Top">
                     <TextBox.InputBindings>
@@ -45,14 +44,6 @@
                         </ContextMenu>
                     </TextBox.ContextMenu>
                 </TextBox>
-                <Button DockPanel.Dock="Top" s:View.ActionTarget="{Binding ChildViewModel}" Command="{s:Action Foo}">Click Me</Button>
-            </DockPanel>
-        </GroupBox>
-
-        <GroupBox DockPanel.Dock="Top" Header="{}{ViewModel}" Padding="10">
-            <DockPanel DataContext="{x:Null}">
-                <TextBlock DockPanel.Dock="Top">Ensure that the label below displays the text "Pass":</TextBlock>
-                <TextBlock DockPanel.Dock="Top" Text="{s:ViewModelBinding ViewModelTestLabel}"/>
             </DockPanel>
         </GroupBox>
     </DockPanel>

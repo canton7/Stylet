@@ -68,16 +68,6 @@ namespace StyletIntegrationTests
             else
                 this.windowManager.ShowMessageBox("Failure");
         }
-        
-        public void ShowActionTargetSaved()
-        {
-            this.windowManager.ShowMessageBox("PASS!");
-        }
-
-        public string ViewModelTestLabel
-        {
-            get { return "Pass"; }
-        }
     }
 
     public class ChildViewModel
