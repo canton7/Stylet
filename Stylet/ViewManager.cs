@@ -54,11 +54,12 @@ namespace Stylet
         private Func<Type, object> _viewFactory; // This is assigned by the ctor
 
         /// <summary>
-        /// Gets and sets the delegate used to retrieve an instance of a view
+        /// Gets or sets the delegate used to retrieve an instance of a view
         /// </summary>
         public Func<Type, object> ViewFactory
         {
-            get { return this._viewFactory; }set
+            get { return this._viewFactory; }
+            set
             {
                 if (value == null)
                     throw new ArgumentNullException();
@@ -69,7 +70,7 @@ namespace Stylet
         private List<Assembly> _viewAssemblies; // This is assigned by the ctor
 
         /// <summary>
-        /// Gets and sets the assemblies which are used for IoC container auto-binding and searching for Views.
+        /// Gets or sets the assemblies which are used for IoC container auto-binding and searching for Views.
         /// </summary>
         public List<Assembly> ViewAssemblies
         {
@@ -85,7 +86,7 @@ namespace Stylet
         private Dictionary<string, string> _namespaceTransformations = new Dictionary<string, string>();
 
         /// <summary>
-        /// Gets and sets a set of transformations to be applied to the ViewModel's namespace: string to find -> string to replace it with
+        /// Gets or sets a set of transformations to be applied to the ViewModel's namespace: string to find -> string to replace it with
         /// </summary>
         public Dictionary<string, string> NamespaceTransformations
         {

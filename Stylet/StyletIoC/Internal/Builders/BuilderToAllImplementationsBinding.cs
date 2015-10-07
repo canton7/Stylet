@@ -32,7 +32,7 @@ namespace StyletIoC.Internal.Builders
             {
                 try
                 {
-                    EnsureType(candidate.Type, candidate.Base);
+                    BuilderBindingBase.EnsureType(candidate.Type, candidate.Base);
                     this.BindImplementationToSpecificService(container, candidate.Type, candidate.Base, this.ServiceType.Key);
                 }
                 catch (StyletIoCRegistrationException e)

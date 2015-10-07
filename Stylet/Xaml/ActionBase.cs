@@ -1,11 +1,11 @@
 ﻿using Stylet.Logging;
 using System;
+using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Data;
-using System.Globalization;
-using System.Diagnostics;
 
 namespace Stylet.Xaml
 {
@@ -71,6 +71,9 @@ namespace Stylet.Xaml
             this.TargetNullBehaviour = targetNullBehaviour;
             this.ActionNonExistentBehaviour = actionNonExistentBehaviour;
             this.logger = logger;
+
+            // If a 'backupSubject' was given, bind both that and 'subject' to this.Target (with a converter which picks the first
+            // one that isn't View.InitialActionTarget). If it wasn't given, just bind 'subject'.
 
             var actionTargetBinding = new Binding()
             {
@@ -162,7 +165,7 @@ namespace Stylet.Xaml
             // Make sure they know
             if (this.Target == View.InitialActionTarget)
             {
-                var ex = new ActionNotSetException(String.Format("View.ActionTarget not on control {0} (method {1}). " +
+                var ex = new ActionNotSetException(String.Format("View.ActionTarget not set on control {0} (method {1}). " +
                     "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
                     "You will need so set 's:View.ActionTarget' explicitly. See the wiki section \"Actions\" for more details.", this.Subject, this.MethodName));
                 this.logger.Error(ex);
@@ -172,7 +175,7 @@ namespace Stylet.Xaml
             if (this.TargetMethodInfo == null && this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
             {
                 var ex = new ActionNotFoundException(String.Format("Unable to find method {0} on target {1}", this.MethodName, this.Target.GetType().Name));
-                logger.Error(ex);
+                this.logger.Error(ex);
                 throw ex;
             }
         }

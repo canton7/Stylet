@@ -133,12 +133,7 @@ namespace Stylet.Xaml
 
             // Throw is handled when the target is set
             if (this.TargetMethodInfo == null)
-            {
-                if (this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Disable)
-                    return false;
-                else
-                    return true;
-            }
+                return this.ActionNonExistentBehaviour != ActionUnavailableBehaviour.Disable;
 
             if (this.guardPropertyGetter == null)
                 return true;

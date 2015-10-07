@@ -56,9 +56,9 @@ namespace StyletIoC.Creation
             unchecked
             {
                 int hash = 17;
-                hash = hash * 23 + this.Type.GetHashCode();
+                hash = (hash * 23) + this.Type.GetHashCode();
                 if (this.Key != null)
-                    hash = hash * 23 + this.Key.GetHashCode();
+                    hash = (hash * 23) + this.Key.GetHashCode();
                 return hash;
             }
         }
