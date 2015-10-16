@@ -1,6 +1,15 @@
 Stylet Changelog
 ================
 
+v1.1.8
+------
+
+ - Fix bug where Actions could complain that no suitable method was found, when using `s:View.ActionTarget`
+ - Remove the Initial screen state. Screens are started on Deactivated
+ - Allow the ViewManager to be configured, including supporting Views and ViewModels in different namespaces and customizing the 'View' and 'ViewModel' suffixes
+ - Actions try harder to find a suitable ViewModel, in the case of things like KeyBindings and ContextMenus
+ - StyletIoC: Allow multiple services to be bound to the same registration (useful for having a single singleton instance used for two interfaces, for example)
+
 v1.1.7
 ------
 
