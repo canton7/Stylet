@@ -10,7 +10,7 @@ namespace StyletIntegrationTests
 {
     public class ShellViewModel : Screen
     {
-        private IWindowManager windowManager;
+        private readonly IWindowManager windowManager;
 
         public ShellViewModel(IWindowManager windowManager)
         {
@@ -18,6 +18,7 @@ namespace StyletIntegrationTests
 
             this.DisplayName = "ShellViewModel";
         }
+
 
 
         private bool? _showDialogAndDialogResultDialogResult;
@@ -63,6 +64,11 @@ namespace StyletIntegrationTests
                 this.windowManager.ShowMessageBox("Success", icon: MessageBoxImage.Information);
             else
                 this.windowManager.ShowMessageBox("Failure");
+        }
+
+        public void ShowActionTargetSaved()
+        {
+            this.windowManager.ShowMessageBox("Success!");
         }
     }
 }

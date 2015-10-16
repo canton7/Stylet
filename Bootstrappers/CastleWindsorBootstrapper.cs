@@ -3,6 +3,8 @@ using Castle.MicroKernel.Registration;
 using Castle.Windsor;
 using Stylet;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Windows;
 
 namespace Bootstrappers
@@ -29,18 +31,17 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(IWindsorContainer container)
         {
-            container.AddFacility<TypedFactoryFacility>();
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
             container.Register(
-                Component.For<IViewManagerConfig, IWindowManagerConfig>().Instance(this),
-                Component.For<IViewManager>().ImplementedBy<ViewManager>().LifestyleSingleton(),
+                Component.For<IViewManager>().Instance(viewManager),
+                Component.For<IWindowManagerConfig>().Instance(this),
+                Component.For<IMessageBoxViewModel>().ImplementedBy<MessageBoxViewModel>().LifestyleTransient(),
+                // For some reason we need to register the delegate separately?
+                Component.For<Func<IMessageBoxViewModel>>().Instance(() => new MessageBoxViewModel()),
                 Component.For<IWindowManager>().ImplementedBy<WindowManager>().LifestyleSingleton(),
-                Component.For<IEventAggregator>().ImplementedBy<EventAggregator>().LifestyleSingleton(),
-                Component.For<IMessageBoxViewModel>().ImplementedBy<MessageBoxViewModel>().LifestyleTransient()
+                Component.For<IEventAggregator>().ImplementedBy<EventAggregator>().LifestyleSingleton()
             );
-            foreach (var assembly in this.Assemblies)
-            {
-                container.Register(Classes.FromAssembly(assembly).Pick().LifestyleTransient());
-            }
+            container.Register(Classes.FromAssembly(this.GetType().Assembly).Pick().LifestyleTransient());
         }
 
         /// <summary>

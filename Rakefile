@@ -1,10 +1,3 @@
-begin
-  require 'albacore'
-rescue LoadError
-  warn "Please run 'gem install albacore --pre'"
-  exit 1
-end
-
 CONFIG = ENV['CONFIG'] || 'Debug'
 
 COVERAGE_DIR = 'Coverage'
@@ -15,13 +8,14 @@ NUSPEC = 'NuGet/Stylet.nuspec'
 
 ASSEMBLY_INFO = 'Stylet/Properties/AssemblyInfo.cs'
 
+CSPROJ = 'Stylet/Stylet.csproj'
+MSBUILD = %q{C:\Program Files (x86)\MSBuild\12.0\Bin\MSBuild.exe}
+
 directory COVERAGE_DIR
 
-desc "Build Stylet.sln using the current CONFIG (or Debug)"
-build :build do |b|
-  b.sln = "Stylet.sln"
-  b.target = [:Build]
-  b.prop 'Configuration', CONFIG
+desc "Build the project for release"
+task :build do
+  sh MSBUILD, CSPROJ, "/t:Clean;Rebuild", "/p:Configuration=Release", "/verbosity:normal"
 end
 
 task :test_environment => [:build] do
@@ -29,8 +23,8 @@ task :test_environment => [:build] do
   NUNIT_CONSOLE = Dir[File.join(NUNIT_TOOLS, 'nunit-console.exe')].first
   NUNIT_EXE = Dir[File.join(NUNIT_TOOLS, 'nunit.exe')].first
 
-  OPENCOVER_CONSOLE = Dir['packages/OpenCover.*/OpenCover.Console.exe'].first
-  REPORT_GENERATOR = Dir['packages/ReportGenerator.*/ReportGenerator.exe'].first
+  OPENCOVER_CONSOLE = Dir['packages/OpenCover.*/tools/OpenCover.Console.exe'].first
+  REPORT_GENERATOR = Dir['packages/ReportGenerator.*/tools/ReportGenerator.exe'].first
 
   UNIT_TESTS_DLL = "StyletUnitTests/bin/#{CONFIG}/StyletUnitTests.dll"
   INTEGRATION_TESTS_EXE = "StyletIntegrationTests/bin/#{CONFIG}/StyletIntegrationTests.exe"
@@ -40,10 +34,8 @@ task :test_environment => [:build] do
   raise "ReportGenerator not found. Restore NuGet packages" unless REPORT_GENERATOR
 end
 
-test_runner :nunit_test_runner => [:test_environment] do |t|
-  t.exe = NUNIT_CONSOLE
-  t.files = [UNIT_TESTS_DLL]
-  t.add_parameter '/nologo'
+task :nunit_test_runner => [:test_environment] do
+  sh NUNIT_CONSOLE, UNIT_TESTS_DLL
 end
 
 desc "Run unit tests using the current CONFIG (or Debug)"

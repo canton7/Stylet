@@ -33,6 +33,7 @@ namespace Stylet.Xaml
             if (icon == null)
                 return null;
             var bs = Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            bs.Freeze();
             return bs;
         }
 

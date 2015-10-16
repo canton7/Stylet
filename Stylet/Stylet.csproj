@@ -11,6 +11,8 @@
     <AssemblyName>Stylet</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>Stylet.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\Debug\Stylet.xml</DocumentationFile>
+    <LangVersion>5</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -53,8 +56,10 @@
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\NullLogger.cs" />
     <Compile Include="Logging\TraceLogger.cs" />
+    <Compile Include="StyletIoC\Creation\BuilderTypeKey.cs" />
     <Compile Include="StyletIoC\Creation\ICreator.cs" />
     <Compile Include="StyletIoC\Creation\IRegistration.cs" />
+    <Compile Include="StyletIoC\FluentInterface.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderAbstractFactoryBinding.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderBindingBase.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderBindTo.cs" />

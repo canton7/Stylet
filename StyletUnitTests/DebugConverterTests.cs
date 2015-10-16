@@ -1,13 +1,11 @@
 ﻿using NUnit.Framework;
 using Stylet.Xaml;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StyletUnitTests
 {
+    using System.Globalization;
+
     [TestFixture]
     public class DebugConverterTests
     {
@@ -31,14 +29,14 @@ namespace StyletUnitTests
         [Test]
         public void ConvertPassesThroughValue()
         {
-            var result = this.converter.Convert(5, null, null, null);
+            var result = this.converter.Convert(5, null, null, CultureInfo.InvariantCulture);
             Assert.AreEqual(5, result);
         }
 
         [Test]
         public void ConvertBackPassesThrough()
         {
-            var result = this.converter.ConvertBack("hello", null, null, null);
+            var result = this.converter.ConvertBack("hello", null, null, CultureInfo.InvariantCulture);
             Assert.AreEqual("hello", result);
         }
 
@@ -47,7 +45,7 @@ namespace StyletUnitTests
         {
             this.converter.Logger = (msg, name) => log.Add(name);
             this.converter.Name = "Test";
-            this.converter.Convert(new object(), null, null, null);
+            this.converter.Convert(new object(), null, null, CultureInfo.InvariantCulture);
 
             Assert.That(this.log, Is.EquivalentTo(new[] { "Test" }));
         }
@@ -55,28 +53,28 @@ namespace StyletUnitTests
         [Test]
         public void LogsConvertWithNoParameter()
         {
-            this.converter.Convert(5, typeof(int), null, null);
+            this.converter.Convert(5, typeof(int), null, CultureInfo.InvariantCulture);
             Assert.That(this.log, Is.EquivalentTo(new[] { "Convert: Value = '5' TargetType = 'System.Int32'" }));
         }
 
         [Test]
         public void LogsConvertWithParameter()
         {
-            this.converter.Convert("hello", typeof(bool), "the parameter", null);
+            this.converter.Convert("hello", typeof(bool), "the parameter", CultureInfo.InvariantCulture);
             Assert.That(this.log, Is.EquivalentTo(new[] { "Convert: Value = 'hello' TargetType = 'System.Boolean' Parameter = 'the parameter'" }));
         }
 
         [Test]
         public void LogsConvertBackWithNoParameter()
         {
-            this.converter.ConvertBack(2.2, typeof(string), null, null);
+            this.converter.ConvertBack(2.2, typeof(string), null, CultureInfo.InvariantCulture);
             Assert.That(this.log, Is.EquivalentTo(new[] { "ConvertBack: Value = '2.2' TargetType = 'System.String'" }));
         }
 
         [Test]
         public void LogsConvertBackWithParameter()
         {
-            this.converter.ConvertBack(false, typeof(double), 5, null);
+            this.converter.ConvertBack(false, typeof(double), 5, CultureInfo.InvariantCulture);
             Assert.That(this.log, Is.EquivalentTo(new[] { "ConvertBack: Value = 'False' TargetType = 'System.Double' Parameter = '5'" }));
         }
     }

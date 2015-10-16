@@ -45,49 +45,107 @@ namespace Stylet
     }
 
     /// <summary>
-    /// Configuration passed to ViewManager (normally implemented by BootstrapperBase)
-    /// </summary>
-    public interface IViewManagerConfig
-    {
-        /// <summary>
-        /// Gets the assemblies which are used for IoC container auto-binding and searching for Views.
-        /// Set this in Configure() if you want to override it
-        /// </summary>
-        IReadOnlyList<Assembly> Assemblies { get; }
-
-        /// <summary>
-        /// Given a type, use the IoC container to fetch an instance of it
-        /// </summary>
-        /// <param name="type">Type of instance to fetch</param>
-        /// <returns>Fetched instance</returns>
-        object GetInstance(Type type);
-    }
-
-    /// <summary>
     /// Default implementation of ViewManager. Responsible for locating, creating, and settings up Views. Also owns the View.Model and View.ActionTarget attached properties
     /// </summary>
     public class ViewManager : IViewManager
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(ViewManager));
 
-        /// <summary>
-        /// Gets or sets the assemblies searched for View types
-        /// </summary>
-        protected IReadOnlyList<Assembly> Assemblies { get; set; }
+        private Func<Type, object> _viewFactory; // This is assigned by the ctor
 
         /// <summary>
-        /// Gets or sets the factory used to create view instances from their type
+        /// Gets or sets the delegate used to retrieve an instance of a view
         /// </summary>
-        protected Func<Type, object> ViewFactory { get; set; }
+        public Func<Type, object> ViewFactory
+        {
+            get { return this._viewFactory; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._viewFactory = value;
+            }
+        }
+
+        private List<Assembly> _viewAssemblies; // This is assigned by the ctor
+
+        /// <summary>
+        /// Gets or sets the assemblies which are used for IoC container auto-binding and searching for Views.
+        /// </summary>
+        public List<Assembly> ViewAssemblies
+        {
+            get { return this._viewAssemblies; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._viewAssemblies = value;
+            }
+        }
+
+        private Dictionary<string, string> _namespaceTransformations = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Gets or sets a set of transformations to be applied to the ViewModel's namespace: string to find -> string to replace it with
+        /// </summary>
+        public Dictionary<string, string> NamespaceTransformations
+        {
+            get { return this._namespaceTransformations; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._namespaceTransformations = value;
+            }
+        }
+
+        private string _viewNameSuffix = "View";
+
+        /// <summary>
+        /// Gets or sets the suffix replacing 'ViewModel' (see <see cref="ViewModelNameSuffix"/>). Defaults to 'View'
+        /// </summary>
+        public string ViewNameSuffix
+        {
+            get { return this._viewNameSuffix; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._viewNameSuffix = value;
+            }
+        }
+
+        private string _viewModelNameSuffix = "ViewModel";
+
+        /// <summary>
+        /// Gets or sets the suffix of ViewModel names, defaults to 'ViewModel'. This will be replaced by <see cref="ViewNameSuffix"/>
+        /// </summary>
+        public string ViewModelNameSuffix
+        {
+            get { return this._viewModelNameSuffix; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+                this._viewModelNameSuffix = value;
+            }
+        }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ViewManager"/> class, with the given viewFactory
         /// </summary>
-        /// <param name="config">Configuration to use</param>
-        public ViewManager(IViewManagerConfig config)
+        /// <param name="viewFactory">ViewFactory to use</param>
+        /// <param name="viewAssemblies">Assembles to search for views in</param>
+        public ViewManager(Func<Type, object> viewFactory, List<Assembly> viewAssemblies)
         {
-            this.Assemblies = config.Assemblies;
-            this.ViewFactory = config.GetInstance;
+            // Config.ViewAssemblies cannot be null - ViewManagerConfig ensures this
+            if (viewFactory == null)
+                throw new ArgumentNullException("viewFactoryy");
+            if (viewAssemblies == null)
+                throw new ArgumentNullException("viewAssemblies");
+
+            this.ViewFactory = viewFactory;
+            this.ViewAssemblies = viewAssemblies;
         }
 
         /// <summary>
@@ -160,8 +218,7 @@ namespace Stylet
         /// <returns>Type for that view name</returns>
         protected virtual Type ViewTypeForViewName(string viewName)
         {
-            // TODO: This might need some more thinking
-            return this.Assemblies.SelectMany(x => x.GetExportedTypes()).FirstOrDefault(x => x.FullName == viewName);
+            return this.ViewAssemblies.Select(x => x.GetType(viewName)).FirstOrDefault();
         }
 
         /// <summary>
@@ -175,7 +232,22 @@ namespace Stylet
         /// <returns>View type name</returns>
         protected virtual string ViewTypeNameForModelTypeName(string modelTypeName)
         {
-            return Regex.Replace(modelTypeName, @"(?<=.)ViewModel(?=s?\.)|ViewModel$", "View");
+            string transformed = modelTypeName;
+
+            foreach (var transformation in this.NamespaceTransformations)
+            {
+                if (transformed.StartsWith(transformation.Key + "."))
+                {
+                    transformed = transformation.Value + transformed.Substring(transformation.Key.Length);
+                    break;
+                }
+            }
+
+            transformed = Regex.Replace(transformed,
+                String.Format(@"(?<=.){0}(?=s?\.)|{0}$", Regex.Escape(this.ViewModelNameSuffix)),
+                Regex.Escape(this.ViewNameSuffix));
+
+            return transformed;
         }
 
         /// <summary>
@@ -223,13 +295,23 @@ namespace Stylet
 
             var view = (UIElement)this.ViewFactory(viewType);
 
+            this.InitializeView(view, viewType);
+
+            return view;
+        }
+
+        /// <summary>
+        /// Given a view, take steps to initialize it (for example calling InitializeComponent)
+        /// </summary>
+        /// <param name="view">View to initialize</param>
+        /// <param name="viewType">Type of view, passed for efficiency reasons</param>
+        public virtual void InitializeView(UIElement view, Type viewType)
+        {
             // If it doesn't have a code-behind, this won't be called
             // We have to use this reflection here, since the InitializeComponent is a method on the View, not on any of its base classes
             var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
             if (initializer != null)
                 initializer.Invoke(view, null);
-
-            return view;
         }
 
         /// <summary>

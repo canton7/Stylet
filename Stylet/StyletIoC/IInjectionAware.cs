@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace StyletIoC
+﻿namespace StyletIoC
 {
     /// <summary>
     /// Interface to be implemented by objects if they want to be notified when property injection has occurred

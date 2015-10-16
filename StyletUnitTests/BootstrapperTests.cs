@@ -2,13 +2,6 @@
 using NUnit.Framework;
 using Stylet;
 using StyletIoC;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 
 namespace StyletUnitTests
 {
@@ -59,6 +52,8 @@ namespace StyletUnitTests
             Assert.IsInstanceOf<WindowManager>(ioc.Get<IWindowManager>());
             Assert.IsInstanceOf<IEventAggregator>(ioc.Get<IEventAggregator>());
             Assert.IsInstanceOf<ViewManager>(ioc.Get<IViewManager>());
+            Assert.IsInstanceOf<ViewManager>(ioc.Get<ViewManager>());
+            Assert.IsInstanceOf<MessageBoxViewModel>(ioc.Get<IMessageBoxViewModel>());
 
             // Test autobinding
             Assert.DoesNotThrow(() => ioc.Get<RootViewModel>());

@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
+using System.Xaml;
 
 namespace Stylet.Xaml
 {
@@ -27,7 +28,7 @@ namespace Stylet.Xaml
         Disable,
 
         /// <summary>
-        /// Throw an exception
+        /// An exception will be thrown when the control is clicked
         /// </summary>
         Throw
     }
@@ -106,17 +107,22 @@ namespace Stylet.Xaml
             if (!(valueService.TargetObject is DependencyObject))
                 return this;
 
+            var targetObject = (DependencyObject)valueService.TargetObject;
+
+            var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
+            var rootObject = rootObjectProvider == null ? null : rootObjectProvider.RootObject as DependencyObject;
+
             var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
             if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
             {
                 // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
-                return new CommandAction((DependencyObject)valueService.TargetObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
+                return new CommandAction(targetObject, rootObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
             }
 
             var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
             if (propertyAsEventInfo != null)
             {
-                var ec = new EventAction((DependencyObject)valueService.TargetObject, propertyAsEventInfo.EventHandlerType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                var ec = new EventAction(targetObject, rootObject, propertyAsEventInfo.EventHandlerType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
                 return ec.GetDelegate();
             }
 
@@ -127,7 +133,7 @@ namespace Stylet.Xaml
                 var parameters = propertyAsMethodInfo.GetParameters();
                 if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
                 {
-                    var ec = new EventAction((DependencyObject)valueService.TargetObject, parameters[1].ParameterType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                    var ec = new EventAction(targetObject, rootObject, parameters[1].ParameterType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
                     return ec.GetDelegate();
                 }
             }

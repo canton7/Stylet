@@ -34,7 +34,7 @@ namespace Bootstrappers.Tests
         [Test]
         public void CallsConfiguredInCorrectOrder()
         {
-            Assert.That(this.bootstrapper.ConfigureLog, Is.EquivalentTo(new[] { "Configure", "DefaultConfigureIoC", "ConfigureIoC" }));
+            Assert.That(this.bootstrapper.ConfigureLog, Is.EquivalentTo(new[] { "DefaultConfigureIoC", "ConfigureIoC" }));
         }
 
         [Test]
@@ -118,9 +118,9 @@ namespace Bootstrappers.Tests
                 Assert.Ignore("Autobinding not supported");
 
             // Pick a random class with no dependencies...
-            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance(typeof(StyletIoC.StyletIoCBuilder)));
-            var vm1 = this.bootstrapper.GetInstance(typeof(StyletIoC.StyletIoCBuilder));
-            var vm2 = this.bootstrapper.GetInstance(typeof(StyletIoC.StyletIoCBuilder));
+            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance(typeof(StubType)));
+            var vm1 = this.bootstrapper.GetInstance(typeof(StubType));
+            var vm2 = this.bootstrapper.GetInstance(typeof(StubType));
 
             Assert.NotNull(vm1);
             Assert.AreNotEqual(vm1, vm2);

@@ -26,12 +26,13 @@ namespace Stylet.Xaml
         /// Initialises a new instance of the <see cref="EventAction"/> class
         /// </summary>
         /// <param name="subject">View whose View.ActionTarget we watch</param>
+        /// <param name="backupSubject">Backup subject to use if no ActionTarget could be retrieved from the subject</param>
         /// <param name="eventHandlerType">Type of event handler we're returning a delegate for</param>
         /// <param name="methodName">The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired</param>
         /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
-        public EventAction(DependencyObject subject, Type eventHandlerType, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
-            : base(subject, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
+        public EventAction(DependencyObject subject, DependencyObject backupSubject, Type eventHandlerType, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+            : base(subject, backupSubject, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
         {
             if (targetNullBehaviour == ActionUnavailableBehaviour.Disable)
                 throw new ArgumentException("Setting NullTarget = Disable is unsupported when used on an Event");

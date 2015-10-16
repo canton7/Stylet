@@ -12,18 +12,12 @@ namespace Stylet
     /// <summary>
     /// Bootstrapper to be extended by applications which don't want to use StyletIoC as the IoC container.
     /// </summary>
-    public abstract class BootstrapperBase : IBootstrapper, IViewManagerConfig, IWindowManagerConfig, IDisposable
+    public abstract class BootstrapperBase : IBootstrapper, IWindowManagerConfig, IDisposable
     {
         /// <summary>
         /// Gets the current application
         /// </summary>
         public Application Application { get; private set; }
-
-        /// <summary>
-        /// Gets or sets assemblies which are used for IoC container auto-binding and searching for Views.
-        /// Set this in Configure() if you want to override it
-        /// </summary>
-        public IReadOnlyList<Assembly> Assemblies { get; protected set; }
 
         /// <summary>
         /// Gets the command line arguments that were passed to the application from either the command prompt or the desktop.
@@ -40,7 +34,6 @@ namespace Stylet
         /// </summary>
         protected BootstrapperBase()
         {
-            this.Assemblies = new List<Assembly>() { typeof(BootstrapperBase).Assembly, this.GetType().Assembly };
         }
 
         /// <summary>

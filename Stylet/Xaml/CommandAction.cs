@@ -29,39 +29,17 @@ namespace Stylet.Xaml
         /// Initialises a new instance of the <see cref="CommandAction"/> class
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
+        /// <param name="backupSubject">Backup subject to use if no ActionTarget could be retrieved from the subject</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
         /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
-        public CommandAction(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
-            : base(subject, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
+        public CommandAction(DependencyObject subject, DependencyObject backupSubject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+            : base(subject, backupSubject, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
         { }
 
         private string GuardName
         {
             get { return "Can" + this.MethodName; }
-        }
-
-        /// <summary>
-        /// Invoked when a new non-null target is set
-        /// </summary>
-        /// <param name="newTarget">New target</param>
-        /// <param name="newTargetType">Result of newTarget.GetType()</param>
-        protected internal override void OnNewNonNullTarget(object newTarget, Type newTargetType)
-        {
-            var guardPropertyInfo = newTargetType.GetProperty(this.GuardName);
-            if (guardPropertyInfo != null)
-            {
-                if (guardPropertyInfo.PropertyType == typeof(bool))
-                {
-                    var targetExpression = Expressions.Expression.Constant(newTarget);
-                    var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
-                    this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
-                }
-                else
-                {
-                    logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
-                }
-            }
         }
 
         /// <summary>
@@ -91,9 +69,29 @@ namespace Stylet.Xaml
             if (oldInpc != null)
                 PropertyChangedEventManager.RemoveHandler(oldInpc, this.PropertyChangedHandler, this.GuardName);
 
+            this.guardPropertyGetter = null;
+
             var inpc = newTarget as INotifyPropertyChanged;
-            if (this.guardPropertyGetter != null && inpc != null)
-                PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.GuardName);
+            if (inpc != null)
+            {
+                var guardPropertyInfo = newTarget.GetType().GetProperty(this.GuardName);
+                if (guardPropertyInfo != null)
+                {
+                    if (guardPropertyInfo.PropertyType == typeof(bool))
+                    {
+                        var targetExpression = Expressions.Expression.Constant(newTarget);
+                        var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
+                        this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
+                    }
+                    else
+                    {
+                        logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
+                    }
+                }
+
+                if (this.guardPropertyGetter != null)
+                    PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.GuardName);
+            }
 
             this.UpdateCanExecute();
         }
@@ -135,12 +133,7 @@ namespace Stylet.Xaml
 
             // Throw is handled when the target is set
             if (this.TargetMethodInfo == null)
-            {
-                if (this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Disable)
-                    return false;
-                else
-                    return true;
-            }
+                return this.ActionNonExistentBehaviour != ActionUnavailableBehaviour.Disable;
 
             if (this.guardPropertyGetter == null)
                 return true;

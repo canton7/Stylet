@@ -1,6 +1,7 @@
 ﻿using StyletIoC.Creation;
 using StyletIoC.Internal.Creators;
 using System;
+using System.Collections.Generic;
 
 namespace StyletIoC.Internal.Builders
 {
@@ -8,12 +9,15 @@ namespace StyletIoC.Internal.Builders
     {
         private readonly Func<IRegistrationContext, TImplementation> factory;
 
-        public BuilderFactoryBinding(Type serviceType, Func<IRegistrationContext, TImplementation> factory)
-            : base(serviceType)
+        public BuilderFactoryBinding(List<BuilderTypeKey> serviceTypes, Func<IRegistrationContext, TImplementation> factory)
+            : base(serviceTypes)
         {
-            if (this.ServiceType.IsGenericTypeDefinition)
-                throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", this.ServiceType.GetDescription()));
-            this.EnsureType(typeof(TImplementation), assertImplementation: false);
+            foreach (var serviceType in this.ServiceTypes)
+            {
+                if (serviceType.Type.IsGenericTypeDefinition)
+                    throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", serviceType.Type.GetDescription()));
+                this.EnsureTypeAgainstServiceTypes(typeof(TImplementation), assertImplementation: false);
+            }
             this.factory = factory;
         }
 
@@ -22,7 +26,10 @@ namespace StyletIoC.Internal.Builders
             var creator = new FactoryCreator<TImplementation>(this.factory, container);
             var registration = this.CreateRegistration(container, creator);
 
-            container.AddRegistration(new TypeKey(this.ServiceType.TypeHandle, this.Key), registration);
+            foreach (var serviceType in this.ServiceTypes)
+            {
+                container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key), registration);
+            }
         }
     }
 }

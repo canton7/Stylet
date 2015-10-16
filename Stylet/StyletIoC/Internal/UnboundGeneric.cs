@@ -1,6 +1,7 @@
 ﻿using StyletIoC.Creation;
 using StyletIoC.Internal.Creators;
 using System;
+using System.Collections.Generic;
 
 namespace StyletIoC.Internal
 {
@@ -21,7 +22,8 @@ namespace StyletIoC.Internal
 
         public IRegistration CreateRegistrationForTypeAndKey(Type boundType, string boundKey)
         {
-            return this.RegistrationFactory(this.parentContext, this.serviceType, new TypeCreator(boundType, this.parentContext), boundKey);
+            var serviceTypes = new List<BuilderTypeKey>() { new BuilderTypeKey(this.serviceType, boundKey) };
+            return this.RegistrationFactory(this.parentContext, serviceTypes, new TypeCreator(boundType, this.parentContext));
         }
     }
 }

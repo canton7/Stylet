@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
-using System.Reflection;
 
 namespace Stylet.Xaml
 {

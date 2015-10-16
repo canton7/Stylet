@@ -2,6 +2,8 @@
 using StructureMap.Pipeline;
 using Stylet;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Windows;
 
 namespace Bootstrappers
@@ -30,16 +32,14 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(ConfigurationExpression config)
         {
-            config.For<IViewManagerConfig>().Add(this);
-            config.For<IViewManager>().Add<ViewManager>().LifecycleIs<SingletonLifecycle>();
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
+            config.For<IViewManager>().Add(viewManager);
+
             config.For<IWindowManagerConfig>().Add(this);
             config.For<IWindowManager>().Add<WindowManager>().LifecycleIs<SingletonLifecycle>();
             config.For<IEventAggregator>().Add<EventAggregator>().LifecycleIs<SingletonLifecycle>();
             config.For<IMessageBoxViewModel>().Add<MessageBoxViewModel>().LifecycleIs<UniquePerRequestLifecycle>();
-            foreach (var assembly in this.Assemblies)
-            {
-                config.Scan(x => x.Assembly(assembly));
-            }
+            config.Scan(x => x.Assembly(this.GetType().Assembly));
         }
 
         /// <summary>

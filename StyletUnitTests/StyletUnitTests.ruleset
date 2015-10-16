@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Rules for Stylet" Description="Code analysis rules for Stylet.csproj." ToolsVersion="14.0">
+<RuleSet Name="Rules for StyletUnitTests" Description="Code analysis rules for StyletUnitTests.csproj." ToolsVersion="14.0">
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
     <Rule Id="CA1001" Action="Warning" />
     <Rule Id="CA1009" Action="Warning" />
@@ -65,8 +65,6 @@
     <Rule Id="CA2242" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
-    <Rule Id="IDE0001" Action="None" />
-    <Rule Id="IDE0002" Action="None" />
     <Rule Id="IDE0003" Action="None" />
   </Rules>
 </RuleSet>

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace StyletUnitTests
@@ -104,7 +103,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidateCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).Returns(Task.Delay(1).ContinueWith(t => new Dictionary<string, IEnumerable<string>>() { { "property", new[] { "error1", "error2" } } })).Verifiable();
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>() { { "property", new[] { "error1", "error2" } } }).Verifiable();
             this.model.Validate();
 
             this.validator.Verify();
@@ -113,7 +112,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidateAsyncCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).Returns(Task.Delay(1).ContinueWith(t => new Dictionary<string, IEnumerable<string>>())).Verifiable();
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()).Verifiable();
             this.model.ValidateAsync().Wait();
 
             this.validator.Verify();
@@ -122,7 +121,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyByNameCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("test")).Returns(Task.Delay(1).ContinueWith(t => Enumerable.Empty<string>())).Verifiable();
+            this.validator.Setup(x => x.ValidatePropertyAsync("test")).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
             this.model.ValidateProperty("test");
 
             this.validator.Verify();
@@ -131,7 +130,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyAsyncByNameCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("test")).Returns(Task.Delay(1).ContinueWith(t => Enumerable.Empty<string>())).Verifiable();
+            this.validator.Setup(x => x.ValidatePropertyAsync("test")).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
             this.model.ValidatePropertyAsync("test").Wait();
 
             this.validator.Verify();
@@ -140,7 +139,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyAsyncWithNullCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).Returns(Task.Delay(1).ContinueWith(t => new Dictionary<string, IEnumerable<string>>())).Verifiable();
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()).Verifiable();
             this.model.ValidatePropertyAsync(null).Wait();
 
             this.validator.Verify();
@@ -150,7 +149,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyAsyncWithEmptyStringCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).Returns(Task.Delay(1).ContinueWith(t => new Dictionary<string, IEnumerable<string>>())).Verifiable();
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()).Verifiable();
             this.model.ValidatePropertyAsync(String.Empty).Wait();
 
             this.validator.Verify();
@@ -158,7 +157,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyByExpressionCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).Returns(Task.Delay(1).ContinueWith(t => Enumerable.Empty<string>())).Verifiable();
+            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
             this.model.ValidateProperty(() => this.model.IntProperty);
 
             this.validator.Verify();
@@ -167,7 +166,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertAsyncByExpressionCallsAdapterValidate()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).Returns(Task.Delay(1).ContinueWith(t => Enumerable.Empty<string>())).Verifiable();
+            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
             this.model.ValidatePropertyAsync(() => this.model.IntProperty).Wait();
 
             this.validator.Verify();

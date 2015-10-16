@@ -1,5 +1,7 @@
 ﻿using Stylet.Logging;
 using System;
+using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Windows;
@@ -57,11 +59,12 @@ namespace Stylet.Xaml
         /// Initialises a new instance of the <see cref="ActionBase"/> class
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
+        /// <param name="backupSubject">Backup subject to use if no ActionTarget could be retrieved from the subject</param>
         /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
         /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
         /// <param name="logger">Logger to use</param>
-        public ActionBase(DependencyObject subject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
+        public ActionBase(DependencyObject subject, DependencyObject backupSubject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
         {
             this.Subject = subject;
             this.MethodName = methodName;
@@ -69,13 +72,33 @@ namespace Stylet.Xaml
             this.ActionNonExistentBehaviour = actionNonExistentBehaviour;
             this.logger = logger;
 
-            var binding = new Binding()
+            // If a 'backupSubject' was given, bind both that and 'subject' to this.Target (with a converter which picks the first
+            // one that isn't View.InitialActionTarget). If it wasn't given, just bind 'subject'.
+
+            var actionTargetBinding = new Binding()
             {
                 Path = new PropertyPath(View.ActionTargetProperty),
                 Mode = BindingMode.OneWay,
                 Source = this.Subject,
             };
-            BindingOperations.SetBinding(this, targetProperty, binding);
+
+            if (backupSubject == null)
+            {
+                BindingOperations.SetBinding(this, targetProperty, actionTargetBinding);
+            }
+            else
+            {
+                var multiBinding = new MultiBinding();
+                multiBinding.Converter = new MultiBindingToActionTargetConverter();
+                multiBinding.Bindings.Add(actionTargetBinding);
+                multiBinding.Bindings.Add(new Binding()
+                {
+                    Path = new PropertyPath(View.ActionTargetProperty),
+                    Mode = BindingMode.OneWay,
+                    Source = backupSubject,
+                });
+                BindingOperations.SetBinding(this, targetProperty, multiBinding);
+            }
         }
 
         private void UpdateActionTarget(object oldTarget, object newTarget)
@@ -87,9 +110,7 @@ namespace Stylet.Xaml
             // If they've opted to throw if the target is null, then this will cause that exception.
             // We'll just wait until the ActionTarget is assigned, and we're called again
             if (newTarget == View.InitialActionTarget)
-            {
                 return;
-            }
 
             if (newTarget == null)
             {
@@ -108,41 +129,18 @@ namespace Stylet.Xaml
             else
             {
                 var newTargetType = newTarget.GetType();
-
-                this.OnNewNonNullTarget(newTarget, newTargetType);
-                
                 targetMethodInfo = newTargetType.GetMethod(this.MethodName);
 
                 if (targetMethodInfo == null)
-                {
-                    if (this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
-                    {
-                        var e = new ActionNotFoundException(String.Format("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name));
-                        this.logger.Error(e);
-                        throw e;
-                    }
-                    else
-                    {
-                        this.logger.Warn("Unable to find method {0} on {1}, but ActionNotFound is not Throw, so carrying on", this.MethodName, newTargetType.Name);
-                    }
-                }
+                    this.logger.Warn("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name);
                 else
-                {
                     this.AssertTargetMethodInfo(targetMethodInfo, newTargetType);
-                }
             }
 
             this.TargetMethodInfo = targetMethodInfo;
 
             this.OnTargetChanged(oldTarget, newTarget);
         }
-
-        /// <summary>
-        /// Invoked when a new non-null target is set
-        /// </summary>
-        /// <param name="newTarget">New target</param>
-        /// <param name="newTargetType">Result of newTarget.GetType()</param>
-        protected internal virtual void OnNewNonNullTarget(object newTarget, Type newTargetType) { }
 
         /// <summary>
         /// Invoked when a new non-null target is set, which has non-null MethodInfo. Used to assert that the method signature is correct
@@ -167,9 +165,16 @@ namespace Stylet.Xaml
             // Make sure they know
             if (this.Target == View.InitialActionTarget)
             {
-                var ex = new ActionNotSetException(String.Format("View.ActionTarget not on control {0} (method {1}). " +
+                var ex = new ActionNotSetException(String.Format("View.ActionTarget not set on control {0} (method {1}). " +
                     "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
                     "You will need so set 's:View.ActionTarget' explicitly. See the wiki section \"Actions\" for more details.", this.Subject, this.MethodName));
+                this.logger.Error(ex);
+                throw ex;
+            }
+
+            if (this.TargetMethodInfo == null && this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
+            {
+                var ex = new ActionNotFoundException(String.Format("Unable to find method {0} on target {1}", this.MethodName, this.Target.GetType().Name));
                 this.logger.Error(ex);
                 throw ex;
             }
@@ -194,6 +199,27 @@ namespace Stylet.Xaml
                 this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+            }
+        }
+
+        private class MultiBindingToActionTargetConverter : IMultiValueConverter
+        {
+            public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+            {
+                Debug.Assert(values.Length == 2);
+
+                if (values[0] != View.InitialActionTarget)
+                    return values[0];
+
+                if (values[1] != View.InitialActionTarget)
+                    return values[1];
+
+                return View.InitialActionTarget;
+            }
+
+            public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            {
+                throw new InvalidOperationException();
             }
         }
     }

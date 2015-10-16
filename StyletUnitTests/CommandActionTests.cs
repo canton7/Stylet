@@ -2,10 +2,6 @@
 using Stylet;
 using Stylet.Xaml;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace StyletUnitTests
@@ -80,14 +76,14 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfTargetNullBehaviourIsThrowAndTargetBecomesNull()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Disable);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Disable);
             Assert.Throws<ActionTargetNullException>(() => View.SetActionTarget(this.subject, null));
         }
 
         [Test]
         public void DisablesIfTargetNullBehaviourIsDisableAndTargetIsNull()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Disable, ActionUnavailableBehaviour.Disable);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Disable, ActionUnavailableBehaviour.Disable);
             View.SetActionTarget(this.subject, null);
             Assert.False(cmd.CanExecute(null));
         }
@@ -95,7 +91,7 @@ namespace StyletUnitTests
         [Test]
         public void EnablesIfTargetNullBehaviourIsEnableAndTargetIsNull()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Disable);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Disable);
             View.SetActionTarget(this.subject, null);
             Assert.True(cmd.CanExecute(null));
         }
@@ -103,14 +99,15 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfActionNonExistentBehaviourIsThrowAndActionIsNonExistent()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
-            Assert.Throws<ActionNotFoundException>(() => View.SetActionTarget(this.subject, new Target2()));
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            Assert.DoesNotThrow(() => View.SetActionTarget(this.subject, new Target2()));
+            Assert.Throws<ActionNotFoundException>(() => cmd.Execute(null));
         }
 
         [Test]
         public void DisablesIfActionNonExistentBehaviourIsThrowAndActionIsNonExistent()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Disable);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Disable);
             View.SetActionTarget(this.subject, new Target2());
             Assert.False(cmd.CanExecute(null));
         }
@@ -118,7 +115,7 @@ namespace StyletUnitTests
         [Test]
         public void EnablesIfActionNonExistentBehaviourIsThrowAndActionIsNonExistent()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Enable);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Enable);
             View.SetActionTarget(this.subject, new Target2());
             Assert.True(cmd.CanExecute(null));
         }
@@ -126,7 +123,7 @@ namespace StyletUnitTests
         [Test]
         public void EnablesIfTargetAndActionExistAndNoGuardMethod()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             Assert.True(cmd.CanExecute(null));
         }
 
@@ -134,7 +131,7 @@ namespace StyletUnitTests
         public void EnablesIfTargetAndActionExistAndGuardMethodReturnsTrue()
         {
             this.target.CanDoSomethingWithGuard = true;
-            var cmd = new CommandAction(this.subject, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(this.subject, null, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             Assert.True(cmd.CanExecute(null));
         }
 
@@ -142,14 +139,14 @@ namespace StyletUnitTests
         public void DisablesIfTargetAndActionExistAndGuardMethodReturnsFalse()
         {
             this.target.CanDoSomethingWithGuard = false;
-            var cmd = new CommandAction(this.subject, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(this.subject, null, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             Assert.False(cmd.CanExecute(null));
         }
 
         [Test]
         public void IgnoresGuardIfGuardDoesNotReturnBool()
         {
-            var cmd = new CommandAction(this.subject, "DoSomethingWithBadGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(this.subject, null, "DoSomethingWithBadGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             Assert.True(cmd.CanExecute(true));
         }
 
@@ -157,7 +154,7 @@ namespace StyletUnitTests
         public void ChangesEnabledStateWhenGuardChanges()
         {
             this.target.CanDoSomethingWithGuard = false;
-            var cmd = new CommandAction(this.subject, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(this.subject, null, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             Assert.False(cmd.CanExecute(null));
             this.target.CanDoSomethingWithGuard = true;
             Assert.True(cmd.CanExecute(null));
@@ -167,7 +164,7 @@ namespace StyletUnitTests
         public void RaisesEventWhenGuardValueChanges()
         {
             this.target.CanDoSomethingWithGuard = false;
-            var cmd = new CommandAction(this.subject, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(this.subject, null, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             bool eventRaised = false;
             cmd.CanExecuteChanged += (o, e) => eventRaised = true;
             this.target.CanDoSomethingWithGuard = true;
@@ -177,7 +174,7 @@ namespace StyletUnitTests
         [Test]
         public void RaisesEventWhenTargetChanges()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Disable, ActionUnavailableBehaviour.Disable);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Disable, ActionUnavailableBehaviour.Disable);
             bool eventRaised = false;
             cmd.CanExecuteChanged += (o, e) => eventRaised = true;
             View.SetActionTarget(this.subject, null);
@@ -187,7 +184,7 @@ namespace StyletUnitTests
         [Test]
         public void ExecuteDoesNothingIfTargetIsNull()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             View.SetActionTarget(this.subject, null);
             Assert.DoesNotThrow(() => cmd.Execute(null));
         }
@@ -195,7 +192,7 @@ namespace StyletUnitTests
         [Test]
         public void ExecuteDoesNothingIfActionIsNull()
         {
-            var cmd = new CommandAction(this.subject, "DoesNotExist", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new CommandAction(this.subject, null, "DoesNotExist", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             View.SetActionTarget(this.subject, null);
             Assert.DoesNotThrow(() => cmd.Execute(null));
         }
@@ -203,7 +200,7 @@ namespace StyletUnitTests
         [Test]
         public void ExecuteCallsMethod()
         {
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             cmd.Execute(null);
             Assert.True(this.target.DoSomethingCalled);
         }
@@ -211,7 +208,7 @@ namespace StyletUnitTests
         [Test]
         public void ExecutePassesArgumentIfGiven()
         {
-            var cmd = new CommandAction(this.subject, "DoSomethingWithArgument", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new CommandAction(this.subject, null, "DoSomethingWithArgument", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             var arg = "hello";
             cmd.Execute(arg);
             Assert.AreEqual("hello", this.target.DoSomethingArgument);
@@ -220,13 +217,13 @@ namespace StyletUnitTests
         [Test]
         public void ThrowsIfMethodHasMoreThanOneParameter()
         {
-            Assert.Throws<ActionSignatureInvalidException>(() => new CommandAction(this.subject, "DoSomethingWithManyArguments", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
+            Assert.Throws<ActionSignatureInvalidException>(() => new CommandAction(this.subject, null, "DoSomethingWithManyArguments", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable));
         }
 
         [Test]
         public void PropagatesActionException()
         {
-            var cmd = new CommandAction(this.subject, "DoSomethingUnsuccessfully", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
+            var cmd = new CommandAction(this.subject, null, "DoSomethingUnsuccessfully", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
             var e = Assert.Throws<InvalidOperationException>(() => cmd.Execute(null));
             Assert.AreEqual("woo", e.Message);
         }
@@ -234,7 +231,7 @@ namespace StyletUnitTests
         [Test]
         public void PropagatesGuardPropertException()
         {
-            var cmd = new CommandAction(this.subject, "DoSomethingWithUnsuccessfulGuardMethod", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(this.subject, null, "DoSomethingWithUnsuccessfulGuardMethod", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             var e = Assert.Throws<InvalidOperationException>(() => cmd.CanExecute(null));
             Assert.AreEqual("foo", e.Message);
         }
@@ -243,7 +240,7 @@ namespace StyletUnitTests
         public void ControlIsEnabledIfTargetIsDefault()
         {
             View.SetActionTarget(this.subject, View.InitialActionTarget);
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             Assert.True(cmd.CanExecute(null));
         }
 
@@ -251,7 +248,7 @@ namespace StyletUnitTests
         public void ExecuteThrowsIfTargetIsDefault()
         {
             View.SetActionTarget(this.subject, View.InitialActionTarget);
-            var cmd = new CommandAction(this.subject, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
             Assert.Throws<ActionNotSetException>(() => cmd.Execute(null));
         }
 
@@ -261,7 +258,7 @@ namespace StyletUnitTests
             var view = new DependencyObject();
             var weakView = new WeakReference(view);
             View.SetActionTarget(view, this.target);
-            var cmd = new CommandAction(view, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(view, null, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
 
             view = null;
             cmd = null;
@@ -275,11 +272,25 @@ namespace StyletUnitTests
         public void OperatesAfterCollection()
         {
             var view = new DependencyObject();
-            var cmd = new CommandAction(view, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new CommandAction(view, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
 
             GC.Collect();
 
             View.SetActionTarget(view, this.target);
+
+            cmd.Execute(null);
+            Assert.IsTrue(this.target.DoSomethingCalled);
+        }
+
+        [Test]
+        public void UsesDataContextIfActionTargetNotAvailable()
+        {
+            var view = new DependencyObject();
+            var backupView = new DependencyObject();
+            var cmd = new CommandAction(backupView, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+
+            View.SetActionTarget(backupView, this.target);
+            view.SetValue(FrameworkElement.DataContextProperty, this.target);
 
             cmd.Execute(null);
             Assert.IsTrue(this.target.DoSomethingCalled);

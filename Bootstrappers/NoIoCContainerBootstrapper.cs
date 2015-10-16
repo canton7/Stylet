@@ -1,6 +1,7 @@
 ﻿using Stylet;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Bootstrappers
 {
@@ -16,7 +17,7 @@ namespace Bootstrappers
 
         protected virtual void DefaultConfigureContainer()
         {
-            var viewManager = new ViewManager(this);
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
             this.Container.Add(typeof(IViewManager), () => viewManager);
 
             var windowManager = new WindowManager(viewManager, () => (IMessageBoxViewModel)this.Container[typeof(IMessageBoxViewModel)](), this);

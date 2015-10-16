@@ -1,7 +1,9 @@
 ﻿using Autofac;
 using Stylet;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 
 namespace Bootstrappers
@@ -29,13 +31,14 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(ContainerBuilder builder)
         {
-            builder.RegisterInstance<IViewManagerConfig>(this);
-            builder.RegisterType<ViewManager>().As<IViewManager>().SingleInstance();
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
+            builder.RegisterInstance<IViewManager>(viewManager);
+
             builder.RegisterInstance<IWindowManagerConfig>(this);
             builder.RegisterType<WindowManager>().As<IWindowManager>().SingleInstance();
             builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
             builder.RegisterType<MessageBoxViewModel>().As<IMessageBoxViewModel>(); // Not singleton!
-            builder.RegisterAssemblyTypes(this.Assemblies.ToArray());
+            builder.RegisterAssemblyTypes(this.GetType().Assembly);
         }
 
         /// <summary>

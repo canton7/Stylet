@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Windows;
 
 namespace Stylet
 {
@@ -33,7 +32,7 @@ namespace Stylet
         protected override sealed void ConfigureBootstrapper()
         {
             var builder = new StyletIoCBuilder();
-            builder.Assemblies = new List<Assembly>(this.Assemblies);
+            builder.Assemblies = new List<Assembly>(new List<Assembly>() { this.GetType().Assembly });
 
             // Call DefaultConfigureIoC *after* ConfigureIoIC, so that they can customize builder.Assemblies
             this.ConfigureIoC(builder);
@@ -48,10 +47,13 @@ namespace Stylet
         /// <param name="builder">StyletIoC builder to use to configure the container</param>
         protected virtual void DefaultConfigureIoC(StyletIoCBuilder builder)
         {
-            // Mark these as auto-bindings, so the user can replace them if they want
-            builder.Bind<IViewManagerConfig>().ToInstance(this).AsWeakBinding();
+            // Mark these as weak-bindings, so the user can replace them if they want
+
+            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
+            // Bind it to both IViewManager and to itself, so that people can get it with Container.Get<ViewManager>()
+            builder.Bind<IViewManager>().And<ViewManager>().ToInstance(viewManager).AsWeakBinding();
+
             builder.Bind<IWindowManagerConfig>().ToInstance(this).AsWeakBinding();
-            builder.Bind<IViewManager>().To<ViewManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();
             builder.Bind<IMessageBoxViewModel>().To<MessageBoxViewModel>().AsWeakBinding();
