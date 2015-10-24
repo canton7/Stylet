@@ -1,5 +1,4 @@
-﻿using Spring.Rest.Client;
-using Stylet.Samples.RedditBrowser.RedditApi.Contracts;
+﻿using Stylet.Samples.RedditBrowser.RedditApi.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ namespace Stylet.Samples.RedditBrowser.RedditApi
 {
     public class PostCollection
     {
-        private RestTemplate template;
+        private IRedditApi api;
         private string subreddit;
         private string sortMode;
         private string after;
@@ -30,12 +29,12 @@ namespace Stylet.Samples.RedditBrowser.RedditApi
             get { return this.before != null; }
         }
 
-        public PostCollection(RestTemplate template, string subreddit, string sortMode)
-            : this(template, subreddit, sortMode, 0) { }
+        public PostCollection(IRedditApi api, string subreddit, string sortMode)
+            : this(api, subreddit, sortMode, 0) { }
 
-        private PostCollection(RestTemplate template, string subreddit, string sortMode, int count)
+        private PostCollection(IRedditApi api, string subreddit, string sortMode, int count)
         {
-            this.template = template;
+            this.api = api;
             this.subreddit = subreddit;
             this.sortMode = sortMode;
             this.count = count;
@@ -43,7 +42,7 @@ namespace Stylet.Samples.RedditBrowser.RedditApi
 
         public async Task LoadAsync()
         {
-            var posts = await this.template.GetForObjectAsync<PostsResponse>("/r/{subreddit}/{mode}.json", this.subreddit, this.sortMode);
+            var posts = await this.api.FetchPostsAsync(this.subreddit, this.sortMode);
             this.LoadPostsResponse(posts);
             this.count = this.Posts.Count;
         }
@@ -63,16 +62,16 @@ namespace Stylet.Samples.RedditBrowser.RedditApi
 
         public async Task<PostCollection> NextAsync()
         {
-            var posts = await this.template.GetForObjectAsync<PostsResponse>("/r/{subreddit}/{mode}.json?after={after}&count={count}", this.subreddit, this.sortMode, this.after, this.count);
-            var result = new PostCollection(this.template, this.subreddit, this.sortMode, this.count + posts.Data.Children.Count);
+            var posts = await this.api.FetchNextPostsAsync(this.subreddit, this.sortMode, this.after, this.count);
+            var result = new PostCollection(this.api, this.subreddit, this.sortMode, this.count + posts.Data.Children.Count);
             result.LoadPostsResponse(posts);
             return result;
         }
 
         public async Task<PostCollection> PrevAsync()
         {
-            var posts = await this.template.GetForObjectAsync<PostsResponse>("/r/{subreddit}/{mode}.json?before={before}&count={count}", this.subreddit, this.sortMode, this.before, this.count + 1 - this.Posts.Count);
-            var result = new PostCollection(this.template, this.subreddit, this.sortMode, this.count - posts.Data.Children.Count);
+            var posts = await this.api.FetchPrevPostsAsync(this.subreddit, this.sortMode, this.before, this.count);
+            var result = new PostCollection(this.api, this.subreddit, this.sortMode, this.count - posts.Data.Children.Count);
             result.LoadPostsResponse(posts);
             return result;
         }

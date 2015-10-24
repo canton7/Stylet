@@ -1,5 +1,4 @@
-﻿using Spring.Rest.Client;
-using Stylet.Samples.RedditBrowser.RedditApi.Contracts;
+﻿using Stylet.Samples.RedditBrowser.RedditApi.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,22 +8,22 @@ namespace Stylet.Samples.RedditBrowser.RedditApi
 {
     public class CommentCollection
     {
-        private RestTemplate template;
+        private IRedditApi api;
         private string subreddit;
         private string postId;
 
         public IReadOnlyList<Comment> Comments { get; private set; }
 
-        public CommentCollection(RestTemplate template, string subreddit, string postId)
+        public CommentCollection(IRedditApi api, string subreddit, string postId)
         {
-            this.template = template;
+            this.api = api;
             this.subreddit = subreddit;
             this.postId = postId;
         }
 
         public async Task LoadAsync()
         {
-            var comments = await this.template.GetForObjectAsync<List<CommentsResponse>>("/r/{subreddit}/comments/{postid}.json", this.subreddit, this.postId);
+            var comments = await this.api.FetchCommentsAsync(this.subreddit, this.postId);
             this.Comments = comments.SelectMany(x => x.Data.Children).Where(x => x.Kind == "t1").Select(x => this.ContractToComment(x.Data)).ToList();
         }
 
