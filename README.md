@@ -43,22 +43,16 @@ Either open the package console and type:
 PM> Install-Package Stylet
 ```
 
-Or right-click your project -> Manage NuGet Packages... -> Online -> search for Stylet in the top right.
+Or right-click your project -> Manage NuGet Packages -> Search for Stylet
 
-Don't forget to right-click your solution, and click "Enable NuGet package restore"!
-
-I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to Stylet's source when debugging. If you haven't yet set up Visual Studio to use SymbolSource, do that now:
-
+The source is also available when you are debugging, using [GitLink](https://github.com/GitTools/GitLink).
 Go to Debug -> Options and Settings -> General, and make the following changes:
 
-1. Turn **off** "Enable Just My Code"
-2. Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
-3. Turn **on** "Enable source server support". You may have to OK a security warning.
+ - Turn **off** "Enable Just My Code"
+ - Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
+ - Turn **on** "Enable source server support". You may have to OK a security warning.
 
-### Source
-
-I maintain a subtree split of just the Stylet project, [called Stylet-Core](https://github.com/canton7/Stylet-Core).
-Head over there, clone/download the repo, and add the .csproj to your solution.
+See also [GitLink troubleshooting](https://github.com/GitTools/GitLink#troubleshooting).
 
 
 Contributing
