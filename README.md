@@ -23,7 +23,7 @@ Documentation
 -------------
 
 [The wiki is the official documentation source](https://github.com/canton7/Stylet/wiki).
-There's a lot of documentation there (it was longer than my dissertation last time I checked), and it's being added to all the time.
+There's a lot of documentation there, and it's being added to all the time.
 Go check it out!
 
 
