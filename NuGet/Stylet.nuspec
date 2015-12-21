@@ -20,7 +20,6 @@
     <file src="..\Stylet\bin\Release\Stylet.pdb" target="lib\net45"/>
     <file src="..\Stylet\bin\Release\Stylet.pdb.srcsrv" target="lib\net45"/>
     <file src="..\Stylet\bin\Release\Stylet.xml" target="lib\net45"/>
-    <file src="tools\**.*" target="tools"/>
-    <file src="content\**.*" target="content"/>
+    <file src="readme.txt" target=""/>
   </files>
 </package>
