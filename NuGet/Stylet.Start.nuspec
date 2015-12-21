@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+  <metadata>
+    <id>Stylet.Start</id>
+    <version>1.1.8</version>
+    <title>Stylet.Start</title>
+    <authors>Antony Male</authors>
+    <owners>Antony Male</owners>
+    <licenseUrl>http://github.com/canton7/Stylet/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>http://github.com/canton7/Stylet</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/canton7/Stylet/master/StyletIcon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A quick startup project for Stylet</description>
+    <copyright>Copyright 2015 Antony Male</copyright>
+    <tags>Stylet WPF MVVM ViewModel Screen Conductor ViewModel-First Model-View-ViewModel UI</tags>
+
+    <dependencies>
+      <group>
+        <dependency id="Stylet" version="[1.1.8]"/>
+      </group>
+    </dependencies>
+  </metadata>
+
+  <files>
+    <file src="start\content\**" target="content" />
+  </files>
+</package>

@@ -5,6 +5,7 @@ COVERAGE_FILE = File.join(COVERAGE_DIR, 'coverage.xml')
 
 GITLINK_REMOTE = 'https://github.com/canton7/stylet'
 NUSPEC = 'NuGet/Stylet.nuspec'
+NUSPEC_START = 'NuGet/Stylet.start.nuspec'
 
 ASSEMBLY_INFO = 'Stylet/Properties/AssemblyInfo.cs'
 
@@ -100,6 +101,9 @@ task :package do
   Dir.chdir(File.dirname(NUSPEC)) do
     sh "nuget.exe pack #{File.basename(NUSPEC)}"
   end
+  Dir.chdir(File.dirname(NUSPEC_START)) do
+    sh "nuget.exe pack #{File.basename(NUSPEC_START)}"
+  end
 end
 
 desc "Bump version number"
@@ -116,6 +120,11 @@ task :version, [:version] do |t, args|
   content = IO.read(NUSPEC)
   content[/<version>(.+?)<\/version>/, 1] = args[:version]
   File.open(NUSPEC, 'w'){ |f| f.write(content) }
+
+  content = IO.read(NUSPEC_START)
+  content[/<version>(.+?)<\/version>/, 1] = args[:version]
+  content[%r{<dependency id="Stylet" version="\[(.+?)\]"/>}, 1] = args[:version]
+  File.open(NUSPEC_START, 'w'){ |f| f.write(content) }
 end
 
 desc "Extract StyletIoC as a standalone file"
