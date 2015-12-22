@@ -1,6 +1,11 @@
 Stylet Changelog
 ================
 
+v1.1.10
+-------
+
+ - Fix `Stylet.Start`
+
 v1.1.9
 ------
 
