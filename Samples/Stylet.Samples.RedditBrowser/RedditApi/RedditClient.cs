@@ -1,8 +1,7 @@
-﻿using Spring.Http.Converters.Json;
-using Spring.Rest.Client;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using RestEase;
 
 namespace Stylet.Samples.RedditBrowser.RedditApi
 {
@@ -14,24 +13,23 @@ namespace Stylet.Samples.RedditBrowser.RedditApi
 
     public class RedditClient : IRedditClient
     {
-        private RestTemplate template;
+        private IRedditApi api;
 
         public RedditClient()
         {
-            this.template = new RestTemplate("http://reddit.com");
-            template.MessageConverters.Add(new DataContractJsonHttpMessageConverter());
+            this.api = RestClient.For<IRedditApi>("http://reddit.com");
         }
 
         public async Task<PostCollection> GetPostsAsync(string subreddit, SortMode sortMode)
         {
-            var postCollection = new PostCollection(this.template, subreddit, sortMode.Mode);
+            var postCollection = new PostCollection(this.api, subreddit, sortMode.Mode);
             await postCollection.LoadAsync();
             return postCollection;
         }
 
         public async Task<CommentCollection> GetPostComments(string subreddit, string postId36)
         {
-            var commentCollection = new CommentCollection(this.template, subreddit, postId36);
+            var commentCollection = new CommentCollection(this.api, subreddit, postId36);
             await commentCollection.LoadAsync();
             return commentCollection;
         }

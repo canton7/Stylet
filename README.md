@@ -1,5 +1,8 @@
-Stylet
-======
+![Project Icon](StyletIcon.png) Stylet
+======================================
+
+[![NuGet](https://img.shields.io/nuget/v/Stylet.svg)](https://www.nuget.org/packages/Stylet/)
+[![Build status](https://ci.appveyor.com/api/projects/status/nqucthach0x6gkil?svg=true)](https://ci.appveyor.com/project/canton7/stylet)
 
 Introduction
 ------------
@@ -16,46 +19,30 @@ Stylet's aims to:
 It is inspired by [Caliburn.Micro](http://www.caliburnproject.org/), and shares many of its concepts, but removes most of the magic (replacing it with more powerful alternatives), and simplifies parts considerably by targeting only MVVM, WPF and .NET 4.5.
 
 
-Documentation
--------------
+Getting Started
+---------------
 
-[The wiki is the official documentation source](https://github.com/canton7/Stylet/wiki).
-There's a lot of documentation there (it was longer than my dissertation last time I checked), and it's being added to all the time.
-Go check it out!
+The quickest way to get started is to create a new `WPF Application` project, then install the NuGet package [`Stylet.Start`](https://www.nuget.org/packages/Stylet.Start).
+This will install Stylet, and set up a simple skeleton project.
+
+See [Quick Start](https://github.com/canton7/Stylet/wiki/Quick-Start) for more details.
+
+If you want to set up your project manually, install the [Stylet](https://www.nuget.org/packages/Stylet) package, then follow the instructions in the [Quick Start](https://github.com/canton7/Stylet/wiki/Quick-Start).
+
+Stylet requires .NET 4.5 (Visual Studio 2012 or higher).
 
 
-Installation
-------------
+Symbols
+------
 
-You can either grab Stylet through NuGet, or build it from source yourself.
-Stylet does rely on .NET 4.5 (Visual Studio 2012 or higher).
-
-### NuGet
-
-[Stylet is available on NuGet](https://www.nuget.org/packages/Stylet).
-
-Either open the package console and type:
-
-```
-PM> Install-Package Stylet
-```
-
-Or right-click your project -> Manage NuGet Packages... -> Online -> search for Stylet in the top right.
-
-Don't forget to right-click your solution, and click "Enable NuGet package restore"!
-
-I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to Stylet's source when debugging. If you haven't yet set up Visual Studio to use SymbolSource, do that now:
-
+The source is also available when you are debugging, using [GitLink](https://github.com/GitTools/GitLink).
 Go to Debug -> Options and Settings -> General, and make the following changes:
 
-1. Turn **off** "Enable Just My Code"
-2. Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
-3. Turn **on** "Enable source server support". You may have to OK a security warning.
+ - Turn **off** "Enable Just My Code"
+ - Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
+ - Turn **on** "Enable source server support". You may have to OK a security warning.
 
-### Source
-
-I maintain a subtree split of just the Stylet project, [called Stylet-Core](https://github.com/canton7/Stylet-Core).
-Head over there, clone/download the repo, and add the .csproj to your solution.
+See also [GitLink troubleshooting](https://github.com/GitTools/GitLink#troubleshooting).
 
 
 Contributing
