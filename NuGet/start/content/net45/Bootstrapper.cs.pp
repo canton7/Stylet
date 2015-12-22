@@ -1,4 +1,5 @@
 using Stylet;
+using StyletIoC;
 using $rootnamespace$.Pages;
 using System;
 using System.Collections.Generic;

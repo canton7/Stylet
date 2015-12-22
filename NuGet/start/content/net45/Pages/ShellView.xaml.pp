@@ -8,12 +8,16 @@
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance local:ShellView}"
         Title="Stylet Start Project"
-        Width="200" Height="200">
-    <Grid>
-        <TextBlock FontSize="20"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center">
+        Width="350" Height="200">
+    <StackPanel VerticalAlignment="Center">
+        <TextBlock FontSize="30"
+                   HorizontalAlignment="Center">
             Hello Stylet!
         </TextBlock>
-    </Grid>
+        <TextBlock Margin="0,20,0,0"
+                   FontSize="20"
+                   HorizontalAlignment="Center">
+            Now delete MainWindow.xaml.
+        </TextBlock>
+    </StackPanel>
 </Window>
