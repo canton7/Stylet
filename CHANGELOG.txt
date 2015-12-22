@@ -1,6 +1,12 @@
 Stylet Changelog
 ================
 
+v1.1.9
+------
+
+ - Add a `Stylet.Start` NuGet package, which creates a skeleton project
+ - Fix samples
+
 v1.1.8
 ------
 
