@@ -1,6 +1,11 @@
 Stylet Changelog
 ================
 
+v1.1.11
+-------
+
+ - Allow an Initial Activate after a Close
+
 v1.1.10
 -------
 
