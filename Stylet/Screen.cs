@@ -184,6 +184,8 @@ namespace Stylet
                 ((IScreenState)this).Deactivate();
 
             this.View = null;
+            // Reset, so we can initially activate again
+            this.haveActivated = false;
 
             this.SetState(ScreenState.Closed, (oldState, newState) =>
             {
