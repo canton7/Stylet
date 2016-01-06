@@ -424,5 +424,15 @@ namespace StyletUnitTests
             ((IScreenState)this.screen).Activate();
             Assert.True(this.screen.OnInitialActivateCalled);
         }
+
+        [Test]
+        public void ClosingResetsInitialActivate()
+        {
+            ((IScreenState)this.screen).Activate();
+            this.screen.OnInitialActivateCalled = false;
+            ((IScreenState)this.screen).Close();
+            ((IScreenState)this.screen).Activate();
+            Assert.True(this.screen.OnInitialActivateCalled);
+        }
     }
 }
