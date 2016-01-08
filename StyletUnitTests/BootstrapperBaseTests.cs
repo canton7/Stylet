@@ -9,7 +9,15 @@ namespace StyletUnitTests
     [TestFixture, RequiresSTA]
     public class BootstrapperBaseTests
     {
-        private class RootViewModel { }
+        private class RootViewModel : IDisposable
+        {
+            public bool DisposeCalled;
+
+            public void Dispose()
+            {
+                this.DisposeCalled = true;
+            }
+        }
 
         private class MyBootstrapperBase : BootstrapperBase
         {
@@ -29,9 +37,11 @@ namespace StyletUnitTests
                 get { return base.Application; }
             }
 
+            public readonly RootViewModel MyRootViewModel = new BootstrapperBaseTests.RootViewModel();
+
             protected override object RootViewModel
             {
-                get { return new RootViewModel(); }
+                get { return this.MyRootViewModel; }
             }
 
             public bool GetInstanceCalled;
@@ -135,6 +145,13 @@ namespace StyletUnitTests
         {
             this.bootstrapper.Start(new string[0]);
             Assert.True(this.bootstrapper.OnStartCalled);
+        }
+
+        [Test]
+        public void DisposesRootViewModel()
+        {
+            this.bootstrapper.Dispose();
+            Assert.True(this.bootstrapper.MyRootViewModel.DisposeCalled);
         }
     }
 }

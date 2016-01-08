@@ -82,8 +82,9 @@ namespace Stylet
         /// </summary>
         public override void Dispose()
         {
-            this.Container.Dispose();
+            // Dispose the container last
             base.Dispose();
+            this.Container.Dispose();
         }
     }
 }

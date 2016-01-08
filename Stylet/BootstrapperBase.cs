@@ -147,6 +147,9 @@ namespace Stylet
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public virtual void Dispose() { }
+        public virtual void Dispose()
+        {
+            ScreenExtensions.TryDispose(this.RootViewModel);
+        }
     }
 }
