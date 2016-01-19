@@ -32,6 +32,12 @@ If you want to set up your project manually, install the [Stylet](https://www.nu
 Stylet requires .NET 4.5 (Visual Studio 2012 or higher).
 
 
+Documentation
+-------------
+
+[The Wiki is the documentation source](https://github.com/canton7/Stylet/wiki).
+There's loads of information there - go and have a look, or start with the [Quick Start](https://github.com/canton7/Stylet/wiki/Quick-Start).
+
 Symbols
 ------
 
