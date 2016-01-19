@@ -82,7 +82,7 @@ def instrument(runner, target)
   end
  
   coverage_file = File.join(COVERAGE_DIR, File.basename(target).ext('xml'))
-  sh OPENCOVER_CONSOLE, %Q{-register:user -target:"#{opttarget}" -filter:"+[Stylet]* -[Stylet]XamlGeneratedNamespace.*" -targetargs:"#{opttargetargs} /noshadow" -output:"#{coverage_file}"}
+  sh OPENCOVER_CONSOLE, '-register:user', "-target:#{opttarget}", "-filter:+[Stylet]* -[Stylet]XamlGeneratedNamespace.*", "-targetargs:#{opttargetargs} /noshadow", "-output:#{coverage_file}"
 
   rm('TestResult.xml', :force => true) if runner == :nunit
 
@@ -91,7 +91,7 @@ end
 
 def coverage(coverage_files)
   coverage_files = [*coverage_files]
-  sh REPORT_GENERATOR, %Q{-reports:"#{coverage_files.join(';')}" "-targetdir:#{COVERAGE_DIR}"}
+  sh REPORT_GENERATOR, "-reports:#{coverage_files.join(';')}", "-targetdir:#{COVERAGE_DIR}"
 end
 
 desc "Create NuGet package"
