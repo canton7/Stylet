@@ -39,11 +39,6 @@ namespace StyletUnitTests
 
             public readonly RootViewModel MyRootViewModel = new BootstrapperBaseTests.RootViewModel();
 
-            protected override object RootViewModel
-            {
-                get { return this.MyRootViewModel; }
-            }
-
             public bool GetInstanceCalled;
             public override object GetInstance(Type service)
             {
@@ -53,6 +48,18 @@ namespace StyletUnitTests
                 if (service == typeof(IWindowManager))
                     return this.windowManager;
                 return null;
+            }
+
+            public bool LaunchCalled;
+            public override void Launch()
+            {
+                this.LaunchCalled = true;
+            }
+
+            public bool OnLaunchCalled;
+            protected override void OnLaunch()
+            {
+                this.OnLaunchCalled = true;
             }
 
             public bool OnStartCalled;
@@ -67,16 +74,21 @@ namespace StyletUnitTests
                 this.OnExitCalled = true;
             }
 
-            public bool ConfigureCalled;
+            public bool ConfigureBootstrapperCalled;
             protected override void ConfigureBootstrapper()
             {
-                this.ConfigureCalled = true;
+                this.ConfigureBootstrapperCalled = true;
                 base.ConfigureBootstrapper();
             }
 
             public new void Start(string[] args)
             {
                 base.Start(args);
+            }
+
+            public new void DisplayRootView(object rootViewModel)
+            {
+                base.DisplayRootView(rootViewModel);
             }
         }
 
@@ -127,10 +139,10 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void StartCallsConfigure()
+        public void StartCallsConfigureBootstrapper()
         {
             this.bootstrapper.Start(new string[0]);
-            Assert.True(this.bootstrapper.ConfigureCalled);
+            Assert.True(this.bootstrapper.ConfigureBootstrapperCalled);
         }
 
         [Test]
@@ -141,17 +153,26 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void StartCallsOnStartup()
+        public void StartCallsLaunch()
         {
             this.bootstrapper.Start(new string[0]);
-            Assert.True(this.bootstrapper.OnStartCalled);
+            Assert.True(this.bootstrapper.LaunchCalled);
         }
 
         [Test]
-        public void DisposesRootViewModel()
+        public void StartCallsOnLaunch()
         {
-            this.bootstrapper.Dispose();
-            Assert.True(this.bootstrapper.MyRootViewModel.DisposeCalled);
+            this.bootstrapper.Start(new string[0]);
+            Assert.True(this.bootstrapper.OnLaunchCalled);
+        }
+
+        [Test]
+        public void DisplayRootViewDisplaysTheRootView()
+        {
+            var viewModel = new object();
+            this.bootstrapper.DisplayRootView(viewModel);
+
+            this.windowManager.Verify(x => x.ShowWindow(viewModel));
         }
     }
 }

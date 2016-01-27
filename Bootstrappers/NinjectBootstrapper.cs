@@ -12,7 +12,7 @@ namespace Bootstrappers
         private IKernel kernel;
 
         private object _rootViewModel;
-        protected override object RootViewModel
+        protected virtual object RootViewModel
         {
             get { return this._rootViewModel ?? (this._rootViewModel = this.GetInstance(typeof(TRootViewModel))); }
         }
@@ -48,9 +48,17 @@ namespace Bootstrappers
             return this.kernel.Get(type);
         }
 
+        public override void Launch()
+        {
+            base.DisplayRootView(this.RootViewModel);
+        }
+
         public override void Dispose()
         {
-            this.kernel.Dispose();
+            base.Dispose();
+            ScreenExtensions.TryDispose(this._rootViewModel);
+            if (this.kernel != null)
+                this.kernel.Dispose();
         }
     }
 }
