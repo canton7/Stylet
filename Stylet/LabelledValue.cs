@@ -56,7 +56,9 @@ namespace Stylet
         /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
         public bool Equals(LabelledValue<T> other)
         {
-            if (other == null)
+            if (Object.ReferenceEquals(this, other))
+                return true;
+            if (Object.ReferenceEquals(other, null))
                 return false;
 
            return this.Label == other.Label && EqualityComparer<T>.Default.Equals(this.Value, other.Value);
@@ -78,7 +80,15 @@ namespace Stylet
         /// <returns>A hash code for this object.</returns>
         public override int GetHashCode()
         {
-            return new { this.Label, this.Value }.GetHashCode();
+            unchecked
+            {
+                int hash = 17;
+                if (this.Label != null)
+                    hash = hash * 23 + this.Label.GetHashCode();
+                if (this.Value != null)
+                    hash = hash * 23 + this.Value.GetHashCode();
+                return hash;
+            }
         }
 
         /// <summary>

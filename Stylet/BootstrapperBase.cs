@@ -25,11 +25,6 @@ namespace Stylet
         public string[] Args { get; private set; }
 
         /// <summary>
-        /// Gets the instance of the root ViewMode, which is displayed at launch
-        /// </summary>
-        protected abstract object RootViewModel { get; }
-
-        /// <summary>
         /// Initialises a new instance of the <see cref="BootstrapperBase"/> class
         /// </summary>
         protected BootstrapperBase()
@@ -93,12 +88,17 @@ namespace Stylet
         protected virtual void Configure() { }
 
         /// <summary>
+        /// Called when the application is launched. Should display the root view using <see cref="DisplayRootView(object)"/>
+        /// </summary>
+        public abstract void Launch();
+
+        /// <summary>
         /// Launch the root view
         /// </summary>
-        protected virtual void Launch()
+        protected virtual void DisplayRootView(object rootViewModel)
         {
             var windowManager = (IWindowManager)this.GetInstance(typeof(IWindowManager));
-            windowManager.ShowWindow(this.RootViewModel);
+            windowManager.ShowWindow(rootViewModel);
         }
 
         /// <summary>

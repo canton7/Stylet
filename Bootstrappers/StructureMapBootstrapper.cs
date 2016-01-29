@@ -13,7 +13,7 @@ namespace Bootstrappers
         private IContainer container;
 
         private object _rootViewModel;
-        protected override object RootViewModel
+        protected virtual object RootViewModel
         {
             get { return this._rootViewModel ?? (this._rootViewModel = this.GetInstance(typeof(TRootViewModel))); }
         }
@@ -52,9 +52,17 @@ namespace Bootstrappers
             return this.container.GetInstance(type);
         }
 
+        public override void Launch()
+        {
+            base.DisplayRootView(this.RootViewModel);
+        }
+
         public override void Dispose()
         {
-            this.container.Dispose();
+            base.Dispose();
+            ScreenExtensions.TryDispose(this._rootViewModel);
+            if (this.container != null)
+                this.container.Dispose();
         }
     }
 }

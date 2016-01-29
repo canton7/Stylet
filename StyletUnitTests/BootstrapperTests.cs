@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Stylet;
 using StyletIoC;
+using System;
 
 namespace StyletUnitTests
 {
@@ -11,7 +12,17 @@ namespace StyletUnitTests
         private interface I1 { }
         private class C1 : I1 { }
 
-        private class RootViewModel { }
+        private class RootViewModel : IDisposable
+        {
+            public bool Disposed;
+
+            public void Dispose()
+            {
+                this.Disposed = true;
+            }
+        }
+
+        private class RandomClass { }
 
         private class MyBootstrapper<T> : Bootstrapper<T> where T : class
         {
@@ -21,16 +32,25 @@ namespace StyletUnitTests
                 set { base.Container = value; }
             }
 
+            public new T RootViewModel
+            {
+                get { return base.RootViewModel; }
+            }
+
             public new void Configure()
             {
                 base.ConfigureBootstrapper();
             }
+
+            public RootViewModel MyRootViewModel = new RootViewModel();
 
             public bool ConfigureIoCCalled;
             protected override void ConfigureIoC(IStyletIoCBuilder builder)
             {
                 this.ConfigureIoCCalled = true;
                 builder.Bind<I1>().To<C1>();
+                // Singleton, so we can test against it
+                builder.Bind<RootViewModel>().ToInstance(this.MyRootViewModel);
                 base.ConfigureIoC(builder);
             }
         }
@@ -88,6 +108,25 @@ namespace StyletUnitTests
             this.bootstrapper.Container = container.Object;
             this.bootstrapper.Dispose();
             container.Verify(x => x.Dispose());
+        }
+
+        [Test]
+        public void DisposeDoesNotCreateRootViewModel()
+        {
+            this.bootstrapper.Configure();
+            this.bootstrapper.Dispose();
+            Assert.False(this.bootstrapper.MyRootViewModel.Disposed);
+        }
+
+        [Test]
+        public void DisposeDisposesRootViewModel()
+        {
+            this.bootstrapper.Configure();
+
+            // Force it to be created
+            var dummy = this.bootstrapper.RootViewModel;
+            this.bootstrapper.Dispose();
+            Assert.True(this.bootstrapper.MyRootViewModel.Disposed);
         }
     }
 }

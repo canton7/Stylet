@@ -45,6 +45,22 @@ namespace Stylet
     }
 
     /// <summary>
+    /// Configuration object consumed by <see cref="ViewManager"/>
+    /// </summary>
+    public class ViewManagerConfig
+    {
+        /// <summary>
+        /// Gets or sets the ViewFactory to use
+        /// </summary>
+        public Func<Type, object> ViewFactory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Assembles to search for views in
+        /// </summary>
+        public List<Assembly> ViewAssemblies { get; set; }
+    }
+
+    /// <summary>
     /// Default implementation of ViewManager. Responsible for locating, creating, and settings up Views. Also owns the View.Model and View.ActionTarget attached properties
     /// </summary>
     public class ViewManager : IViewManager
@@ -134,18 +150,17 @@ namespace Stylet
         /// <summary>
         /// Initialises a new instance of the <see cref="ViewManager"/> class, with the given viewFactory
         /// </summary>
-        /// <param name="viewFactory">ViewFactory to use</param>
-        /// <param name="viewAssemblies">Assembles to search for views in</param>
-        public ViewManager(Func<Type, object> viewFactory, List<Assembly> viewAssemblies)
+        /// <param name="config">Configuration object</param>
+        public ViewManager(ViewManagerConfig config)
         {
             // Config.ViewAssemblies cannot be null - ViewManagerConfig ensures this
-            if (viewFactory == null)
-                throw new ArgumentNullException("viewFactoryy");
-            if (viewAssemblies == null)
+            if (config.ViewFactory == null)
+                throw new ArgumentNullException("viewFactory");
+            if (config.ViewAssemblies == null)
                 throw new ArgumentNullException("viewAssemblies");
 
-            this.ViewFactory = viewFactory;
-            this.ViewAssemblies = viewAssemblies;
+            this.ViewFactory = config.ViewFactory;
+            this.ViewAssemblies = config.ViewAssemblies;
         }
 
         /// <summary>

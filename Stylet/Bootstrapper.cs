@@ -16,14 +16,14 @@ namespace Stylet
         /// </summary>
         protected IContainer Container { get; set; }
 
-        private object _rootViewModel;
+        private TRootViewModel _rootViewModel;
 
         /// <summary>
-        /// Gets the instance of the root ViewMode, which is displayed at launch
+        /// Gets the root ViewModel, creating it first if necessary
         /// </summary>
-        protected override object RootViewModel
+        protected virtual TRootViewModel RootViewModel
         {
-            get { return this._rootViewModel ?? (this._rootViewModel = this.GetInstance(typeof(TRootViewModel))); }
+            get { return this._rootViewModel ?? (this._rootViewModel = this.Container.Get<TRootViewModel>()); }
         }
 
         /// <summary>
@@ -48,10 +48,15 @@ namespace Stylet
         protected virtual void DefaultConfigureIoC(StyletIoCBuilder builder)
         {
             // Mark these as weak-bindings, so the user can replace them if they want
+            var viewManagerConfig = new ViewManagerConfig()
+            {
+                ViewFactory = this.GetInstance,
+                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+            };
+            builder.Bind<ViewManagerConfig>().ToInstance(viewManagerConfig).AsWeakBinding();
 
-            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
             // Bind it to both IViewManager and to itself, so that people can get it with Container.Get<ViewManager>()
-            builder.Bind<IViewManager>().And<ViewManager>().ToInstance(viewManager).AsWeakBinding();
+            builder.Bind<IViewManager>().And<ViewManager>().To<ViewManager>().AsWeakBinding();
 
             builder.Bind<IWindowManagerConfig>().ToInstance(this).AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
@@ -78,12 +83,24 @@ namespace Stylet
         }
 
         /// <summary>
+        /// Called when the application is launched. Displays the root view.
+        /// </summary>
+        public override void Launch()
+        {
+            this.DisplayRootView(this.RootViewModel);
+        }
+
+        /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public override void Dispose()
         {
-            this.Container.Dispose();
+            // Dispose the container last
             base.Dispose();
+            // Don't create the root ViewModel if it doesn't already exist...
+            ScreenExtensions.TryDispose(this._rootViewModel);
+            if (this.Container != null)
+                this.Container.Dispose();
         }
     }
 }

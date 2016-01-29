@@ -15,6 +15,8 @@ namespace Bootstrappers
             this.ConfigureContainer();
         }
 
+        protected abstract object RootViewModel { get; }
+
         protected virtual void DefaultConfigureContainer()
         {
             var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
@@ -34,8 +36,14 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void ConfigureContainer() { }
 
+        public override void Launch()
+        {
+            base.DisplayRootView(this.RootViewModel);
+        }
+
         public override object GetInstance(Type type)
         {
+            base.Dispose();
             Func<object> factory;
             if (this.Container.TryGetValue(type, out factory))
                 return factory();
