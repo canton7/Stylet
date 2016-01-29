@@ -48,10 +48,15 @@ namespace Stylet
         protected virtual void DefaultConfigureIoC(StyletIoCBuilder builder)
         {
             // Mark these as weak-bindings, so the user can replace them if they want
+            var viewManagerConfig = new ViewManagerConfig()
+            {
+                ViewFactory = this.GetInstance,
+                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+            };
+            builder.Bind<ViewManagerConfig>().ToInstance(viewManagerConfig).AsWeakBinding();
 
-            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
             // Bind it to both IViewManager and to itself, so that people can get it with Container.Get<ViewManager>()
-            builder.Bind<IViewManager>().And<ViewManager>().ToInstance(viewManager).AsWeakBinding();
+            builder.Bind<IViewManager>().And<ViewManager>().To<ViewManager>().AsWeakBinding();
 
             builder.Bind<IWindowManagerConfig>().ToInstance(this).AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
