@@ -1,6 +1,13 @@
 Stylet Changelog
 ================
 
+v1.1.12
+-------
+
+ - Dispose the RootViewModel on application shutdown (if it's `IDisposable`)
+ - Rework how `ViewManager` configuration is handled: makes it easier to add a custom ViewManager subclass
+ - Fix Samples projects
+
 v1.1.11
 -------
 
