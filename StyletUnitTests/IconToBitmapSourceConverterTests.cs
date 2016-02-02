@@ -39,7 +39,7 @@ namespace StyletUnitTests
         [Test]
         public void ConvertBackThrows()
         {
-            Assert.Throws<NotImplementedException>(() => this.converter.ConvertBack(null, null, null, null));
+            Assert.Throws<NotSupportedException>(() => this.converter.ConvertBack(null, null, null, null));
         }
     }
 }

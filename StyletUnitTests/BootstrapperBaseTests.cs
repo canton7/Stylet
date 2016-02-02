@@ -51,7 +51,7 @@ namespace StyletUnitTests
             }
 
             public bool LaunchCalled;
-            public override void Launch()
+            protected override void Launch()
             {
                 this.LaunchCalled = true;
             }

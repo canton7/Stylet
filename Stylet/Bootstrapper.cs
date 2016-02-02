@@ -85,7 +85,7 @@ namespace Stylet
         /// <summary>
         /// Called when the application is launched. Displays the root view.
         /// </summary>
-        public override void Launch()
+        protected override void Launch()
         {
             this.DisplayRootView(this.RootViewModel);
         }

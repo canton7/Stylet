@@ -90,7 +90,7 @@ namespace Stylet
         /// <summary>
         /// Called when the application is launched. Should display the root view using <see cref="DisplayRootView(object)"/>
         /// </summary>
-        public abstract void Launch();
+        protected abstract void Launch();
 
         /// <summary>
         /// Launch the root view
