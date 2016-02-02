@@ -1,6 +1,12 @@
 Stylet Changelog
 ================
 
+v1.1.13
+-------
+
+ - Catch possible failure inside IconToBitmapSourceConverter
+ - Fix access modifier on BootstrapperBase.Launch
+
 v1.1.12
 -------
 
