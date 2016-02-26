@@ -10,7 +10,7 @@
     <DockPanel>
         <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="10">
             This demonstrates "just intellisense" design mode. The Visual Studio XAML designer will show intellisense for bindings
-            (try and modify the binding below, and see), but does display values from the ViewModel.
+            (try and modify the binding below, and see), but does not display values from the ViewModel.
         </TextBlock>
         
         <TextBlock DockPanel.Dock="Top" Text="{Binding TextBoxText}"/>
