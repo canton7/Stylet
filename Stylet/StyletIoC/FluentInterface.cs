@@ -69,15 +69,17 @@ namespace StyletIoC
         /// Discover all implementations of the service in the specified assemblies / the current assembly, and bind those to the service
         /// </summary>
         /// <param name="assemblies">Assemblies to search. If empty / null, searches the current assembly</param>
+        /// <param name="allowZeroImplementations">By default, ToAllImplementations will throw an exception if no implementations are found. Set this parameter to true to allow this case</param>
         /// <returns>Fluent interface to continue configuration</returns>
-        IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(IEnumerable<Assembly> assemblies);
+        IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(IEnumerable<Assembly> assemblies, bool allowZeroImplementations = false);
 
         /// <summary>
         /// Discover all implementations of the service in the specified assemblies / the current assembly, and bind those to the service
         /// </summary>
+        /// <param name="allowZeroImplementations">By default, ToAllImplementations will throw an exception if no implementations are found. Set this parameter to true to allow this case</param>
         /// <param name="assemblies">Assemblies to search. If empty / null, searches the current assembly</param>
         /// <returns>Fluent interface to continue configuration</returns>
-        IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies);
+        IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(bool allowZeroImplementations = false, params Assembly[] assemblies);
     }
 
     /// <summary>

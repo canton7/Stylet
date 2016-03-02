@@ -26,6 +26,9 @@ namespace StyletUnitTests
         [Inject("Key")]
         class C4 { }
 
+        interface I5 { }
+        class C5 { }
+
         [Test]
         public void NongenericInterfaceToAllImplementations()
         {
@@ -161,6 +164,25 @@ namespace StyletUnitTests
             var ioc = builder.BuildContainer();
 
             Assert.IsInstanceOf<C11>(ioc.Get<C11>());
+        }
+
+        [Test]
+        public void ToAllImplementationsThrowsIfNoImplementationsFound()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I5>().ToAllImplementations();
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.BuildContainer());
+        }
+
+        [Test]
+        public void ToAllImplementationsDoesNotThrowIfNoImplementationsFoundAndAllowZeroImplementationsIsTrue()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I5>().ToAllImplementations(allowZeroImplementations: true);
+            IContainer ioc = null;
+            Assert.DoesNotThrow(() => ioc = builder.BuildContainer());
+
+            Assert.DoesNotThrow(() => ioc.GetAll<I5>());
         }
     }
 }
