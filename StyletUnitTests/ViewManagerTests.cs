@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Linq;
 
 namespace StyletUnitTests
 {
@@ -50,9 +51,9 @@ namespace StyletUnitTests
                 return base.LocateViewForModel(modelType);
             }
 
-            public new Type ViewTypeForViewName(string viewName)
+            public new Type ViewTypeForViewName(string viewName, IEnumerable<Assembly> extraAssemblies)
             {
-                return base.ViewTypeForViewName(viewName);
+                return base.ViewTypeForViewName(viewName, Enumerable.Empty<Assembly>());
             }
         }
 
@@ -97,7 +98,7 @@ namespace StyletUnitTests
                : base(config) { }
 
             public Type ViewType;
-            protected override Type ViewTypeForViewName(string viewName)
+            protected override Type ViewTypeForViewName(string viewName, IEnumerable<Assembly> extraAssemblies)
             {
                 return ViewType;
             }
@@ -236,7 +237,7 @@ namespace StyletUnitTests
                 ViewFactory = type => null,
                 ViewAssemblies = new List<Assembly>() { typeof(BootstrapperBase).Assembly, Assembly.GetExecutingAssembly() }
             });
-            Assert.IsNull(viewManager.ViewTypeForViewName("Test"));
+            Assert.IsNull(viewManager.ViewTypeForViewName("Test", Enumerable.Empty<Assembly>()));
         }
 
         [Test]
