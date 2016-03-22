@@ -77,15 +77,15 @@ namespace StyletIoC.Internal.Builders
             return this.builderBinding;
         }
 
-        public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(IEnumerable<Assembly> assemblies)
+        public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(IEnumerable<Assembly> assemblies, bool allowZeroImplementations = false)
         {
-            this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceTypes, this.getAssemblies(assemblies, "ToAllImplementations"));
+            this.builderBinding = new BuilderToAllImplementationsBinding(this.ServiceTypes, this.getAssemblies(assemblies, "ToAllImplementations"), allowZeroImplementations);
             return this.builderBinding;
         }
 
-        public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(params Assembly[] assemblies)
+        public IInScopeOrWithKeyOrAsWeakBinding ToAllImplementations(bool allowZeroImplementations = false, params Assembly[] assemblies)
         {
-            return this.ToAllImplementations(assemblies.AsEnumerable());
+            return this.ToAllImplementations(assemblies.AsEnumerable(), allowZeroImplementations);
         }
 
         internal void Build(Container container)

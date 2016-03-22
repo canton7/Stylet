@@ -227,13 +227,14 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Given the expected name for a view, locate its type (or throw an exception if a suitable type couldn't be found)
+        /// Given the expected name for a view, locate its type (or return null if a suitable type couldn't be found)
         /// </summary>
         /// <param name="viewName">View name to locate the type for</param>
+        /// <param name="extraAssemblies">Extra assemblies to search through</param>
         /// <returns>Type for that view name</returns>
-        protected virtual Type ViewTypeForViewName(string viewName)
+        protected virtual Type ViewTypeForViewName(string viewName, IEnumerable<Assembly> extraAssemblies)
         {
-            return this.ViewAssemblies.Select(x => x.GetType(viewName)).FirstOrDefault();
+            return this.ViewAssemblies.Concat(extraAssemblies).Select(x => x.GetType(viewName)).FirstOrDefault(x => x != null);
         }
 
         /// <summary>
@@ -277,7 +278,8 @@ namespace Stylet
             if (modelName == viewName)
                 throw new StyletViewLocationException(String.Format("Unable to transform ViewModel name {0} into a suitable View name", modelName), viewName);
 
-            var viewType = this.ViewTypeForViewName(viewName);
+            // Also include the ViewModel's assembly, to be helpful
+            var viewType = this.ViewTypeForViewName(viewName, new[] { modelType.Assembly });
             if (viewType == null)
             {
                 var e = new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
