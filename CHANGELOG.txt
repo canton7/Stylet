@@ -1,6 +1,14 @@
 Stylet Changelog
 ================
 
+v1.1.14
+-------
+
+ - Fix bug where ViewManager wouldn't search multiple assemblies for Views
+ - ViewManager searches the assembly containing the ViewModel by default
+ - Throw (by default) if StyletIoC's ToAllImplementations() doesn't find any implementations
+ - Fix typo DesignMode sample
+
 v1.1.13
 -------
 
