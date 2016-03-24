@@ -30,6 +30,26 @@ namespace StyletUnitTests
             public void Handle(M1 message) { throw new Exception("Should not be called. Ever"); }
         }
 
+        public class C4 : IHandle<M1>
+        {
+            public EventAggregator EventAggregator;
+
+            public void Handle(M1 message)
+            {
+                this.EventAggregator.Publish("foo");
+            }
+        }
+
+        public class C5 : IHandle<M1>
+        {
+            public EventAggregator EventAggregator;
+
+            public void Handle(M1 message)
+            {
+                this.EventAggregator.Subscribe(new C4());
+            }
+        }
+
         private EventAggregator ea;
 
         [SetUp]
@@ -229,6 +249,35 @@ namespace StyletUnitTests
             this.ea.Publish(message, "C1", "C2");
 
             Assert.AreEqual(1, target.ReceivedMessageCount);
+        }
+
+        [Test]
+        public void PublishingInsideHandlerDoesNotThrow()
+        {
+            var target = new C4();
+            target.EventAggregator = this.ea;
+            this.ea.Subscribe(target);
+
+            // Add this as a dummy - it has to be a dead reference, which triggers modification of the
+            // 'handlers' collection
+            var dummyTarget = new C1();
+            this.ea.Subscribe(dummyTarget);
+            dummyTarget = null;
+            GC.Collect();
+
+            Assert.DoesNotThrow(() => this.ea.Publish(new M1()));
+
+            GC.KeepAlive(target);
+        }
+
+        [Test]
+        public void SubscribingInsideHandlerDoesNotThrow()
+        {
+            var target = new C5();
+            target.EventAggregator = this.ea;
+            this.ea.Subscribe(target);
+
+            this.ea.Publish(new M1());
         }
     }
 }
