@@ -1,7 +1,7 @@
 param($installPath, $toolsPath, $package, $project)
 
 # Testing: call with Invoke-Expression "path\to\install.ps1"
-# $project = Get-Project
+$project = Get-Project
 
 $rootNamespace = $project.Properties.Item("RootNamespace").Value
 $rootPath = $project.Properties.Item("LocalPath").Value
@@ -186,14 +186,41 @@ namespace ${rootNamespace}.Pages
         $mainWindow.Remove()
 
         $shellViewContent = [System.IO.File]::ReadAllText($mainWindowPath)
-        $shellViewContent = $shellViewContent.Replace($rootNamespace + ".MainWindow", $rootNamespace + ".Pages.ShellView")
-        $shellViewContent = $shellViewContent.Replace('xmlns:local="clr-namespace:' + $rootNamespace + '"', 'xmlns:local="clr-namespace:' + $rootNamespace + '.Pages"')
-        $shellViewContent = $shellViewContent.Replace('Title="MainWindow"', 'Title="Stylet Start Project"')
-        $shellViewContent = $shellViewContent.Replace('mc:Ignorable="d"', "mc:Ignorable=""d""
-        d:DataContext=""{d:DesignInstance local:ShellViewModel}""")
-        $shellViewContent = [System.Text.RegularExpressions.Regex]::Replace($shellViewContent, "<Grid>\s*</Grid>", "<TextBlock FontSize=""30"" HorizontalAlignment=""Center"" VerticalAlignment=""Center"">
+        $match = [System.Text.RegularExpressions.Regex]::Match($shellViewContent, "<Window (.*?)>", [System.Text.RegularExpressions.RegexOptions]::Singleline)
+        if ($match.Success)
+        {
+            $originalShellViewAttributes = $match.Groups[1].Value
+            $shellViewAttributes = $originalShellViewAttributes
+
+            $shellViewAttributes = $shellViewAttributes.Replace("x:Class=""${rootNamespace}.MainWindow""", "x:Class=""${rootNamespace}.Pages.ShellView""")
+            $shellViewAttributes = $shellViewAttributes.Replace('Title="MainWindow"', 'Title="Stylet Start Project"')
+            if (!$shellViewAttributes.Contains("xmlns:local"))
+            {
+                $shellViewAttributes += "`r`n        xmlns:local=""clr-namespace:${rootNamespace}.Pages"""
+            }
+            else
+            {
+                $shellViewAttributes = $shellViewAttributes.Replace("xmlns:local=""clr-namespace:${rootNamespace}""", "xmlns:local=""clr-namespace:${rootNamespace}.Pages""")
+            }
+            if (!$shellViewAttributes.Contains("https://github.com/canton7/Stylet"))
+            {
+                $shellViewAttributes += "`r`n        xmlns:s=""https://github.com/canton7/Stylet"""
+            }
+            if (!$shellViewAttributes.Contains('mc:Ignorable="d"'))
+            {
+                $shellViewAttributes += "`r`n        mc:Ignorable=""d"""
+            }
+            if (!$shellViewAttributes.Contains("d:DataContext="))
+            {
+                $shellViewAttributes += "`r`n        d:DataContext=""{d:DesignInstance local:ShellViewModel}"""
+            }
+
+            $shellViewContent = $shellViewContent.Replace($originalShellViewAttributes, $shellViewAttributes);
+
+            $shellViewContent = [System.Text.RegularExpressions.Regex]::Replace($shellViewContent, "<Grid>\s*</Grid>", "<TextBlock FontSize=""30"" HorizontalAlignment=""Center"" VerticalAlignment=""Center"">
         Hello Stylet!
     </TextBlock>")
+        }
 
         $shellViewCsContent = [System.IO.File]::ReadAllText($mainWindowCsPath)
         $shellViewCsContent = $shellViewCsContent.Replace("namespace " + $rootNamespace, "namespace " + $rootNamespace + ".Pages")
