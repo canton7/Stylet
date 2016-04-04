@@ -1,7 +1,7 @@
 param($installPath, $toolsPath, $package, $project)
 
 # Testing: call with Invoke-Expression "path\to\install.ps1"
-$project = Get-Project
+# $project = Get-Project
 
 $rootNamespace = $project.Properties.Item("RootNamespace").Value
 $rootPath = $project.Properties.Item("LocalPath").Value
@@ -130,20 +130,8 @@ if ($pages -eq $null)
 
 # Add Pages/ShellView.xaml
 
-# Only do this if ShellView doesn't already exist...
-$existingShellView = $pages.ProjectItems | Where { $_.Name -eq "ShellView.xaml" } | Select -First 1
-if ($existingShellView -ne $null)
-{
-    Write-Host ">>>> Not renaming MainWindow.xaml to Pages/ShellView.xaml as Pages/ShellView.xaml already exists. "
-}
-else
-{
-    $mainWindow = ($project.ProjectItems | Where { $_.Name -Eq "MainWindow.xaml" } | Select -First 1)
-    if ($mainWindow -eq $null)
-    {
-        Write-Host ">>>> Creating Pages/ShellView.xaml from scratch, as MainWindow.xaml doesn't exist"
-
-        $shellViewContent = "<Window x:Class=""${rootNamespace}.Pages.ShellView""
+# Used in multiple places, potentially
+$standaloneShellViewContent = "<Window x:Class=""${rootNamespace}.Pages.ShellView""
         xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
         xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""
         xmlns:d=""http://schemas.microsoft.com/expression/blend/2008""
@@ -157,10 +145,9 @@ else
     <TextBlock FontSize=""30"" HorizontalAlignment=""Center"" VerticalAlignment=""Center"">
         Hello Stylet!
     </TextBlock>
-</Window>
-"
+</Window>"
 
-        $shellViewCsContent = "using System;
+$standaloneShellViewCsContent = "using System;
 using System.Windows;
 
 namespace ${rootNamespace}.Pages
@@ -177,18 +164,34 @@ namespace ${rootNamespace}.Pages
     }
 }
 "
+
+# Only do this if ShellView doesn't already exist...
+$existingShellView = $pages.ProjectItems | Where { $_.Name -eq "ShellView.xaml" } | Select -First 1
+if ($existingShellView -ne $null)
+{
+    Write-Host ">>>> Not renaming MainWindow.xaml to Pages/ShellView.xaml as Pages/ShellView.xaml already exists. "
+}
+else
+{
+    $mainWindow = ($project.ProjectItems | Where { $_.Name -Eq "MainWindow.xaml" } | Select -First 1)
+    if ($mainWindow -eq $null)
+    {
+        Write-Host ">>>> Creating Pages/ShellView.xaml from scratch, as MainWindow.xaml doesn't exist"
+
+        $shellViewContent = $standaloneShellViewContent
+        $shellViewCsContent = $standaloneShellViewCsContent
     }
     else
     {
         $mainWindowPath = $mainWindow.Properties.Item("FullPath").Value
         $mainWindowCsPath = $mainWindowPath + ".cs"
 
-        $mainWindow.Remove()
-
         $shellViewContent = [System.IO.File]::ReadAllText($mainWindowPath)
         $match = [System.Text.RegularExpressions.Regex]::Match($shellViewContent, "<Window (.*?)>", [System.Text.RegularExpressions.RegexOptions]::Singleline)
         if ($match.Success)
         {
+            $mainWindow.Remove()
+
             $originalShellViewAttributes = $match.Groups[1].Value
             $shellViewAttributes = $originalShellViewAttributes
 
@@ -220,16 +223,33 @@ namespace ${rootNamespace}.Pages
             $shellViewContent = [System.Text.RegularExpressions.Regex]::Replace($shellViewContent, "<Grid>\s*</Grid>", "<TextBlock FontSize=""30"" HorizontalAlignment=""Center"" VerticalAlignment=""Center"">
         Hello Stylet!
     </TextBlock>")
+
+            [System.IO.File]::Delete($mainWindowPath)
+
+            if ([System.IO.File]::Exists($mainWindowCsPath))
+            {
+                $shellViewCsContent = [System.IO.File]::ReadAllText($mainWindowCsPath)
+                $shellViewCsContent = $shellViewCsContent.Replace("namespace " + $rootNamespace, "namespace " + $rootNamespace + ".Pages")
+                $shellViewCsContent = $shellViewCsContent.Replace("class MainWindow", "class ShellView")
+                $shellViewCsContent = $shellViewCsContent.Replace("public MainWindow()", "public ShellView()")
+                $shellViewCsContent = $shellViewCsContent.Replace("/// Interaction logic for MainWindow.xaml", "/// Interaction logic for ShellView.xaml")
+
+                [System.IO.File]::Delete($mainWindowCsPath)
+            }
+            else
+            {
+                Write-Host ">>>> MainWindow.xaml.cs doesn't exist. Creating Pages/ShellView.xaml.cs from scratch"
+                $shellViewCsContent = $standaloneShellViewCsContent
+            }
+
         }
+        else
+        {
+            Write-Host ">>>> WARNING: MainWindow.xaml is not a Window, so creating Pages/ShellView.xaml from scratch"
 
-        $shellViewCsContent = [System.IO.File]::ReadAllText($mainWindowCsPath)
-        $shellViewCsContent = $shellViewCsContent.Replace("namespace " + $rootNamespace, "namespace " + $rootNamespace + ".Pages")
-        $shellViewCsContent = $shellViewCsContent.Replace("class MainWindow", "class ShellView")
-        $shellViewCsContent = $shellViewCsContent.Replace("public MainWindow()", "public ShellView()")
-        $shellViewCsContent = $shellViewCsContent.Replace("/// Interaction logic for MainWindow.xaml", "/// Interaction logic for ShellView.xaml")
-
-        [System.IO.File]::Delete($mainWindowPath)
-        [System.IO.File]::Delete($mainWindowCsPath)
+            $shellViewContent = $standaloneShellViewContent
+            $shellViewCsContent = $standaloneShellViewCsContent
+        }
     }
 
     $shellViewPath = [System.IO.Path]::Combine($rootPath, "Pages", "ShellView.xaml")
