@@ -13,7 +13,8 @@ $appXamlPath = [System.IO.Path]::Combine($rootPath, "App.xaml")
 
 if (![System.IO.File]::Exists($appXamlPath))
 {
-    Write-Host "WARNING: Not modifying App.xaml as it doesn't exist"
+    Write-Host ">>>> WARNING: Not modifying App.xaml as it doesn't exist"
+    Write-Host ">>>> Make sure you are installing Stylet.Start into a WPF project"
 }
 else
 {
@@ -32,7 +33,7 @@ else
     $existingApplicationLoader = $doc.Root.Descendants($styletNs.GetName("ApplicationLoader")) | Select -First 1
     if ($existingApplicationLoader -ne $null)
     {
-        Write-Host "Not modifying App.xaml as it already has an <s:ApplicationLoader> element"
+        Write-Host ">>>> Not modifying App.xaml as it already has an <s:ApplicationLoader> element"
     }
     else
     {
@@ -88,7 +89,7 @@ else
 $existingBootstrapper = $project.ProjectItems | Where { $_.Name -eq "Bootstrapper.cs" } | Select -First 1
 if ($existingBootstrapper -ne $null)
 {
-    Write-Host "Not creating Bootstrapper.cs as it already exists"
+    Write-Host ">>>> Not creating Bootstrapper.cs as it already exists"
 }
 else
 {
@@ -133,14 +134,14 @@ if ($pages -eq $null)
 $existingShellView = $pages.ProjectItems | Where { $_.Name -eq "ShellView.xaml" } | Select -First 1
 if ($existingShellView -ne $null)
 {
-    Write-Host "Not renaming MainWindow.xaml to Pages/ShellView.xaml as Pages/ShellView.xaml already exists. "
+    Write-Host ">>>> Not renaming MainWindow.xaml to Pages/ShellView.xaml as Pages/ShellView.xaml already exists. "
 }
 else
 {
     $mainWindow = ($project.ProjectItems | Where { $_.Name -Eq "MainWindow.xaml" } | Select -First 1)
     if ($mainWindow -eq $null)
     {
-        Write-Host "Creating Pages/ShellView.xaml from scratch, as MainWindow.xaml doesn't exist"
+        Write-Host ">>>> Creating Pages/ShellView.xaml from scratch, as MainWindow.xaml doesn't exist"
 
         $shellViewContent = "<Window x:Class=""${rootNamespace}.Pages.ShellView""
         xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
@@ -221,7 +222,7 @@ namespace ${rootNamespace}.Pages
 $existingShellViewModel = $pages.ProjectItems | Where { $_.Name -eq "ShellViewModel.cs" } | Select -First 1
 if ($existingShellViewModel -ne $null)
 {
-    Write-Host "Not creating Pages/ShellViewModel.cs as it already exists"
+    Write-Host ">>>> Not creating Pages/ShellViewModel.cs as it already exists"
 }
 else
 {    
