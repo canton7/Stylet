@@ -8,13 +8,33 @@ $rootPath = $project.Properties.Item("LocalPath").Value
 
 
 # Modify App.xaml
+# This is a real ballache: the previous Stylet.Start package (which uses NuGet's 'content' approach)
+# will delete App.xaml and App.xaml.cs on uninstallation if they haven't been modified by the user.
+# Obviously that's bad, so we'll need to put them back
 
 $appXamlPath = [System.IO.Path]::Combine($rootPath, "App.xaml")
-
-if (![System.IO.File]::Exists($appXamlPath))
+$existingAppXaml = $project.ProjectItems | Where { $_.Name -eq "App.xaml" } | Select -First 1
+if ($existingAppXaml -eq $null)
 {
-    Write-Host ">>>> WARNING: Not modifying App.xaml as it doesn't exist"
-    Write-Host ">>>> Make sure you are installing Stylet.Start into a WPF project"
+    Write-Host ">>>> App.xaml is missing: creating it from scratch (it was probably removed by NuGet)"
+
+    $appXamlContent = "<Application x:Class=""${rootNamespace}.App""
+             xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
+             xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""
+             xmlns:s=""https://github.com/canton7/Stylet""
+             xmlns:local=""clr-namespace:${rootNamespace}"">
+    <Application.Resources>
+       <s:ApplicationLoader>
+            <s:ApplicationLoader.Bootstrapper>
+                <local:Bootstrapper/>
+            </s:ApplicationLoader.Bootstrapper>
+        </s:ApplicationLoader>
+    </Application.Resources>
+</Application>"
+
+    [System.IO.File]::WriteAllText($appXamlPath, $appXamlContent)
+    $appXaml = $project.ProjectItems.AddFromFile($appXamlPath)
+    $appXaml.Properties.Item("BuildAction").Value = 4 # ApplicationDefinition
 }
 else
 {
@@ -169,7 +189,7 @@ namespace ${rootNamespace}.Pages
 $existingShellView = $pages.ProjectItems | Where { $_.Name -eq "ShellView.xaml" } | Select -First 1
 if ($existingShellView -ne $null)
 {
-    Write-Host ">>>> Not renaming MainWindow.xaml to Pages/ShellView.xaml as Pages/ShellView.xaml already exists. "
+    Write-Host ">>>> Not creating Pages/ShellView.xaml as it already exists. "
 }
 else
 {
