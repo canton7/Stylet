@@ -108,22 +108,36 @@ namespace Stylet
         /// <param name="channels">Channel(s) to publish the message to. Defaults to EventAggregator.DefaultChannel none given</param>
         public void PublishWithDispatcher(object message, Action<Action> dispatcher, params string[] channels)
         {
+            // We have to be re-entrant, since a handler can fire another message, or subscribe. This means that we can't
+            // be in the middle of iterating this.handlers when we invoke a handler.
+
             lock (this.handlersLock)
             {
+                // Start by clearing up dead handlers
+                this.handlers.RemoveAll(x => !x.IsAlive);
+
                 var messageType = message.GetType();
-                var deadHandlers = this.handlers.Where(x => !x.Handle(messageType, message, dispatcher, channels)).ToArray();
-                foreach (var deadHandler in deadHandlers)
+                var invokers = this.handlers.SelectMany(x => x.GetInvokers(messageType, channels)).ToArray();
+
+                foreach (var invoker in invokers)
                 {
-                    this.handlers.Remove(deadHandler);
+                    dispatcher(() => invoker.Invoke(message));
                 }
             }
         }
 
         private class Handler
         {
+            private static readonly string[] DefaultChannelArray = new[] { DefaultChannel };
+
             private readonly WeakReference target;
             private readonly List<HandlerInvoker> invokers = new List<HandlerInvoker>();
             private readonly HashSet<string> channels = new HashSet<string>();
+
+            public bool IsAlive
+            {
+                get { return this.target.IsAlive; }
+            }
 
             public Handler(object handler, string[] channels)
             {
@@ -133,11 +147,11 @@ namespace Stylet
                 foreach (var implementation in handler.GetType().GetInterfaces().Where(x => x.IsGenericType && typeof(IHandle).IsAssignableFrom(x)))
                 {
                     var messageType = implementation.GetGenericArguments()[0];
-                    this.invokers.Add(new HandlerInvoker(handlerType, messageType, implementation.GetMethod("Handle")));
+                    this.invokers.Add(new HandlerInvoker(this.target, handlerType, messageType, implementation.GetMethod("Handle")));
                 }
 
                 if (channels.Length == 0)
-                    channels = new[] { DefaultChannel };
+                    channels = DefaultChannelArray;
                 this.SubscribeToChannels(channels);
             }
 
@@ -160,35 +174,31 @@ namespace Stylet
                 return this.channels.Count == 0;
             }
 
-            public bool Handle(Type messageType, object message, Action<Action> dispatcher, string[] channels)
+            public IEnumerable<HandlerInvoker> GetInvokers(Type messageType, string[] channels)
             {
-                var target = this.target.Target;
-                if (target == null)
-                    return false;
+                if (!this.IsAlive)
+                    return Enumerable.Empty<HandlerInvoker>();
 
                 if (channels.Length == 0)
-                    channels = new[] { DefaultChannel };
+                    channels = DefaultChannelArray;
 
                 // We're not subscribed to any of the channels
                 if (!channels.All(x => this.channels.Contains(x)))
-                    return true;
+                    return Enumerable.Empty<HandlerInvoker>();
 
-                foreach (var invoker in this.invokers)
-                {
-                    invoker.Invoke(target, messageType, message, dispatcher);
-                }
-
-                return true;
+                return this.invokers.Where(x => x.CanInvoke(messageType));
             }
         }
 
         private class HandlerInvoker
         {
+            private readonly WeakReference target;
             private readonly Type messageType;
             private readonly Action<object, object> invoker;
 
-            public HandlerInvoker(Type targetType, Type messageType, MethodInfo invocationMethod)
+            public HandlerInvoker(WeakReference target, Type targetType, Type messageType, MethodInfo invocationMethod)
             {
+                this.target = target;
                 this.messageType = messageType;
                 var targetParam = Expression.Parameter(typeof(object), "target");
                 var messageParam = Expression.Parameter(typeof(object), "message");
@@ -198,10 +208,17 @@ namespace Stylet
                 this.invoker = Expression.Lambda<Action<object, object>>(callExpression, targetParam, messageParam).Compile();
             }
 
-            public void Invoke(object target, Type messageType, object message, Action<Action> dispatcher)
+            public bool CanInvoke(Type messageType)
             {
-                if (this.messageType.IsAssignableFrom(messageType))
-                    dispatcher(() => this.invoker(target, message));
+                return this.messageType.IsAssignableFrom(messageType);
+            }
+
+            public void Invoke(object message)
+            {
+                var target = this.target.Target;
+                // Just in case it's expired...
+                if (target != null)
+                    this.invoker(target, message);
             }
         }
     }

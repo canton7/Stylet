@@ -1,6 +1,12 @@
 Stylet Changelog
 ================
 
+v1.1.15
+-------
+
+ - Fix re-entrancy issue in the EventAggregator, if you publish events from within an event handler
+ - Improve Stylet.Start package
+
 v1.1.14
 -------
 
