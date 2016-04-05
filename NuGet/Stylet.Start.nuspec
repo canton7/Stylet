@@ -22,6 +22,6 @@
   </metadata>
 
   <files>
-    <file src="start\content\**" target="content" />
+    <file src="start\tools\**" target="tools" />
   </files>
 </package>
