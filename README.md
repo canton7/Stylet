@@ -16,7 +16,7 @@ Stylet's aims to:
  - Be flexible while providing sensible defaults. Almost any part of the framework can be overridden if you wish, but you probably won't want to.
 
 
-It is inspired by [Caliburn.Micro](http://www.caliburnproject.org/), and shares many of its concepts, but removes most of the magic (replacing it with more powerful alternatives), and simplifies parts considerably by targeting only MVVM, WPF and .NET 4.5.
+It is inspired by [Caliburn.Micro](http://caliburnmicro.com/), and shares many of its concepts, but removes most of the magic (replacing it with more powerful alternatives), and simplifies parts considerably by targeting only MVVM, WPF and .NET 4.5.
 
 
 Getting Started
