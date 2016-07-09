@@ -29,7 +29,12 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(IUnityContainer container)
         {
-            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
+            var viewManagerConfig = new ViewManagerConfig()
+            {
+                ViewFactory = this.GetInstance,
+                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+            };
+            var viewManager = new ViewManager(viewManagerConfig);
             // For some reason using ContainerControlledLifetimeManager results in a transient registration....
             container.RegisterInstance<IViewManager>(viewManager);
             container.RegisterInstance<IWindowManager>(new WindowManager(viewManager, () => container.Resolve<IMessageBoxViewModel>(), this));
@@ -48,7 +53,7 @@ namespace Bootstrappers
             return this.container.Resolve(type);
         }
 
-        public override void Launch()
+        protected override void Launch()
         {
             base.DisplayRootView(this.RootViewModel);
         }
