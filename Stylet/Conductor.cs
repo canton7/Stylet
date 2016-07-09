@@ -56,6 +56,8 @@ namespace Stylet
         /// <returns>Task indicating whether this can be closed</returns>
         public override Task<bool> CanCloseAsync()
         {
+            if (!this.CanClose())
+                return Task.FromResult(false);
             return this.CanCloseItem(this.ActiveItem);
         }
     }

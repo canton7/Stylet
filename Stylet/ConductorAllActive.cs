@@ -122,6 +122,8 @@ namespace Stylet
                 /// <returns>A Task indicating whether this conductor can close</returns>
                 public override Task<bool> CanCloseAsync()
                 {
+                    if (!this.CanClose())
+                        return Task.FromResult(false);
                     return this.CanAllItemsCloseAsync(this.items);
                 }
 
