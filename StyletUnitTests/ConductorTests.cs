@@ -12,12 +12,21 @@ namespace StyletUnitTests
         public interface IMyScreen : IScreen, IDisposable
         { }
 
-        private Conductor<IScreen> conductor;
+        private class MyConductor : Conductor<IScreen>
+        {
+            public bool CanCloseValue = true;
+            public async override Task<bool> CanCloseAsync()
+            {
+                return this.CanCloseValue && await base.CanCloseAsync();
+            }
+        }
+
+        private MyConductor conductor;
 
         [SetUp]
         public void SetUp()
         {
-            this.conductor = new Conductor<IScreen>();
+            this.conductor = new MyConductor();
         }
 
         [Test]
@@ -181,6 +190,19 @@ namespace StyletUnitTests
             this.conductor.ActivateItem(screen1.Object);
             screen1.Setup(x => x.CanCloseAsync()).Returns(Task.FromResult(false));
             Assert.IsFalse(this.conductor.CanCloseAsync().Result);
+        }
+
+        [Test]
+        public void ConductorCanCloseAsyncCallsCanCloseOnSelfBeforeChildren()
+        {
+            var screen = new Mock<IScreen>();
+
+            this.conductor.ActivateItem(screen.Object);
+            this.conductor.CanCloseValue = false;
+
+            Assert.IsFalse(this.conductor.CanCloseAsync().Result);
+
+            screen.Verify(x => x.CanCloseAsync(), Times.Never());
         }
 
         [Test]

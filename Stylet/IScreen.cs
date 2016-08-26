@@ -57,7 +57,7 @@ namespace Stylet
         /// <summary>
         /// Gets the current state of the Screen
         /// </summary>
-        ScreenState State { get; }
+        ScreenState ScreenState { get; }
 
         /// <summary>
         /// Gets a value indicating whether the current state is ScreenState.Active

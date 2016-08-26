@@ -1,6 +1,15 @@
 Stylet Changelog
 ================
 
+v1.1.16
+-------
+
+ - SetAndNotify returns a value indicating whether it raised a notification
+ - Fix an NRE when running validation in some cases
+ - Add ValidatingModelBase.RecordPropertyError to manually change property errors
+ - Deprecate Screen.CanClose: you should use Screen.CanCloseAsync instead
+ - Deprecate Screen.State, replacing it with Screen.ScreenState
+
 v1.1.15
 -------
 

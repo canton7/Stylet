@@ -17,13 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.OverridingVi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.RedditBrowser", "Stylet.Samples.RedditBrowser\Stylet.Samples.RedditBrowser.csproj", "{72B1C6E4-1293-47DD-BEFD-FA2E782BDBDA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C3BAC068-E2C0-4470-9F2E-A1711299BFAE}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.ModelValidation", "Stylet.Samples.ModelValidation\Stylet.Samples.ModelValidation.csproj", "{EA5A6CA5-7E8E-4401-A3D2-0035DDE10413}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.DesignMode", "Stylet.Samples.DesignMode\Stylet.Samples.DesignMode.csproj", "{D5225DA1-58ED-42AA-9589-A4F86E7667F7}"

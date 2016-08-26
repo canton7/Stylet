@@ -67,8 +67,15 @@ namespace Stylet
         /// <returns>Task indicating whether all items can close</returns>
         protected virtual async Task<bool> CanAllItemsCloseAsync(IEnumerable<T> itemsToClose)
         {
-            var results = await Task.WhenAll(itemsToClose.Select(this.CanCloseItem));
-            return results.All(x => x);
+            // We need to call these in order: we don't want them all do show "are you sure you
+            // want to close" dialogs at once, for instance.
+            foreach (var itemToClose in itemsToClose)
+            {
+                if (!await this.CanCloseItem(itemToClose))
+                    return false;
+            }
+
+            return true;
         }
 
         /// <summary>

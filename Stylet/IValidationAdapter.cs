@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Stylet
@@ -36,14 +37,16 @@ namespace Stylet
         /// <summary>
         /// Validate a single property by name, and return an array of validation errors for that property (or null if validation was successful)
         /// </summary>
-        /// <param name="propertyName">Property to validate</param>
-        /// <returns>Array of validation errors, or null if validation was successful</returns>
+        /// <param name="propertyName">Property to validate, or <see cref="String.Empty"/> to validate the entire model</param>
+        /// <returns>Array of validation errors, or null / empty if validation was successful</returns>
         Task<IEnumerable<string>> ValidatePropertyAsync(string propertyName);
 
         /// <summary>
         /// Validate all properties, and return the results for all properties
         /// </summary>
         /// <remarks>
+        /// Use a key of <see cref="String.Empty"/> to indicate validation errors for the entire model.
+        /// 
         /// If a property validates successfully, you MUST return a null entry for it in the returned dictionary!
         /// </remarks>
         /// <returns>A dictionary of property name => array of validation errors (or null if that property validated successfully)</returns>

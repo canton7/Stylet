@@ -7,13 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet", "Stylet\Stylet.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StyletUnitTests", "StyletUnitTests\StyletUnitTests.csproj", "{13AFA20D-CCEA-4A58-920E-4D8816C7296B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{AE3462E7-25F5-4BC8-933A-5D51393E9819}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StyletIntegrationTests", "StyletIntegrationTests\StyletIntegrationTests.csproj", "{C6021258-7CAE-4BC2-A08E-8433019405B7}"
 EndProject
 Global

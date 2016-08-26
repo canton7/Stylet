@@ -81,12 +81,18 @@ namespace Stylet
         /// <param name="field">Field to assign</param>
         /// <param name="value">Value to assign to the field, if it differs</param>
         /// <param name="propertyName">Name of the property to notify for. Defaults to the calling property</param>
-        protected virtual void SetAndNotify<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
+        /// <returns>True if field != value and a notification was raised; false otherwise</returns>
+        protected virtual bool SetAndNotify<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
         {
             if (!EqualityComparer<T>.Default.Equals(field, value))
             {
                 field = value;
                 this.NotifyOfPropertyChange(propertyName: propertyName);
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
     }

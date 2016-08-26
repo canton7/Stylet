@@ -92,6 +92,11 @@ namespace Stylet
             /// <returns>A task indicating whether this conductor can close</returns>
             public override Task<bool> CanCloseAsync()
             {
+                // Temporarily, until we remove CanClose
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (!this.CanClose())
+#pragma warning restore CS0618 // Type or member is obsolete
+                    return Task.FromResult(false);
                 return this.CanAllItemsCloseAsync(this.history.Concat(new[] { this.ActiveItem }));
             }
 

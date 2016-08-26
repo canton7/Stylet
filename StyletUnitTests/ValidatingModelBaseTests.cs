@@ -137,19 +137,19 @@ namespace StyletUnitTests
         }
 
         [Test]
-        public void ValidatePropertyAsyncWithNullCallsAdapterValidate()
+        public void ValidatePropertyAsyncWitNullCallsAdapterValidatePropertyWithEmptyString()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()).Verifiable();
-            this.model.ValidatePropertyAsync(null).Wait();
+            this.validator.Setup(x => x.ValidatePropertyAsync(String.Empty)).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
+            this.model.ValidatePropertyAsync(String.Empty).Wait();
 
             this.validator.Verify();
         }
 
 
         [Test]
-        public void ValidatePropertyAsyncWithEmptyStringCallsAdapterValidate()
+        public void ValidatePropertyAsyncWithEmptyStringCallsAdapterValidatePropertyWithEmptyString()
         {
-            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()).Verifiable();
+            this.validator.Setup(x => x.ValidatePropertyAsync(String.Empty)).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
             this.model.ValidatePropertyAsync(String.Empty).Wait();
 
             this.validator.Verify();
@@ -339,6 +339,19 @@ namespace StyletUnitTests
             this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync(new[] { "error1", "error2" });
             this.model.ValidateProperty("IntProperty");
             var errors = this.model.GetErrors("IntProperty");
+            Assert.That(errors, Is.EquivalentTo(new[] { "error1", "error2" }));
+        }
+
+        [Test]
+        public void GetErrorsWithNullReturnsModelErrors()
+        {
+            this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()
+            {
+                { "", new[] { "error1", "error2" } }
+            });
+
+            this.model.Validate();
+            var errors = this.model.GetErrors(null);
             Assert.That(errors, Is.EquivalentTo(new[] { "error1", "error2" }));
         }
 

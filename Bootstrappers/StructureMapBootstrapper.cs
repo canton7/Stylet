@@ -32,8 +32,12 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(ConfigurationExpression config)
         {
-            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
-            config.For<IViewManager>().Add(viewManager);
+            var viewManagerConfig = new ViewManagerConfig()
+            {
+                ViewFactory = this.GetInstance,
+                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+            };
+            config.For<IViewManager>().Add(new ViewManager(viewManagerConfig));
 
             config.For<IWindowManagerConfig>().Add(this);
             config.For<IWindowManager>().Add<WindowManager>().LifecycleIs<SingletonLifecycle>();
@@ -52,7 +56,7 @@ namespace Bootstrappers
             return this.container.GetInstance(type);
         }
 
-        public override void Launch()
+        protected override void Launch()
         {
             base.DisplayRootView(this.RootViewModel);
         }

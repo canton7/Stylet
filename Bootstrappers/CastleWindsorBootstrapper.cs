@@ -31,9 +31,13 @@ namespace Bootstrappers
         /// </summary>
         protected virtual void DefaultConfigureIoC(IWindsorContainer container)
         {
-            var viewManager = new ViewManager(this.GetInstance, new List<Assembly>() { this.GetType().Assembly });
+            var viewManagerConfig = new ViewManagerConfig()
+            {
+                ViewFactory = this.GetInstance,
+                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+            };
             container.Register(
-                Component.For<IViewManager>().Instance(viewManager),
+                Component.For<IViewManager>().Instance(new ViewManager(viewManagerConfig)),
                 Component.For<IWindowManagerConfig>().Instance(this),
                 Component.For<IMessageBoxViewModel>().ImplementedBy<MessageBoxViewModel>().LifestyleTransient(),
                 // For some reason we need to register the delegate separately?
@@ -54,7 +58,7 @@ namespace Bootstrappers
             return this.container.Resolve(type);
         }
 
-        public override void Launch()
+        protected override void Launch()
         {
             base.DisplayRootView(this.RootViewModel);
         }
