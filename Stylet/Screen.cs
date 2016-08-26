@@ -257,13 +257,17 @@ namespace Stylet
         /// <returns>A task returning true (can close) or false (can't close)</returns>
         public virtual Task<bool> CanCloseAsync()
         {
+            // Temporary, before we remove CanClose()
+#pragma warning disable CS0618 // Type or member is obsolete
             return Task.FromResult(this.CanClose());
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         /// <summary>
         /// Synchronous alternative to CanClose
         /// </summary>
         /// <returns>True if this screen can close, or false otherwise</returns>
+        [Obsolete("This method is deprecated, please use CanCloseAsync() instead")]
         protected virtual bool CanClose()
         {
             return true; 

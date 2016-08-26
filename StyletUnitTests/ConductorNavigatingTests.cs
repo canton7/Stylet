@@ -15,9 +15,9 @@ namespace StyletUnitTests
         private class MyConductor : Conductor<IScreen>.StackNavigation
         {
             public bool CanCloseValue = true;
-            protected override bool CanClose()
+            public override async Task<bool> CanCloseAsync()
             {
-                return this.CanCloseValue;
+                return this.CanCloseValue && await base.CanCloseAsync();
             }
         }
 

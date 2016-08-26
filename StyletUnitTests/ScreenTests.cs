@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Stylet;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace StyletUnitTests
@@ -65,9 +66,9 @@ namespace StyletUnitTests
             }
 
             public bool? CanCloseResult = null;
-            protected override bool CanClose()
+            public override Task<bool> CanCloseAsync()
             {
-                return this.CanCloseResult == null ? base.CanClose() : this.CanCloseResult.Value;
+                return this.CanCloseResult == null ? base.CanCloseAsync() : Task.FromResult(this.CanCloseResult.Value);
             }
         }
 
