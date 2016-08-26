@@ -100,13 +100,14 @@ namespace Stylet
             if (this.Validator == null)
                 throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
-            bool anyChanged = false;
-
             // We need the ConfigureAwait(false), as we might be called synchronously
             // However this means that the stuff after the await can be run in parallel on multiple threads
             // Therefore, we need the lock
             // However, we can't raise PropertyChanged events from within the lock, otherwise deadlock
             var results = await this.Validator.ValidateAllPropertiesAsync().ConfigureAwait(false);
+            if (results == null)
+                results = new Dictionary<string, IEnumerable<string>>();
+
             var changedProperties = new List<string>();
             await this.propertyErrorsLock.WaitAsync().ConfigureAwait(false);
             {
@@ -119,7 +120,6 @@ namespace Stylet
                         continue;
                     else
                         this.propertyErrors[kvp.Key] = newErrors;
-                    anyChanged = true;
                     changedProperties.Add(kvp.Key);
                 }
 
@@ -127,13 +127,12 @@ namespace Stylet
                 foreach (var removedKey in this.propertyErrors.Keys.Except(results.Keys).ToArray())
                 {
                     this.propertyErrors[removedKey] = null;
-                    anyChanged = true;
                     changedProperties.Add(removedKey);
                 }
             }
             this.propertyErrorsLock.Release();
 
-            if (anyChanged)
+            if (changedProperties.Count > 0)
                 this.OnValidationStateChanged(changedProperties);
 
             return !this.HasErrors;
@@ -182,7 +181,7 @@ namespace Stylet
         /// <summary>
         /// Validate a single property asynchronously, by name.
         /// </summary>
-        /// <param name="propertyName">Property to validate. Validates all properties if null or String.Empty</param>
+        /// <param name="propertyName">Property to validate. Validates the entire model if null or <see cref="String.Empty"/></param>
         /// <returns>True if the property validated successfully</returns>
         /// <remarks>If you override this, you MUST fire ErrorsChanged and call OnValidationStateChanged() if appropriate</remarks>
         protected virtual async Task<bool> ValidatePropertyAsync([CallerMemberName] string propertyName = null)
@@ -190,8 +189,8 @@ namespace Stylet
             if (this.Validator == null)
                 throw new InvalidOperationException("Can't run validation if a validator hasn't been set");
 
-            if (String.IsNullOrEmpty(propertyName))
-                return await this.ValidateAsync().ConfigureAwait(false);
+            if (propertyName == null)
+                propertyName = String.Empty;
 
             // To allow synchronous calling of this method, we need to resume on the ThreadPool.
             // Therefore, we might resume on any thread, hence the need for a lock
@@ -234,12 +233,12 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Called whenever the error state of any properties changes. Calls NotifyOfPropertyChange(() => this.HasErrors) by default
+        /// Called whenever the error state of any properties changes. Calls NotifyOfPropertyChange("HasErrors") by default
         /// </summary>
         /// <param name="changedProperties">List of property names which have changed validation state</param>
         protected virtual void OnValidationStateChanged(IEnumerable<string> changedProperties)
         {
-            this.NotifyOfPropertyChange(() => this.HasErrors);
+            this.NotifyOfPropertyChange("HasErrors");
             foreach (var property in changedProperties)
             {
                 this.RaiseErrorsChanged(property);
@@ -264,14 +263,16 @@ namespace Stylet
         /// <returns>The validation errors for the property or entity.</returns>
         public virtual IEnumerable GetErrors(string propertyName)
         {
-            string[] errors = null;
+            string[] errors;
+
+            if (propertyName == null)
+                propertyName = String.Empty;
 
             // We'll just have to wait synchronously for this. Oh well. The lock shouldn't be long.
             // Everything that awaits uses ConfigureAwait(false), so we shouldn't deadlock if someone calls this on the main thread
             this.propertyErrorsLock.Wait();
             {
-                if (this.propertyErrors.ContainsKey(propertyName))
-                    errors = this.propertyErrors[propertyName];
+                this.propertyErrors.TryGetValue(propertyName, out errors);
             }
             this.propertyErrorsLock.Release();
             
