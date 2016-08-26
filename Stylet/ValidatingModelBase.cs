@@ -110,6 +110,7 @@ namespace Stylet
 
             var changedProperties = new List<string>();
             await this.propertyErrorsLock.WaitAsync().ConfigureAwait(false);
+            try
             {
                 foreach (var kvp in results)
                 {
@@ -130,7 +131,10 @@ namespace Stylet
                     changedProperties.Add(removedKey);
                 }
             }
-            this.propertyErrorsLock.Release();
+            finally
+            {
+                this.propertyErrorsLock.Release();
+            }
 
             if (changedProperties.Count > 0)
                 this.OnValidationStateChanged(changedProperties);
@@ -199,6 +203,7 @@ namespace Stylet
             bool propertyErrorsChanged = false;
 
             await this.propertyErrorsLock.WaitAsync().ConfigureAwait(false);
+            try
             {
                 if (!this.propertyErrors.ContainsKey(propertyName))
                     this.propertyErrors.Add(propertyName, null);
@@ -209,7 +214,10 @@ namespace Stylet
                     propertyErrorsChanged = true;
                 }
             }
-            this.propertyErrorsLock.Release();
+            finally
+            {
+                this.propertyErrorsLock.Release();
+            }
 
             if (propertyErrorsChanged)
                 this.OnValidationStateChanged(new[] { propertyName });
@@ -271,10 +279,14 @@ namespace Stylet
             // We'll just have to wait synchronously for this. Oh well. The lock shouldn't be long.
             // Everything that awaits uses ConfigureAwait(false), so we shouldn't deadlock if someone calls this on the main thread
             this.propertyErrorsLock.Wait();
+            try
             {
                 this.propertyErrors.TryGetValue(propertyName, out errors);
             }
-            this.propertyErrorsLock.Release();
+            finally
+            {
+                this.propertyErrorsLock.Release();
+            }
             
             return errors;
         }
