@@ -48,17 +48,33 @@ namespace Stylet
 
         #region IScreenState
 
-        private ScreenState _state = ScreenState.Deactivated;
+        private ScreenState _screenState = ScreenState.Deactivated;
 
         /// <summary>
         /// Gets or sets the current state of the Screen
         /// </summary>
+        [Obsolete("State is deprecated, please use ScreenState instead")]
         public virtual ScreenState State
         {
-            get { return this._state; }
+            get { return this.ScreenState; }
+            protected set { this.ScreenState = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the current state of the Screen
+        /// </summary>
+        public virtual ScreenState ScreenState
+        {
+            get { return this._screenState; }
             protected set
             {
-                this.SetAndNotify(ref this._state, value);
+                if (this.SetAndNotify(ref this._screenState, value))
+                {
+                    // Temporary, until we remove 'State'
+#pragma warning disable CS0618 // Type or member is obsolete
+                    this.NotifyOfPropertyChange(() => this.State);
+#pragma warning restore CS0618 // Type or member is obsolete
+                }
                 this.NotifyOfPropertyChange(() => this.IsActive);
             }
         }
@@ -68,7 +84,7 @@ namespace Stylet
         /// </summary>
         public bool IsActive
         {
-            get { return this.State == ScreenState.Active; }
+            get { return this.ScreenState == ScreenState.Active; }
         }
 
         private bool haveActivated = false;
@@ -127,11 +143,11 @@ namespace Stylet
         /// <param name="changedHandler">Called if the transition occurs. Arguments are (newState, previousState)</param>
         protected virtual void SetState(ScreenState newState, Action<ScreenState, ScreenState> changedHandler)
         {
-            if (newState == this.State)
+            if (newState == this.ScreenState)
                 return;
 
-            var previousState = this.State;
-            this.State = newState;
+            var previousState = this.ScreenState;
+            this.ScreenState = newState;
 
             this.logger.Info("Setting state from {0} to {1}", previousState, newState);
 
@@ -180,7 +196,7 @@ namespace Stylet
         void IScreenState.Close()
         {
             // Avoid going from Activated -> Closed without going via Deactivated
-            if (this.State != ScreenState.Closed)
+            if (this.ScreenState != ScreenState.Closed)
                 ((IScreenState)this).Deactivate();
 
             this.View = null;

@@ -101,7 +101,7 @@ namespace StyletUnitTests
         [Test]
         public void ScreenIsInitiallyDeactivated()
         {
-            Assert.AreEqual(ScreenState.Deactivated, this.screen.State);
+            Assert.AreEqual(ScreenState.Deactivated, this.screen.ScreenState);
         }
 
         [Test]
