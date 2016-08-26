@@ -143,6 +143,48 @@ namespace Stylet
         }
 
         /// <summary>
+        /// Record a property error (or clear an error on a property). You can use this independently of the validation done by <see cref="Validator"/>
+        /// </summary>
+        /// <param name="property">Name of the property to change the errors for (or <see cref="String.Empty"/> to change the errors for the whole model)</param>
+        /// <param name="errors">The new errors, or null to clear errors for this property</param>
+        protected virtual void RecordPropertyError<TProperty>(Expression<Func<TProperty>> property, string[] errors)
+        {
+            this.RecordPropertyError(property.NameForProperty(), errors);
+        }
+
+        /// <summary>
+        /// Record a property error (or clear an error on a property). You can use this independently of the validation done by <see cref="Validator"/>
+        /// </summary>
+        /// <param name="propertyName">Name of the property to change the errors for (or <see cref="String.Empty"/> to change the errors for the whole model)</param>
+        /// <param name="errors">The new errors, or null to clear errors for this property</param>
+        protected virtual void RecordPropertyError(string propertyName, string[] errors)
+        {
+            if (propertyName == null)
+                propertyName = String.Empty;
+
+            bool changed = false;
+            this.propertyErrorsLock.Wait();
+            try
+            {
+                string[] existingErrors;
+                if (!this.propertyErrors.TryGetValue(propertyName, out existingErrors) || !this.ErrorsEqual(errors, existingErrors))
+                {
+                    this.propertyErrors[propertyName] = errors;
+                    changed = true;
+                }
+            }
+            finally
+            {
+                this.propertyErrorsLock.Release();
+            }
+
+            if (changed)
+            {
+                this.OnValidationStateChanged(new[] { propertyName });
+            }
+        }
+
+        /// <summary>
         /// Validate a single property synchronously, by name
         /// </summary>
         /// <typeparam name="TProperty">Type of property to validate</typeparam>
