@@ -282,7 +282,7 @@ namespace Stylet
         /// <summary>
         /// Gets a value indicating whether the entity has validation errors.
         /// </summary>
-        public bool HasErrors
+        public virtual bool HasErrors
         {
             get { return this.propertyErrors.Values.Any(x => x != null && x.Length > 0); }
         }
