@@ -50,7 +50,7 @@ namespace StyletUnitTests
                 this.ConfigureIoCCalled = true;
                 builder.Bind<I1>().To<C1>();
                 // Singleton, so we can test against it
-                builder.Bind<RootViewModel>().ToInstance(this.MyRootViewModel);
+                builder.Bind<RootViewModel>().ToInstance(this.MyRootViewModel).DisposeWithContainer(false);
                 base.ConfigureIoC(builder);
             }
         }

@@ -45,7 +45,7 @@ namespace StyletIoC
         /// </summary>
         /// <param name="instance">Instance to use</param>
         /// <returns>Fluent interface to continue configuration</returns>
-        IWithKeyOrAsWeakBinding ToInstance(object instance);
+        IWithKeyOrAsWeakBindingOrDisposeWithContainer ToInstance(object instance);
     }
 
     /// <summary>
@@ -166,6 +166,19 @@ namespace StyletIoC
         /// <param name="key">Key to associate with this binding</param>
         /// <returns>Fluent interface to continue configuration</returns>
         IAsWeakBinding WithKey(string key);
+    }
+
+    /// <summary>
+    /// Fluent interface on which WithKey, AsWeakBinding, or DisposeWithContainer can be called
+    /// </summary>
+    public interface IWithKeyOrAsWeakBindingOrDisposeWithContainer : IWithKeyOrAsWeakBinding
+    {
+        /// <summary>
+        /// Control whether or not this instance will be disposed when the IoC container is disposed. Defaults to true
+        /// </summary>
+        /// <param name="disposeWithContainer">True to dispose this instance when the container is disposed, false otherwise</param>
+        /// <returns>Fluent interface to continue configuration</returns>
+        IWithKeyOrAsWeakBinding DisposeWithContainer(bool disposeWithContainer);
     }
 
     /// <summary>
