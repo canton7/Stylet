@@ -3,6 +3,7 @@ using StyletIoC;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System;
 
 namespace StyletUnitTests
 {
@@ -108,6 +109,14 @@ namespace StyletUnitTests
             }
         }
 
+        class C11
+        {
+            public C11(C11 other)
+            {
+                throw new Exception("Wrong constructor!");
+            }
+        }
+
         [Test]
         public void RecursivelyPopulatesConstructorParams()
         {
@@ -194,6 +203,17 @@ namespace StyletUnitTests
             var ioc = builder.BuildContainer();
 
             Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C5>());
+        }
+
+        [Test]
+        public void DoesNotChooseCopyConstructor()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C11>().ToSelf();
+            var ioc = builder.BuildContainer();
+
+            // This actually causes a StackOverflow on failure...
+            Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C11>());
         }
 
         [Test]

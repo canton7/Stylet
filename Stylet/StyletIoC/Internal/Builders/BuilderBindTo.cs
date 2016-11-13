@@ -65,10 +65,11 @@ namespace StyletIoC.Internal.Builders
             return this.builderBinding;
         }
 
-        public IWithKeyOrAsWeakBinding ToInstance(object instance)
+        public IWithKeyOrAsWeakBindingOrDisposeWithContainer ToInstance(object instance)
         {
-            this.builderBinding = new BuilderInstanceBinding(this.ServiceTypes, instance);
-            return this.builderBinding;
+            var builderBinding = new BuilderInstanceBinding(this.ServiceTypes, instance);
+            this.builderBinding = builderBinding;
+            return builderBinding;
         }
 
         public IWithKeyOrAsWeakBinding ToAbstractFactory()

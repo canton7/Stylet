@@ -28,22 +28,24 @@ namespace Stylet
         /// <summary>
         /// Display a MessageBox
         /// </summary>
-        /// <param name="messageBoxText">A System.String that specifies the text to display.</param>
-        /// <param name="caption">A System.String that specifies the title bar caption to display.</param>
-        /// <param name="buttons">A System.Windows.MessageBoxButton value that specifies which button or buttons to display.</param>
-        /// <param name="icon">A System.Windows.MessageBoxImage value that specifies the icon to display.</param>
-        /// <param name="defaultResult">A System.Windows.MessageBoxResult value that specifies the default result of the message box.</param>
-        /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
-        /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
+        /// <param name="messageBoxText">A <see cref="System.String"/> that specifies the text to display.</param>
+        /// <param name="caption">A <see cref="System.String"/> that specifies the title bar caption to display.</param>
+        /// <param name="buttons">A <see cref="System.Windows.MessageBoxButton"/> value that specifies which button or buttons to display.</param>
+        /// <param name="icon">A <see cref="System.Windows.MessageBoxImage"/> value that specifies the icon to display.</param>
+        /// <param name="defaultResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the default result of the message box.</param>
+        /// <param name="cancelResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the cancel result of the message box</param>
         /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
+        /// <param name="flowDirection">The <see cref="System.Windows.FlowDirection"/> to use, overrides the <see cref="MessageBoxViewModel.DefaultFlowDirection"/></param>
+        /// <param name="textAlignment">The <see cref="System.Windows.TextAlignment"/> to use, overrides the <see cref="MessageBoxViewModel.DefaultTextAlignment"/></param>
         /// <returns>The result chosen by the user</returns>
-        MessageBoxResult ShowMessageBox(string messageBoxText, string caption = null,
+        MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "",
             MessageBoxButton buttons = MessageBoxButton.OK,
             MessageBoxImage icon = MessageBoxImage.None,
             MessageBoxResult defaultResult = MessageBoxResult.None,
             MessageBoxResult cancelResult = MessageBoxResult.None,
-            MessageBoxOptions options = MessageBoxOptions.None,
-            IDictionary<MessageBoxResult, string> buttonLabels = null);
+            IDictionary<MessageBoxResult, string> buttonLabels = null,
+            FlowDirection? flowDirection = null,
+            TextAlignment? textAlignment = null);
     }
 
     /// <summary>
@@ -103,25 +105,27 @@ namespace Stylet
         /// <summary>
         /// Display a MessageBox
         /// </summary>
-        /// <param name="messageBoxText">A System.String that specifies the text to display.</param>
-        /// <param name="caption">A System.String that specifies the title bar caption to display.</param>
-        /// <param name="buttons">A System.Windows.MessageBoxButton value that specifies which button or buttons to display.</param>
-        /// <param name="icon">A System.Windows.MessageBoxImage value that specifies the icon to display.</param>
-        /// <param name="defaultResult">A System.Windows.MessageBoxResult value that specifies the default result of the message box.</param>
-        /// <param name="cancelResult">A System.Windows.MessageBoxResult value that specifies the cancel result of the message box</param>
-        /// <param name="options">A System.Windows.MessageBoxOptions value object that specifies the options.</param>
+        /// <param name="messageBoxText">A <see cref="System.String"/> that specifies the text to display.</param>
+        /// <param name="caption">A <see cref="System.String"/> that specifies the title bar caption to display.</param>
+        /// <param name="buttons">A <see cref="System.Windows.MessageBoxButton"/> value that specifies which button or buttons to display.</param>
+        /// <param name="icon">A <see cref="System.Windows.MessageBoxImage"/> value that specifies the icon to display.</param>
+        /// <param name="defaultResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the default result of the message box.</param>
+        /// <param name="cancelResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the cancel result of the message box</param>
         /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
+        /// <param name="flowDirection">The <see cref="System.Windows.FlowDirection"/> to use, overrides the <see cref="MessageBoxViewModel.DefaultFlowDirection"/></param>
+        /// <param name="textAlignment">The <see cref="System.Windows.TextAlignment"/> to use, overrides the <see cref="MessageBoxViewModel.DefaultTextAlignment"/></param>
         /// <returns>The result chosen by the user</returns>
         public MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "",
             MessageBoxButton buttons = MessageBoxButton.OK,
             MessageBoxImage icon = MessageBoxImage.None,
             MessageBoxResult defaultResult = MessageBoxResult.None,
             MessageBoxResult cancelResult = MessageBoxResult.None,
-            MessageBoxOptions options = MessageBoxOptions.None,
-            IDictionary<MessageBoxResult, string> buttonLabels = null)
+            IDictionary<MessageBoxResult, string> buttonLabels = null,
+            FlowDirection? flowDirection = null,
+            TextAlignment? textAlignment = null)
         {
             var vm = this.messageBoxViewModelFactory();
-            vm.Setup(messageBoxText, caption, buttons, icon, defaultResult, cancelResult, options, buttonLabels);
+            vm.Setup(messageBoxText, caption, buttons, icon, defaultResult, cancelResult, buttonLabels, flowDirection, textAlignment);
             // Don't go through the IoC container to get the View. This means we can simplify it...
             var messageBoxView = new MessageBoxView();
             messageBoxView.InitializeComponent();

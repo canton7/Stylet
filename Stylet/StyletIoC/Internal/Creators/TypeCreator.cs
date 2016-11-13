@@ -63,8 +63,9 @@ namespace StyletIoC.Internal.Creators
             }
             else
             {
+                // Since we don't look for recursive includes, do at least check for copy constructors
                 ctor = type.GetConstructors()
-                    .Where(c => c.GetParameters().All(p => this.ParentContext.CanResolve(p.ParameterType, this.KeyForParameter(p)) || p.HasDefaultValue))
+                    .Where(c => c.GetParameters().All(p => p.ParameterType != type && (this.ParentContext.CanResolve(p.ParameterType, this.KeyForParameter(p)) || p.HasDefaultValue)))
                     .OrderByDescending(c => c.GetParameters().Count(p => !p.HasDefaultValue))
                     .FirstOrDefault();
 
@@ -74,10 +75,11 @@ namespace StyletIoC.Internal.Creators
                     Func<ParameterInfo, string> ctorParameterPrinter = p =>
                     {
                         var key = this.KeyForParameter(p);
-                        var canResolve = this.ParentContext.CanResolve(p.ParameterType, key) || p.HasDefaultValue;
+                        var canResolve = p.ParameterType != type && (this.ParentContext.CanResolve(p.ParameterType, key) || p.HasDefaultValue);
                         var keyStr = key == null ? "" : String.Format(" [Key = {0}]", key);
                         var usingDefaultStr = (!this.ParentContext.CanResolve(p.ParameterType, key) && p.HasDefaultValue) ? " [Using Default]" : "";
-                        return String.Format("   {0}{1}: {2}{3}", p.ParameterType.GetDescription(), keyStr, canResolve ? "Success" : "Failure", usingDefaultStr);
+                        var recursiveStr = p.ParameterType == type ? " [Recursive]" : "";
+                        return String.Format("   {0}{1}: {2}{3}{4}", p.ParameterType.GetDescription(), keyStr, canResolve ? "Success" : "Failure", usingDefaultStr, recursiveStr);
                     };
 
                     var info = String.Join("\n\n", type.GetConstructors().Select(c => String.Format("Constructor:\n{0}\n\n", String.Join("\n", c.GetParameters().Select(ctorParameterPrinter)))));

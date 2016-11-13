@@ -58,7 +58,7 @@ namespace Stylet
             // Bind it to both IViewManager and to itself, so that people can get it with Container.Get<ViewManager>()
             builder.Bind<IViewManager>().And<ViewManager>().To<ViewManager>().AsWeakBinding();
 
-            builder.Bind<IWindowManagerConfig>().ToInstance(this).AsWeakBinding();
+            builder.Bind<IWindowManagerConfig>().ToInstance(this).DisposeWithContainer(false).AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();
             builder.Bind<IMessageBoxViewModel>().To<MessageBoxViewModel>().AsWeakBinding();

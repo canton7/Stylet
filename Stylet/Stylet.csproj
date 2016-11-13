@@ -67,7 +67,7 @@
     <Compile Include="StyletIoC\Internal\Builders\BuilderToAllImplementationsBinding.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderTypeBinding.cs" />
     <Compile Include="StyletIoC\Internal\Builders\BuilderInstanceBinding.cs" />
-    <Compile Include="StyletIoC\Internal\Creators\InstanceCreator.cs" />
+    <Compile Include="StyletIoC\Internal\Registrations\InstanceRegistration.cs" />
     <Compile Include="StyletIoC\Internal\IRegistrationCollection.cs" />
     <Compile Include="StyletIoC\Internal\Creators\AbstractFactoryCreator.cs" />
     <Compile Include="StyletIoC\Internal\Creators\CreatorBase.cs" />

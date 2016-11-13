@@ -165,7 +165,7 @@ namespace StyletIoC
             var container = new Container(this.autobindAssemblies);
 
             // Just in case they want it
-            this.Bind<IContainer>().ToInstance(container).AsWeakBinding();
+            this.Bind<IContainer>().ToInstance(container).DisposeWithContainer(false).AsWeakBinding();
 
             // For each binding which is weak, if another binding exists with any of the same type+key which is strong, we remove this binding
             var groups = (from binding in this.bindings

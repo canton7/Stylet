@@ -325,10 +325,10 @@ namespace StyletUnitTests
         {
             var wm = new WindowManagerWithoutCreateWindow(this.viewManager.Object, () => this.messageBoxViewModel.Object, this.config.Object);
 
-            try { wm.ShowMessageBox("text", "title", MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxResult.Cancel, MessageBoxOptions.RtlReading); }
+            try { wm.ShowMessageBox("text", "title", MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxResult.Cancel, null, FlowDirection.RightToLeft, TextAlignment.Right); }
             catch (TestException) { }
 
-            this.messageBoxViewModel.Verify(x => x.Setup("text", "title", MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxResult.Cancel, MessageBoxOptions.RtlReading, null));
+            this.messageBoxViewModel.Verify(x => x.Setup("text", "title", MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxResult.Cancel, null, FlowDirection.RightToLeft, TextAlignment.Right));
         }
 
         [Test]

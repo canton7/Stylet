@@ -31,31 +31,31 @@ namespace StyletUnitTests
         [Test]
         public void SetsTextCorrectly()
         {
-            this.vm.Setup("this is the text", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup("this is the text", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.AreEqual("this is the text", this.vm.Text);
         }
 
         [Test]
         public void DeterminesTextIsMultilineCorrectly()
         {
-            this.vm.Setup("this is the text", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup("this is the text", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.IsFalse(this.vm.TextIsMultiline);
 
-            this.vm.Setup("hello\nworld", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup("hello\nworld", null, MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.IsTrue(this.vm.TextIsMultiline);
         }
 
         [Test]
         public void SetsTitleCorrectly()
         {
-            this.vm.Setup(null, "this is the title", MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup(null, "this is the title", MessageBoxButton.OK, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.AreEqual("this is the title", this.vm.DisplayName);
         }
 
         [Test]
         public void DisplaysRequestedButtons()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup(null, null, MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             var buttons = vm.ButtonList.ToList();
             Assert.AreEqual(2, buttons.Count);
             Assert.AreEqual("OK", buttons[0].Label);
@@ -67,47 +67,47 @@ namespace StyletUnitTests
         [Test]
         public void SetsDefaultButtonToTheRequestedButton()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.Cancel, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup(null, null, MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.Cancel, MessageBoxResult.None, null, null, null);
             Assert.AreEqual(this.vm.ButtonList.ElementAt(1), this.vm.DefaultButton);
         }
 
         [Test]
         public void SetsDefaultToLeftmostButtonIfDefaultRequested()
         {
-            this.vm.Setup(null, null, MessageBoxButton.YesNoCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup(null, null, MessageBoxButton.YesNoCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.AreEqual(this.vm.ButtonList.ElementAt(0), this.vm.DefaultButton);
         }
 
         [Test]
         public void ThrowsIfTheRequestedDefaultButtonIsNotDisplayed()
         {
-            Assert.Throws<ArgumentException>(() => this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.Yes, MessageBoxResult.None, MessageBoxOptions.None, null));
+            Assert.Throws<ArgumentException>(() => this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.Yes, MessageBoxResult.None, null, null, null));
         }
 
         [Test]
         public void SetsCancelButtonToTheRequestedButton()
         {
-            this.vm.Setup(null, null, MessageBoxButton.YesNoCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.No, MessageBoxOptions.None, null);
+            this.vm.Setup(null, null, MessageBoxButton.YesNoCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.No, null, null, null);
             Assert.AreEqual(this.vm.ButtonList.ElementAt(1), this.vm.CancelButton);
         }
 
         [Test]
         public void SetsCancelToRighmostButtonIfDefaultRequested()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.AreEqual(this.vm.ButtonList.ElementAt(1), this.vm.CancelButton);
         }
 
         [Test]
         public void ThrowsIfRequestedCancelButtonIsNotDisplayed()
         {
-            Assert.Throws<ArgumentException>(() => this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.No, MessageBoxOptions.None, null));
+            Assert.Throws<ArgumentException>(() => this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.No, null, null, null));
         }
 
         [Test]
         public void SetsIconCorrectly()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.AreEqual(SystemIcons.Exclamation, this.vm.ImageIcon);
         }
 
@@ -116,7 +116,7 @@ namespace StyletUnitTests
         {
             var parent = new Mock<IChildDelegate>();
             this.vm.Parent = parent.Object;
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             
             this.vm.ButtonClicked(MessageBoxResult.No);
 
@@ -129,17 +129,17 @@ namespace StyletUnitTests
         {
             var vm = new MyMessageBoxViewModel();
             // Can't test it actually playing the sound
-            vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.DoesNotThrow(() => vm.OnViewLoaded());
         }
 
         [Test]
         public void ButtonTextOverridesWork()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, new Dictionary<MessageBoxResult, string>()
+            this.vm.Setup(null, null, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, new Dictionary<MessageBoxResult, string>()
                 {
                     { MessageBoxResult.Cancel, "YAY!" },
-                });
+                }, null, null);
             Assert.AreEqual("OK", this.vm.ButtonList.ElementAt(0).Label);
             Assert.AreEqual("YAY!", this.vm.ButtonList.ElementAt(1).Label);
         }
@@ -147,43 +147,29 @@ namespace StyletUnitTests
         [Test]
         public void FlowsLeftToRightByDefault()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.AreEqual(FlowDirection.LeftToRight, this.vm.FlowDirection);
         }
 
         [Test]
         public void FlowsRightToLeftIfRequested()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.RtlReading, null);
+            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, FlowDirection.RightToLeft, null);
             Assert.AreEqual(FlowDirection.RightToLeft, this.vm.FlowDirection);
         }
 
         [Test]
-        public void AlignsLeftIfLeftToRightByDefault()
+        public void AlignsLeftByDefault()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.None, null);
+            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
             Assert.AreEqual(TextAlignment.Left, this.vm.TextAlignment);
         }
 
         [Test]
-        public void AlignsRightIfLeftToRightAndRequested()
+        public void AlignsRightIfRequested()
         {
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.RightAlign, null);
+            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, TextAlignment.Right);
             Assert.AreEqual(TextAlignment.Right, this.vm.TextAlignment);
-        }
-
-        [Test]
-        public void AlignsRightIfRightToLeftByDefault()
-        {
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.RtlReading, null);
-            Assert.AreEqual(TextAlignment.Right, this.vm.TextAlignment);
-        }
-
-        [Test]
-        public void AlignsLeftIfRightToLeftAndRequested()
-        {
-            this.vm.Setup(null, null, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, MessageBoxOptions.RightAlign | MessageBoxOptions.RtlReading, null);
-            Assert.AreEqual(TextAlignment.Left, this.vm.TextAlignment);
         }
     }
 }

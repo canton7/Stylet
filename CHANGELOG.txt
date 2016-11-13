@@ -1,6 +1,13 @@
 Stylet Changelog
 ================
 
+v1.1.17
+-------
+
+ - StyletIoC: Dispose instance bindings when the container is disposed (configurable)
+ - StyletIoC: Detect basic copy constructors, and don't attempt to call them
+ - Add default TextAligment and FlowDirection properties to MessageBoxViewModel
+
 v1.1.16
 -------
 
