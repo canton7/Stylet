@@ -56,7 +56,9 @@ namespace Stylet
             public void Clear()
             {
                 foreach (var item in this.history)
+                {
                     this.CloseAndCleanUp(item, this.DisposeChildren);
+                }
                 this.history.Clear();
             }
 
