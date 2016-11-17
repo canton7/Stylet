@@ -43,6 +43,7 @@ namespace StyletUnitTests
             this.conductor.ActivateItem(screen.Object);
 
             screen.Verify(x => x.Activate());
+            screen.Verify(x => x.Deactivate());
             Assert.AreEqual(screen.Object, this.conductor.ActiveItem);
             Assert.That(this.conductor.Items, Is.EquivalentTo(new[] { screen.Object }));
         }
@@ -144,8 +145,8 @@ namespace StyletUnitTests
             ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
             ((IScreenState)this.conductor).Close();
-            screen.Verify(x => x.Close());
-            screen.Verify(x => x.Dispose());
+            screen.Verify(x => x.Close(), Times.Once());
+            screen.Verify(x => x.Dispose(), Times.Once());
             Assert.AreEqual(0, this.conductor.Items.Count);
         }
 
