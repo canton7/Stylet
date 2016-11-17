@@ -72,10 +72,10 @@ namespace Stylet
                 {
                     // Temporary, until we remove 'State'
 #pragma warning disable CS0618 // Type or member is obsolete
-                    this.NotifyOfPropertyChange(() => this.State);
+                    this.NotifyOfPropertyChange("State");
 #pragma warning restore CS0618 // Type or member is obsolete
                 }
-                this.NotifyOfPropertyChange(() => this.IsActive);
+                this.NotifyOfPropertyChange("IsActive");
             }
         }
 

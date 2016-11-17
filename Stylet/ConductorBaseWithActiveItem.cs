@@ -50,7 +50,7 @@ namespace Stylet
             }
 
             this._activeItem = newItem;
-            this.NotifyOfPropertyChange(() => this.ActiveItem);
+            this.NotifyOfPropertyChange("ActiveItem");
         }
 
         /// <summary>
