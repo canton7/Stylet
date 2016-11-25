@@ -1,6 +1,15 @@
 Stylet Changelog
 ================
 
+v1.1.18
+-------
+
+ - Conductors don't fail if a subclass changes its 'Items' collection when it's activated/deactivated
+ - Prevent `Conductor<T>.Collection.OneActive` from closing each of its children twice when it is closed
+ - Fix Screen lifecycle so that it cannot go from Closed -> Deactivated, it must go Closed -> Activated -> Deactivated
+ - Add a method to ValidatingModelBase to clear all validation errors (useful if you want to re-run validation from scratch)
+ - Fix some of the example bootstrappers
+
 v1.1.17
 -------
 
