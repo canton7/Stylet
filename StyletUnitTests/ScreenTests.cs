@@ -22,6 +22,14 @@ namespace StyletUnitTests
             public MyScreen() { }
             public MyScreen(IModelValidator validator) : base(validator) { }
 
+            public void Reset()
+            {
+                this.OnActivateCalled = false;
+                this.OnInitialActivateCalled = false;
+                this.OnDeactivateCalled = false;
+                this.OnCloseCalled = false;
+            }
+
             public new void SetState(ScreenState newState, Action<ScreenState, ScreenState> changedHandler)
             {
                 base.SetState(newState, changedHandler);
@@ -434,6 +442,19 @@ namespace StyletUnitTests
             ((IScreenState)this.screen).Close();
             ((IScreenState)this.screen).Activate();
             Assert.True(this.screen.OnInitialActivateCalled);
+        }
+
+        [Test]
+        public void DeactivateAfterCloseCausesActivate()
+        {
+            ((IScreenState)this.screen).Activate();
+            ((IScreenState)this.screen).Close();
+            this.screen.Reset();
+
+            ((IScreenState)this.screen).Deactivate();
+            Assert.True(this.screen.OnInitialActivateCalled);
+            Assert.True(this.screen.OnActivateCalled);
+            Assert.True(this.screen.OnDeactivateCalled);
         }
     }
 }

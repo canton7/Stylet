@@ -85,7 +85,9 @@ namespace Stylet
                 /// </summary>
                 protected override void OnActivate()
                 {
-                    foreach (var item in this.items.OfType<IScreenState>())
+                    // Copy the list, in case someone tries to modify it as a result of being activated
+                    var itemsToActivate = this.items.OfType<IScreenState>().ToList();
+                    foreach (var item in itemsToActivate)
                     {
                         item.Activate();
                     }
@@ -96,7 +98,9 @@ namespace Stylet
                 /// </summary>
                 protected override void OnDeactivate()
                 {
-                    foreach (var item in this.items.OfType<IScreenState>())
+                    // Copy the list, in case someone tries to modify it as a result of being activated
+                    var itemsToDeactivate = this.items.OfType<IScreenState>().ToList();
+                    foreach (var item in itemsToDeactivate)
                     {
                         item.Deactivate();
                     }
@@ -107,8 +111,10 @@ namespace Stylet
                 /// </summary>
                 protected override void OnClose()
                 {
+                    // Copy the list, in case someone tries to modify it as a result of being closed
                     // We've already been deactivated by this point    
-                    foreach (var item in this.items)
+                    var itemsToClose = this.items.ToList();
+                    foreach (var item in itemsToClose)
                     {
                         this.CloseAndCleanUp(item, this.DisposeChildren);
                     }

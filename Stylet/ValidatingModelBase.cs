@@ -185,6 +185,30 @@ namespace Stylet
         }
 
         /// <summary>
+        /// Clear all property errors
+        /// </summary>
+        protected virtual void ClearAllPropertyErrors()
+        {
+            List<string> changedProperties;
+
+            this.propertyErrorsLock.Wait();
+            try
+            {
+                changedProperties = this.propertyErrors.Keys.ToList();
+                this.propertyErrors.Clear();
+            }
+            finally
+            {
+                this.propertyErrorsLock.Release();
+            }
+
+            if (changedProperties.Count > 0)
+            {
+                this.OnValidationStateChanged(changedProperties);
+            }
+        }
+
+        /// <summary>
         /// Validate a single property synchronously, by name
         /// </summary>
         /// <typeparam name="TProperty">Type of property to validate</typeparam>

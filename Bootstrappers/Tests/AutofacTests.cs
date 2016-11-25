@@ -12,6 +12,8 @@ namespace Bootstrappers.Tests
     {
         public List<string> ConfigureLog { get; set; }
 
+        public int DisposeCount { get; private set; }
+
         public MyAutofacBootstrapper()
         {
             this.ConfigureLog = new List<string>();
@@ -43,6 +45,12 @@ namespace Bootstrappers.Tests
         public new void ConfigureBootstrapper()
         {
             base.ConfigureBootstrapper();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            this.DisposeCount++;
         }
     }
 

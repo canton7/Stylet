@@ -12,12 +12,13 @@ namespace Bootstrappers.Tests
 
     public interface ITestBootstrapper
     {
+        int DisposeCount { get; }
         object GetInstance(Type type);
         void ConfigureBootstrapper();
         List<string> ConfigureLog { get; }
     }
 
-    public abstract class BootstrapperTests<TBootstrapper> where TBootstrapper : ITestBootstrapper
+    public abstract class BootstrapperTests<TBootstrapper> where TBootstrapper : ITestBootstrapper, IDisposable
     {
         protected TBootstrapper bootstrapper;
 
@@ -124,6 +125,30 @@ namespace Bootstrappers.Tests
 
             Assert.NotNull(vm1);
             Assert.AreNotEqual(vm1, vm2);
+        }
+
+        [Test]
+        public void DoesNotMultiplyDisposeWindowManagerConfig()
+        {
+            // The bootstrapper implements the IWindowManagerConfig. Fetch the IWindowManager to force the
+            // IWindowManagerConfig to be constructed, then dispose the bootstrapper, and make sure that
+            // the container doesn't dispose the IWindowManagerConfig again
+
+            var windowManager = this.bootstrapper.GetInstance(typeof(IWindowManager));
+            this.bootstrapper.Dispose();
+
+            Assert.AreEqual(1, this.bootstrapper.DisposeCount);
+        }
+
+        [Test]
+        public void DoesNotDisposeTransientInstances()
+        {
+            StubType.Reset();
+
+            var vm = this.bootstrapper.GetInstance(typeof(StubType));
+            this.bootstrapper.Dispose();
+            Assert.AreEqual(0, StubType.DisposeCount);
+
         }
     }
 }

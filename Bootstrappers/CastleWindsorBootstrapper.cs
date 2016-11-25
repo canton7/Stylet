@@ -1,5 +1,6 @@
 ﻿using Castle.Facilities.TypedFactory;
 using Castle.MicroKernel.Registration;
+using Castle.MicroKernel.Releasers;
 using Castle.Windsor;
 using Stylet;
 using System;
@@ -36,6 +37,15 @@ namespace Bootstrappers
                 ViewFactory = this.GetInstance,
                 ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
             };
+
+            // Stylet does its own disposal of ViewModels: Castle Windsor shouldn't be doing the same
+            // Castle Windsor seems to be ver opinionated on this point, insisting that the container
+            // should be responsible for disposing all components. This is at odds with Stylet's approach
+            // (and indeed common sense).
+#pragma warning disable CS0618 // Type or member is obsolete
+            container.Kernel.ReleasePolicy = new NoTrackingReleasePolicy();
+#pragma warning restore CS0618 // Type or member is obsolete
+
             container.Register(
                 Component.For<IViewManager>().Instance(new ViewManager(viewManagerConfig)),
                 Component.For<IWindowManagerConfig>().Instance(this),

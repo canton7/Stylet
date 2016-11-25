@@ -72,10 +72,10 @@ namespace Stylet
                 {
                     // Temporary, until we remove 'State'
 #pragma warning disable CS0618 // Type or member is obsolete
-                    this.NotifyOfPropertyChange(() => this.State);
+                    this.NotifyOfPropertyChange("State");
 #pragma warning restore CS0618 // Type or member is obsolete
                 }
-                this.NotifyOfPropertyChange(() => this.IsActive);
+                this.NotifyOfPropertyChange("IsActive");
             }
         }
 
@@ -182,6 +182,10 @@ namespace Stylet
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IScreenState.Deactivate()
         {
+            // Avoid going from Closed -> Deactivated without going via Activated
+            if (this.ScreenState == ScreenState.Closed)
+                ((IScreenState)this).Activate();
+
             this.SetState(ScreenState.Deactivated, (oldState, newState) =>
             {
                 this.OnDeactivate();

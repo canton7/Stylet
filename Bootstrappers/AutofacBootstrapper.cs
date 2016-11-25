@@ -38,11 +38,11 @@ namespace Bootstrappers
             };
             builder.RegisterInstance<IViewManager>(new ViewManager(viewManagerConfig));
 
-            builder.RegisterInstance<IWindowManagerConfig>(this);
+            builder.RegisterInstance<IWindowManagerConfig>(this).ExternallyOwned();
             builder.RegisterType<WindowManager>().As<IWindowManager>().SingleInstance();
             builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
-            builder.RegisterType<MessageBoxViewModel>().As<IMessageBoxViewModel>(); // Not singleton!
-            builder.RegisterAssemblyTypes(this.GetType().Assembly);
+            builder.RegisterType<MessageBoxViewModel>().As<IMessageBoxViewModel>().ExternallyOwned(); // Not singleton!
+            builder.RegisterAssemblyTypes(this.GetType().Assembly).ExternallyOwned();
         }
 
         /// <summary>
