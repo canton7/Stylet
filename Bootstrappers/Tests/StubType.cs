@@ -6,7 +6,18 @@ using System.Threading.Tasks;
 
 namespace Bootstrappers.Tests
 {
-    public class StubType
+    public class StubType : IDisposable
     {
+        public static int DisposeCount { get; private set; }
+
+        public static void Reset()
+        {
+            DisposeCount = 0;
+        }
+
+        public void Dispose()
+        {
+            DisposeCount++;
+        }
     }
 }

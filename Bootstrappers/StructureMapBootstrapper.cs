@@ -39,7 +39,8 @@ namespace Bootstrappers
             };
             config.For<IViewManager>().Add(new ViewManager(viewManagerConfig));
 
-            config.For<IWindowManagerConfig>().Add(this);
+            // Trick it into not taking ownership of (and disposing) the instance
+            config.For<IWindowManagerConfig>().Add(c => this).LifecycleIs<UniquePerRequestLifecycle>();
             config.For<IWindowManager>().Add<WindowManager>().LifecycleIs<SingletonLifecycle>();
             config.For<IEventAggregator>().Add<EventAggregator>().LifecycleIs<SingletonLifecycle>();
             config.For<IMessageBoxViewModel>().Add<MessageBoxViewModel>().LifecycleIs<UniquePerRequestLifecycle>();
