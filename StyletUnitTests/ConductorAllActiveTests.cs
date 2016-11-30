@@ -273,5 +273,25 @@ namespace StyletUnitTests
 
             screen.Verify(x => x.Close());
         }
+
+        [Test]
+        public void ClearingItemsClosesAndDisposes()
+        {
+            var screen1 = new Mock<IMyScreen>();
+            var screen2 = new Mock<IMyScreen>();
+
+            this.conductor.ActivateItem(screen1.Object);
+            this.conductor.ActivateItem(screen2.Object);
+
+            this.conductor.Items.Clear();
+
+            screen1.Verify(x => x.Deactivate());
+            screen1.Verify(x => x.Close());
+            screen1.Verify(x => x.Dispose());
+
+            screen2.Verify(x => x.Deactivate());
+            screen2.Verify(x => x.Close());
+            screen2.Verify(x => x.Dispose());
+        }
     }
 }

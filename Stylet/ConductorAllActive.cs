@@ -20,7 +20,7 @@ namespace Stylet
             {
                 private readonly BindableCollection<T> items = new BindableCollection<T>();
 
-                private T[] itemsBeforeReset;
+                private List<T> itemsBeforeReset;
 
                 /// <summary>
                 /// Gets all items associated with this conductor
@@ -40,7 +40,7 @@ namespace Stylet
                         switch (e.Action)
                         {
                             case NotifyCollectionChangedAction.Reset:
-                                this.itemsBeforeReset = this.items.ToArray();
+                                this.itemsBeforeReset = this.items.ToList();
                                 break;
                         }
                     };

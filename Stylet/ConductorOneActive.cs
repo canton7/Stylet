@@ -16,6 +16,8 @@ namespace Stylet
             {
                 private readonly BindableCollection<T> items = new BindableCollection<T>();
 
+                private List<T> itemsBeforeReset;
+
                 /// <summary>
                 /// Gets the tems owned by this Conductor, one of which is active
                 /// </summary>
@@ -29,6 +31,16 @@ namespace Stylet
                 /// </summary>
                 public OneActive()
                 {
+                    this.items.CollectionChanging += (o, e) =>
+                    {
+                        switch (e.Action)
+                        {
+                            case NotifyCollectionChangedAction.Reset:
+                                this.itemsBeforeReset = this.items.ToList();
+                                break;
+                        }
+                    };
+
                     this.items.CollectionChanged += (o, e) =>
                     {
                         switch (e.Action)
@@ -49,8 +61,10 @@ namespace Stylet
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
-                                this.SetParentAndSetActive(this.items, false);
+                                this.CloseAndCleanUp(this.itemsBeforeReset.Except(this.items), this.DisposeChildren);
+                                this.SetParentAndSetActive(this.items.Except(this.itemsBeforeReset), false);
                                 this.ActiveItemMayHaveBeenRemovedFromItems();
+                                this.itemsBeforeReset = null;
                                 break;
                         }
                     };
@@ -64,7 +78,9 @@ namespace Stylet
                     if (this.items.Contains(this.ActiveItem))
                         return;
 
-                    this.ChangeActiveItem(this.items.FirstOrDefault(), true);
+                    // Only close the previous item if it's in this.items - if it isn't, we'll
+                    // have already have closed it as part of reacting to changes in this.items.
+                    this.ChangeActiveItem(this.items.FirstOrDefault(), this.items.Contains(this.ActiveItem));
                 }
 
                 /// <summary>
