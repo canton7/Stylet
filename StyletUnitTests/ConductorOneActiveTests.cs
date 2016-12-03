@@ -142,6 +142,8 @@ namespace StyletUnitTests
         public void ClosingClosesAllItems()
         {
             var screen = new Mock<IMyScreen>();
+            screen.Setup(x => x.Close()).Callback(() => System.Diagnostics.Debug.WriteLine("FOO"));
+
             ((IScreenState)this.conductor).Activate();
             this.conductor.ActivateItem(screen.Object);
             ((IScreenState)this.conductor).Close();
@@ -348,5 +350,25 @@ namespace StyletUnitTests
             screen.Verify(x => x.Dispose());
             Assert.Null(this.conductor.ActiveItem);
         }
+
+        [Test]
+        public void ClearingItemsClosesAndDisposes()
+        {
+            var screen1 = new Mock<IMyScreen>();
+            var screen2 = new Mock<IMyScreen>();
+
+            this.conductor.ActivateItem(screen1.Object);
+            this.conductor.ActivateItem(screen2.Object);
+
+            this.conductor.Items.Clear();
+
+            screen1.Verify(x => x.Deactivate());
+            screen1.Verify(x => x.Close());
+            screen1.Verify(x => x.Dispose());
+
+            screen2.Verify(x => x.Close());
+            screen2.Verify(x => x.Dispose());
+        }
     }
 }
+

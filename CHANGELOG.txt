@@ -1,6 +1,12 @@
 Stylet Changelog
 ================
 
+v1.1.19
+-------
+
+ - Fix a bug where `Conductor<T>.Collections.OneActive` wouldn't correctly close its children after a call to `this.Items.Clear()`,
+   or after the conductor was closed.
+
 v1.1.18
 -------
 
