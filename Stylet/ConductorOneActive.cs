@@ -50,20 +50,26 @@ namespace Stylet
                                 break;
 
                             case NotifyCollectionChangedAction.Remove:
-                                this.CloseAndCleanUp(e.OldItems, this.DisposeChildren);
+                                // ActiveItemMayHaveBeenRemovedFromItems may deactivate the ActiveItem; CloseAndCleanUp may close it.
+                                // Call the methods in this order to avoid closing then deactivating (which causes reactivation)
                                 this.ActiveItemMayHaveBeenRemovedFromItems();
+                                this.CloseAndCleanUp(e.OldItems, this.DisposeChildren);
                                 break;
 
                             case NotifyCollectionChangedAction.Replace:
-                                this.SetParentAndSetActive(e.NewItems, false);
-                                this.CloseAndCleanUp(e.OldItems, this.DisposeChildren);
+                                // ActiveItemMayHaveBeenRemovedFromItems may deactivate the ActiveItem; CloseAndCleanUp may close it.
+                                // Call the methods in this order to avoid closing then deactivating (which causes reactivation)
                                 this.ActiveItemMayHaveBeenRemovedFromItems();
+                                this.CloseAndCleanUp(e.OldItems, this.DisposeChildren);
+                                this.SetParentAndSetActive(e.NewItems, false);
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
+                                // ActiveItemMayHaveBeenRemovedFromItems may deactivate the ActiveItem; CloseAndCleanUp may close it.
+                                // Call the methods in this order to avoid closing then deactivating (which causes reactivation)
+                                this.ActiveItemMayHaveBeenRemovedFromItems();
                                 this.CloseAndCleanUp(this.itemsBeforeReset.Except(this.items), this.DisposeChildren);
                                 this.SetParentAndSetActive(this.items.Except(this.itemsBeforeReset), false);
-                                this.ActiveItemMayHaveBeenRemovedFromItems();
                                 this.itemsBeforeReset = null;
                                 break;
                         }
