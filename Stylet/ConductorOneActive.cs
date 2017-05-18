@@ -147,12 +147,11 @@ namespace Stylet
                     if (item.Equals(this.ActiveItem))
                     {
                         var nextItem = this.DetermineNextItemToActivate(item);
-                        this.ChangeActiveItem(nextItem, true);
+                        // Counter-intuitively, we *don't* want to close the old ActiveItem. Removing it from 'this.items' below
+                        // will do that, and we don't want to do it twice.
+                        this.ChangeActiveItem(nextItem, false);
                     }
-                    else
-                    {
-                        this.CloseAndCleanUp(item, this.DisposeChildren);
-                    }
+                    // Likewise if it isn't the ActiveItem, don't call CloseAndCleanup, as removing from 'this.items' will do that
 
                     this.items.Remove(item);
                 }

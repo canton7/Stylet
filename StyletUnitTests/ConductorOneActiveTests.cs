@@ -431,6 +431,32 @@ namespace StyletUnitTests
 
             Assert.AreEqual(2, sequence);
         }
+
+        [Test]
+        public void ClosingTheActiveItemDoesNotDisposeItTwice()
+        {
+            var screen = new Mock<IMyScreen>();
+            screen.Setup(x => x.CanCloseAsync()).ReturnsAsync(true);
+
+            this.conductor.ActivateItem(screen.Object);
+            this.conductor.CloseItem(screen.Object);
+
+            screen.Verify(x => x.Dispose(), Times.Once());
+        }
+
+        [Test]
+        public void ClosingTheNonActiveItemDoesNotDisposeItTwice()
+        {
+            var screen1 = new Mock<IMyScreen>();
+            var screen2 = new Mock<IMyScreen>();
+            screen1.Setup(x => x.CanCloseAsync()).ReturnsAsync(true);
+
+            this.conductor.ActivateItem(screen1.Object);
+            this.conductor.ActivateItem(screen2.Object);
+            this.conductor.CloseItem(screen1.Object);
+
+            screen1.Verify(x => x.Dispose(), Times.Once());
+        }
     }
 }
 
