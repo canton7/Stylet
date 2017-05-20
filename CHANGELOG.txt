@@ -1,6 +1,12 @@
 Stylet Changelog
 ================
 
+v1.1.20
+-------
+
+ - Fix a bug where removing a `Conductor<T>.Collections.OneActive` conductor's ActiveItem would close it, then activate and deactivate it (#27)
+ - Fix a bug where if a `Conductor<T>.Collections.OneActive` conductor's item was closed, it could be disposed twice (#28)
+
 v1.1.19
 -------
 
