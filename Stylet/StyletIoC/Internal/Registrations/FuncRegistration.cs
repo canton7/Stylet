@@ -8,7 +8,7 @@ namespace StyletIoC.Internal.Registrations
     /// Knows how to create a Func{T}, using a given IRegistration
     /// </summary>
     // We're only created when we're needed, so no point in trying to be lazy
-    internal class FuncNoKeyRegistration : IRegistration
+    internal class FuncRegistration : IRegistration
     {
         private readonly RuntimeTypeHandle funcType;
         private readonly Func<IRegistrationContext, object> generator;
@@ -19,7 +19,7 @@ namespace StyletIoC.Internal.Registrations
             get { return this.funcType; }
         }
 
-        public FuncNoKeyRegistration(IRegistration delegateRegistration)
+        public FuncRegistration(IRegistration delegateRegistration)
         {
             this.delegateRegistration = delegateRegistration;
             this.funcType = Expression.GetFuncType(Type.GetTypeFromHandle(delegateRegistration.TypeHandle)).TypeHandle;

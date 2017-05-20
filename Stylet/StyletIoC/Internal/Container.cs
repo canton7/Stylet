@@ -267,7 +267,7 @@ namespace StyletIoC.Internal
         }
 
         /// <summary>
-        /// If the given type is a Func{T} or a Func{string, T}, get a registration which can create an instance of it
+        /// If the given type is a Func{T}, get a registration which can create an instance of it
         /// </summary>
         private bool TryCreateFuncFactory(Type type, string key, out IRegistrationCollection registrations)
         {
@@ -284,7 +284,7 @@ namespace StyletIoC.Internal
                 var typeKey = new TypeKey(type.TypeHandle, key);
                 foreach (var registration in this.GetRegistrations(new TypeKey(genericArguments[0].TypeHandle, key), true, genericArguments[0]).GetAll())
                 {
-                    registrations = this.AddRegistration(typeKey, new FuncNoKeyRegistration(registration));
+                    registrations = this.AddRegistration(typeKey, new FuncRegistration(registration));
                 }
             }
             else

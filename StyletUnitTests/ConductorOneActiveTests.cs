@@ -369,6 +369,94 @@ namespace StyletUnitTests
             screen2.Verify(x => x.Close());
             screen2.Verify(x => x.Dispose());
         }
+
+        [Test]
+        public void ClosingDoesNotCloseThenDeactivateActiveItem()
+        {
+            // If it calls Close then Deactivate, this causes OnInitialActivate to be called again (in order to
+            // activate the screen before deactivating it again).
+
+            var screen = new Mock<IMyScreen>();
+
+            this.conductor.ActivateItem(screen.Object);
+            screen.ResetCalls();
+
+            int sequence = 0;
+            screen.Setup(x => x.Deactivate()).Callback(() => Assert.AreEqual(0, sequence++));
+            screen.Setup(x => x.Close()).Callback(() => Assert.AreEqual(1, sequence++));
+
+            ((IScreenState)this.conductor).Close();
+
+            Assert.AreEqual(2, sequence);
+        }
+
+        [Test]
+        public void ReplacingActiveItemDoesNotCloseThenDeactivate()
+        {
+            // If it calls Close then Deactivate, this causes OnInitialActivate to be called again (in order to
+            // activate the screen before deactivating it again).
+
+            var screen1 = new Mock<IMyScreen>();
+            var screen2 = new Mock<IMyScreen>();
+
+            this.conductor.ActivateItem(screen1.Object);
+            screen1.ResetCalls();
+
+            int sequence = 0;
+            screen1.Setup(x => x.Deactivate()).Callback(() => Assert.AreEqual(0, sequence++));
+            screen1.Setup(x => x.Close()).Callback(() => Assert.AreEqual(1, sequence++));
+
+            this.conductor.Items[0] = screen2.Object;
+
+            Assert.AreEqual(2, sequence);
+        }
+
+        [Test]
+        public void RemovingActiveItemDoesNotCloseThenDeactivate()
+        {
+            // If it calls Close then Deactivate, this causes OnInitialActivate to be called again (in order to
+            // activate the screen before deactivating it again).
+
+            var screen1 = new Mock<IMyScreen>();
+            var screen2 = new Mock<IMyScreen>();
+
+            this.conductor.ActivateItem(screen1.Object);
+            screen1.ResetCalls();
+
+            int sequence = 0;
+            screen1.Setup(x => x.Deactivate()).Callback(() => Assert.AreEqual(0, sequence++));
+            screen1.Setup(x => x.Close()).Callback(() => Assert.AreEqual(1, sequence++));
+
+            this.conductor.Items.RemoveAt(0);
+
+            Assert.AreEqual(2, sequence);
+        }
+
+        [Test]
+        public void ClosingTheActiveItemDoesNotDisposeItTwice()
+        {
+            var screen = new Mock<IMyScreen>();
+            screen.Setup(x => x.CanCloseAsync()).ReturnsAsync(true);
+
+            this.conductor.ActivateItem(screen.Object);
+            this.conductor.CloseItem(screen.Object);
+
+            screen.Verify(x => x.Dispose(), Times.Once());
+        }
+
+        [Test]
+        public void ClosingTheNonActiveItemDoesNotDisposeItTwice()
+        {
+            var screen1 = new Mock<IMyScreen>();
+            var screen2 = new Mock<IMyScreen>();
+            screen1.Setup(x => x.CanCloseAsync()).ReturnsAsync(true);
+
+            this.conductor.ActivateItem(screen1.Object);
+            this.conductor.ActivateItem(screen2.Object);
+            this.conductor.CloseItem(screen1.Object);
+
+            screen1.Verify(x => x.Dispose(), Times.Once());
+        }
     }
 }
 
