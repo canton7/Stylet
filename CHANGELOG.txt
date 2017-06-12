@@ -1,6 +1,13 @@
 Stylet Changelog
 ================
 
+v1.1.21
+-------
+
+ - Allow Window's Top and Left properties to be set via a binding (#31)
+ - Stylet.Start saves files as UTF-16 with BOM rather than UTF-8 without BOM (#30)
+ - Stylet.Start no longer attempts to uninstall itself, as NuGet has apparently broken this (#32)
+
 v1.1.20
 -------
 
