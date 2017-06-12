@@ -188,8 +188,11 @@ namespace Stylet
 
             // If and only if they haven't tried to position the window themselves...
             // Has to be done after we're attempted to set the owner
-            if (window.WindowStartupLocation == WindowStartupLocation.Manual && Double.IsNaN(window.Top) && Double.IsNaN(window.Left))
+            if (window.WindowStartupLocation == WindowStartupLocation.Manual && Double.IsNaN(window.Top) && Double.IsNaN(window.Left) &&
+                BindingOperations.GetBinding(window, Window.TopProperty) == null && BindingOperations.GetBinding(window, Window.LeftProperty) == null)
+            {
                 window.WindowStartupLocation = window.Owner == null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner;
+            }
 
             // This gets itself retained by the window, by registering events
             // ReSharper disable once ObjectCreationAsStatement

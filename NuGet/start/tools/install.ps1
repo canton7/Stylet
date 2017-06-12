@@ -6,6 +6,8 @@ param($installPath, $toolsPath, $package, $project)
 $rootNamespace = $project.Properties.Item("RootNamespace").Value
 $rootPath = $project.Properties.Item("LocalPath").Value
 
+# VS writes its files as UTF-16 with a BOM. We should do the same.
+$encoding = [System.Text.Encoding]::Unicode
 
 # Modify App.xaml
 # This is a real ballache: the previous Stylet.Start package (which uses NuGet's 'content' approach)
@@ -32,7 +34,7 @@ if ($existingAppXaml -eq $null)
     </Application.Resources>
 </Application>"
 
-    [System.IO.File]::WriteAllText($appXamlPath, $appXamlContent)
+    [System.IO.File]::WriteAllText($appXamlPath, $appXamlContent, $encoding)
     $appXaml = $project.ProjectItems.AddFromFile($appXamlPath)
     $appXaml.Properties.Item("BuildAction").Value = 4 # ApplicationDefinition
 }
@@ -99,7 +101,7 @@ else
         $appXaml = $appXaml.Replace(" xmlns=", "`r`n             xmlns=")
         $appXaml = $appXaml.Replace(" xmlns:", "`r`n             xmlns:")
 
-        [System.IO.File]::WriteAllText($appXamlPath, $appXaml)
+        [System.IO.File]::WriteAllText($appXamlPath, $appXaml, $encoding)
     }
 }
 
@@ -135,7 +137,7 @@ namespace ${rootNamespace}
 }
 "
     $bootstrapperPath = [System.IO.Path]::Combine($rootPath, "Bootstrapper.cs")
-    [System.IO.File]::WriteAllText($bootstrapperPath, $bootstrapperContent)
+    [System.IO.File]::WriteAllText($bootstrapperPath, $bootstrapperContent, $encoding)
     $null = $project.ProjectItems.AddFromFile($bootstrapperPath)
 }
 
@@ -275,8 +277,8 @@ else
     $shellViewPath = [System.IO.Path]::Combine($rootPath, "Pages", "ShellView.xaml")
     $shellViewCsPath = $shellViewPath + ".cs"
 
-    [System.IO.File]::WriteAllText($shellViewPath, $shellViewContent)
-    [System.IO.File]::WriteAllText($shellViewCsPath, $shellViewCsContent)
+    [System.IO.File]::WriteAllText($shellViewPath, $shellViewContent, $encoding)
+    [System.IO.File]::WriteAllText($shellViewCsPath, $shellViewCsContent, $encoding)
 
     $shellView = $pages.ProjectItems.AddFromFile($shellViewPath)
     # This should have been added automagically, but just in case...
@@ -305,8 +307,10 @@ namespace ${rootNamespace}.Pages
 "
 
     $shellViewModelPath = [System.IO.Path]::Combine($rootPath, "Pages", "ShellViewModel.cs")
-    [System.IO.File]::WriteAllText($shellViewModelPath, $shellViewModelContent)
+    [System.IO.File]::WriteAllText($shellViewModelPath, $shellViewModelContent, $encoding)
     $null = $pages.ProjectItems.AddFromFile($shellViewModelPath)
 }
 
-Uninstall-Package Stylet.Start
+Write-Host !!!
+Write-Host !!! Now uninstall Stylet.Start
+Write-Host !!!
