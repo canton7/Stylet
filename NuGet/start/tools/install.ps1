@@ -311,4 +311,6 @@ namespace ${rootNamespace}.Pages
     $null = $pages.ProjectItems.AddFromFile($shellViewModelPath)
 }
 
-Uninstall-Package Stylet.Start
+Write-Host !!!
+Write-Host !!! Now uninstall Stylet.Start
+Write-Host !!!
