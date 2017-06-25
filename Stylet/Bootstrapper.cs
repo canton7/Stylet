@@ -62,6 +62,8 @@ namespace Stylet
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
             builder.Bind<IEventAggregator>().To<EventAggregator>().InSingletonScope().AsWeakBinding();
             builder.Bind<IMessageBoxViewModel>().To<MessageBoxViewModel>().AsWeakBinding();
+            // Stylet's assembly isn't added to the container, so add this explicitly
+            builder.Bind<MessageBoxView>().ToSelf();
 
             builder.Autobind();
         }
