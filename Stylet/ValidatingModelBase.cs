@@ -302,7 +302,7 @@ namespace Stylet
 
             // Save ourselves a little bit of work every time HasErrors is fired as the result of 
             // the validation results changing.
-            if (this.Validator != null && this.AutoValidate && propertyName != "HasErrors")
+            if (this.Validator != null && this.AutoValidate)
                 await this.ValidatePropertyAsync(propertyName);
         }
 
@@ -312,7 +312,7 @@ namespace Stylet
         /// <param name="changedProperties">List of property names which have changed validation state</param>
         protected virtual void OnValidationStateChanged(IEnumerable<string> changedProperties)
         {
-            this.NotifyOfPropertyChange("HasErrors");
+            base.OnPropertyChanged("HasErrors");
             foreach (var property in changedProperties)
             {
                 this.RaiseErrorsChanged(property);
