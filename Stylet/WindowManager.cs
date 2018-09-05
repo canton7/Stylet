@@ -126,10 +126,6 @@ namespace Stylet
         {
             var vm = this.messageBoxViewModelFactory();
             vm.Setup(messageBoxText, caption, buttons, icon, defaultResult, cancelResult, buttonLabels, flowDirection, textAlignment);
-            // Don't go through the IoC container to get the View. This means we can simplify it...
-            var messageBoxView = new MessageBoxView();
-            messageBoxView.InitializeComponent();
-            this.viewManager.BindViewToModel(messageBoxView, vm);
             this.ShowDialog(vm);
             return vm.ClickedButton;
         }

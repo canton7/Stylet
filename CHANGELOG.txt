@@ -1,6 +1,11 @@
 Stylet Changelog
 ================
 
+v1.1.22
+-------
+
+ - Allow custom MessageBox views to be used (#34)
+
 v1.1.21
 -------
 
