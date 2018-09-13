@@ -57,7 +57,7 @@ namespace StyletIoC
         void AddModules(params StyletIoCModule[] modules);
 
         /// <summary>
-        /// Once all bindings have been set, build an IContainer from which instances can be fetches
+        /// Once all bindings have been set, build an IContainer from which instances can be fetched
         /// </summary>
         /// <returns>An IContainer, which should be used from now on</returns>
         IContainer BuildContainer();
@@ -157,7 +157,7 @@ namespace StyletIoC
         }
 
         /// <summary>
-        /// Once all bindings have been set, build an IContainer from which instances can be fetches
+        /// Once all bindings have been set, build an IContainer from which instances can be fetched
         /// </summary>
         /// <returns>An IContainer, which should be used from now on</returns>
         public IContainer BuildContainer()
