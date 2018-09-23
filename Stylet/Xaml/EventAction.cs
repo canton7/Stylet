@@ -18,6 +18,7 @@ namespace Stylet.Xaml
             typeof(EventAction).GetMethod("InvokeEventArgsCommand", BindingFlags.NonPublic | BindingFlags.Instance),
             typeof(EventAction).GetMethod("InvokeDependencyCommand", BindingFlags.NonPublic | BindingFlags.Instance),
             typeof(EventAction).GetMethod("InvokeExecutedRoutedEventHandler", BindingFlags.NonPublic |BindingFlags.Instance),
+            typeof(EventAction).GetMethod("InvokeCanExecuteRoutedEventHandler", BindingFlags.NonPublic |BindingFlags.Instance),
         };
 
         /// <summary>
