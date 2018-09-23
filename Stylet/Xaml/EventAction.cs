@@ -5,6 +5,8 @@ using System.Windows;
 
 namespace Stylet.Xaml
 {
+    using System.Windows.Input;
+
     /// <summary>
     /// Created by ActionExtension, this can return a delegate suitable adding binding to an event, and can call a method on the View.ActionTarget
     /// </summary>
@@ -15,6 +17,7 @@ namespace Stylet.Xaml
         {
             typeof(EventAction).GetMethod("InvokeEventArgsCommand", BindingFlags.NonPublic | BindingFlags.Instance),
             typeof(EventAction).GetMethod("InvokeDependencyCommand", BindingFlags.NonPublic | BindingFlags.Instance),
+            typeof(EventAction).GetMethod("InvokeExecutedRoutedEventHandler", BindingFlags.NonPublic |BindingFlags.Instance),
         };
 
         /// <summary>
@@ -86,6 +89,16 @@ namespace Stylet.Xaml
             }
 
             return del;
+        }
+
+        private void InvokeCanExecuteRoutedEventHandler(object sender, CanExecuteRoutedEventArgs e)
+        {
+            this.InvokeCommand(sender, e);
+        }
+
+        private void InvokeExecutedRoutedEventHandler(object sender, ExecutedRoutedEventArgs e)
+        {
+            this.InvokeCommand(sender, e);
         }
 
         private void InvokeDependencyCommand(object sender, DependencyPropertyChangedEventArgs e)
