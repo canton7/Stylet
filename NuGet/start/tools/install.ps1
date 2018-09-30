@@ -1,13 +1,13 @@
 param($installPath, $toolsPath, $package, $project)
 
 # Testing: call with Invoke-Expression "path\to\install.ps1"
-# $project = Get-Project
+$project = Get-Project
 
 $rootNamespace = $project.Properties.Item("RootNamespace").Value
 $rootPath = $project.Properties.Item("LocalPath").Value
 
-# VS writes its files as UTF-16 with a BOM. We should do the same.
-$encoding = [System.Text.Encoding]::Unicode
+# VS writes its files as UTF-8 with a BOM. We should do the same.
+$encoding = New-Object System.Text.UTF8Encoding($true);
 
 # Modify App.xaml
 # This is a real ballache: the previous Stylet.Start package (which uses NuGet's 'content' approach)
