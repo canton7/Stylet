@@ -62,10 +62,11 @@ namespace Bootstrappers
 
         public override void Dispose()
         {
-            base.Dispose();
             ScreenExtensions.TryDispose(this._rootViewModel);
             if (this.container != null)
                 this.container.Dispose();
+
+            base.Dispose();
         }
     }
 }
