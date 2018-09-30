@@ -89,7 +89,17 @@ namespace Stylet
         /// <param name="viewModel">ViewModel to show the View for</param>
         public void ShowWindow(object viewModel)
         {
-            this.CreateWindow(viewModel, false).Show();
+            this.ShowWindow(viewModel, null);
+        }
+
+        /// <summary>
+        /// Given a ViewModel, show its corresponding View as a window, and set its owner
+        /// </summary>
+        /// <param name="viewModel">ViewModel to show the View for</param>
+        /// <param name="ownerViewModel">The ViewModel for the View which should own this window</param>
+        public void ShowWindow(object viewModel, IViewAware ownerViewModel)
+        {
+            this.CreateWindow(viewModel, false, ownerViewModel).Show();
         }
 
         /// <summary>
@@ -99,7 +109,18 @@ namespace Stylet
         /// <returns>DialogResult of the View</returns>
         public bool? ShowDialog(object viewModel)
         {
-            return this.CreateWindow(viewModel, true).ShowDialog();
+            return this.ShowDialog(viewModel, null);
+        }
+
+        /// <summary>
+        /// Given a ViewModel, show its corresponding View as a Dialog, and set its owner
+        /// </summary>
+        /// <param name="viewModel">ViewModel to show the View for</param>
+        /// <param name="ownerViewModel">The ViewModel for the View which should own this dialog</param>
+        /// <returns>DialogResult of the View</returns>
+        public bool? ShowDialog(object viewModel, IViewAware ownerViewModel)
+        {
+            return this.CreateWindow(viewModel, true, ownerViewModel).ShowDialog();
         }
 
         /// <summary>
@@ -135,8 +156,9 @@ namespace Stylet
         /// </summary>
         /// <param name="viewModel">ViewModel to create the window for</param>
         /// <param name="isDialog">True if the window will be used as a dialog</param>
+        /// <param name="ownerViewModel">Optionally the ViewModel which owns the view which should own this window</param>
         /// <returns>Window which was created and set up</returns>
-        protected virtual Window CreateWindow(object viewModel, bool isDialog)
+        protected virtual Window CreateWindow(object viewModel, bool isDialog, IViewAware ownerViewModel)
         {
             var view = this.viewManager.CreateAndBindViewForModelIfNecessary(viewModel);
             var window = view as Window;
@@ -157,7 +179,11 @@ namespace Stylet
                 window.SetBinding(Window.TitleProperty, binding);
             }
 
-            if (isDialog)
+            if (ownerViewModel?.View is Window explicitOwner)
+            {
+                window.Owner = explicitOwner;
+            }
+            else if (isDialog)
             {
                 var owner = this.InferOwnerOf(window);
                 if (owner != null)
@@ -174,7 +200,10 @@ namespace Stylet
                         logger.Error(e, "This can occur when the application is closing down");
                     }
                 }
+            }
 
+            if (isDialog)
+            {
                 logger.Info("Displaying ViewModel {0} with View {1} as a Dialog", viewModel, window);
             }
             else
