@@ -40,16 +40,6 @@ namespace StyletUnitTests
             }
         }
 
-        private string newVal;
-        private object sender;
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.newVal = null;
-            this.sender = null;
-        }
-
         [Test]
         public void StrongBindingBinds()
         {
@@ -76,8 +66,10 @@ namespace StyletUnitTests
         public void StrongBindingListensToEmptyString()
         {
             string newVal = null;
-            var c1 = new NotifyingClass();
-            c1.Bar = "bar";
+            var c1 = new NotifyingClass
+            {
+                Bar = "bar"
+            };
             c1.Bind(x => x.Bar, (o, e) => newVal = e.NewValue);
             c1.NotifyAll();
 
@@ -119,6 +111,21 @@ namespace StyletUnitTests
             c1.Bar = "bar";
 
             Assert.AreEqual(null, newVal);
+        }
+
+        [Test]
+        public void BindAndInvokeInvokes()
+        {
+            var c1 = new NotifyingClass()
+            {
+                Foo = "FooVal",
+            };
+            PropertyChangedExtendedEventArgs<string> ea = null;
+            c1.BindAndInvoke(s => s.Foo, (o, e) => ea = e);
+
+            Assert.NotNull(ea);
+            Assert.AreEqual("Foo", ea.PropertyName);
+            Assert.AreEqual("FooVal", ea.NewValue);
         }
     }
 }
