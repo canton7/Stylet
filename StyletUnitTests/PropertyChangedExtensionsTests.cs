@@ -38,11 +38,6 @@ namespace StyletUnitTests
                 // Must make sure the compiler doesn't generate an inner class for this, otherwise we're not testing the right thing
                 return notifying.Bind(x => x.Foo, (o, e) => this.LastFoo = e.NewValue);
             }
-
-            public IEventBinding BindWeak(NotifyingClass notifying)
-            {
-                return notifying.BindWeak(x => x.Foo, (o, e) => this.LastFoo = e.NewValue);
-            }
         }
 
         private string newVal;
@@ -124,98 +119,6 @@ namespace StyletUnitTests
             c1.Bar = "bar";
 
             Assert.AreEqual(null, newVal);
-        }
-
-        [Test]
-        public void WeakBindingBinds()
-        {
-            var c1 = new NotifyingClass();
-            c1.BindWeak(x => x.Foo, (o, e) => this.newVal = e.NewValue);
-            c1.Foo = "bar";
-
-            Assert.AreEqual("bar", this.newVal);
-        }
-
-        [Test]
-        public void WeakBindingIgnoresOtherProperties()
-        {
-            var c1 = new NotifyingClass();
-            c1.BindWeak(x => x.Bar, (o, e) => this.newVal = e.NewValue);
-            c1.Foo = "bar";
-
-            Assert.IsNull(this.newVal);
-        }
-
-        [Test]
-        public void WeakBindingListensToEmptyString()
-        {
-            var c1 = new NotifyingClass();
-            c1.Bar = "bar";
-            c1.BindWeak(x => x.Bar, (o, e) => this.newVal = e.NewValue);
-            c1.NotifyAll();
-
-            Assert.AreEqual("bar", this.newVal);
-        }
-
-        [Test]
-        public void WeakBindingDoesNotRetainBindingClass()
-        {
-            var binding = new BindingClass();
-
-            // Means of determining whether the class has been disposed
-            var weakBinding = new WeakReference<BindingClass>(binding);
-
-            var notifying = new NotifyingClass();
-            binding.BindWeak(notifying);
-
-            
-
-            binding = null;
-            GC.Collect();
-            Assert.IsFalse(weakBinding.TryGetTarget(out binding));
-        }
-
-        [Test]
-        public void WeakBindingDoesNotRetainNotifier()
-        {
-            var binding = new BindingClass();
-            var notifying = new NotifyingClass();
-            // Means of determining whether the class has been disposed
-            var weakNotifying = new WeakReference<NotifyingClass>(notifying);
-            // Retain binder, as that shouldn't affect anything
-            var binder = binding.BindWeak(notifying);
-
-            notifying = null;
-            GC.Collect();
-            Assert.IsFalse(weakNotifying.TryGetTarget(out notifying));
-        }
-
-        [Test]
-        public void WeakBindingUnbinds()
-        {
-            var c1 = new NotifyingClass();
-            var binding = c1.BindWeak(x => x.Bar, (o, e) => this.newVal = e.NewValue);
-            binding.Unbind();
-            c1.Bar = "bar";
-
-            Assert.IsNull(this.newVal);
-        }
-        
-        [Test]
-        public void BindWeakPassesSender()
-        {
-            var c1 = new NotifyingClass();
-            c1.BindWeak(x => x.Foo, (o, e) => this.sender = o);
-            c1.Foo = "foo";
-            Assert.AreEqual(c1, this.sender);
-        }
-
-        [Test]
-        public void BindWeakThrowsIfTargetIsCompilerGenerated()
-        {
-            var c1 = new NotifyingClass();
-            string newVal = null;
-            Assert.Throws<InvalidOperationException>(() => c1.BindWeak(x => x.Foo, (o, e) => newVal = e.NewValue));
         }
     }
 }

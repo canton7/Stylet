@@ -155,7 +155,7 @@ namespace Stylet
         }
 
         /// <summary>
-        /// Weakly bind to PropertyChanged events for a particular property on a particular object
+        /// Obsolete: Weakly bind to PropertyChanged events for a particular property on a particular object
         /// </summary>
         /// <example>someObject.Bind(x => x.PropertyNameToBindTo, newValue => /* do something with the new value */)</example>
         /// <typeparam name="TSource">Type of object providing the PropertyChanged event</typeparam>
@@ -164,6 +164,7 @@ namespace Stylet
         /// <param name="targetSelector">MemberExpression selecting the property to observe for changes (e.g x => x.PropertyName)</param>
         /// <param name="handler">Handler called whenever that property changed</param>
         /// <returns>Something which can be used to undo the binding. You can discard it if you want</returns>
+        [Obsolete("Don't use this - use Bind instead and explicitly .Unbind it when appropriate.", error: true)]
         public static IEventBinding BindWeak<TSource, TProperty>(this TSource target, Expression<Func<TSource, TProperty>> targetSelector, EventHandler<PropertyChangedExtendedEventArgs<TProperty>> handler) where TSource : class, INotifyPropertyChanged
         {
             var attribute = handler.Target.GetType().GetCustomAttribute<CompilerGeneratedAttribute>();
