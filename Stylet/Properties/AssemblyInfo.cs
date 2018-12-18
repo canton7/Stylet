@@ -24,6 +24,7 @@ using System.Windows.Markup;
 [assembly: Guid("a557a739-6b61-44d2-a431-889bc11aac9e")]
 
 [assembly: XmlnsDefinition("https://github.com/canton7/Stylet", "Stylet.Xaml")]
+[assembly: XmlnsPrefix("https://github.com/canton7/Stylet", "s")]
 
 // Version information for an assembly consists of the following four values:
 //
