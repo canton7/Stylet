@@ -22,9 +22,9 @@ namespace StyletUnitTests
             public MyWindowManager(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory, IWindowManagerConfig config)
                 : base(viewManager, messageBoxViewModelFactory, config) { }
 
-            public new Window CreateWindow(object viewModel, bool isDialog)
+            public Window CreateWindow(object viewModel, bool isDialog)
             {
-                return base.CreateWindow(viewModel, isDialog);
+                return base.CreateWindow(viewModel, isDialog, null);
             }
         }
 
@@ -33,7 +33,7 @@ namespace StyletUnitTests
             public WindowManagerWithoutCreateWindow(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory, IWindowManagerConfig config)
                 : base(viewManager, messageBoxViewModelFactory, config) { }
 
-            protected override Window CreateWindow(object viewModel, bool isDialog)
+            protected override Window CreateWindow(object viewModel, bool isDialog, IViewAware ownerViewModel)
             {
                 throw new TestException(); // ABORT! ABORT!
             }

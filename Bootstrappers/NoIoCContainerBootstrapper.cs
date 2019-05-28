@@ -48,12 +48,18 @@ namespace Bootstrappers
 
         public override object GetInstance(Type type)
         {
-            base.Dispose();
             Func<object> factory;
             if (this.Container.TryGetValue(type, out factory))
                 return factory();
             else
                 return null;
+        }
+
+        public override void Dispose()
+        {
+            ScreenExtensions.TryDispose(this.RootViewModel);
+
+            base.Dispose();
         }
     }
 }

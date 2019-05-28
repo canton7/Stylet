@@ -59,8 +59,7 @@ namespace Stylet
 
             public void Unbind()
             {
-                INotifyPropertyChanged inpc;
-                if (this.inpc.TryGetTarget(out inpc))
+                if (this.inpc.TryGetTarget(out INotifyPropertyChanged inpc))
                     inpc.PropertyChanged -= this.handler;
             }
         }
@@ -87,8 +86,7 @@ namespace Stylet
 
             private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
             {
-                TSource source;
-                var got = this.source.TryGetTarget(out source);
+                var got = this.source.TryGetTarget(out TSource source);
                 // We should never hit this case. The PropertyChangedeventManager shouldn't call us if the source became null
                 Debug.Assert(got);
                 this.handler(source, new PropertyChangedExtendedEventArgs<TProperty>(this.propertyName, this.valueSelector(source)));
@@ -96,8 +94,7 @@ namespace Stylet
 
             public void Unbind()
             {
-                TSource source;
-                if (this.source.TryGetTarget(out source))
+                if (this.source.TryGetTarget(out TSource source))
                     PropertyChangedEventManager.RemoveHandler(source, this.PropertyChangedHandler, this.propertyName);
             }
         }
@@ -113,8 +110,7 @@ namespace Stylet
 
             public void Unbind()
             {
-                IEventBinding wrappedBinding;
-                if (this.wrappedBinding.TryGetTarget(out wrappedBinding))
+                if (this.wrappedBinding.TryGetTarget(out IEventBinding wrappedBinding))
                     wrappedBinding.Unbind();
             }
         }
@@ -131,31 +127,66 @@ namespace Stylet
         /// <returns>Something which can be used to undo the binding. You can discard it if you want</returns>
         public static IEventBinding Bind<TSource, TProperty>(this TSource target, Expression<Func<TSource, TProperty>> targetSelector, EventHandler<PropertyChangedExtendedEventArgs<TProperty>> handler) where TSource : class, INotifyPropertyChanged
         {
+            return BindImpl(target, targetSelector, handler, invoke: false);
+        }
+
+        /// <summary>
+        /// Strongly bind to PropertyChanged events for a particular property on a particular object,
+        /// and invoke the handler straight away
+        /// </summary>
+        /// <remarks>
+        /// This immediately calls <paramref name="handler"/> with the current value of the property.
+        /// </remarks>
+        /// <example>someObject.BindAndInvoke(x => x.PropertyNameToBindTo, newValue => /* do something with the new value */)</example>
+        /// <typeparam name="TSource">Type of object providing the PropertyChanged event</typeparam>
+        /// <typeparam name="TProperty">Type of property for which the event is raised</typeparam>
+        /// <param name="target">Object raising the PropertyChanged event you're interested in</param>
+        /// <param name="targetSelector">MemberExpression selecting the property to observe for changes (e.g x => x.PropertyName)</param>
+        /// <param name="handler">Handler called whenever that property changed</param>
+        /// <returns>Something which can be used to undo the binding. You can discard it if you want</returns>
+        public static IEventBinding BindAndInvoke<TSource, TProperty>(this TSource target, Expression<Func<TSource, TProperty>> targetSelector, EventHandler<PropertyChangedExtendedEventArgs<TProperty>> handler) where TSource : class, INotifyPropertyChanged
+        {
+            return BindImpl(target, targetSelector, handler, invoke: true);
+        }
+
+        private static IEventBinding BindImpl<TSource, TProperty>(TSource target, Expression<Func<TSource, TProperty>> targetSelector, EventHandler<PropertyChangedExtendedEventArgs<TProperty>> handler, bool invoke) where TSource : class, INotifyPropertyChanged
+        {
+            if (target == null)
+                throw new ArgumentNullException(nameof(target));
+            if (targetSelector == null)
+                throw new ArgumentNullException(nameof(targetSelector));
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+
             var propertyName = targetSelector.NameForProperty();
             var propertyAccess = targetSelector.Compile();
             // Make sure we don't capture target strongly, otherwise we'll retain it when we shouldn't
             // If it does get released, we're released from the delegate list
             var weakTarget = new WeakReference<TSource>(target);
 
-            PropertyChangedEventHandler ourHandler = (o, e) =>
+            void ourHandler(object o, PropertyChangedEventArgs e)
             {
                 if (e.PropertyName == propertyName || e.PropertyName == String.Empty)
                 {
-                    TSource strongTarget;
-                    if (weakTarget.TryGetTarget(out strongTarget))
+                    if (weakTarget.TryGetTarget(out TSource strongTarget))
                         handler(strongTarget, new PropertyChangedExtendedEventArgs<TProperty>(propertyName, propertyAccess(strongTarget)));
                 }
-            };
+            }
 
             target.PropertyChanged += ourHandler;
 
             var listener = new StrongPropertyChangedBinding(target, ourHandler);
 
+            if (invoke)
+            {
+                handler(target, new PropertyChangedExtendedEventArgs<TProperty>(propertyName, propertyAccess(target)));
+            }
+
             return listener;
         }
 
         /// <summary>
-        /// Weakly bind to PropertyChanged events for a particular property on a particular object
+        /// Obsolete: Weakly bind to PropertyChanged events for a particular property on a particular object
         /// </summary>
         /// <example>someObject.Bind(x => x.PropertyNameToBindTo, newValue => /* do something with the new value */)</example>
         /// <typeparam name="TSource">Type of object providing the PropertyChanged event</typeparam>
@@ -164,6 +195,7 @@ namespace Stylet
         /// <param name="targetSelector">MemberExpression selecting the property to observe for changes (e.g x => x.PropertyName)</param>
         /// <param name="handler">Handler called whenever that property changed</param>
         /// <returns>Something which can be used to undo the binding. You can discard it if you want</returns>
+        [Obsolete("Don't use this - use Bind instead and explicitly .Unbind it when appropriate.", error: true)]
         public static IEventBinding BindWeak<TSource, TProperty>(this TSource target, Expression<Func<TSource, TProperty>> targetSelector, EventHandler<PropertyChangedExtendedEventArgs<TProperty>> handler) where TSource : class, INotifyPropertyChanged
         {
             var attribute = handler.Target.GetType().GetCustomAttribute<CompilerGeneratedAttribute>();

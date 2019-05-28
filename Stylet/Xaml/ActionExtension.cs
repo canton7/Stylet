@@ -101,44 +101,56 @@ namespace Stylet.Xaml
                 throw new InvalidOperationException("Method has not been set");
 
             var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
-
-            // Seems this is the case when we're in a template. We'll get called again properly in a second.
-            // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
-            if (!(valueService.TargetObject is DependencyObject))
-                return this;
-
-            var targetObject = (DependencyObject)valueService.TargetObject;
-
             var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
-            var rootObject = rootObjectProvider == null ? null : rootObjectProvider.RootObject as DependencyObject;
+            var rootObject = rootObjectProvider?.RootObject as DependencyObject;
 
-            var propertyAsDependencyProperty = valueService.TargetProperty as DependencyProperty;
-            if (propertyAsDependencyProperty != null && propertyAsDependencyProperty.PropertyType == typeof(ICommand))
+            switch (valueService.TargetObject)
             {
-                // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
-                return new CommandAction(targetObject, rootObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
+                case DependencyObject targetObject:
+                    return this.HandleDependencyObject(valueService, targetObject, rootObject);
+                case CommandBinding commandBinding:
+                    return this.HandleCommandBinding(rootObject, ((EventInfo)valueService.TargetProperty).EventHandlerType);
+                default:
+                    // Seems this is the case when we're in a template. We'll get called again properly in a second.
+                    // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
+                    return this;
             }
+        }
 
-            var propertyAsEventInfo = valueService.TargetProperty as EventInfo;
-            if (propertyAsEventInfo != null)
+        private object HandleDependencyObject(IProvideValueTarget valueService, DependencyObject targetObject, DependencyObject rootObject)
+        {
+            switch (valueService.TargetProperty)
             {
-                var ec = new EventAction(targetObject, rootObject, propertyAsEventInfo.EventHandlerType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
-                return ec.GetDelegate();
-            }
-
-            // For attached events
-            var propertyAsMethodInfo = valueService.TargetProperty as MethodInfo;
-            if (propertyAsMethodInfo != null)
-            {
-                var parameters = propertyAsMethodInfo.GetParameters();
-                if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
+                case DependencyProperty dependencyProperty when dependencyProperty.PropertyType == typeof(ICommand):
+                    // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
+                    return new CommandAction(targetObject, rootObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
+                case EventInfo eventInfo:
                 {
-                    var ec = new EventAction(targetObject, rootObject, parameters[1].ParameterType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                    var ec = new EventAction(targetObject, rootObject, eventInfo.EventHandlerType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
                     return ec.GetDelegate();
                 }
+                case MethodInfo methodInfo: // For attached events
+                {
+                    var parameters = methodInfo.GetParameters();
+                    if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
+                    {
+                        var ec = new EventAction(targetObject, rootObject, parameters[1].ParameterType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                        return ec.GetDelegate();
+                    }
+                    throw new ArgumentException("Action used with an attached event (or something similar) which didn't follow the normal pattern");
+                }
+                default:
+                    throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
             }
-                
-            throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
+        }
+
+        private object HandleCommandBinding(DependencyObject rootObject, Type propertyType)
+        {
+            if (rootObject == null)
+                throw new InvalidOperationException("Action may only be used with CommandBinding from a XAML view (unable to retrieve IRootObjectProvider.RootObject)");
+
+            var ec = new EventAction(rootObject, null, propertyType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+            return ec.GetDelegate();
         }
     }
 
