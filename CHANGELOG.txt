@@ -1,6 +1,17 @@
 Stylet Changelog
 ================
 
+v1.2.0
+------
+
+ - Add support for CommandBinding in Actions (#50)
+ - Allow the owner of a dialog to be explicitly set (#36)
+ - Deprecate BindWeak (#38)
+ - Add BindAndInvoke method (#43)
+ - Add XmlnsPrefixAttribute (#57)
+ - Stylet.Start creates files as UTF-8 with BOM
+ - Improvements to the samples
+
 v1.1.22
 -------
 
