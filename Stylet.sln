@@ -1,13 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29021.104
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet", "Stylet\Stylet.csproj", "{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StyletUnitTests", "StyletUnitTests\StyletUnitTests.csproj", "{13AFA20D-CCEA-4A58-920E-4D8816C7296B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StyletIntegrationTests", "StyletIntegrationTests\StyletIntegrationTests.csproj", "{C6021258-7CAE-4BC2-A08E-8433019405B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stylet.Core", "Stylet.Core\Stylet.Core.csproj", "{AB6ABA6E-AD39-4148-9C38-8B27874976A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Framework", "Stylet.Framework\Stylet.Framework.csproj", "{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StyletIntegrationTests.Core", "StyletIntegrationTests.Core\StyletIntegrationTests.Core.csproj", "{35959185-53C3-4F50-82C9-6CBD1EF7C4D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StyletIntegrationTests.Framework", "StyletIntegrationTests.Framework\StyletIntegrationTests.Framework.csproj", "{C6021258-7CAE-4BC2-A08E-8433019405B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,14 +19,22 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{13AFA20D-CCEA-4A58-920E-4D8816C7296B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{13AFA20D-CCEA-4A58-920E-4D8816C7296B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13AFA20D-CCEA-4A58-920E-4D8816C7296B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13AFA20D-CCEA-4A58-920E-4D8816C7296B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB6ABA6E-AD39-4148-9C38-8B27874976A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB6ABA6E-AD39-4148-9C38-8B27874976A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB6ABA6E-AD39-4148-9C38-8B27874976A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB6ABA6E-AD39-4148-9C38-8B27874976A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35959185-53C3-4F50-82C9-6CBD1EF7C4D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35959185-53C3-4F50-82C9-6CBD1EF7C4D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35959185-53C3-4F50-82C9-6CBD1EF7C4D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35959185-53C3-4F50-82C9-6CBD1EF7C4D2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C6021258-7CAE-4BC2-A08E-8433019405B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C6021258-7CAE-4BC2-A08E-8433019405B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6021258-7CAE-4BC2-A08E-8433019405B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
