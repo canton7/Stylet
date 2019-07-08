@@ -54,7 +54,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Stylet\**\*.cs" Link="%(RecursiveDir)%(FileName)%(Extension)" />
+    <Compile Include="..\Stylet\**\*.cs" Ignore="..\Stylet\obj\**" Link="%(RecursiveDir)%(FileName)%(Extension)" />
     <None Include="..\Stylet\Settings.StyleCop" Link="Settings.StyleCop" />
     <None Include="..\Stylet\Stylet.ruleset" Link="Stylet.ruleset" />
 
@@ -67,7 +67,7 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
-  
+
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

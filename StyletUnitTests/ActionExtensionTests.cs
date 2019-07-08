@@ -1,7 +1,10 @@
-﻿using Moq;
+﻿#if NETFRAMEWORK
+
+using Moq;
 using NUnit.Framework;
 using Stylet.Xaml;
 using System;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,7 +13,7 @@ using System.Xaml;
 
 namespace StyletUnitTests
 {
-    [TestFixture, RequiresSTA]
+    [TestFixture, Apartment(ApartmentState.STA)]
     public class ActionExtensionTests
     {
         private ActionExtension actionExtension;
@@ -125,3 +128,5 @@ namespace StyletUnitTests
         }
     }
 }
+
+#endif

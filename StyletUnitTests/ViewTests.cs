@@ -1,15 +1,18 @@
-﻿using Moq;
+﻿#if NETFRAMEWORK
+
+using Moq;
 using NUnit.Framework;
 using Stylet;
 using Stylet.Xaml;
 using System;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace StyletUnitTests
 {
-    [TestFixture, RequiresSTA]
+    [TestFixture, Apartment(ApartmentState.STA)]
     public class ViewTests
     {
         private class TestViewModel
@@ -157,3 +160,5 @@ namespace StyletUnitTests
         }
     }
 }
+
+#endif

@@ -175,7 +175,7 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyReturnsTrueIfValidationPassed()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync(null);
+            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync((IEnumerable<string>)null);
             var result = this.model.ValidateProperty("IntProperty");
             Assert.True(result);
 
@@ -224,7 +224,7 @@ namespace StyletUnitTests
         [Test]
         public void EventRaisedAndHasErrorsChangedIfErrorWasNullAndNowIsNot()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync(null);
+            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync((IEnumerable<string>)null);
             this.model.ValidateProperty("IntProperty");
 
             string changedProperty = null;
@@ -268,7 +268,7 @@ namespace StyletUnitTests
             bool hasErrorsRaised = false;
             this.model.PropertyChanged += (o, e) => { if (e.PropertyName == "HasErrors") hasErrorsRaised = true; };
 
-            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync(null);
+            this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync((IEnumerable<string>)null);
             this.model.ValidateProperty("IntProperty");
 
             Assert.AreEqual("IntProperty", changedProperty);

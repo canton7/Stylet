@@ -379,7 +379,7 @@ namespace StyletUnitTests
             var screen = new Mock<IMyScreen>();
 
             this.conductor.ActivateItem(screen.Object);
-            screen.ResetCalls();
+            screen.Invocations.Clear();
 
             int sequence = 0;
             screen.Setup(x => x.Deactivate()).Callback(() => Assert.AreEqual(0, sequence++));
@@ -400,7 +400,7 @@ namespace StyletUnitTests
             var screen2 = new Mock<IMyScreen>();
 
             this.conductor.ActivateItem(screen1.Object);
-            screen1.ResetCalls();
+            screen1.Invocations.Clear();
 
             int sequence = 0;
             screen1.Setup(x => x.Deactivate()).Callback(() => Assert.AreEqual(0, sequence++));
@@ -421,7 +421,7 @@ namespace StyletUnitTests
             var screen2 = new Mock<IMyScreen>();
 
             this.conductor.ActivateItem(screen1.Object);
-            screen1.ResetCalls();
+            screen1.Invocations.Clear();
 
             int sequence = 0;
             screen1.Setup(x => x.Deactivate()).Callback(() => Assert.AreEqual(0, sequence++));
