@@ -6,7 +6,7 @@
     <title>Stylet.Start</title>
     <authors>Antony Male</authors>
     <owners>Antony Male</owners>
-    <licenseUrl>http://github.com/canton7/Stylet/blob/master/LICENSE.txt</licenseUrl>
+    <license type="expression">MIT</license>
     <projectUrl>http://github.com/canton7/Stylet</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/canton7/Stylet/master/StyletIcon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>

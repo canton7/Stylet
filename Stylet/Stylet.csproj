@@ -10,6 +10,7 @@
     <AssemblyName>Stylet</AssemblyName>
     <CodeAnalysisRuleSet />
     <EnableDefaultItems>false</EnableDefaultItems>
+    <DocumentationFile>bin\Stylet.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

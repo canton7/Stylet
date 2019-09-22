@@ -6,7 +6,7 @@
     <title>Stylet</title>
     <authors>Antony Male</authors>
     <owners>Antony Male</owners>
-    <licenseUrl>http://github.com/canton7/Stylet/blob/master/LICENSE.txt</licenseUrl>
+    <license type="expression">MIT</license>
     <projectUrl>http://github.com/canton7/Stylet</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/canton7/Stylet/master/StyletIcon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -16,10 +16,10 @@
   </metadata>
 
   <files>
-    <file src="..\Stylet\bin\Release\Stylet.dll" target="lib\net45"/>
-    <file src="..\Stylet\bin\Release\Stylet.pdb" target="lib\net45"/>
-    <file src="..\Stylet\bin\Release\Stylet.pdb.srcsrv" target="lib\net45"/>
-    <file src="..\Stylet\bin\Release\Stylet.xml" target="lib\net45"/>
+    <file src="..\Stylet\bin\Release\net45\Stylet.dll" target="lib\net45"/>
+    <file src="..\Stylet\bin\Stylet.xml" target="lib\net45"/>
+    <file src="..\Stylet\bin\Release\netcoreapp3.0\Stylet.dll" target="lib\netcoreapp3.0"/>
+    <file src="..\Stylet\bin\Stylet.xml" target="lib\netcoreapp3.0"/>
     <file src="readme.txt" target=""/>
   </files>
 </package>
