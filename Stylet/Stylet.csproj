@@ -25,10 +25,9 @@
     <Description>A very lightweight but powerful ViewModel-First MVVM framework for WPF, inspired by Caliburn.Micro. Comes with its own IoC container.</Description>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- https://github.com/dotnet/sourcelink/issues/91#issuecomment-397123585 -->
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
   </PropertyGroup>
 

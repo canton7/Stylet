@@ -10,7 +10,7 @@
     <projectUrl>http://github.com/canton7/Stylet</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/canton7/Stylet/master/StyletIcon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>A quick startup project for Stylet</description>
+    <description>A quick startup project for Stylet (.NET Framework ONLY!)</description>
     <copyright>Copyright 2015 Antony Male</copyright>
     <tags>Stylet WPF MVVM ViewModel Screen Conductor ViewModel-First Model-View-ViewModel UI</tags>
 
@@ -23,5 +23,6 @@
 
   <files>
     <file src="start\tools\**" target="tools" />
+    <file src="readme.txt" target=""/>
   </files>
 </package>
