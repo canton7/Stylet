@@ -16,7 +16,7 @@ directory COVERAGE_DIR
 
 desc "Build the project using the current CONFIG (or Debug)"
 task :build do
-  sh 'dotnet', 'build', '-c', CONFIG, CSPROJ
+  sh 'dotnet', 'build', '-c', CONFIG, '-p:ContinuousIntegrationBuild=true', CSPROJ
 end
 
 desc "Run unit tests using the current CONFIG (or Debug)"
@@ -26,8 +26,8 @@ end
 
 desc "Create NuGet package"
 task :package do
-  sh 'dotnet', 'pack', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC}"
-  sh 'dotnet', 'pack', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC_START}"
+  sh 'dotnet', 'pack', '-c', CONFIG, CSPROJ
+  sh 'dotnet', 'pack', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC_START}", '-p:IncludeSymbols=false'
 end
 
 desc "Bump version number"
@@ -36,14 +36,9 @@ task :version, [:version] do |t, args|
   parts << '0' if parts.length == 3
   version = parts.join('.')
 
-  content = IO.read(ASSEMBLY_INFO)
-  content[/^\[assembly: AssemblyVersion\(\"(.+?)\"\)\]/, 1] = version
-  content[/^\[assembly: AssemblyFileVersion\(\"(.+?)\"\)\]/, 1] = version
-  File.open(ASSEMBLY_INFO, 'w'){ |f| f.write(content) }
-
-  content = IO.read(NUSPEC)
-  content[/<version>(.+?)<\/version>/, 1] = args[:version]
-  File.open(NUSPEC, 'w'){ |f| f.write(content) }
+  content = IO.read(CSPROJ)
+  content[/<VersionPrefix>(.+?)<\/VersionPrefix>/, 1] = version
+  File.open(CSPROJ, 'w'){ |f| f.write(content) }
 
   content = IO.read(NUSPEC_START)
   content[/<version>(.+?)<\/version>/, 1] = args[:version]

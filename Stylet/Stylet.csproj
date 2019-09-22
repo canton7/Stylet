@@ -5,20 +5,45 @@
     <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
     <UseWPF>true</UseWPF>
 
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>Stylet</RootNamespace>
     <AssemblyName>Stylet</AssemblyName>
+    <AssemblyTitle>Stylet</AssemblyTitle>
     <CodeAnalysisRuleSet />
     <EnableDefaultItems>false</EnableDefaultItems>
     <DocumentationFile>bin\Stylet.xml</DocumentationFile>
+
+    <VersionPrefix>0.0.0</VersionPrefix>
+    <PackageId>Stylet</PackageId>
+    <PackageTags>WPF MVVM ViewModel Screen Conductor ViewModel-First Model-View-ViewModel UI</PackageTags>
+    <Copyright>Copyright © 2014 Antony Male</Copyright>
+    <PackageIconUrl>https://raw.githubusercontent.com/canton7/Stylet/master/StyletIcon.png</PackageIconUrl>
+    <PackageProjectUrl>http://github.com/canton7/Stylet</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/canton7/Stylet</RepositoryUrl>
+    <Authors>Antony Male</Authors>
+    <Description>A very lightweight but powerful ViewModel-First MVVM framework for WPF, inspired by Caliburn.Micro. Comes with its own IoC container.</Description>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <!-- https://github.com/dotnet/sourcelink/issues/91#issuecomment-397123585 -->
+    <DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
   </PropertyGroup>
 
+  <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All" />
+  </ItemGroup>
+  
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
     <None Remove="**\*.cs" />
 
     <None Include="Settings.StyleCop" Link="Settings.StyleCop" />
     <None Include="Stylet.ruleset" Link="Stylet.ruleset" />
+
+    <None Include="..\NuGet\readme.txt" pack="true" PackagePath="." />
 
     <Page Include="MessageBoxView.xaml">
       <SubType>Designer</SubType>
