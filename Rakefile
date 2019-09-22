@@ -26,8 +26,9 @@ end
 
 desc "Create NuGet package"
 task :package do
-  sh 'dotnet', 'pack', '-c', CONFIG, CSPROJ
-  sh 'dotnet', 'pack', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC_START}", '-p:IncludeSymbols=false'
+  # Not sure why these have to be this way around, but they do
+  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC_START}"
+  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ
 end
 
 desc "Bump version number"
