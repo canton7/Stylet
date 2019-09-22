@@ -1,4 +1,6 @@
-﻿using Moq;
+﻿#if NETFRAMEWORK
+
+using Moq;
 using NUnit.Framework;
 using Stylet;
 using Stylet.Xaml;
@@ -8,6 +10,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Linq;
+using System.Threading;
 
 namespace StyletUnitTests
 {
@@ -19,7 +22,7 @@ namespace StyletUnitTests
     {
     }
 
-    [TestFixture, RequiresSTA]
+    [TestFixture, Apartment(ApartmentState.STA)]
     public class ViewManagerTests
     {
         private interface I1 { }
@@ -404,3 +407,5 @@ namespace StyletUnitTests
         }
     }
 }
+
+#endif

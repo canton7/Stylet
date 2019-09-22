@@ -1,141 +1,18 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="MSBuild.Sdk.Extras">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{13AFA20D-CCEA-4A58-920E-4D8816C7296B}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StyletUnitTests</RootNamespace>
-    <AssemblyName>StyletUnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
+
+    <UseWpf>true</UseWpf>
+    <IsPackable>false</IsPackable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>StyletUnitTests.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>StyletUnitTests.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Moq, Version=4.2.1507.118, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
-      <HintPath>..\packages\Moq.4.2.1507.0118\lib\net40\Moq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.core, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnitTestAdapter.2.0.0\lib\nunit.core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.core.interfaces, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnitTestAdapter.2.0.0\lib\nunit.core.interfaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.util, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnitTestAdapter.2.0.0\lib\nunit.util.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NUnit.VisualStudio.TestAdapter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=4cb40d35494691ac, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnitTestAdapter.2.0.0\lib\NUnit.VisualStudio.TestAdapter.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
+    <PackageReference Include="Moq" Version="4.12.0" />
+    <PackageReference Include="nunit" Version="3.11.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.12.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <ProjectReference Include="..\Stylet\Stylet.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ActionExtensionTests.cs" />
-    <Compile Include="ApplicationLoaderTests.cs" />
-    <Compile Include="BindableCollectionTests.cs" />
-    <Compile Include="BoolToVisibilityConverterTests.cs" />
-    <Compile Include="BootstrapperBaseTests.cs" />
-    <Compile Include="BootstrapperTests.cs" />
-    <Compile Include="CommandActionTests.cs" />
-    <Compile Include="ConductorAllActiveTests.cs" />
-    <Compile Include="ConductorNavigatingTests.cs" />
-    <Compile Include="ConductorOneActiveTests.cs" />
-    <Compile Include="ConductorTests.cs" />
-    <Compile Include="DebugConverterTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCFuncFactoryTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCInstanceBindingTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCModuleTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCMultipleBindingTests.cs" />
-    <Compile Include="TraceLoggerTests.cs" />
-    <Compile Include="EqualityConverterTests.cs" />
-    <Compile Include="EventActionTests.cs" />
-    <Compile Include="EventAggregatorTests.cs" />
-    <Compile Include="ExecuteTests.cs" />
-    <Compile Include="ExpressionExtensionsTests.cs" />
-    <Compile Include="IconToBitmapSourceConverterTests.cs" />
-    <Compile Include="LabelledValueTests.cs" />
-    <Compile Include="StyletLogManagerTests.cs" />
-    <Compile Include="MessageBoxTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PropertyChangedBaseTests.cs" />
-    <Compile Include="PropertyChangedExtensionsTests.cs" />
-    <Compile Include="ScreenExtensionTests.cs" />
-    <Compile Include="ScreenTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCAutobindingTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCBindingChecksTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCCompileTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCPropertyInjectionTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCConstructorInjectionTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCFactoryTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCGetAllTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCGetSingleKeyedTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCGetSingleTests.cs" />
-    <Compile Include="StyletIoC\StyletIoCUnboundGenericTests.cs" />
-    <Compile Include="ValidatingModelBaseTests.cs" />
-    <Compile Include="ViewManagerTests.cs" />
-    <Compile Include="ViewTests.cs" />
-    <Compile Include="WindowManagerTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Stylet\Stylet.csproj">
-      <Project>{2435bd00-ac12-48b0-ad36-9bab2fdec3f5}</Project>
-      <Name>Stylet</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="StyletUnitTests.ruleset" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

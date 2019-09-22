@@ -85,11 +85,15 @@ namespace StyletUnitTests
         [Test]
         public void ActivateWithDoesNotRetainChild()
         {
-            var child = new Screen();
-            child.ActivateWith(this.parent);
+            WeakReference Test()
+            {
+                var child = new Screen();
+                child.ActivateWith(this.parent);
+                return new WeakReference(child);
+            }
 
-            var weakChild = new WeakReference(child);
-            child = null;
+            var weakChild = Test();
+
             GC.Collect();
 
             ((IScreenState)this.parent).Activate();
@@ -117,11 +121,15 @@ namespace StyletUnitTests
         [Test]
         public void DeactivateDoesNotRetainChild()
         {
-            var child = new Screen();
-            child.DeactivateWith(this.parent);
+            WeakReference Test()
+            {
+                var child = new Screen();
+                child.DeactivateWith(this.parent);
+                return new WeakReference(child);
+            }
 
-            var weakChild = new WeakReference(child);
-            child = null;
+            var weakChild = Test();
+
             GC.Collect();
 
             ((IScreenState)this.parent).Deactivate();
@@ -149,11 +157,15 @@ namespace StyletUnitTests
         [Test]
         public void CloseWithDoesNotRetain()
         {
-            var child = new Screen();
-            child.CloseWith(this.parent);
+            WeakReference Test()
+            {
+                var child = new Screen();
+                child.CloseWith(this.parent);
+                return new WeakReference(child);
+            }
 
-            var weakChild = new WeakReference(child);
-            child = null;
+            var weakChild = Test();
+
             GC.Collect();
 
             ((IScreenState)this.parent).Close();
@@ -171,11 +183,15 @@ namespace StyletUnitTests
         [Test]
         public void ConductWithDoesNotRetain()
         {
-            var child = new Screen();
-            child.ConductWith(this.parent);
+            WeakReference Test()
+            {
+                var child = new Screen();
+                child.ConductWith(this.parent);
+                return new WeakReference(child);
+            }
 
-            var weakChild = new WeakReference(child);
-            child = null;
+            var weakChild = Test();
+
             GC.Collect();
 
             Assert.Null(weakChild.Target);

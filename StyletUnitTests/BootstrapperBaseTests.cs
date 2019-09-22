@@ -1,12 +1,15 @@
-﻿using Moq;
+﻿#if NETFRAMEWORK
+
+using Moq;
 using NUnit.Framework;
 using Stylet;
 using System;
+using System.Threading;
 using System.Windows;
 
 namespace StyletUnitTests
 {
-    [TestFixture, RequiresSTA]
+    [TestFixture, Apartment(ApartmentState.STA)]
     public class BootstrapperBaseTests
     {
         private class RootViewModel : IDisposable
@@ -176,3 +179,5 @@ namespace StyletUnitTests
         }
     }
 }
+
+#endif

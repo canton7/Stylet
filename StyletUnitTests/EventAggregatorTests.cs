@@ -99,16 +99,19 @@ namespace StyletUnitTests
         [Test]
         public void TargetReferenceIsWeak()
         {
-            var target = new C3();
-            var weaktarget = new WeakReference(target);
-            this.ea.Subscribe(target);
+            WeakReference Test()
+            {
+                var target = new C3();
+                this.ea.Subscribe(target);
+                return new WeakReference(target);
+            }
 
-            // Ugly, but it's the only way to test a WeakReference...
-            target = null;
+            var weakTarget = Test();
+
             GC.Collect();
 
             Assert.DoesNotThrow(() => this.ea.Publish(new M1()));
-            Assert.IsNull(weaktarget.Target);
+            Assert.IsNull(weakTarget.Target);
         }
 
         [Test]
