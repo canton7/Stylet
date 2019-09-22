@@ -1,0 +1,31 @@
+﻿<Project Sdk="MSBuild.Sdk.Extras">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>Stylet</RootNamespace>
+    <AssemblyName>Stylet</AssemblyName>
+    <CodeAnalysisRuleSet />
+    <EnableDefaultItems>false</EnableDefaultItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="obj\**" />
+    <None Remove="**\*.cs" />
+
+    <None Include="Settings.StyleCop" Link="Settings.StyleCop" />
+    <None Include="Stylet.ruleset" Link="Stylet.ruleset" />
+
+    <Page Include="MessageBoxView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Xaml\StyletResourceDictionary.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+</Project>
