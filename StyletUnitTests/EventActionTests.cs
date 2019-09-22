@@ -235,13 +235,16 @@ namespace StyletUnitTests
         [Test]
         public void DoesNotRetainTarget()
         {
-            var view = new DependencyObject();
-            var weakView = new WeakReference(view);
-            View.SetActionTarget(view, this.target);
-            var cmd = new EventAction(view, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            WeakReference Test()
+            {
+                var view = new DependencyObject();
+                View.SetActionTarget(view, this.target);
+                var cmd = new EventAction(view, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+                return new WeakReference(view);
+            }
 
-            cmd = null;
-            view = null;
+            var weakView = Test();
+
             GC.Collect();
 
             Assert.IsFalse(weakView.IsAlive);

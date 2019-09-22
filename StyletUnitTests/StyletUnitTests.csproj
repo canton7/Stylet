@@ -1,7 +1,7 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras">
 
   <PropertyGroup>
-    <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
 
     <UseWpf>true</UseWpf>
     <IsPackable>false</IsPackable>
