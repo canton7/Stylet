@@ -10,7 +10,10 @@ NUSPEC_START = 'NuGet/Stylet.start.nuspec'
 ASSEMBLY_INFO = 'Stylet/Properties/AssemblyInfo.cs'
 
 CSPROJ = 'Stylet/Stylet.csproj'
+TEMPLATES_CSPROJ = 'StyletTemplates/StyletTemplates.csproj'
 UNIT_TESTS = 'StyletUnitTests/StyletUnitTests.csproj'
+
+TEMPLATES_DIR = 'StyletTemplates/templates'
 
 directory COVERAGE_DIR
 
@@ -29,6 +32,7 @@ task :package do
   # Not sure why these have to be this way around, but they do
   sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC_START}"
   sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ
+  sh 'dotnet', 'pack', '-c', CONFIG, TEMPLATES_CSPROJ
 end
 
 desc "Bump version number"
@@ -41,10 +45,20 @@ task :version, [:version] do |t, args|
   content[/<VersionPrefix>(.+?)<\/VersionPrefix>/, 1] = version
   File.open(CSPROJ, 'w'){ |f| f.write(content) }
 
+  content = IO.read(TEMPLATES_CSPROJ)
+  content[/<VersionPrefix>(.+?)<\/VersionPrefix>/, 1] = version
+  File.open(TEMPLATES_CSPROJ, 'w'){ |f| f.write(content) }
+
   content = IO.read(NUSPEC_START)
   content[/<version>(.+?)<\/version>/, 1] = args[:version]
   content[%r{<dependency id="Stylet" version="\[(.+?)\]"/>}, 1] = args[:version]
   File.open(NUSPEC_START, 'w'){ |f| f.write(content) }
+
+  Dir[File.join(TEMPLATES_DIR, '**/*.csproj')].each do |csproj|
+    content = IO.read(csproj)
+    content[/<PackageReference Include="Stylet" Version="(.+?)" \/>/, 1] = version
+    File.open(csproj, 'w'){ |f| f.write(content) }
+  end
 end
 
 desc "Extract StyletIoC as a standalone file"

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Antony Male",
+  "classifications": ["Common", "WPF", "MVVM", "Stylet"],
+  "name": "Stylet Application",
+  "description": "A project for creating a .NET Core Stylet MVVM sApplications",
+  "identity": "Stylet.Templates",
+  "shortName": "stylet",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Company.StyletApplication1",
+  "preferNameDirectory": true,
+  "defaultName": "StyletApp1"
+}

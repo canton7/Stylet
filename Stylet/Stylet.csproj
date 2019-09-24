@@ -14,7 +14,7 @@
 
     <VersionPrefix>0.0.0</VersionPrefix>
     <PackageId>Stylet</PackageId>
-    <PackageTags>WPF MVVM ViewModel Screen Conductor ViewModel-First Model-View-ViewModel UI</PackageTags>
+    <PackageTags>WPF;MVVM;ViewModel;Screen Conductor;ViewModel-First;Model-View-ViewModel;UI</PackageTags>
     <Copyright>Copyright © 2014 Antony Male</Copyright>
     <PackageIconUrl>https://raw.githubusercontent.com/canton7/Stylet/master/StyletIcon.png</PackageIconUrl>
     <PackageProjectUrl>http://github.com/canton7/Stylet</PackageProjectUrl>
@@ -22,7 +22,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/canton7/Stylet</RepositoryUrl>
     <Authors>Antony Male</Authors>
-    <Description>A very lightweight but powerful ViewModel-First MVVM framework for WPF, inspired by Caliburn.Micro. Comes with its own IoC container.</Description>
+    <Description>A very lightweight but powerful ViewModel-First MVVM framework for WPF, inspired by Caliburn.Micro.</Description>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -33,6 +33,10 @@
 
   <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+    <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
   </ItemGroup>
   
   <ItemGroup>
