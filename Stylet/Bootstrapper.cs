@@ -56,7 +56,7 @@ namespace Stylet
             builder.Bind<ViewManagerConfig>().ToInstance(viewManagerConfig).AsWeakBinding();
 
             // Bind it to both IViewManager and to itself, so that people can get it with Container.Get<ViewManager>()
-            builder.Bind<IViewManager>().And<ViewManager>().To<ViewManager>().AsWeakBinding();
+            builder.Bind<IViewManager>().And<ViewManager>().To<ViewManager>().InSingletonScope().AsWeakBinding();
 
             builder.Bind<IWindowManagerConfig>().ToInstance(this).DisposeWithContainer(false).AsWeakBinding();
             builder.Bind<IWindowManager>().To<WindowManager>().InSingletonScope().AsWeakBinding();
