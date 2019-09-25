@@ -12,17 +12,18 @@
     <PackageId>Stylet.Templates</PackageId>
     <PackageTags>dotnet-new;templates;WPF;MVVM;ViewModel;Screen;Conductor;ViewModel-First;Model-View-ViewModel;UI</PackageTags>
     <Copyright>Copyright © 2019 Antony Male</Copyright>
-    <PackageIconUrl>https://raw.githubusercontent.com/canton7/Stylet/master/StyletIcon.png</PackageIconUrl>
+    <PackageIcon>StyletIcon.png</PackageIcon>
     <PackageProjectUrl>http://github.com/canton7/Stylet</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/canton7/Stylet</RepositoryUrl>
     <Authors>Antony Male</Authors>
-    <Description>.NET Core templates for Stylet, the lightweight but powerful ViewModel-First MVVM framework for WPF,</Description>
+    <Description>.NET Core templates for Stylet, the lightweight but powerful ViewModel-First MVVM framework for WPF</Description>
   </PropertyGroup>
   
   <ItemGroup>
     <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" />
     <Compile Remove="**\*" />
+    <None Include="..\StyletIcon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>

@@ -34,7 +34,23 @@ Stylet requires .NET 4.5 (Visual Studio 2012 or higher).
 
 ### .NET Core
 
-For .NET Core projects, install the [Stylet](https://www.nuget.org/packages/Stylet) package, then follow the instructions in the [Quick Start](https://github.com/canton7/Stylet/wiki/Quick-Start).
+For .NET Core projects, the quickest way to get started is by using `dotnet new` with Stylet's template.
+
+Open a command window where you want to create your new project, and install the Stylet templates using:
+
+```
+dotnet new -i Stylet.Templates
+```
+
+Then create a new project with:
+
+```
+dotnet new stylet -o MyStyletProject`
+```
+
+(changing `MyStyletProject` as appropriate).
+
+If you want to set up your project manually, install the [Stylet](https://www.nuget.org/packages/Stylet) package, then follow the instructions in the [Quick Start](https://github.com/canton7/Stylet/wiki/Quick-Start).
 
 Stylet requires .NET Core 3.0.
 
