@@ -45,7 +45,7 @@ dotnet new -i Stylet.Templates
 Then create a new project with:
 
 ```
-dotnet new stylet -o MyStyletProject`
+dotnet new stylet -o MyStyletProject
 ```
 
 (changing `MyStyletProject` as appropriate).
