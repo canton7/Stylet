@@ -438,7 +438,7 @@ namespace StyletIoC.Internal
             if (this.factoryBuilder == null)
             {
                 var assemblyName = new AssemblyName(StyletIoCContainer.FactoryAssemblyName);
-                var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+                var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
                 var moduleBuilder = assemblyBuilder.DefineDynamicModule("StyletIoCFactoryModule");
                 this.factoryBuilder = moduleBuilder;
             }

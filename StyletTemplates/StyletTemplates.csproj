@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UseWpf>true</UseWpf>
+
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+
+    <VersionPrefix>0.0.0</VersionPrefix>
+    <PackageId>Stylet.Templates</PackageId>
+    <PackageTags>dotnet-new;templates;WPF;MVVM;ViewModel;Screen;Conductor;ViewModel-First;Model-View-ViewModel;UI</PackageTags>
+    <Copyright>Copyright © 2019 Antony Male</Copyright>
+    <PackageIcon>StyletIcon.png</PackageIcon>
+    <PackageProjectUrl>http://github.com/canton7/Stylet</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/canton7/Stylet</RepositoryUrl>
+    <Authors>Antony Male</Authors>
+    <Description>.NET Core templates for Stylet, the lightweight but powerful ViewModel-First MVVM framework for WPF</Description>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" />
+    <Compile Remove="**\*" />
+    <None Include="..\StyletIcon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

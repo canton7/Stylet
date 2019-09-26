@@ -1,15 +1,18 @@
-﻿using Moq;
+﻿#if NETFRAMEWORK
+
+using Moq;
 using NUnit.Framework;
 using Stylet;
 using System;
 using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
 namespace StyletUnitTests
 {
-    [TestFixture, RequiresSTA]
+    [TestFixture, Apartment(ApartmentState.STA)]
     public class WindowManagerTests
     {
         public interface IMyScreen : IScreen, IDisposable
@@ -401,3 +404,5 @@ namespace StyletUnitTests
         }
     }
 }
+
+#endif

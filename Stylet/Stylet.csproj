@@ -1,143 +1,53 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="MSBuild.Sdk.Extras">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+
     <RootNamespace>Stylet</RootNamespace>
     <AssemblyName>Stylet</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <AssemblyTitle>Stylet</AssemblyTitle>
+    <CodeAnalysisRuleSet />
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <DocumentationFile>bin\Stylet.xml</DocumentationFile>
+
+    <VersionPrefix>0.0.0</VersionPrefix>
+    <PackageId>Stylet</PackageId>
+    <PackageTags>WPF;MVVM;ViewModel;Screen Conductor;ViewModel-First;Model-View-ViewModel;UI</PackageTags>
+    <Copyright>Copyright © 2014 Antony Male</Copyright>
+    <PackageIcon>StyletIcon.png</PackageIcon>
+    <PackageProjectUrl>http://github.com/canton7/Stylet</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/canton7/Stylet</RepositoryUrl>
+    <Authors>Antony Male</Authors>
+    <Description>A very lightweight but powerful ViewModel-First MVVM framework for WPF, inspired by Caliburn.Micro.</Description>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- https://github.com/dotnet/sourcelink/issues/91#issuecomment-397123585 -->
+    <DebugType>embedded</DebugType>
+    <DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Stylet.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>bin\Debug\Stylet.xml</DocumentationFile>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Stylet.xml</DocumentationFile>
-    <CodeAnalysisRuleSet>Stylet.ruleset</CodeAnalysisRuleSet>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
+
+  <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="IDispatcher.cs" />
-    <Compile Include="INotifyCollectionChanging.cs" />
-    <Compile Include="Logging\ILogger.cs" />
-    <Compile Include="Logging\NullLogger.cs" />
-    <Compile Include="Logging\TraceLogger.cs" />
-    <Compile Include="StyletIoC\Creation\BuilderTypeKey.cs" />
-    <Compile Include="StyletIoC\Creation\ICreator.cs" />
-    <Compile Include="StyletIoC\Creation\IRegistration.cs" />
-    <Compile Include="StyletIoC\FluentInterface.cs" />
-    <Compile Include="StyletIoC\Internal\Builders\BuilderAbstractFactoryBinding.cs" />
-    <Compile Include="StyletIoC\Internal\Builders\BuilderBindingBase.cs" />
-    <Compile Include="StyletIoC\Internal\Builders\BuilderBindTo.cs" />
-    <Compile Include="StyletIoC\Internal\Builders\BuilderFactoryBinding.cs" />
-    <Compile Include="StyletIoC\Internal\Builders\BuilderToAllImplementationsBinding.cs" />
-    <Compile Include="StyletIoC\Internal\Builders\BuilderTypeBinding.cs" />
-    <Compile Include="StyletIoC\Internal\Builders\BuilderInstanceBinding.cs" />
-    <Compile Include="StyletIoC\Internal\Registrations\InstanceRegistration.cs" />
-    <Compile Include="StyletIoC\Internal\IRegistrationCollection.cs" />
-    <Compile Include="StyletIoC\Internal\Creators\AbstractFactoryCreator.cs" />
-    <Compile Include="StyletIoC\Internal\Creators\CreatorBase.cs" />
-    <Compile Include="StyletIoC\Internal\Creators\FactoryCreator.cs" />
-    <Compile Include="StyletIoC\Internal\Creators\TypeCreator.cs">
-      <ExcludeFromStyleCop>False</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="StyletIoC\Creation\IRegistrationContext.cs" />
-    <Compile Include="StyletIoC\Internal\RegistrationCollections\EmptyRegistrationCollection.cs" />
-    <Compile Include="StyletIoC\Internal\RegistrationCollections\RegistrationCollection.cs" />
-    <Compile Include="StyletIoC\Internal\RegistrationCollections\SingleRegistration.cs" />
-    <Compile Include="StyletIoC\Internal\Registrations\FuncRegistration.cs" />
-    <Compile Include="StyletIoC\Internal\Registrations\GetAllRegistration.cs" />
-    <Compile Include="StyletIoC\Internal\Registrations\RegistrationBase.cs" />
-    <Compile Include="StyletIoC\Internal\Registrations\SingletonRegistration.cs" />
-    <Compile Include="StyletIoC\Internal\Registrations\TransientRegistration.cs" />
-    <Compile Include="StyletIoC\Internal\TypeKey.cs" />
-    <Compile Include="StyletIoC\StyletIoCContainer.cs" />
-    <Compile Include="StyletIoC\StyletIoCModule.cs" />
-    <Compile Include="Xaml\ActionBase.cs" />
-    <Compile Include="Xaml\ApplicationLoader.cs" />
-    <Compile Include="ConductorNavigating.cs" />
-    <Compile Include="IBootstrapper.cs" />
-    <Compile Include="IValidationAdapter.cs" />
-    <Compile Include="LabelledValue.cs" />
-    <Compile Include="INotifyPropertyChangedDispatcher.cs" />
-    <Compile Include="Logging\LogManager.cs" />
-    <Compile Include="MessageBoxViewModel.cs" />
-    <Compile Include="StyletConductorExtensions.cs" />
-    <Compile Include="StyletIoC\IContainer.cs" />
-    <Compile Include="StyletIoC\IInjectionAware.cs" />
-    <Compile Include="StyletIoC\InjectAttribute.cs" />
-    <Compile Include="StyletIoC\StyletIoCException.cs" />
-    <Compile Include="StyletIoC\Internal\TypeExtensions.cs" />
-    <Compile Include="ValidatingModelBase.cs" />
-    <Compile Include="Xaml\ActionExtension.cs" />
-    <Compile Include="BindableCollection.cs" />
-    <Compile Include="BootstrapperBase.cs" />
-    <Compile Include="Xaml\BoolToVisibilityConverter.cs" />
-    <Compile Include="Xaml\CommandAction.cs" />
-    <Compile Include="Conductor.cs" />
-    <Compile Include="ConductorAllActive.cs" />
-    <Compile Include="ConductorBase.cs" />
-    <Compile Include="ConductorBaseWithActiveItem.cs" />
-    <Compile Include="ConductorOneActive.cs" />
-    <Compile Include="Xaml\DebugConverter.cs" />
-    <Compile Include="Xaml\EqualityConverter.cs" />
-    <Compile Include="Xaml\EventAction.cs" />
-    <Compile Include="EventAggregator.cs" />
-    <Compile Include="Execute.cs" />
-    <Compile Include="ExpressionExtensions.cs" />
-    <Compile Include="IConductor.cs" />
-    <Compile Include="Bootstrapper.cs" />
-    <Compile Include="IScreen.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PropertyChangedBase.cs" />
-    <Compile Include="PropertyChangedExtensions.cs" />
-    <Compile Include="Screen.cs" />
-    <Compile Include="ScreenExtensions.cs" />
-    <Compile Include="StyletIoC\Creation\BuilderUpper.cs" />
-    <Compile Include="StyletIoC\StyletIoCBuilder.cs" />
-    <Compile Include="StyletIoC\Internal\Container.cs" />
-    <Compile Include="StyletIoC\Internal\UnboundGeneric.cs" />
-    <Compile Include="Xaml\IconToBitmapSourceConverter.cs" />
-    <Compile Include="Xaml\View.cs" />
-    <Compile Include="ViewManager.cs" />
-    <Compile Include="WindowManager.cs" />
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+    <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
   </ItemGroup>
+  
   <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="obj\**" />
+    <None Remove="**\*.cs" />
+
+    <None Include="Settings.StyleCop" />
+    <None Include="Stylet.ruleset" />
+    <None Include="..\StyletIcon.png" Pack="true" PackagePath="\" />
+    <None Include="..\NuGet\readme.txt" Pack="true" PackagePath="." />
+
     <Page Include="MessageBoxView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -147,15 +57,4 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Stylet.ruleset" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

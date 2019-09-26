@@ -6,11 +6,11 @@
     <title>Stylet.Start</title>
     <authors>Antony Male</authors>
     <owners>Antony Male</owners>
-    <licenseUrl>http://github.com/canton7/Stylet/blob/master/LICENSE.txt</licenseUrl>
+    <license type="expression">MIT</license>
     <projectUrl>http://github.com/canton7/Stylet</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/canton7/Stylet/master/StyletIcon.png</iconUrl>
+    <icon>StyletIcon.png</icon>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>A quick startup project for Stylet</description>
+    <description>.NET Framework: A quick startup project for Stylet, the lightweight but powerful ViewModel-First MVVM framework for WPF</description>
     <copyright>Copyright 2015 Antony Male</copyright>
     <tags>Stylet WPF MVVM ViewModel Screen Conductor ViewModel-First Model-View-ViewModel UI</tags>
 
@@ -23,5 +23,7 @@
 
   <files>
     <file src="start\tools\**" target="tools" />
+    <file src="readme.txt" target=""/>
+    <file src="..\StyletIcon.png" target="\"/>
   </files>
 </package>

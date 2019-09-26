@@ -10,100 +10,29 @@ NUSPEC_START = 'NuGet/Stylet.start.nuspec'
 ASSEMBLY_INFO = 'Stylet/Properties/AssemblyInfo.cs'
 
 CSPROJ = 'Stylet/Stylet.csproj'
-MSBUILD = %q{C:\Program Files (x86)\MSBuild\12.0\Bin\MSBuild.exe}
+TEMPLATES_CSPROJ = 'StyletTemplates/StyletTemplates.csproj'
+UNIT_TESTS = 'StyletUnitTests/StyletUnitTests.csproj'
+
+TEMPLATES_DIR = 'StyletTemplates/templates'
 
 directory COVERAGE_DIR
 
-desc "Build the project for release"
+desc "Build the project using the current CONFIG (or Debug)"
 task :build do
-  sh MSBUILD, CSPROJ, "/t:Clean;Rebuild", "/p:Configuration=Release", "/verbosity:normal"
-end
-
-task :test_environment => [:build] do
-  NUNIT_TOOLS = 'packages/NUnit.Runners.*/tools'
-  NUNIT_CONSOLE = Dir[File.join(NUNIT_TOOLS, 'nunit-console.exe')].first
-  NUNIT_EXE = Dir[File.join(NUNIT_TOOLS, 'nunit.exe')].first
-
-  OPENCOVER_CONSOLE = Dir['packages/OpenCover.*/tools/OpenCover.Console.exe'].first
-  REPORT_GENERATOR = Dir['packages/ReportGenerator.*/tools/ReportGenerator.exe'].first
-
-  UNIT_TESTS_DLL = "StyletUnitTests/bin/#{CONFIG}/StyletUnitTests.dll"
-  INTEGRATION_TESTS_EXE = "StyletIntegrationTests/bin/#{CONFIG}/StyletIntegrationTests.exe"
-
-  raise "NUnit.Runners not found. Restore NuGet packages" unless NUNIT_CONSOLE && NUNIT_EXE
-  raise "OpenCover not found. Restore NuGet packages" unless OPENCOVER_CONSOLE
-  raise "ReportGenerator not found. Restore NuGet packages" unless REPORT_GENERATOR
-end
-
-task :nunit_test_runner => [:test_environment] do
-  sh NUNIT_CONSOLE, UNIT_TESTS_DLL
+  sh 'dotnet', 'build', '-c', CONFIG, '-p:ContinuousIntegrationBuild=true', CSPROJ
 end
 
 desc "Run unit tests using the current CONFIG (or Debug)"
-task :test => [:nunit_test_runner] do |t|
-  rm 'TestResult.xml', :force => true
-end
-
-desc "Launch the NUnit gui pointing at the correct DLL for CONFIG (or Debug)"
-task :nunit => [:test_environment] do |t|
-  sh NUNIT_EXE, UNIT_TESTS_DLL
-end
-
-
-namespace :cover do
-
-  desc "Generate unit test code coverage reports for CONFIG (or Debug)"
-  task :unit => [:test_environment, COVERAGE_DIR] do |t|
-    coverage(instrument(:nunit, UNIT_TESTS_DLL))
-  end
-
-  desc "Create integration test code coverage reports for CONFIG (or Debug)"
-  task :integration => [:test_environment, COVERAGE_DIR] do |t|
-    coverage(instrument(:exe, INTEGRATION_TESTS_EXE))
-  end
-
-  desc "Create test code coverage for everything for CONFIG (or Debug)"
-  task :all => [:test_environment, COVERAGE_DIR] do |t|
-    coverage([instrument(:nunit, UNIT_TESTS_DLL), instrument(:exe, INTEGRATION_TESTS_EXE)])
-  end
-
-end
-
-def instrument(runner, target)
-  case runner
-  when :nunit
-    opttarget = NUNIT_CONSOLE
-    opttargetargs = target
-  when :exe
-    opttarget = target
-    opttargetargs = ''
-  else
-    raise "Unknown runner #{runner}"
-  end
- 
-  coverage_file = File.join(COVERAGE_DIR, File.basename(target).ext('xml'))
-  sh OPENCOVER_CONSOLE, '-register:user', "-target:#{opttarget}", "-filter:+[Stylet]* -[Stylet]XamlGeneratedNamespace.*", "-targetargs:#{opttargetargs} /noshadow", "-output:#{coverage_file}"
-
-  rm('TestResult.xml', :force => true) if runner == :nunit
-
-  coverage_file
-end
-
-def coverage(coverage_files)
-  coverage_files = [*coverage_files]
-  sh REPORT_GENERATOR, "-reports:#{coverage_files.join(';')}", "-targetdir:#{COVERAGE_DIR}"
+task :test do
+  sh 'dotnet', 'test', '-c', CONFIG, UNIT_TESTS
 end
 
 desc "Create NuGet package"
 task :package do
-  local_hash = `git rev-parse HEAD`.chomp
-  sh "NuGet/GitLink.exe . -s #{local_hash} -u #{GITLINK_REMOTE} -f Stylet.sln -ignore StyletUnitTests,StyletIntegrationTests"
-  Dir.chdir(File.dirname(NUSPEC)) do
-    sh "nuget.exe pack #{File.basename(NUSPEC)}"
-  end
-  Dir.chdir(File.dirname(NUSPEC_START)) do
-    sh "nuget.exe pack #{File.basename(NUSPEC_START)}"
-  end
+  # Not sure why these have to be this way around, but they do
+  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC_START}"
+  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ
+  sh 'dotnet', 'pack', '-c', CONFIG, TEMPLATES_CSPROJ
 end
 
 desc "Bump version number"
@@ -112,19 +41,24 @@ task :version, [:version] do |t, args|
   parts << '0' if parts.length == 3
   version = parts.join('.')
 
-  content = IO.read(ASSEMBLY_INFO)
-  content[/^\[assembly: AssemblyVersion\(\"(.+?)\"\)\]/, 1] = version
-  content[/^\[assembly: AssemblyFileVersion\(\"(.+?)\"\)\]/, 1] = version
-  File.open(ASSEMBLY_INFO, 'w'){ |f| f.write(content) }
+  content = IO.read(CSPROJ)
+  content[/<VersionPrefix>(.+?)<\/VersionPrefix>/, 1] = version
+  File.open(CSPROJ, 'w'){ |f| f.write(content) }
 
-  content = IO.read(NUSPEC)
-  content[/<version>(.+?)<\/version>/, 1] = args[:version]
-  File.open(NUSPEC, 'w'){ |f| f.write(content) }
+  content = IO.read(TEMPLATES_CSPROJ)
+  content[/<VersionPrefix>(.+?)<\/VersionPrefix>/, 1] = version
+  File.open(TEMPLATES_CSPROJ, 'w'){ |f| f.write(content) }
 
   content = IO.read(NUSPEC_START)
   content[/<version>(.+?)<\/version>/, 1] = args[:version]
   content[%r{<dependency id="Stylet" version="\[(.+?)\]"/>}, 1] = args[:version]
   File.open(NUSPEC_START, 'w'){ |f| f.write(content) }
+
+  Dir[File.join(TEMPLATES_DIR, '**/*.csproj')].each do |csproj|
+    content = IO.read(csproj)
+    content[/<PackageReference Include="Stylet" Version="(.+?)" \/>/, 1] = version
+    File.open(csproj, 'w'){ |f| f.write(content) }
+  end
 end
 
 desc "Extract StyletIoC as a standalone file"

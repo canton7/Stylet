@@ -1,6 +1,13 @@
 Stylet Changelog
 ================
 
+v1.3.0
+------
+
+ - Add support for .NET Core
+ - Add Stylet.Templates NuGet package, containing a .NET Core template
+ - ViewManager is now singleton (#71)
+
 v1.2.0
 ------
 
