@@ -11,7 +11,6 @@ namespace StyletIoC.Internal.Registrations
     internal class SingletonRegistration : RegistrationBase
     {
         private readonly IRegistrationContext parentContext;
-        private Expression instanceExpression;
         private object instance;
 
         public SingletonRegistration(IRegistrationContext parentContext, ICreator creator)
@@ -20,26 +19,32 @@ namespace StyletIoC.Internal.Registrations
             this.parentContext = parentContext;
             this.parentContext.Disposing += (o, e) =>
             {
-                var disposable = this.instance as IDisposable;
+                IDisposable disposable;
+                lock (this.lockObject)
+                {
+                    disposable = this.instance as IDisposable;
+                    this.instance = null;
+                    this.generator = null;
+                }
                 if (disposable != null)
                     disposable.Dispose();
-
-                this.instance = this.instanceExpression = null;
-                this.ClearGenerator();
             };
         }
 
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
-            if (this.instanceExpression != null)
-                return this.instanceExpression;
-
-            this.instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.Creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(this.parentContext);
+            if (this.instance == null)
+            {
+                lock (this.lockObject)
+                {
+                    if (this.instance == null)
+                        this.instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.Creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(this.parentContext);
+                }
+            }
 
             // This expression yields the actual type of instance, not 'object'
             var instanceExpression = Expression.Constant(this.instance);
-            Interlocked.CompareExchange(ref this.instanceExpression, instanceExpression, null);
-            return this.instanceExpression;
+            return instanceExpression;
         }
     }
 }
