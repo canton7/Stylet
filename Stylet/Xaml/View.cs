@@ -78,6 +78,13 @@ namespace Stylet.Xaml
             {
                 var viewManager = ((FrameworkElement)d).TryFindResource(ViewManagerResourceKey) as IViewManager;
 
+                // In some very rare cases (#109), we've seen 'd' be unable to resolve the ViewManager, but it exists on the application.
+                // Try this as a last resort.
+                if (viewManager == null && Application.Current != null)
+                {
+                    viewManager = Application.Current.TryFindResource(ViewManagerResourceKey) as IViewManager;
+                }
+
                 if (viewManager == null)
                 {
                     if (Execute.InDesignMode)
