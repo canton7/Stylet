@@ -165,15 +165,18 @@ namespace StyletIoC
             var container = new Container(this.autobindAssemblies);
 
             // Just in case they want it
-            this.Bind<IContainer>().ToInstance(container).DisposeWithContainer(false).AsWeakBinding();
+            var bindings = this.bindings.ToList();
+            var containerBuilderBindTo = new BuilderBindTo(typeof(IContainer), this.GetAssemblies);
+            containerBuilderBindTo.ToInstance(container).DisposeWithContainer(false).AsWeakBinding();
+            bindings.Add(containerBuilderBindTo);
 
             // For each binding which is weak, if another binding exists with any of the same type+key which is strong, we remove this binding
-            var groups = (from binding in this.bindings
+            var groups = (from binding in bindings
                           from serviceType in binding.ServiceTypes
                           select new { ServiceType = serviceType, Binding = binding })
                           .ToLookup(x => x.ServiceType);
 
-            var filtered = from binding in this.bindings
+            var filtered = from binding in bindings
                            where !(binding.IsWeak &&
                                 binding.ServiceTypes.Any(serviceType => groups.Contains(serviceType) && groups[serviceType].Any(groupItem => !groupItem.Binding.IsWeak)))
                            select binding;
