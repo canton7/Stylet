@@ -1,6 +1,14 @@
 Stylet Changelog
 ================
 
+v1.3.2
+------
+
+ - Fix the default namespace for projects generated with `dotnet new` (#79)
+ - Add missing methods to `IWindowManager` (which were present on `WindowManager`) (#113)
+ - Throw a better exception if someone forgets to call `ToSelf()`, etc (#114)
+ - Fix exception if someone uses `ToAbstractFactory` on two types with the same name (#123)
+
 v1.3.1
 ------
 
