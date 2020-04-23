@@ -3,7 +3,15 @@ using StyletIoC;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace StyletUnitTests
+namespace StyletUnitTests.StyletIoC.SubNamespace
+{
+    public interface I1Factory
+    {
+        StyletIoCFactoryTests.I1 GetI1();
+    }
+}
+
+namespace StyletUnitTests.StyletIoC
 {
     [TestFixture]
     public class StyletIoCFactoryTests
@@ -191,6 +199,24 @@ namespace StyletUnitTests
             var ioc = builder.BuildContainer();
             var factory = ioc.Get<IGenericFactory<I1>>();
             Assert.IsInstanceOf<C1>(factory.GetI1());
+        }
+
+        [Test]
+        public void SupportsTwoInterfacesWithTheSameNames()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().ToAbstractFactory();
+            builder.Bind<SubNamespace.I1Factory>().ToAbstractFactory();
+            Assert.DoesNotThrow(() => builder.BuildContainer());
+        }
+
+        [Test]
+        public void SupportsBuildingTheSameBuilderTwice()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<I1>().ToAbstractFactory();
+            builder.BuildContainer();
+            Assert.DoesNotThrow(() => builder.BuildContainer());
         }
     }
 }

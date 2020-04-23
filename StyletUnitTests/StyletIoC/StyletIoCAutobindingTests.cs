@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace StyletUnitTests
+namespace StyletUnitTests.StyletIoC
 {
     [TestFixture]
     public class StyletIoCAutobindingTests

@@ -2,7 +2,7 @@
 using StyletIoC;
 using System.Linq;
 
-namespace StyletUnitTests
+namespace StyletUnitTests.StyletIoC
 {
     [TestFixture]
     public class StyletIoCGetSingleKeyedTests

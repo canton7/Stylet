@@ -19,11 +19,26 @@ namespace Stylet
         void ShowWindow(object viewModel);
 
         /// <summary>
+        /// Given a ViewModel, show its corresponding View as a window, and set its owner
+        /// </summary>
+        /// <param name="viewModel">ViewModel to show the View for</param>
+        /// <param name="ownerViewModel">The ViewModel for the View which should own this window</param>
+        void ShowWindow(object viewModel, IViewAware ownerViewModel);
+
+        /// <summary>
         /// Given a ViewModel, show its corresponding View as a Dialog
         /// </summary>
         /// <param name="viewModel">ViewModel to show the View for</param>
         /// <returns>DialogResult of the View</returns>
         bool? ShowDialog(object viewModel);
+
+        /// <summary>
+        /// Given a ViewModel, show its corresponding View as a Dialog, and set its owner
+        /// </summary>
+        /// <param name="viewModel">ViewModel to show the View for</param>
+        /// <param name="ownerViewModel">The ViewModel for the View which should own this dialog</param>
+        /// <returns>DialogResult of the View</returns>
+        bool? ShowDialog(object viewModel, IViewAware ownerViewModel);
 
         /// <summary>
         /// Display a MessageBox
