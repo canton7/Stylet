@@ -3,7 +3,7 @@ using StyletIoC;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace StyletUnitTests.SubNamespace
+namespace StyletUnitTests.StyletIoC.SubNamespace
 {
     public interface I1Factory
     {
@@ -11,7 +11,7 @@ namespace StyletUnitTests.SubNamespace
     }
 }
 
-namespace StyletUnitTests
+namespace StyletUnitTests.StyletIoC
 {
     [TestFixture]
     public class StyletIoCFactoryTests

@@ -2,7 +2,7 @@
 using StyletIoC;
 using System;
 
-namespace StyletUnitTests
+namespace StyletUnitTests.StyletIoC
 {
     [TestFixture]
     public class StyletIoCBindingChecksTests
