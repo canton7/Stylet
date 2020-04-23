@@ -12,7 +12,7 @@ namespace StyletIoC.Internal.Builders
         private readonly Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies;
         public List<BuilderTypeKey> ServiceTypes { get; private set; }
         private BuilderBindingBase builderBinding;
-        public bool IsWeak { get { return this.builderBinding.IsWeak; } }
+        public bool IsWeak { get { return this.builderBinding?.IsWeak ?? false; } }
 
         public BuilderBindTo(Type serviceType, Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies)
         {
@@ -91,6 +91,9 @@ namespace StyletIoC.Internal.Builders
 
         internal void Build(Container container)
         {
+            if (this.builderBinding == null)
+                throw new StyletIoCRegistrationException(String.Format("Service type {0} is not bound to anything", this.ServiceTypes[0].Type.GetDescription()));
+
             this.builderBinding.Build(container);
         }
     }

@@ -86,11 +86,19 @@ namespace StyletUnitTests.StyletIoC
         }
 
         [Test]
-        public void AllowsInstanceTobeInterfaceType()
+        public void AllowsInstanceToBeInterfaceType()
         {
             var builder = new StyletIoCBuilder();
             I1 i1 = new C1();
             Assert.DoesNotThrow(() => builder.Bind<I1>().ToInstance(i1));
+        }
+
+        [Test]
+        public void ThrowsIfMissingBuilderBinding()
+        {
+            var builder = new StyletIoCBuilder();
+            builder.Bind<C1>();
+            Assert.Throws<StyletIoCRegistrationException>(() => builder.BuildContainer());
         }
     }
 }
