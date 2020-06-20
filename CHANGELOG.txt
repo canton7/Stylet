@@ -1,6 +1,12 @@
 Stylet Changelog
 ================
 
+v1.3.3
+------
+
+ - Rethrow exceptions encountered when setting Conductor.ActiveItem from a binding (#133)
+ - Fix bug in EventAggregator when publishing to multiple channels (#127)
+
 v1.3.2
 ------
 

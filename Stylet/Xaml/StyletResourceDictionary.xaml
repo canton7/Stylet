@@ -3,7 +3,7 @@
                     xmlns:s="clr-namespace:Stylet.Xaml">
     <Style x:Key="StyletConductorTabControl" TargetType="TabControl">
         <Setter Property="ItemsSource" Value="{Binding Items}"/>
-        <Setter Property="SelectedItem" Value="{Binding ActiveItem}"/>
+        <Setter Property="SelectedItem" Value="{s:RethrowingBinding ActiveItem}"/>
         <Setter Property="DisplayMemberPath" Value="DisplayName"/>
         <Setter Property="ContentTemplate">
             <Setter.Value>
