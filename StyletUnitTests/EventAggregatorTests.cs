@@ -255,6 +255,18 @@ namespace StyletUnitTests
         }
 
         [Test]
+        public void MessagePublishedToMultipleChannelsGetsDeliveredToSubscribersOnSingleChannels()
+        {
+            var target = new C1();
+            this.ea.Subscribe(target, "C1");
+
+            var message = new M1();
+            this.ea.Publish(message, "C1", "C2");
+
+            Assert.AreEqual(1, target.ReceivedMessageCount);
+        }
+
+        [Test]
         public void PublishingInsideHandlerDoesNotThrow()
         {
             var target = new C4();

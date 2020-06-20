@@ -183,7 +183,7 @@ namespace Stylet
                     channels = DefaultChannelArray;
 
                 // We're not subscribed to any of the channels
-                if (!channels.All(x => this.channels.Contains(x)))
+                if (!channels.Any(x => this.channels.Contains(x)))
                     return Enumerable.Empty<HandlerInvoker>();
 
                 return this.invokers.Where(x => x.CanInvoke(messageType));
