@@ -13,7 +13,7 @@ namespace Stylet.Samples.HelloDialog
 
         public void Close()
         {
-            this.RequestClose(true);
+            this.RequestClose(null);
         }
     }
 }
