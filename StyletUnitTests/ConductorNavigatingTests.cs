@@ -1,4 +1,5 @@
 ﻿using Moq;
+using Moq.Protected;
 using NUnit.Framework;
 using Stylet;
 using System;
@@ -284,6 +285,19 @@ namespace StyletUnitTests
 
             screen.Verify(x => x.Close());
             Assert.Null(this.conductor.ActiveItem);
+        }
+
+        [Test]
+        public void NestedActivateItemsResultsInLastActivatedItemActive()
+        {
+            var screen1 = new Mock<Screen>() { CallBase = true };
+            var screen2 = new Screen();
+            screen1.Protected().Setup("OnActivate").Callback(() => (this.conductor as MyConductor).ActivateItem(screen2));
+            (this.conductor as IScreenState).Activate();
+
+            this.conductor.ActivateItem(screen1.Object);
+
+            Assert.AreEqual(screen2, this.conductor.ActiveItem);
         }
     }
 }
