@@ -39,6 +39,8 @@ namespace Stylet
             if (closePrevious)
                 this.CloseAndCleanUp(this.ActiveItem, this.DisposeChildren);
 
+            this._activeItem = newItem;
+
             if (newItem != null)
             {
                 this.EnsureItem(newItem);
@@ -49,7 +51,6 @@ namespace Stylet
                     ScreenExtensions.TryDeactivate(newItem);
             }
 
-            this._activeItem = newItem;
             this.NotifyOfPropertyChange("ActiveItem");
         }
 

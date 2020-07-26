@@ -27,7 +27,8 @@ namespace Stylet.Samples.HelloDialog
         public void ShowDialog()
         {
             var dialogVm = this.dialogFactory.CreateDialog1();
-            if (this.windowManager.ShowDialog(dialogVm).GetValueOrDefault())
+            var result = this.windowManager.ShowDialog(dialogVm);
+            if (result.GetValueOrDefault())
                 this.NameString = String.Format("Your name is {0}", dialogVm.Name);
             else
                 this.NameString = "Dialog cancelled";
