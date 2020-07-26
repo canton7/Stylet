@@ -1,6 +1,11 @@
 Stylet Changelog
 ================
 
+v1.3.4
+------
+
+ - Change activating order when setting active item in ConductorOneActiveBase (#140)
+
 v1.3.3
 ------
 
