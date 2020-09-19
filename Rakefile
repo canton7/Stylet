@@ -19,7 +19,7 @@ directory COVERAGE_DIR
 
 desc "Build the project using the current CONFIG (or Debug)"
 task :build do
-  sh 'dotnet', 'build', '-c', CONFIG, '-p:ContinuousIntegrationBuild=true', CSPROJ
+  sh 'dotnet', 'build', '-c', CONFIG, CSPROJ
 end
 
 desc "Run unit tests using the current CONFIG (or Debug)"
@@ -31,7 +31,7 @@ desc "Create NuGet package"
 task :package do
   # Not sure why these have to be this way around, but they do
   sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC_START}"
-  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ
+  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ, '-p:IncludeSymbols=true'
   sh 'dotnet', 'pack', '-c', CONFIG, TEMPLATES_CSPROJ
 end
 

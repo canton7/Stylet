@@ -61,16 +61,6 @@ Documentation
 [The Wiki is the documentation source](https://github.com/canton7/Stylet/wiki).
 There's loads of information there - go and have a look, or start with the [Quick Start](https://github.com/canton7/Stylet/wiki/Quick-Start).
 
-Symbols
-------
-
-The source is also available when you are debugging, using [Source Link](https://github.com/dotnet/sourcelink).
-Go to Debug -> Options and Settings -> General, and make the following changes:
-
- - Turn **off** "Enable Just My Code"
- - Turn **on** "Enable Source Link support"
- - Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
-
 
 Contributing
 ------------
