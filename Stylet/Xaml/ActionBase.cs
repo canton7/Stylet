@@ -129,12 +129,21 @@ namespace Stylet.Xaml
             else
             {
                 var newTargetType = newTarget.GetType();
-                targetMethodInfo = newTargetType.GetMethod(this.MethodName);
+                try
+                {
+                    targetMethodInfo = newTargetType.GetMethod(this.MethodName);
 
-                if (targetMethodInfo == null)
-                    this.logger.Warn("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name);
-                else
-                    this.AssertTargetMethodInfo(targetMethodInfo, newTargetType);
+                    if (targetMethodInfo == null)
+                        this.logger.Warn("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name);
+                    else
+                        this.AssertTargetMethodInfo(targetMethodInfo, newTargetType);
+                }
+                catch (AmbiguousMatchException e)
+                {
+                    var ex = new AmbiguousMatchException(String.Format("Ambiguous match for {0} method on {1}", this.MethodName, newTargetType.Name), e);
+                    this.logger.Error(ex);
+                    throw ex;
+                }
             }
 
             this.TargetMethodInfo = targetMethodInfo;
