@@ -2,7 +2,7 @@
 using Stylet;
 using StyletIoC;
 
-namespace Company.WpfApplication1
+namespace Company.StyletApplication1
 {
     public class Bootstrapper : Bootstrapper<ShellViewModel>
     {
