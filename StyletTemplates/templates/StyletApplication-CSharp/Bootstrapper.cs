@@ -1,4 +1,4 @@
-﻿using Company.WpfApplication1.Pages;
+﻿using Company.StyletApplication1.Pages;
 using Stylet;
 using StyletIoC;
 
