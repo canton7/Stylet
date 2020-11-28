@@ -2,14 +2,12 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>net45;netcoreapp3.1;net5.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
 
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <RootNamespace>StyletIntegrationTests</RootNamespace>
-    <AssemblyName>StyletIntegrationTests</AssemblyName>
-    <CodeAnalysisRuleSet />
     <EnableDefaultItems>false</EnableDefaultItems>
+
+    <Copyright>Copyright © 2014 Antony Male</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

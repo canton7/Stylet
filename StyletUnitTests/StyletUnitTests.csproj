@@ -1,14 +1,16 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras">
+﻿<Project Sdk="MSBuild.Sdk.Extras/2.1.2">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
+    <TargetFrameworks>net5.0-windows</TargetFrameworks>
 
     <UseWpf>true</UseWpf>
     <IsPackable>false</IsPackable>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <Copyright>Copyright © 2014 Antony Male</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
+    <SupportedPlatform Include="Windows10.0" />
     <PackageReference Include="Moq" Version="4.12.0" />
     <PackageReference Include="nunit" Version="3.11.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.12.0" />
