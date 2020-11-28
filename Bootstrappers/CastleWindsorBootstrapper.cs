@@ -52,6 +52,7 @@ namespace Bootstrappers
                 Component.For<IMessageBoxViewModel>().ImplementedBy<MessageBoxViewModel>().LifestyleTransient(),
                 // For some reason we need to register the delegate separately?
                 Component.For<Func<IMessageBoxViewModel>>().Instance(() => new MessageBoxViewModel()),
+                Component.For<MessageBoxView>().LifestyleTransient(),
                 Component.For<IWindowManager>().ImplementedBy<WindowManager>().LifestyleSingleton(),
                 Component.For<IEventAggregator>().ImplementedBy<EventAggregator>().LifestyleSingleton()
             );
