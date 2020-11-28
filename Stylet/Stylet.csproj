@@ -1,14 +1,11 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras">
+﻿<Project Sdk="MSBuild.Sdk.Extras/2.1.2">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>net45;netcoreapp3.0;netcoreapp3.1;net5.0-windows</TargetFrameworks>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <UseWPF>true</UseWPF>
 
-    <RootNamespace>Stylet</RootNamespace>
-    <AssemblyName>Stylet</AssemblyName>
-    <AssemblyTitle>Stylet</AssemblyTitle>
-    <CodeAnalysisRuleSet />
     <EnableDefaultItems>false</EnableDefaultItems>
     <DocumentationFile>bin\Stylet.xml</DocumentationFile>
 
@@ -23,19 +20,20 @@
     <RepositoryUrl>https://github.com/canton7/Stylet</RepositoryUrl>
     <Authors>Antony Male</Authors>
     <Description>A very lightweight but powerful ViewModel-First MVVM framework for WPF, inspired by Caliburn.Micro.</Description>
-
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <!-- https://github.com/dotnet/sourcelink/issues/91#issuecomment-397123585 -->
-    <DebugType>embedded</DebugType>
-    <DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
+    
+    <!-- Just embed all sources in the PDB: snupkg files don't support bare .cs files, and SourceLink is annoying -->
+    <!-- We set IncludeSymbols in the Rakefile, because we don't want it to apply to Stylet.Start -->
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedAllSources>true</EmbedAllSources>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All" />
-  </ItemGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <!-- Stack traces on < net471 don't work with portable -->
+    <DebugType>full</DebugType>
+  </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net45'">
     <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
   </ItemGroup>
   

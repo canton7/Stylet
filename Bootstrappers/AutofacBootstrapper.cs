@@ -37,6 +37,7 @@ namespace Bootstrappers
                 ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
             };
             builder.RegisterInstance<IViewManager>(new ViewManager(viewManagerConfig));
+            builder.RegisterType<MessageBoxView>();
 
             builder.RegisterInstance<IWindowManagerConfig>(this).ExternallyOwned();
             builder.RegisterType<WindowManager>().As<IWindowManager>().SingleInstance();

@@ -21,7 +21,36 @@ It is inspired by [Caliburn.Micro](http://caliburnmicro.com/), and shares many o
 Getting Started
 ---------------
 
-### .NET Framework
+### .NET 5.0+ / .NET Core
+
+For .NET Core and .NET 5.0+ projects, the quickest way to get started is by using `dotnet new` with Stylet's template.
+
+Open a command window where you want to create your new project, and install the Stylet templates using:
+
+```
+dotnet new -i Stylet.Templates
+```
+
+Then create a new .NET 5.0 project with:
+
+```
+dotnet new stylet -n MyStyletProject
+```
+
+(changing `MyStyletProject` as appropriate).
+
+If you want to create a .NET Core 3.1 project, then:
+
+```
+dotnet new stylet -F netcoreapp3.1 -n MyStyletProject
+```
+
+If you want to set up your project manually, install the [Stylet](https://www.nuget.org/packages/Stylet) package, then follow the instructions in the [Quick Start](https://github.com/canton7/Stylet/wiki/Quick-Start).
+
+Stylet requires .NET 5.0+ or .NET Core 3.0+.
+
+
+### .NET Framework (<= .NET 4)
 
 For .NET Framework projects, the quickest way to get started is to create a new "WPF Application" project, then install the NuGet package [Stylet.Start](https://www.nuget.org/packages/Stylet.Start).
 This will install Stylet, and set up a simple skeleton project.
@@ -32,44 +61,12 @@ If you want to set up your project manually, install the [Stylet](https://www.nu
 
 Stylet requires .NET 4.5 (Visual Studio 2012 or higher).
 
-### .NET Core
-
-For .NET Core projects, the quickest way to get started is by using `dotnet new` with Stylet's template.
-
-Open a command window where you want to create your new project, and install the Stylet templates using:
-
-```
-dotnet new -i Stylet.Templates
-```
-
-Then create a new project with:
-
-```
-dotnet new stylet -o MyStyletProject
-```
-
-(changing `MyStyletProject` as appropriate).
-
-If you want to set up your project manually, install the [Stylet](https://www.nuget.org/packages/Stylet) package, then follow the instructions in the [Quick Start](https://github.com/canton7/Stylet/wiki/Quick-Start).
-
-Stylet requires .NET Core 3.0.
-
 
 Documentation
 -------------
 
 [The Wiki is the documentation source](https://github.com/canton7/Stylet/wiki).
 There's loads of information there - go and have a look, or start with the [Quick Start](https://github.com/canton7/Stylet/wiki/Quick-Start).
-
-Symbols
-------
-
-The source is also available when you are debugging, using [Source Link](https://github.com/dotnet/sourcelink).
-Go to Debug -> Options and Settings -> General, and make the following changes:
-
- - Turn **off** "Enable Just My Code"
- - Turn **on** "Enable Source Link support"
- - Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
 
 
 Contributing

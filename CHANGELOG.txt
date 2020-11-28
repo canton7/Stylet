@@ -1,6 +1,13 @@
 Stylet Changelog
 ================
 
+v1.3.5
+------
+
+ - Fix namespace in Stylet.Templates, and update for .NET 5
+ - Throw a better-worded exception if an action finds an ambiguous match
+ - Fix the Autofac bootstrapper (#158)
+
 v1.3.4
 ------
 

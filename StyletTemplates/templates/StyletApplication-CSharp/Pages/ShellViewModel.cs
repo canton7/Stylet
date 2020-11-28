@@ -1,6 +1,6 @@
 ﻿using Stylet;
 
-namespace Company.WpfApplication1.Pages
+namespace Company.StyletApplication1.Pages
 {
     public class ShellViewModel : Screen
     {

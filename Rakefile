@@ -19,20 +19,21 @@ directory COVERAGE_DIR
 
 desc "Build the project using the current CONFIG (or Debug)"
 task :build do
-  sh 'dotnet', 'build', '-c', CONFIG, '-p:ContinuousIntegrationBuild=true', CSPROJ
+  # https://github.com/novotnyllc/MSBuildSdkExtras/pull/249
+  sh 'dotnet', 'build', '-c', CONFIG, CSPROJ, '/nowarn:MSB4011'
 end
 
 desc "Run unit tests using the current CONFIG (or Debug)"
 task :test do
-  sh 'dotnet', 'test', '-c', CONFIG, UNIT_TESTS
+  sh 'dotnet', 'test', '-c', CONFIG, UNIT_TESTS, '/nowarn:MSB4011'
 end
 
 desc "Create NuGet package"
 task :package do
   # Not sure why these have to be this way around, but they do
-  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC_START}"
-  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ
-  sh 'dotnet', 'pack', '-c', CONFIG, TEMPLATES_CSPROJ
+  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ, "-p:NuSpecFile=../#{NUSPEC_START}", '/nowarn:MSB4011'
+  sh 'dotnet', 'pack', '--no-build', '-c', CONFIG, CSPROJ, '-p:IncludeSymbols=true', '/nowarn:MSB4011'
+  sh 'dotnet', 'pack', '-c', CONFIG, TEMPLATES_CSPROJ, '/nowarn:MSB4011'
 end
 
 desc "Bump version number"

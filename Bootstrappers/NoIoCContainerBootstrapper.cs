@@ -34,6 +34,7 @@ namespace Bootstrappers
             this.Container.Add(typeof(IEventAggregator), () => eventAggregator);
 
             this.Container.Add(typeof(IMessageBoxViewModel), () => new MessageBoxViewModel());
+            this.Container.Add(typeof(MessageBoxView), () => new MessageBoxView());
         }
 
         /// <summary>

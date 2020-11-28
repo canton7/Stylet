@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace Company.WpfApplication1.Pages
+namespace Company.StyletApplication1.Pages
 {
     /// <summary>
     /// Interaction logic for ShellView.xaml

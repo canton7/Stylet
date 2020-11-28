@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Bootstrappers.Tests
@@ -96,6 +97,21 @@ namespace Bootstrappers.Tests
             var mb1 = this.bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
             var mb2 = this.bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
             Assert.AreNotEqual(mb1, mb2);
+        }
+
+        [Test, Apartment(ApartmentState.STA)]
+        public void ReturnsMessageBoxView()
+        {
+            var view = this.bootstrapper.GetInstance(typeof(MessageBoxView));
+            Assert.NotNull(view);
+        }
+
+        [Test, Apartment(ApartmentState.STA)]
+        public void ReturnsTransientMessageBoxView()
+        {
+            var view1 = this.bootstrapper.GetInstance(typeof(MessageBoxView));
+            var view2 = this.bootstrapper.GetInstance(typeof(MessageBoxView));
+            Assert.AreNotEqual(view1, view2);
         }
 
         [Test]
