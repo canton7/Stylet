@@ -15,5 +15,10 @@ namespace Stylet.Samples.HelloDialog
         {
             this.RequestClose(null);
         }
+
+        public void Save()
+        {
+            this.RequestClose(true);
+        }
     }
 }
