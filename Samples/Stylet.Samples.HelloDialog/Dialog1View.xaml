@@ -10,7 +10,7 @@
         </DockPanel>
         
         <Grid DockPanel.Dock="Bottom">
-            <Button HorizontalAlignment="Left" Width="100" IsDefault="True" Command="{s:Action Close}">Save</Button>
+            <Button HorizontalAlignment="Left" Width="100" IsDefault="True" Command="{s:Action Save}">Save</Button>
             <Button HorizontalAlignment="Right" Width="100" IsCancel="True">Cancel</Button>
         </Grid>
     </DockPanel>
