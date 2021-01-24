@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30709.64
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet", "..\Stylet\Stylet.csproj", "{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stylet", "..\Stylet\Stylet.csproj", "{2435BD00-AC12-48B0-AD36-9BAB2FDEC3F5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.Hello", "Stylet.Samples.Hello\Stylet.Samples.Hello.csproj", "{6C7FBB21-52AC-4333-A42A-9F5E9D048621}"
 EndProject
@@ -20,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.ModelValidation", "Stylet.Samples.ModelValidation\Stylet.Samples.ModelValidation.csproj", "{EA5A6CA5-7E8E-4401-A3D2-0035DDE10413}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.DesignMode", "Stylet.Samples.DesignMode\Stylet.Samples.DesignMode.csproj", "{D5225DA1-58ED-42AA-9589-A4F86E7667F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stylet.Samples.NavigationController", "Stylet.Samples.NavigationController\Stylet.Samples.NavigationController.csproj", "{9DEE75AC-6BC1-4375-B6A0-44EAF39FF559}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,8 +65,15 @@ Global
 		{D5225DA1-58ED-42AA-9589-A4F86E7667F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5225DA1-58ED-42AA-9589-A4F86E7667F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5225DA1-58ED-42AA-9589-A4F86E7667F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DEE75AC-6BC1-4375-B6A0-44EAF39FF559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DEE75AC-6BC1-4375-B6A0-44EAF39FF559}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DEE75AC-6BC1-4375-B6A0-44EAF39FF559}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DEE75AC-6BC1-4375-B6A0-44EAF39FF559}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A72165C7-7E4E-4336-88FF-BDCC3E300D54}
 	EndGlobalSection
 EndGlobal
