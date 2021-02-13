@@ -39,7 +39,7 @@ namespace Bootstrappers
             };
 
             // Stylet does its own disposal of ViewModels: Castle Windsor shouldn't be doing the same
-            // Castle Windsor seems to be ver opinionated on this point, insisting that the container
+            // Castle Windsor seems to be very opinionated on this point, insisting that the container
             // should be responsible for disposing all components. This is at odds with Stylet's approach
             // (and indeed common sense).
 #pragma warning disable CS0618 // Type or member is obsolete

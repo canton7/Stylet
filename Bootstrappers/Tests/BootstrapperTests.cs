@@ -159,6 +159,9 @@ namespace Bootstrappers.Tests
         [Test]
         public void DoesNotDisposeTransientInstances()
         {
+            if (!this.Autobinds)
+                Assert.Ignore("Autobinding not supported");
+
             StubType.Reset();
 
             var vm = this.bootstrapper.GetInstance(typeof(StubType));
