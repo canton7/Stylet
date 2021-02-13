@@ -50,7 +50,7 @@ namespace Stylet
             this.Application = application;
 
             // Use the current application's dispatcher for Execute
-            Execute.Dispatcher = new DispatcherWrapper(this.Application.Dispatcher);
+            Execute.Dispatcher = new ApplicationDispatcher(this.Application.Dispatcher);
 
             this.Application.Startup += (o, e) => this.Start(e.Args);
             // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
