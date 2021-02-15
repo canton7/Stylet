@@ -62,6 +62,12 @@ namespace StyletUnitTests
         {
         }
 
+        private class TargetWithoutInpc
+        {
+            public bool CanDoSomething => false;
+            public void DoSomething() { }
+        }
+
         private DependencyObject subject;
         private Target target;
 
@@ -169,6 +175,18 @@ namespace StyletUnitTests
             cmd.CanExecuteChanged += (o, e) => eventRaised = true;
             this.target.CanDoSomethingWithGuard = true;
             Assert.True(eventRaised);
+        }
+
+        [Test]
+        public void FetchesGuardPropertyWhenTargetDoesNotImplementInpc()
+        {
+            var target = new TargetWithoutInpc();
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            bool eventRaised = false;
+            cmd.CanExecuteChanged += (o, e) => eventRaised = true;
+            View.SetActionTarget(this.subject, target);
+            Assert.True(eventRaised);
+            Assert.False(cmd.CanExecute(null));
         }
 
         [Test]
