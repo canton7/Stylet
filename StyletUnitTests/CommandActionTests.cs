@@ -2,6 +2,7 @@
 using Stylet;
 using Stylet.Xaml;
 using System;
+using System.Runtime.CompilerServices;
 using System.Windows;
 
 namespace StyletUnitTests
@@ -68,6 +69,12 @@ namespace StyletUnitTests
             public void DoSomething() { }
         }
 
+        public class StaticTarget
+        {
+            public static bool DidSomething;
+            public static void DoSomething() => DidSomething = true;
+        }
+
         private DependencyObject subject;
         private Target target;
 
@@ -77,6 +84,7 @@ namespace StyletUnitTests
             this.target = new Target();
             this.subject = new DependencyObject();
             View.SetActionTarget(this.subject, this.target);
+            StaticTarget.DidSomething = false;
         }
 
         [Test]
@@ -314,6 +322,17 @@ namespace StyletUnitTests
 
             cmd.Execute(null);
             Assert.IsTrue(this.target.DoSomethingCalled);
+        }
+
+        [Test]
+        public void SupportsStaticTargets()
+        {
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            View.SetActionTarget(this.subject, typeof(StaticTarget));
+
+            Assert.True(cmd.CanExecute(null));
+            cmd.Execute(null);
+            Assert.True(StaticTarget.DidSomething);
         }
     }
 }

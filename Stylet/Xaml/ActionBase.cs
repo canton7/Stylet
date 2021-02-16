@@ -42,7 +42,7 @@ namespace Stylet.Xaml
         protected readonly ActionUnavailableBehaviour ActionNonExistentBehaviour;
 
         /// <summary>
-        /// Gets the object on which methods will be invokced
+        /// Gets the object on which methods will be invoked
         /// </summary>
         public object Target
         {
@@ -128,10 +128,19 @@ namespace Stylet.Xaml
             }
             else
             {
-                var newTargetType = newTarget.GetType();
+                BindingFlags bindingFlags;
+                if (newTarget is Type newTargetType)
+                {
+                    bindingFlags = BindingFlags.Public | BindingFlags.Static;
+                }
+                else
+                {
+                    newTargetType = newTarget.GetType();
+                    bindingFlags = BindingFlags.Public | BindingFlags.Instance;
+                }
                 try
                 {
-                    targetMethodInfo = newTargetType.GetMethod(this.MethodName);
+                    targetMethodInfo = newTargetType.GetMethod(this.MethodName, bindingFlags);
 
                     if (targetMethodInfo == null)
                         this.logger.Warn("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name);
@@ -199,7 +208,8 @@ namespace Stylet.Xaml
 
             try
             {
-                this.TargetMethodInfo.Invoke(this.Target, parameters);
+                var target = this.TargetMethodInfo.IsStatic ? null : this.Target;
+                this.TargetMethodInfo.Invoke(target, parameters);
             }
             catch (TargetInvocationException e)
             {
