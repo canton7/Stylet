@@ -24,8 +24,11 @@ namespace StyletUnitTests
                 get { return this._canDoSomethingWithGuard; }
                 set { SetAndNotify(ref this._canDoSomethingWithGuard, value);  }
             }
+
+            public bool DoSomethingWithGuardCalled;
             public void DoSomethingWithGuard()
             {
+                this.DoSomethingWithGuardCalled = true;
             }
 
             public object DoSomethingArgument;
@@ -333,6 +336,19 @@ namespace StyletUnitTests
             Assert.True(cmd.CanExecute(null));
             cmd.Execute(null);
             Assert.True(StaticTarget.DidSomething);
+        }
+
+        [Test]
+        public void UsesExplicitTarget()
+        {
+            var cmd = new CommandAction(this.target, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+
+            Assert.False(cmd.CanExecute(null));
+            this.target.CanDoSomethingWithGuard = true;
+            Assert.True(cmd.CanExecute(null));
+
+            cmd.Execute(null);
+            Assert.True(this.target.DoSomethingWithGuardCalled);
         }
     }
 }

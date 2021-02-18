@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Data;
@@ -47,6 +48,7 @@ namespace Stylet.Xaml
         public object Target
         {
             get { return this.GetValue(targetProperty); }
+            private set { this.SetValue(targetProperty, value); }
         }
 
         private static readonly DependencyProperty targetProperty =
@@ -56,7 +58,7 @@ namespace Stylet.Xaml
             }));
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="ActionBase"/> class
+        /// Initialises a new instance of the <see cref="ActionBase"/> class to use <see cref="View.ActionTargetProperty"/> to get the target
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
         /// <param name="backupSubject">Backup subject to use if no ActionTarget could be retrieved from the subject</param>
@@ -65,12 +67,9 @@ namespace Stylet.Xaml
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
         /// <param name="logger">Logger to use</param>
         public ActionBase(DependencyObject subject, DependencyObject backupSubject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
+            : this(methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
         {
             this.Subject = subject;
-            this.MethodName = methodName;
-            this.TargetNullBehaviour = targetNullBehaviour;
-            this.ActionNonExistentBehaviour = actionNonExistentBehaviour;
-            this.logger = logger;
 
             // If a 'backupSubject' was given, bind both that and 'subject' to this.Target (with a converter which picks the first
             // one that isn't View.InitialActionTarget). If it wasn't given, just bind 'subject'.
@@ -99,6 +98,31 @@ namespace Stylet.Xaml
                 });
                 BindingOperations.SetBinding(this, targetProperty, multiBinding);
             }
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ActionBase"/> class to use an explicit target
+        /// </summary>
+        /// <param name="target">Target to find the method on</param>
+        /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
+        /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
+        /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
+        /// <param name="logger">Logger to use</param>
+        public ActionBase(object target, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
+            : this(methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
+        {
+            if (target == null)
+                throw new ArgumentNullException(nameof(target));
+
+            this.Target = target;
+        }
+
+        private ActionBase(string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
+        {
+            this.MethodName = methodName ?? throw new ArgumentNullException(nameof(methodName));
+            this.TargetNullBehaviour = targetNullBehaviour;
+            this.ActionNonExistentBehaviour = actionNonExistentBehaviour;
+            this.logger = logger;
         }
 
         private void UpdateActionTarget(object oldTarget, object newTarget)
@@ -143,7 +167,7 @@ namespace Stylet.Xaml
                     targetMethodInfo = newTargetType.GetMethod(this.MethodName, bindingFlags);
 
                     if (targetMethodInfo == null)
-                        this.logger.Warn("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name);
+                        this.logger.Warn("Unable to find{0} method {1} on {2}", newTarget is Type ? " static" : "", this.MethodName, newTargetType.Name);
                     else
                         this.AssertTargetMethodInfo(targetMethodInfo, newTargetType);
                 }
@@ -192,7 +216,7 @@ namespace Stylet.Xaml
 
             if (this.TargetMethodInfo == null && this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
             {
-                var ex = new ActionNotFoundException(String.Format("Unable to find method {0} on target {1}", this.MethodName, this.Target.GetType().Name));
+                var ex = new ActionNotFoundException(String.Format("Unable to find method {0} on {1}", this.MethodName, this.TargetName()));
                 this.logger.Error(ex);
                 throw ex;
             }
@@ -204,7 +228,7 @@ namespace Stylet.Xaml
         /// <param name="parameters">Parameters to pass to the target method</param>
         protected internal void InvokeTargetMethod(object[] parameters)
         {
-            this.logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters));
+            this.logger.Info("Invoking method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : String.Join(", ", parameters));
 
             try
             {
@@ -215,10 +239,17 @@ namespace Stylet.Xaml
             {
                 // Be nice and unwrap this for them
                 // They want a stack track for their VM method, not us
-                this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
+                this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : String.Join(", ", parameters)));
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
             }
+        }
+
+        private string TargetName()
+        {
+            return this.Target is Type t
+                ? $"static target {t.Name}"
+                : $"target {this.Target.GetType().Name}";
         }
 
         private class MultiBindingToActionTargetConverter : IMultiValueConverter

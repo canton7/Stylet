@@ -23,7 +23,7 @@ namespace Stylet.Xaml
         private readonly Type eventHandlerType;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="EventAction"/> class
+        /// Initialises a new instance of the <see cref="EventAction"/> classto use <see cref="View.ActionTargetProperty"/> to get the target
         /// </summary>
         /// <param name="subject">View whose View.ActionTarget we watch</param>
         /// <param name="backupSubject">Backup subject to use if no ActionTarget could be retrieved from the subject</param>
@@ -34,12 +34,31 @@ namespace Stylet.Xaml
         public EventAction(DependencyObject subject, DependencyObject backupSubject, Type eventHandlerType, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
             : base(subject, backupSubject, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
         {
+            AssertBehaviours(targetNullBehaviour, actionNonExistentBehaviour);
+            this.eventHandlerType = eventHandlerType;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="EventAction"/> class to use an explicit target
+        /// </summary>
+        /// <param name="target">Target to find the method on</param>
+        /// <param name="eventHandlerType">Type of event handler we're returning a delegate for</param>
+        /// <param name="methodName">The MyMethod in {s:Action MyMethod}, this is what we call when the event's fired</param>
+        /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
+        /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
+        public EventAction(object target, Type eventHandlerType, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+            : base(target, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
+        {
+            AssertBehaviours(targetNullBehaviour, actionNonExistentBehaviour);
+            this.eventHandlerType = eventHandlerType;
+        }
+
+        private static void AssertBehaviours(ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+        {
             if (targetNullBehaviour == ActionUnavailableBehaviour.Disable)
                 throw new ArgumentException("Setting NullTarget = Disable is unsupported when used on an Event");
             if (actionNonExistentBehaviour == ActionUnavailableBehaviour.Disable)
                 throw new ArgumentException("Setting ActionNotFound = Disable is unsupported when used on an Event");
-
-            this.eventHandlerType = eventHandlerType;
         }
 
         /// <summary>

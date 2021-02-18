@@ -294,5 +294,13 @@ namespace StyletUnitTests
             cmd.GetDelegate().DynamicInvoke(null, null);
             Assert.True(StaticTarget.DidSomething);
         }
+
+        [Test]
+        public void UsesExplicitTarget()
+        {
+            var cmd = new EventAction(this.target, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            cmd.GetDelegate().DynamicInvoke(null, null);
+            Assert.True(this.target.DoSomethingCalled);
+        }
     }
 }

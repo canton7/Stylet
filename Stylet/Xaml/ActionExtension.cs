@@ -45,6 +45,11 @@ namespace Stylet.Xaml
         public string Method { get; set; }
 
         /// <summary>
+        /// Gets or sets a target to override that set with View.ActionTarget
+        /// </summary>
+        public object Target { get; set; }
+
+        /// <summary>
         /// Gets or sets the behaviour if the View.ActionTarget is nulil
         /// </summary>
         public ActionUnavailableBehaviour NullTarget { get; set; }
@@ -101,15 +106,13 @@ namespace Stylet.Xaml
                 throw new InvalidOperationException("Method has not been set");
 
             var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
-            var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
-            var rootObject = rootObjectProvider?.RootObject as DependencyObject;
 
             switch (valueService.TargetObject)
             {
                 case DependencyObject targetObject:
-                    return this.HandleDependencyObject(valueService, targetObject, rootObject);
+                    return this.HandleDependencyObject(serviceProvider, valueService, targetObject);
                 case CommandBinding commandBinding:
-                    return this.HandleCommandBinding(rootObject, ((EventInfo)valueService.TargetProperty).EventHandlerType);
+                    return this.CreateEventAction(serviceProvider, null, ((EventInfo)valueService.TargetProperty).EventHandlerType, isCommandBinding: true);
                 default:
                     // Seems this is the case when we're in a template. We'll get called again properly in a second.
                     // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
@@ -117,39 +120,66 @@ namespace Stylet.Xaml
             }
         }
 
-        private object HandleDependencyObject(IProvideValueTarget valueService, DependencyObject targetObject, DependencyObject rootObject)
+        private object HandleDependencyObject(IServiceProvider serviceProvider, IProvideValueTarget valueService, DependencyObject targetObject)
         {
             switch (valueService.TargetProperty)
             {
                 case DependencyProperty dependencyProperty when dependencyProperty.PropertyType == typeof(ICommand):
                     // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
-                    return new CommandAction(targetObject, rootObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
+                    return this.CreateCommandAction(serviceProvider, targetObject);
                 case EventInfo eventInfo:
-                {
-                    var ec = new EventAction(targetObject, rootObject, eventInfo.EventHandlerType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
-                    return ec.GetDelegate();
-                }
+                    return this.CreateEventAction(serviceProvider, targetObject, eventInfo.EventHandlerType);
                 case MethodInfo methodInfo: // For attached events
-                {
-                    var parameters = methodInfo.GetParameters();
-                    if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
                     {
-                        var ec = new EventAction(targetObject, rootObject, parameters[1].ParameterType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
-                        return ec.GetDelegate();
+                        var parameters = methodInfo.GetParameters();
+                        if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
+                        {
+                            return this.CreateEventAction(serviceProvider, targetObject, parameters[1].ParameterType);
+                        }
+                        throw new ArgumentException("Action used with an attached event (or something similar) which didn't follow the normal pattern");
                     }
-                    throw new ArgumentException("Action used with an attached event (or something similar) which didn't follow the normal pattern");
-                }
                 default:
                     throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
             }
         }
 
-        private object HandleCommandBinding(DependencyObject rootObject, Type propertyType)
+        private ICommand CreateCommandAction(IServiceProvider serviceProvider, DependencyObject targetObject)
         {
-            if (rootObject == null)
-                throw new InvalidOperationException("Action may only be used with CommandBinding from a XAML view (unable to retrieve IRootObjectProvider.RootObject)");
+            if (this.Target == null)
+            {
+                var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
+                var rootObject = rootObjectProvider?.RootObject as DependencyObject;
+                return new CommandAction(targetObject, rootObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
+            }
+            else
+            {
+                return new CommandAction(this.Target, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
+            }
+        }
 
-            var ec = new EventAction(rootObject, null, propertyType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+        private Delegate CreateEventAction(IServiceProvider serviceProvider, DependencyObject targetObject, Type eventType, bool isCommandBinding = false)
+        {
+            EventAction ec;
+            if (this.Target == null)
+            {
+                var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
+                var rootObject = rootObjectProvider?.RootObject as DependencyObject;
+                if (isCommandBinding)
+                {
+                    if (rootObject == null)
+                        throw new InvalidOperationException("Action may only be used with CommandBinding from a XAML view (unable to retrieve IRootObjectProvider.RootObject)");
+                    ec = new EventAction(rootObject, null, eventType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                }
+                else
+                {
+                    ec = new EventAction(targetObject, rootObject, eventType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                }
+            }
+            else
+            {
+                ec = new EventAction(this.Target, eventType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+            }
+
             return ec.GetDelegate();
         }
     }

@@ -126,6 +126,19 @@ namespace StyletUnitTests
 
             Assert.Throws<InvalidOperationException>(() => this.actionExtension.ProvideValue(this.serviceProvider.Object));
         }
+
+        [Test]
+        public void OverridesTargetIfSetCommand()
+        {
+            var target = new object();
+            this.actionExtension.Target = target;
+
+            this.provideValueTarget.Setup(x => x.TargetProperty).Returns(Button.CommandProperty);
+            var cmd = (CommandAction)this.actionExtension.ProvideValue(this.serviceProvider.Object);
+            Assert.AreSame(target, cmd.Target);
+        }
+
+        // Can't really test Target on EventAction. Oh well.
     }
 }
 
