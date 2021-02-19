@@ -66,14 +66,14 @@ namespace Stylet.Xaml
         /// </summary>
         /// <param name="targetMethodInfo">MethodInfo of method on new target</param>
         /// <param name="newTargetType">Type of new target</param>
-        protected internal override void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType)
+        private protected override void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType)
         {
             var methodParameters = targetMethodInfo.GetParameters();
             if (!(methodParameters.Length == 0 ||
                 (methodParameters.Length == 1 && (typeof(EventArgs).IsAssignableFrom(methodParameters[0].ParameterType) || methodParameters[0].ParameterType == typeof(DependencyPropertyChangedEventArgs))) ||
                 (methodParameters.Length == 2 && (typeof(EventArgs).IsAssignableFrom(methodParameters[1].ParameterType) || methodParameters[1].ParameterType == typeof(DependencyPropertyChangedEventArgs)))))
             {
-                var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have the signatures void Method(), void Method(EventArgsOrSubClass e), or void Method(object sender, EventArgsOrSubClass e)", this.MethodName, newTargetType.Name));
+                var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have the signatures Method(), Method(EventArgsOrSubClass e), or Method(object sender, EventArgsOrSubClass e)", this.MethodName, newTargetType.Name));
                 logger.Error(e);
                 throw e;
             }

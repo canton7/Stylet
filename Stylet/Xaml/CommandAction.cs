@@ -58,7 +58,7 @@ namespace Stylet.Xaml
         /// </summary>
         /// <param name="targetMethodInfo">MethodInfo of method on new target</param>
         /// <param name="newTargetType">Type of new target</param>
-        protected internal override void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType)
+        private protected override void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType)
         {
             var methodParameters = targetMethodInfo.GetParameters();
             if (methodParameters.Length > 1)
@@ -74,7 +74,7 @@ namespace Stylet.Xaml
         /// </summary>
         /// <param name="oldTarget">Previous target</param>
         /// <param name="newTarget">New target</param>
-        protected internal override void OnTargetChanged(object oldTarget, object newTarget)
+        private protected override void OnTargetChanged(object oldTarget, object newTarget)
         {
             if (oldTarget is INotifyPropertyChanged oldInpc)
                 PropertyChangedEventManager.RemoveHandler(oldInpc, this.PropertyChangedHandler, this.GuardName);

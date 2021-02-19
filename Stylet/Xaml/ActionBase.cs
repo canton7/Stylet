@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
@@ -189,19 +190,19 @@ namespace Stylet.Xaml
         /// </summary>
         /// <param name="targetMethodInfo">MethodInfo of method on new target</param>
         /// <param name="newTargetType">Type of new target</param>
-        protected internal abstract void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType);
+        private protected abstract void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType);
 
         /// <summary>
         /// Invoked when a new target is set, after all other action has been taken
         /// </summary>
         /// <param name="oldTarget">Previous target</param>
         /// <param name="newTarget">New target</param>
-        protected internal virtual void OnTargetChanged(object oldTarget, object newTarget) { }
+        private protected virtual void OnTargetChanged(object oldTarget, object newTarget) { }
 
         /// <summary>
         /// Assert that the target is not View.InitialActionTarget
         /// </summary>
-        protected internal void AssertTargetSet()
+        private protected void AssertTargetSet()
         {
             // If we've made it this far and the target is still the default, then something's wrong
             // Make sure they know
@@ -226,14 +227,19 @@ namespace Stylet.Xaml
         /// Invoke the target method with the given parameters
         /// </summary>
         /// <param name="parameters">Parameters to pass to the target method</param>
-        protected internal void InvokeTargetMethod(object[] parameters)
+        private protected void InvokeTargetMethod(object[] parameters)
         {
             this.logger.Info("Invoking method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : String.Join(", ", parameters));
 
             try
             {
                 var target = this.TargetMethodInfo.IsStatic ? null : this.Target;
-                this.TargetMethodInfo.Invoke(target, parameters);
+                var result = this.TargetMethodInfo.Invoke(target, parameters);
+                // Be nice and make sure that any exceptions get rethrown
+                if (result is Task task)
+                {
+                    AwaitTask(task);
+                }
             }
             catch (TargetInvocationException e)
             {
@@ -243,6 +249,8 @@ namespace Stylet.Xaml
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
             }
+
+            async void AwaitTask(Task t) => await t;
         }
 
         private string TargetName()
