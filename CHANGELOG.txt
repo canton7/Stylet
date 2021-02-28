@@ -1,6 +1,20 @@
 Stylet Changelog
 ================
 
+v1.3.6
+------
+
+ - If an Action returns a Task, await it in an `async void` method (#53)
+ - Allow Actions to have explicit targets (`{s:Action ..., Target=...}`) (#177)
+ - Allow Actions to invoke static methods (#177)
+ - Actions: if the target does not implement `INotifyPropertyChanged`, still try and evaluate guard properties (#214)
+ - Add an extra layer to the bootstrapper class hierarchy between `BootstrapperBase` and `Bootstrapper<T>`,
+   for people who don't have a root ViewModel
+ - Allow starting the Bootstrapper without an Application (#206)
+ - Expose SynchronousDispatcher and ApplicationDispatcher to assign to `Execute.Dispatcher` (#217)
+ - Improve the sample bootstrappers (fix Autofac, add Microsoft.Services.DependencyInjection)
+ - Improve samples
+
 v1.3.5
 ------
 

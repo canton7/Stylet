@@ -26,7 +26,7 @@ namespace Stylet.Xaml
         private Func<bool> guardPropertyGetter;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="CommandAction"/> class
+        /// Initialises a new instance of the <see cref="CommandAction"/> class to use <see cref="View.ActionTargetProperty"/> to get the target
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
         /// <param name="backupSubject">Backup subject to use if no ActionTarget could be retrieved from the subject</param>
@@ -35,6 +35,17 @@ namespace Stylet.Xaml
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
         public CommandAction(DependencyObject subject, DependencyObject backupSubject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
             : base(subject, backupSubject, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
+        { }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="CommandAction"/> class to use an explicit target
+        /// </summary>
+        /// <param name="target">Target to find the method on</param>
+        /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
+        /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
+        /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
+        public CommandAction(object target, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour)
+            : base(target, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
         { }
 
         private string GuardName
@@ -47,7 +58,7 @@ namespace Stylet.Xaml
         /// </summary>
         /// <param name="targetMethodInfo">MethodInfo of method on new target</param>
         /// <param name="newTargetType">Type of new target</param>
-        protected internal override void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType)
+        private protected override void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType)
         {
             var methodParameters = targetMethodInfo.GetParameters();
             if (methodParameters.Length > 1)
@@ -63,34 +74,33 @@ namespace Stylet.Xaml
         /// </summary>
         /// <param name="oldTarget">Previous target</param>
         /// <param name="newTarget">New target</param>
-        protected internal override void OnTargetChanged(object oldTarget, object newTarget)
+        private protected override void OnTargetChanged(object oldTarget, object newTarget)
         {
-            var oldInpc = oldTarget as INotifyPropertyChanged;
-            if (oldInpc != null)
+            if (oldTarget is INotifyPropertyChanged oldInpc)
                 PropertyChangedEventManager.RemoveHandler(oldInpc, this.PropertyChangedHandler, this.GuardName);
 
             this.guardPropertyGetter = null;
-
-            var inpc = newTarget as INotifyPropertyChanged;
-            if (inpc != null)
+            var guardPropertyInfo = newTarget?.GetType().GetProperty(this.GuardName);
+            if (guardPropertyInfo != null)
             {
-                var guardPropertyInfo = newTarget.GetType().GetProperty(this.GuardName);
-                if (guardPropertyInfo != null)
+                if (guardPropertyInfo.PropertyType == typeof(bool))
                 {
-                    if (guardPropertyInfo.PropertyType == typeof(bool))
-                    {
-                        var targetExpression = Expressions.Expression.Constant(newTarget);
-                        var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
-                        this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
-                    }
-                    else
-                    {
-                        logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
-                    }
+                    var targetExpression = Expressions.Expression.Constant(newTarget);
+                    var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
+                    this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
                 }
+                else
+                {
+                    logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
+                }
+            }
 
-                if (this.guardPropertyGetter != null)
+            if (this.guardPropertyGetter != null)
+            {
+                if (newTarget is INotifyPropertyChanged inpc)
                     PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.GuardName);
+                else
+                    logger.Warn("Found guard property {0} for action {1} on target {2}, but the target doesn't implement INotifyPropertyChanged, so changes won't be observed", this.GuardName, this.MethodName, newTarget);
             }
 
             this.UpdateCanExecute();

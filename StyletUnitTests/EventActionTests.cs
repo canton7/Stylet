@@ -74,6 +74,12 @@ namespace StyletUnitTests
         {
         }
 
+        public class StaticTarget
+        {
+            public static bool DidSomething;
+            public static void DoSomething() => DidSomething = true;
+        }
+
         private DependencyObject subject;
         private Target target;
         private EventInfo eventInfo;
@@ -87,6 +93,7 @@ namespace StyletUnitTests
             this.eventInfo = typeof(Subject).GetEvent("SimpleEventHandler");
             this.dependencyChangedEventInfo = typeof(Subject).GetEvent("DependencyChangedEventHandler");
             View.SetActionTarget(this.subject, this.target);
+            StaticTarget.DidSomething = false;
         }
 
         [Test]
@@ -269,13 +276,31 @@ namespace StyletUnitTests
         {
             var view = new DependencyObject();
             var backupView = new DependencyObject();
-            var cmd = new CommandAction(view, backupView, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            var cmd = new EventAction(view, backupView, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
 
             View.SetActionTarget(backupView, this.target);
             view.SetValue(FrameworkElement.DataContextProperty, this.target);
 
-            cmd.Execute(null);
+            cmd.GetDelegate().DynamicInvoke(null, null);
             Assert.IsTrue(this.target.DoSomethingCalled);
+        }
+
+        [Test]
+        public void SupportsStaticTargets()
+        {
+            var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            View.SetActionTarget(this.subject, typeof(StaticTarget));
+
+            cmd.GetDelegate().DynamicInvoke(null, null);
+            Assert.True(StaticTarget.DidSomething);
+        }
+
+        [Test]
+        public void UsesExplicitTarget()
+        {
+            var cmd = new EventAction(this.target, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            cmd.GetDelegate().DynamicInvoke(null, null);
+            Assert.True(this.target.DoSomethingCalled);
         }
     }
 }

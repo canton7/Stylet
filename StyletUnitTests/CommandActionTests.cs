@@ -2,6 +2,7 @@
 using Stylet;
 using Stylet.Xaml;
 using System;
+using System.Runtime.CompilerServices;
 using System.Windows;
 
 namespace StyletUnitTests
@@ -23,8 +24,11 @@ namespace StyletUnitTests
                 get { return this._canDoSomethingWithGuard; }
                 set { SetAndNotify(ref this._canDoSomethingWithGuard, value);  }
             }
+
+            public bool DoSomethingWithGuardCalled;
             public void DoSomethingWithGuard()
             {
+                this.DoSomethingWithGuardCalled = true;
             }
 
             public object DoSomethingArgument;
@@ -62,6 +66,18 @@ namespace StyletUnitTests
         {
         }
 
+        private class TargetWithoutInpc
+        {
+            public bool CanDoSomething => false;
+            public void DoSomething() { }
+        }
+
+        public class StaticTarget
+        {
+            public static bool DidSomething;
+            public static void DoSomething() => DidSomething = true;
+        }
+
         private DependencyObject subject;
         private Target target;
 
@@ -71,6 +87,7 @@ namespace StyletUnitTests
             this.target = new Target();
             this.subject = new DependencyObject();
             View.SetActionTarget(this.subject, this.target);
+            StaticTarget.DidSomething = false;
         }
 
         [Test]
@@ -169,6 +186,18 @@ namespace StyletUnitTests
             cmd.CanExecuteChanged += (o, e) => eventRaised = true;
             this.target.CanDoSomethingWithGuard = true;
             Assert.True(eventRaised);
+        }
+
+        [Test]
+        public void FetchesGuardPropertyWhenTargetDoesNotImplementInpc()
+        {
+            var target = new TargetWithoutInpc();
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            bool eventRaised = false;
+            cmd.CanExecuteChanged += (o, e) => eventRaised = true;
+            View.SetActionTarget(this.subject, target);
+            Assert.True(eventRaised);
+            Assert.False(cmd.CanExecute(null));
         }
 
         [Test]
@@ -296,6 +325,30 @@ namespace StyletUnitTests
 
             cmd.Execute(null);
             Assert.IsTrue(this.target.DoSomethingCalled);
+        }
+
+        [Test]
+        public void SupportsStaticTargets()
+        {
+            var cmd = new CommandAction(this.subject, null, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+            View.SetActionTarget(this.subject, typeof(StaticTarget));
+
+            Assert.True(cmd.CanExecute(null));
+            cmd.Execute(null);
+            Assert.True(StaticTarget.DidSomething);
+        }
+
+        [Test]
+        public void UsesExplicitTarget()
+        {
+            var cmd = new CommandAction(this.target, "DoSomethingWithGuard", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
+
+            Assert.False(cmd.CanExecute(null));
+            this.target.CanDoSomethingWithGuard = true;
+            Assert.True(cmd.CanExecute(null));
+
+            cmd.Execute(null);
+            Assert.True(this.target.DoSomethingWithGuardCalled);
         }
     }
 }

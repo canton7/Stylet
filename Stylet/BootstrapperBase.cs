@@ -34,6 +34,13 @@ namespace Stylet
         /// <summary>
         /// Called by the ApplicationLoader when this bootstrapper is loaded
         /// </summary>
+        /// <remarks>
+        /// If you're constructing the bootstrapper yourself, call this manully and pass in the Application
+        /// (probably <see cref="Application.Current"/>). Stylet will start when <see cref="Application.Startup"/>
+        /// is fired. If no Application is available, do not call this but instead call <see cref="Start(string[])"/>.
+        /// (In this case, note that the <see cref="Execute"/> methods will all dispatch synchronously, unless you
+        /// set <see cref="Execute.Dispatcher"/> yourself).
+        /// </remarks>
         /// <param name="application">Application within which Stylet is running</param>
         public void Setup(Application application)
         {
@@ -43,7 +50,7 @@ namespace Stylet
             this.Application = application;
 
             // Use the current application's dispatcher for Execute
-            Execute.Dispatcher = new DispatcherWrapper(this.Application.Dispatcher);
+            Execute.Dispatcher = new ApplicationDispatcher(this.Application.Dispatcher);
 
             this.Application.Startup += (o, e) => this.Start(e.Args);
             // Make life nice for the app - they can handle these by overriding Bootstrapper methods, rather than adding event handlers
@@ -64,6 +71,10 @@ namespace Stylet
         /// <summary>
         /// Called on Application.Startup, this does everything necessary to start the application
         /// </summary>
+        /// <remarks>
+        /// If you're constructing the bootstrapper yourself, and aren't able to call <see cref="Setup(Application)"/>,
+        /// (e.g. because an Application isn't available), you must call this yourself.
+        /// </remarks>
         /// <param name="args">Command-line arguments used to start this executable</param>
         public virtual void Start(string[] args)
         {
@@ -73,9 +84,8 @@ namespace Stylet
 
             this.ConfigureBootstrapper();
 
-            // Cater for the unit tests, which can't sensibly stub Application
-            if (this.Application != null)
-                this.Application.Resources.Add(View.ViewManagerResourceKey, this.GetInstance(typeof(IViewManager)));
+            // We allow starting without an application
+            this.Application?.Resources.Add(View.ViewManagerResourceKey, this.GetInstance(typeof(IViewManager)));
 
             this.Configure();
             this.Launch();
@@ -107,7 +117,7 @@ namespace Stylet
         /// <returns>The currently-displayed window, or null</returns>
         public virtual Window GetActiveWindow()
         {
-            return this.Application.Windows.OfType<Window>().FirstOrDefault(x => x.IsActive) ?? this.Application.MainWindow;
+            return this.Application?.Windows.OfType<Window>().FirstOrDefault(x => x.IsActive) ?? this.Application?.MainWindow;
         }
 
         /// <summary>

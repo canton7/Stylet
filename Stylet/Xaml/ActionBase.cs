@@ -3,7 +3,9 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
@@ -42,11 +44,12 @@ namespace Stylet.Xaml
         protected readonly ActionUnavailableBehaviour ActionNonExistentBehaviour;
 
         /// <summary>
-        /// Gets the object on which methods will be invokced
+        /// Gets the object on which methods will be invoked
         /// </summary>
         public object Target
         {
             get { return this.GetValue(targetProperty); }
+            private set { this.SetValue(targetProperty, value); }
         }
 
         private static readonly DependencyProperty targetProperty =
@@ -56,7 +59,7 @@ namespace Stylet.Xaml
             }));
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="ActionBase"/> class
+        /// Initialises a new instance of the <see cref="ActionBase"/> class to use <see cref="View.ActionTargetProperty"/> to get the target
         /// </summary>
         /// <param name="subject">View to grab the View.ActionTarget from</param>
         /// <param name="backupSubject">Backup subject to use if no ActionTarget could be retrieved from the subject</param>
@@ -65,12 +68,9 @@ namespace Stylet.Xaml
         /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
         /// <param name="logger">Logger to use</param>
         public ActionBase(DependencyObject subject, DependencyObject backupSubject, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
+            : this(methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
         {
             this.Subject = subject;
-            this.MethodName = methodName;
-            this.TargetNullBehaviour = targetNullBehaviour;
-            this.ActionNonExistentBehaviour = actionNonExistentBehaviour;
-            this.logger = logger;
 
             // If a 'backupSubject' was given, bind both that and 'subject' to this.Target (with a converter which picks the first
             // one that isn't View.InitialActionTarget). If it wasn't given, just bind 'subject'.
@@ -101,6 +101,31 @@ namespace Stylet.Xaml
             }
         }
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ActionBase"/> class to use an explicit target
+        /// </summary>
+        /// <param name="target">Target to find the method on</param>
+        /// <param name="methodName">Method name. the MyMethod in Buttom Command="{s:Action MyMethod}".</param>
+        /// <param name="targetNullBehaviour">Behaviour for it the relevant View.ActionTarget is null</param>
+        /// <param name="actionNonExistentBehaviour">Behaviour for if the action doesn't exist on the View.ActionTarget</param>
+        /// <param name="logger">Logger to use</param>
+        public ActionBase(object target, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
+            : this(methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
+        {
+            if (target == null)
+                throw new ArgumentNullException(nameof(target));
+
+            this.Target = target;
+        }
+
+        private ActionBase(string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
+        {
+            this.MethodName = methodName ?? throw new ArgumentNullException(nameof(methodName));
+            this.TargetNullBehaviour = targetNullBehaviour;
+            this.ActionNonExistentBehaviour = actionNonExistentBehaviour;
+            this.logger = logger;
+        }
+
         private void UpdateActionTarget(object oldTarget, object newTarget)
         {
             MethodInfo targetMethodInfo = null;
@@ -128,13 +153,22 @@ namespace Stylet.Xaml
             }
             else
             {
-                var newTargetType = newTarget.GetType();
+                BindingFlags bindingFlags;
+                if (newTarget is Type newTargetType)
+                {
+                    bindingFlags = BindingFlags.Public | BindingFlags.Static;
+                }
+                else
+                {
+                    newTargetType = newTarget.GetType();
+                    bindingFlags = BindingFlags.Public | BindingFlags.Instance;
+                }
                 try
                 {
-                    targetMethodInfo = newTargetType.GetMethod(this.MethodName);
+                    targetMethodInfo = newTargetType.GetMethod(this.MethodName, bindingFlags);
 
                     if (targetMethodInfo == null)
-                        this.logger.Warn("Unable to find method {0} on {1}", this.MethodName, newTargetType.Name);
+                        this.logger.Warn("Unable to find{0} method {1} on {2}", newTarget is Type ? " static" : "", this.MethodName, newTargetType.Name);
                     else
                         this.AssertTargetMethodInfo(targetMethodInfo, newTargetType);
                 }
@@ -156,19 +190,19 @@ namespace Stylet.Xaml
         /// </summary>
         /// <param name="targetMethodInfo">MethodInfo of method on new target</param>
         /// <param name="newTargetType">Type of new target</param>
-        protected internal abstract void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType);
+        private protected abstract void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType);
 
         /// <summary>
         /// Invoked when a new target is set, after all other action has been taken
         /// </summary>
         /// <param name="oldTarget">Previous target</param>
         /// <param name="newTarget">New target</param>
-        protected internal virtual void OnTargetChanged(object oldTarget, object newTarget) { }
+        private protected virtual void OnTargetChanged(object oldTarget, object newTarget) { }
 
         /// <summary>
         /// Assert that the target is not View.InitialActionTarget
         /// </summary>
-        protected internal void AssertTargetSet()
+        private protected void AssertTargetSet()
         {
             // If we've made it this far and the target is still the default, then something's wrong
             // Make sure they know
@@ -183,7 +217,7 @@ namespace Stylet.Xaml
 
             if (this.TargetMethodInfo == null && this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
             {
-                var ex = new ActionNotFoundException(String.Format("Unable to find method {0} on target {1}", this.MethodName, this.Target.GetType().Name));
+                var ex = new ActionNotFoundException(String.Format("Unable to find method {0} on {1}", this.MethodName, this.TargetName()));
                 this.logger.Error(ex);
                 throw ex;
             }
@@ -193,22 +227,37 @@ namespace Stylet.Xaml
         /// Invoke the target method with the given parameters
         /// </summary>
         /// <param name="parameters">Parameters to pass to the target method</param>
-        protected internal void InvokeTargetMethod(object[] parameters)
+        private protected void InvokeTargetMethod(object[] parameters)
         {
-            this.logger.Info("Invoking method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters));
+            this.logger.Info("Invoking method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : String.Join(", ", parameters));
 
             try
             {
-                this.TargetMethodInfo.Invoke(this.Target, parameters);
+                var target = this.TargetMethodInfo.IsStatic ? null : this.Target;
+                var result = this.TargetMethodInfo.Invoke(target, parameters);
+                // Be nice and make sure that any exceptions get rethrown
+                if (result is Task task)
+                {
+                    AwaitTask(task);
+                }
             }
             catch (TargetInvocationException e)
             {
                 // Be nice and unwrap this for them
                 // They want a stack track for their VM method, not us
-                this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on target {1} with parameters ({2})", this.MethodName, this.Target, parameters == null ? "none" : String.Join(", ", parameters)));
+                this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : String.Join(", ", parameters)));
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
             }
+
+            async void AwaitTask(Task t) => await t;
+        }
+
+        private string TargetName()
+        {
+            return this.Target is Type t
+                ? $"static target {t.Name}"
+                : $"target {this.Target.GetType().Name}";
         }
 
         private class MultiBindingToActionTargetConverter : IMultiValueConverter

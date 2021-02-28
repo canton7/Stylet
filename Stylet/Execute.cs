@@ -16,11 +16,13 @@ namespace Stylet
         /// Gets or sets Execute's dispatcher
         /// </summary>
         /// <remarks>
-        /// Should be set to the UI thread's Dispatcher. This is normally done by the Bootstrapper.
+        /// Should be set a <see cref="ApplicationDispatcher"/> wrapping the current application's dispatcher, which is
+        /// normally done by the Bootstrapper. Can also be set to <see cref="SynchronousDispatcher.Instance"/>, or a
+        /// custom <see cref="IDispatcher"/> implementation.
         /// </remarks>
         public static IDispatcher Dispatcher
         {
-            get { return _dispatcher ?? (_dispatcher = new SynchronousDispatcher()); }
+            get { return _dispatcher ?? SynchronousDispatcher.Instance; }
 
             set
             {

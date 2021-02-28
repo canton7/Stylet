@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/2.1.2">
+﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.23">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -23,14 +23,10 @@
     
     <!-- Just embed all sources in the PDB: snupkg files don't support bare .cs files, and SourceLink is annoying -->
     <!-- We set IncludeSymbols in the Rakefile, because we don't want it to apply to Stylet.Start -->
+    <!-- Note that stack traces don't work on < net471, but snupkg only supports portable, so nothing we can do -->
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedAllSources>true</EmbedAllSources>
     <DebugType>portable</DebugType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <!-- Stack traces on < net471 don't work with portable -->
-    <DebugType>full</DebugType>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net45'">

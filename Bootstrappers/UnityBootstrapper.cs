@@ -11,10 +11,10 @@ namespace Bootstrappers
     {
         private IUnityContainer container;
 
-        private object _rootViewModel;
-        protected virtual object RootViewModel
+        private TRootViewModel _rootViewModel;
+        protected virtual TRootViewModel RootViewModel
         {
-            get { return this._rootViewModel ?? (this._rootViewModel = this.GetInstance(typeof(TRootViewModel))); }
+            get { return this._rootViewModel ?? (this._rootViewModel = (TRootViewModel)this.GetInstance(typeof(TRootViewModel))); }
         }
 
         protected override void ConfigureBootstrapper()

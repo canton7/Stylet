@@ -24,8 +24,9 @@ namespace Stylet.Samples.HelloDialog
             this.NameString = "Click the button to show the dialog";
         }
 
-        public void ShowDialog()
+        public async System.Threading.Tasks.Task ShowDialog()
         {
+            throw new Exception("KABLAMMO");
             var dialogVm = this.dialogFactory.CreateDialog1();
             var result = this.windowManager.ShowDialog(dialogVm);
             if (result.GetValueOrDefault())

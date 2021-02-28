@@ -14,10 +14,10 @@ namespace Bootstrappers
     {
         private IWindsorContainer container;
 
-        private object _rootViewModel;
-        protected virtual object RootViewModel
+        private TRootViewModel _rootViewModel;
+        protected virtual TRootViewModel RootViewModel
         {
-            get { return this._rootViewModel ?? (this._rootViewModel = this.GetInstance(typeof(TRootViewModel))); }
+            get { return this._rootViewModel ?? (this._rootViewModel = (TRootViewModel)this.GetInstance(typeof(TRootViewModel))); }
         }
 
         protected override void ConfigureBootstrapper()
@@ -39,7 +39,7 @@ namespace Bootstrappers
             };
 
             // Stylet does its own disposal of ViewModels: Castle Windsor shouldn't be doing the same
-            // Castle Windsor seems to be ver opinionated on this point, insisting that the container
+            // Castle Windsor seems to be very opinionated on this point, insisting that the container
             // should be responsible for disposing all components. This is at odds with Stylet's approach
             // (and indeed common sense).
 #pragma warning disable CS0618 // Type or member is obsolete

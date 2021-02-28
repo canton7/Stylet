@@ -12,10 +12,10 @@ namespace Bootstrappers
     {
         private IContainer container;
 
-        private object _rootViewModel;
-        protected virtual object RootViewModel
+        private TRootViewModel _rootViewModel;
+        protected virtual TRootViewModel RootViewModel
         {
-            get { return this._rootViewModel ?? (this._rootViewModel = this.GetInstance(typeof(TRootViewModel))); }
+            get { return this._rootViewModel ?? (this._rootViewModel = (TRootViewModel)this.GetInstance(typeof(TRootViewModel))); }
         }
 
         protected override void ConfigureBootstrapper()
@@ -43,7 +43,9 @@ namespace Bootstrappers
             builder.RegisterType<WindowManager>().As<IWindowManager>().SingleInstance();
             builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
             builder.RegisterType<MessageBoxViewModel>().As<IMessageBoxViewModel>().ExternallyOwned(); // Not singleton!
-            builder.RegisterAssemblyTypes(this.GetType().Assembly).ExternallyOwned();
+
+            // See https://github.com/canton7/Stylet/discussions/211
+            builder.RegisterAssemblyTypes(this.GetType().Assembly).Where(x => !x.Name.Contains("ProcessedByFody")).ExternallyOwned();
         }
 
         /// <summary>
