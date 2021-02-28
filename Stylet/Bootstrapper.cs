@@ -9,10 +9,10 @@ namespace Stylet
     /// Bootstrapper to be extended by any application which wants to use StyletIoC (the default)
     /// </summary>
     /// <remarks>
-    /// If you don't have a root ViewModel, you might prefer to override <see cref="StyletIoCBootstrapper"/>
+    /// If you don't have a root ViewModel, you might prefer to override <see cref="StyletIoCBootstrapperBase"/>
     /// </remarks>
     /// <typeparam name="TRootViewModel">Type of the root ViewModel. This will be instantiated and displayed</typeparam>
-    public abstract class Bootstrapper<TRootViewModel> : StyletIoCBootstrapper where TRootViewModel : class
+    public abstract class Bootstrapper<TRootViewModel> : StyletIoCBootstrapperBase where TRootViewModel : class
     {
         private TRootViewModel _rootViewModel;
 

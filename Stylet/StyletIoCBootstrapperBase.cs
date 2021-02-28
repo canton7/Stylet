@@ -13,7 +13,7 @@ namespace Stylet
     /// to display. If you don't want to show a window on startup, override <see cref="BootstrapperBase.Launch"/>
     /// but don't call <see cref="BootstrapperBase.DisplayRootView(object)"/>. 
     /// </remarks>
-    public abstract class StyletIoCBootstrapper : BootstrapperBase
+    public abstract class StyletIoCBootstrapperBase : BootstrapperBase
     {
         /// <summary>
         /// Gets or sets the Bootstrapper's IoC container. This is created after ConfigureIoC has been run.
