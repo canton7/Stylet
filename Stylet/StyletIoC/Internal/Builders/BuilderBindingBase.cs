@@ -59,28 +59,28 @@ namespace StyletIoC.Internal.Builders
         protected static void EnsureType(Type implementationType, Type serviceType, bool assertImplementation = true)
         {
             if (assertImplementation && (!implementationType.IsClass || implementationType.IsAbstract))
-                throw new StyletIoCRegistrationException(String.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
+                throw new StyletIoCRegistrationException(string.Format("Type {0} is not a concrete class, and so can't be used to implemented service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
 
             // Test this first, as it's a bit clearer than hitting 'type doesn't implement service'
             if (assertImplementation && implementationType.IsGenericTypeDefinition)
             {
                 if (!serviceType.IsGenericTypeDefinition)
-                    throw new StyletIoCRegistrationException(String.Format("You can't use an unbound generic type to implement anything that isn't an unbound generic service. Service: {0}, Type: {1}", serviceType.GetDescription(), implementationType.GetDescription()));
+                    throw new StyletIoCRegistrationException(string.Format("You can't use an unbound generic type to implement anything that isn't an unbound generic service. Service: {0}, Type: {1}", serviceType.GetDescription(), implementationType.GetDescription()));
 
                 // This restriction may change when I figure out how to pass down the correct type argument
                 if (serviceType.GetTypeInfo().GenericTypeParameters.Length != implementationType.GetTypeInfo().GenericTypeParameters.Length)
-                    throw new StyletIoCRegistrationException(String.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have the same number of type parameters. Service: {0}, Type: {1}", serviceType.GetDescription(), implementationType.GetDescription()));
+                    throw new StyletIoCRegistrationException(string.Format("If you're registering an unbound generic type to an unbound generic service, both service and type must have the same number of type parameters. Service: {0}, Type: {1}", serviceType.GetDescription(), implementationType.GetDescription()));
             }
             else if (serviceType.IsGenericTypeDefinition)
             {
                 if (implementationType.GetGenericArguments().Length > 0)
-                    throw new StyletIoCRegistrationException(String.Format("You cannot bind the bound generic type {0} to the unbound generic service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
+                    throw new StyletIoCRegistrationException(string.Format("You cannot bind the bound generic type {0} to the unbound generic service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
                 else
-                    throw new StyletIoCRegistrationException(String.Format("You cannot bind the non-generic type {0} to the unbound generic service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
+                    throw new StyletIoCRegistrationException(string.Format("You cannot bind the non-generic type {0} to the unbound generic service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
             }
 
             if (!implementationType.Implements(serviceType))
-                throw new StyletIoCRegistrationException(String.Format("Type {0} does not implement service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
+                throw new StyletIoCRegistrationException(string.Format("Type {0} does not implement service {1}", implementationType.GetDescription(), serviceType.GetDescription()));
         }
 
         protected void BindImplementationToServices(Container container, Type implementationType)
@@ -90,7 +90,7 @@ namespace StyletIoC.Internal.Builders
                 var firstGenericType = this.ServiceTypes.FirstOrDefault(x => x.Type.IsGenericTypeDefinition);
 
                 if (firstGenericType != null)
-                    throw new StyletIoCRegistrationException(String.Format("Cannot create a multiple-service binding with an unbound generic type {0}", firstGenericType.Type.GetDescription()));
+                    throw new StyletIoCRegistrationException(string.Format("Cannot create a multiple-service binding with an unbound generic type {0}", firstGenericType.Type.GetDescription()));
 
                 var creator = new TypeCreator(implementationType, container);
                 var registration = this.CreateRegistration(container, creator);

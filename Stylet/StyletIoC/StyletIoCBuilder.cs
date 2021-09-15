@@ -199,7 +199,7 @@ namespace StyletIoC
             if (extras != null)
                 assemblies = assemblies.Concat(extras);
             if (!assemblies.Any())
-                throw new StyletIoCRegistrationException(String.Format("{0} called but Assemblies is empty, and no extra assemblies given", methodName));
+                throw new StyletIoCRegistrationException(string.Format("{0} called but Assemblies is empty, and no extra assemblies given", methodName));
             return assemblies.Distinct();
         }
     }

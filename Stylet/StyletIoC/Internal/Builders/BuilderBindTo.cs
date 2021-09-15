@@ -92,7 +92,7 @@ namespace StyletIoC.Internal.Builders
         internal void Build(Container container)
         {
             if (this.builderBinding == null)
-                throw new StyletIoCRegistrationException(String.Format("Service type {0} is not bound to anything", this.ServiceTypes[0].Type.GetDescription()));
+                throw new StyletIoCRegistrationException(string.Format("Service type {0} is not bound to anything", this.ServiceTypes[0].Type.GetDescription()));
 
             this.builderBinding.Build(container);
         }

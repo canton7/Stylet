@@ -18,7 +18,7 @@ namespace StyletIoC.Internal.Builders
             Trace.Assert(serviceTypes.Count == 1);
 
             if (this.ServiceType.Type.IsGenericTypeDefinition)
-                throw new StyletIoCRegistrationException(String.Format("Unbound generic type {0} can't be used as an abstract factory", this.ServiceType.Type.GetDescription()));
+                throw new StyletIoCRegistrationException(string.Format("Unbound generic type {0} can't be used as an abstract factory", this.ServiceType.Type.GetDescription()));
         }
 
         public override void Build(Container container)

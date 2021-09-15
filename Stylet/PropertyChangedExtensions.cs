@@ -86,7 +86,7 @@ namespace Stylet
 
             private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
             {
-                var got = this.source.TryGetTarget(out TSource source);
+                bool got = this.source.TryGetTarget(out TSource source);
                 // We should never hit this case. The PropertyChangedeventManager shouldn't call us if the source became null
                 Debug.Assert(got);
                 this.handler(source, new PropertyChangedExtendedEventArgs<TProperty>(this.propertyName, this.valueSelector(source)));
@@ -158,24 +158,24 @@ namespace Stylet
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 
-            var propertyName = targetSelector.NameForProperty();
+            string propertyName = targetSelector.NameForProperty();
             var propertyAccess = targetSelector.Compile();
             // Make sure we don't capture target strongly, otherwise we'll retain it when we shouldn't
             // If it does get released, we're released from the delegate list
             var weakTarget = new WeakReference<TSource>(target);
 
-            void ourHandler(object o, PropertyChangedEventArgs e)
+            void OurHandler(object o, PropertyChangedEventArgs e)
             {
-                if (e.PropertyName == propertyName || e.PropertyName == String.Empty)
+                if (e.PropertyName == propertyName || e.PropertyName == string.Empty)
                 {
                     if (weakTarget.TryGetTarget(out TSource strongTarget))
                         handler(strongTarget, new PropertyChangedExtendedEventArgs<TProperty>(propertyName, propertyAccess(strongTarget)));
                 }
             }
 
-            target.PropertyChanged += ourHandler;
+            target.PropertyChanged += OurHandler;
 
-            var listener = new StrongPropertyChangedBinding(target, ourHandler);
+            var listener = new StrongPropertyChangedBinding(target, OurHandler);
 
             if (invoke)
             {

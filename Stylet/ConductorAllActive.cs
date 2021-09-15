@@ -166,7 +166,7 @@ namespace Stylet
                 /// Close a particular item, removing it from the Items collection
                 /// </summary>
                 /// <param name="item">Item to close</param>
-                public async override void CloseItem(T item)
+                public override async void CloseItem(T item)
                 {
                     if (item == null)
                         return;

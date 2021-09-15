@@ -44,7 +44,7 @@ namespace Stylet.Xaml
             }
             catch (Exception e)
             {
-                logger.Error(e, String.Format("Error trying to call CreateBitmapSourceFromHIcon: {0}", e.Message));
+                logger.Error(e, string.Format("Error trying to call CreateBitmapSourceFromHIcon: {0}", e.Message));
                 return null;
             }
         }

@@ -29,7 +29,7 @@ namespace StyletIoC.Internal
 
             // Not thread-safe, as it's only called from the builder
             if (!serviceType.IsInterface)
-                throw new StyletIoCCreateFactoryException(String.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.GetDescription()));
+                throw new StyletIoCCreateFactoryException(string.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.GetDescription()));
 
             // If the service is 'ISomethingFactory', call our new class 'GeneratedSomethingFactory'
             var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(serviceType), TypeAttributes.Public);
@@ -116,7 +116,7 @@ namespace StyletIoC.Internal
             }
             catch (TypeLoadException e)
             {
-                throw new StyletIoCCreateFactoryException(String.Format("Unable to create factory type for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(StyletIoCContainer.FactoryAssemblyName)] to your AssemblyInfo.cs", serviceType.GetDescription()), e);
+                throw new StyletIoCCreateFactoryException(string.Format("Unable to create factory type for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(StyletIoCContainer.FactoryAssemblyName)] to your AssemblyInfo.cs", serviceType.GetDescription()), e);
             }
 
             return constructedType;

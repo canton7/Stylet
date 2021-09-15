@@ -87,9 +87,9 @@ namespace Stylet.Xaml
                         if (bindingExpression == null)
                             text = "View for [Broken Binding]";
                         else if (bindingExpression.ResolvedSourcePropertyName == null)
-                            text = String.Format("View for child ViewModel on {0}", bindingExpression.DataItem.GetType().Name);
+                            text = string.Format("View for child ViewModel on {0}", bindingExpression.DataItem.GetType().Name);
                         else
-                            text = String.Format("View for {0}.{1}", bindingExpression.DataItem.GetType().Name, bindingExpression.ResolvedSourcePropertyName);
+                            text = string.Format("View for {0}.{1}", bindingExpression.DataItem.GetType().Name, bindingExpression.ResolvedSourcePropertyName);
                         SetContentProperty(d, new System.Windows.Controls.TextBlock() { Text = text });
                     }
                     else
@@ -100,7 +100,7 @@ namespace Stylet.Xaml
                 else
                 {
                     // It appears we can be reset to the default value on destruction
-                    var newValue = e.NewValue == defaultModelValue ? null : e.NewValue;
+                    object newValue = e.NewValue == defaultModelValue ? null : e.NewValue;
                     viewManager.OnModelChanged(d, e.OldValue, newValue);
                 }
             }));
@@ -118,7 +118,7 @@ namespace Stylet.Xaml
             string propertyName = attribute != null ? attribute.Name : "Content";
             var property = type.GetProperty(propertyName);
             if (property == null)
-                throw new InvalidOperationException(String.Format("Unable to find a Content property on type {0}. Make sure you're using 's:View.Model' on a suitable container, e.g. a ContentControl", type.Name));
+                throw new InvalidOperationException(string.Format("Unable to find a Content property on type {0}. Make sure you're using 's:View.Model' on a suitable container, e.g. a ContentControl", type.Name));
             property.SetValue(targetLocation, view);
         }
     }

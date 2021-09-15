@@ -142,7 +142,7 @@ namespace Stylet.Xaml
                 // If it's Enable or Disable we don't do anything - CanExecute will handle this
                 if (this.TargetNullBehaviour == ActionUnavailableBehaviour.Throw)
                 {
-                    var e = new ActionTargetNullException(String.Format("ActionTarget on element {0} is null (method name is {1})", this.Subject, this.MethodName));
+                    var e = new ActionTargetNullException(string.Format("ActionTarget on element {0} is null (method name is {1})", this.Subject, this.MethodName));
                     this.logger.Error(e);
                     throw e;
                 }
@@ -174,7 +174,7 @@ namespace Stylet.Xaml
                 }
                 catch (AmbiguousMatchException e)
                 {
-                    var ex = new AmbiguousMatchException(String.Format("Ambiguous match for {0} method on {1}", this.MethodName, newTargetType.Name), e);
+                    var ex = new AmbiguousMatchException(string.Format("Ambiguous match for {0} method on {1}", this.MethodName, newTargetType.Name), e);
                     this.logger.Error(ex);
                     throw ex;
                 }
@@ -208,7 +208,7 @@ namespace Stylet.Xaml
             // Make sure they know
             if (this.Target == View.InitialActionTarget)
             {
-                var ex = new ActionNotSetException(String.Format("View.ActionTarget not set on control {0} (method {1}). " +
+                var ex = new ActionNotSetException(string.Format("View.ActionTarget not set on control {0} (method {1}). " +
                     "This probably means the control hasn't inherited it from a parent, e.g. because a ContextMenu or Popup sits in the visual tree. " +
                     "You will need so set 's:View.ActionTarget' explicitly. See the wiki section \"Actions\" for more details.", this.Subject, this.MethodName));
                 this.logger.Error(ex);
@@ -217,7 +217,7 @@ namespace Stylet.Xaml
 
             if (this.TargetMethodInfo == null && this.ActionNonExistentBehaviour == ActionUnavailableBehaviour.Throw)
             {
-                var ex = new ActionNotFoundException(String.Format("Unable to find method {0} on {1}", this.MethodName, this.TargetName()));
+                var ex = new ActionNotFoundException(string.Format("Unable to find method {0} on {1}", this.MethodName, this.TargetName()));
                 this.logger.Error(ex);
                 throw ex;
             }
@@ -245,7 +245,7 @@ namespace Stylet.Xaml
             {
                 // Be nice and unwrap this for them
                 // They want a stack track for their VM method, not us
-                this.logger.Error(e.InnerException, String.Format("Failed to invoke method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : String.Join(", ", parameters)));
+                this.logger.Error(e.InnerException, string.Format("Failed to invoke method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : String.Join(", ", parameters)));
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
             }

@@ -63,7 +63,7 @@ namespace Stylet.Xaml
             var methodParameters = targetMethodInfo.GetParameters();
             if (methodParameters.Length > 1)
             {
-                var e = new ActionSignatureInvalidException(String.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
+                var e = new ActionSignatureInvalidException(string.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
                 logger.Error(e);
                 throw e;
             }

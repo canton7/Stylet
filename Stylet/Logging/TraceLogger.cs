@@ -26,7 +26,7 @@ namespace Stylet.Logging
         /// <param name="args">format parameters</param>
         public void Info(string format, params object[] args)
         {
-            Trace.WriteLine(String.Format("INFO [{1}] {0}", String.Format(format, args), this.name), "Stylet");
+            Trace.WriteLine(string.Format("INFO [{1}] {0}", string.Format(format, args), this.name), "Stylet");
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Stylet.Logging
         /// <param name="args">format parameters</param>
         public void Warn(string format, params object[] args)
         {
-            Trace.WriteLine(String.Format("WARN [{1}] {0}", String.Format(format, args), this.name), "Stylet");
+            Trace.WriteLine(string.Format("WARN [{1}] {0}", string.Format(format, args), this.name), "Stylet");
         }
 
         /// <summary>
@@ -47,9 +47,9 @@ namespace Stylet.Logging
         public void Error(Exception exception, string message = null)
         {
             if (message == null)
-                Trace.WriteLine(String.Format("ERROR [{1}] {0}", exception, this.name), "Stylet");
+                Trace.WriteLine(string.Format("ERROR [{1}] {0}", exception, this.name), "Stylet");
             else
-                Trace.WriteLine(String.Format("ERROR [{2}] {0} {1}", message, exception, this.name), "Stylet");
+                Trace.WriteLine(string.Format("ERROR [{2}] {0} {1}", message, exception, this.name), "Stylet");
         }
     }
 }

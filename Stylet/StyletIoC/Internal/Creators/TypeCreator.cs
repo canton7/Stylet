@@ -14,11 +14,7 @@ namespace StyletIoC.Internal.Creators
     // Sealed so Code Analysis doesn't moan about us setting the virtual Type property
     internal sealed class TypeCreator : CreatorBase
     {
-        private readonly string _attributeKey;
-        public string AttributeKey
-        {
-            get { return this._attributeKey; }
-        }
+        public string AttributeKey { get; private set; }
         private Expression creationExpression;
 
         public TypeCreator(Type type, IRegistrationContext parentContext)
@@ -29,13 +25,13 @@ namespace StyletIoC.Internal.Creators
             // Use the key from InjectAttribute (if present), and let someone else override it if they want
             var attribute = type.GetCustomAttribute<InjectAttribute>(true);
             if (attribute != null)
-                this._attributeKey = attribute.Key;
+                this.AttributeKey = attribute.Key;
         }
 
         private string KeyForParameter(ParameterInfo parameter)
         {
             var attribute = parameter.GetCustomAttribute<InjectAttribute>(true);
-            return attribute == null ? null : attribute.Key;
+            return attribute?.Key;
         }
 
         [SuppressMessage("StyleCop.CSharp.Readability", "SA1118:ParameterMustNotSpanMultipleLines", Justification = "Honestly, it's clearer like this")]
@@ -51,15 +47,15 @@ namespace StyletIoC.Internal.Creators
             var ctorsWithAttribute = type.GetConstructors().Where(x => x.GetCustomAttribute<InjectAttribute>(true) != null).ToList();
             if (ctorsWithAttribute.Count > 1)
             {
-                throw new StyletIoCFindConstructorException(String.Format("Found more than one constructor with [Inject] on type {0}.", type.GetDescription()));
+                throw new StyletIoCFindConstructorException(string.Format("Found more than one constructor with [Inject] on type {0}.", type.GetDescription()));
             }
             else if (ctorsWithAttribute.Count == 1)
             {
                 ctor = ctorsWithAttribute[0];
-                var key = ctorsWithAttribute[0].GetCustomAttribute<InjectAttribute>(true).Key;
+                string key = ctorsWithAttribute[0].GetCustomAttribute<InjectAttribute>(true).Key;
                 var cantResolve = ctor.GetParameters().FirstOrDefault(p => !this.ParentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue);
                 if (cantResolve != null)
-                    throw new StyletIoCFindConstructorException(String.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", type.GetDescription(), cantResolve.Name, cantResolve.ParameterType.GetDescription()));
+                    throw new StyletIoCFindConstructorException(string.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", type.GetDescription(), cantResolve.Name, cantResolve.ParameterType.GetDescription()));
             }
             else
             {
@@ -72,19 +68,19 @@ namespace StyletIoC.Internal.Creators
                 if (ctor == null)
                 {
                     // Get us a bit more information....
-                    Func<ParameterInfo, string> ctorParameterPrinter = p =>
+                    string CtorParameterPrinter(ParameterInfo p)
                     {
-                        var key = this.KeyForParameter(p);
-                        var canResolve = p.ParameterType != type && (this.ParentContext.CanResolve(p.ParameterType, key) || p.HasDefaultValue);
-                        var keyStr = key == null ? "" : String.Format(" [Key = {0}]", key);
-                        var usingDefaultStr = (!this.ParentContext.CanResolve(p.ParameterType, key) && p.HasDefaultValue) ? " [Using Default]" : "";
-                        var recursiveStr = p.ParameterType == type ? " [Recursive]" : "";
-                        return String.Format("   {0}{1}: {2}{3}{4}", p.ParameterType.GetDescription(), keyStr, canResolve ? "Success" : "Failure", usingDefaultStr, recursiveStr);
-                    };
+                        string key = this.KeyForParameter(p);
+                        bool canResolve = p.ParameterType != type && (this.ParentContext.CanResolve(p.ParameterType, key) || p.HasDefaultValue);
+                        string keyStr = key == null ? "" : string.Format(" [Key = {0}]", key);
+                        string usingDefaultStr = (!this.ParentContext.CanResolve(p.ParameterType, key) && p.HasDefaultValue) ? " [Using Default]" : "";
+                        string recursiveStr = p.ParameterType == type ? " [Recursive]" : "";
+                        return string.Format("   {0}{1}: {2}{3}{4}", p.ParameterType.GetDescription(), keyStr, canResolve ? "Success" : "Failure", usingDefaultStr, recursiveStr);
+                    }
 
-                    var info = String.Join("\n\n", type.GetConstructors().Select(c => String.Format("Constructor:\n{0}\n\n", String.Join("\n", c.GetParameters().Select(ctorParameterPrinter)))));
+                    string info = string.Join("\n\n", type.GetConstructors().Select(c => string.Format("Constructor:\n{0}\n\n", string.Join("\n", c.GetParameters().Select(CtorParameterPrinter)))));
 
-                    throw new StyletIoCFindConstructorException(String.Format("Unable to find a constructor for type {0} which we can call:\n{1}", type.GetDescription(), info));
+                    throw new StyletIoCFindConstructorException(string.Format("Unable to find a constructor for type {0} which we can call:\n{1}", type.GetDescription(), info));
                 }
             }
 
@@ -93,7 +89,7 @@ namespace StyletIoC.Internal.Creators
             // If there parameter's got an InjectAttribute with a key, use that key to resolve
             var ctorParams = ctor.GetParameters().Select(x =>
             {
-                var key = this.KeyForParameter(x);
+                string key = this.KeyForParameter(x);
                 if (this.ParentContext.CanResolve(x.ParameterType, key))
                 {
                     try
@@ -102,7 +98,7 @@ namespace StyletIoC.Internal.Creators
                     }
                     catch (StyletIoCRegistrationException e)
                     {
-                        throw new StyletIoCRegistrationException(String.Format("{0} Required by parameter '{1}' of type {2} (which is a {3}).", e.Message, x.Name, type.GetDescription(), x.ParameterType.GetDescription()), e);
+                        throw new StyletIoCRegistrationException(string.Format("{0} Required by parameter '{1}' of type {2} (which is a {3}).", e.Message, x.Name, type.GetDescription(), x.ParameterType.GetDescription()), e);
                     }
                 }
                 // For some reason we need this cast...

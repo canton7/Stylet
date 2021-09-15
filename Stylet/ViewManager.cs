@@ -75,12 +75,7 @@ namespace Stylet
         public Func<Type, object> ViewFactory
         {
             get { return this._viewFactory; }
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException();
-                this._viewFactory = value;
-            }
+            set => this._viewFactory = value ?? throw new ArgumentNullException(nameof(this.ViewFactory));
         }
 
         private List<Assembly> _viewAssemblies; // This is assigned by the ctor
@@ -90,13 +85,8 @@ namespace Stylet
         /// </summary>
         public List<Assembly> ViewAssemblies
         {
-            get { return this._viewAssemblies; }
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException();
-                this._viewAssemblies = value;
-            }
+            get => this._viewAssemblies;
+            set => this._viewAssemblies = value ?? throw new ArgumentNullException(nameof(this.ViewAssemblies));
         }
 
         private Dictionary<string, string> _namespaceTransformations = new Dictionary<string, string>();
@@ -141,9 +131,7 @@ namespace Stylet
             get { return this._viewModelNameSuffix; }
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException();
-                this._viewModelNameSuffix = value;
+                this._viewModelNameSuffix = value ?? throw new ArgumentNullException();
             }
         }
 
@@ -180,7 +168,7 @@ namespace Stylet
                 var view = this.CreateAndBindViewForModelIfNecessary(newValue);
                 if (view is Window)
                 {
-                    var e = new StyletInvalidViewTypeException(String.Format("s:View.Model=\"...\" tried to show a View of type '{0}', but that View derives from the Window class. " +
+                    var e = new StyletInvalidViewTypeException(string.Format("s:View.Model=\"...\" tried to show a View of type '{0}', but that View derives from the Window class. " +
                     "Make sure any Views you display using s:View.Model=\"...\" do not derive from Window (use UserControl or similar)", view.GetType().Name));
                     logger.Error(e);
                     throw e;
@@ -260,7 +248,7 @@ namespace Stylet
             }
 
             transformed = Regex.Replace(transformed,
-                String.Format(@"(?<=.){0}(?=s?\.)|{0}$", Regex.Escape(this.ViewModelNameSuffix)),
+                string.Format(@"(?<=.){0}(?=s?\.)|{0}$", Regex.Escape(this.ViewModelNameSuffix)),
                 Regex.Escape(this.ViewNameSuffix));
 
             return transformed;
@@ -276,13 +264,13 @@ namespace Stylet
             var modelName = modelType.FullName;
             var viewName = this.ViewTypeNameForModelTypeName(modelName);
             if (modelName == viewName)
-                throw new StyletViewLocationException(String.Format("Unable to transform ViewModel name {0} into a suitable View name", modelName), viewName);
+                throw new StyletViewLocationException(string.Format("Unable to transform ViewModel name {0} into a suitable View name", modelName), viewName);
 
             // Also include the ViewModel's assembly, to be helpful
             var viewType = this.ViewTypeForViewName(viewName, new[] { modelType.Assembly });
             if (viewType == null)
             {
-                var e = new StyletViewLocationException(String.Format("Unable to find a View with type {0}", viewName), viewName);
+                var e = new StyletViewLocationException(string.Format("Unable to find a View with type {0}", viewName), viewName);
                 logger.Error(e);
                 throw e;
             }
@@ -305,7 +293,7 @@ namespace Stylet
 
             if (viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
             {
-                var e = new StyletViewLocationException(String.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name), viewType.Name);
+                var e = new StyletViewLocationException(string.Format("Found type for view: {0}, but it wasn't a class derived from UIElement", viewType.Name), viewType.Name);
                 logger.Error(e);
                 throw e;
             }

@@ -15,7 +15,7 @@ namespace StyletIoC.Internal.RegistrationCollections
 
         public IRegistration GetSingle()
         {
-            throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", this.type.GetDescription()));
+            throw new StyletIoCRegistrationException(string.Format("No registrations found for service {0}.", this.type.GetDescription()));
         }
 
         public List<IRegistration> GetAll()

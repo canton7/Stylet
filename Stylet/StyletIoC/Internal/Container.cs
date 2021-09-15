@@ -385,7 +385,7 @@ namespace StyletIoC.Internal
                     // Couldn't find this type - is it a 'get all' collection type? (i.e. they've put IEnumerable<TypeWeCanResolve> in a ctor param)
                     IRegistration registration;
                     if (!this.TryRetrieveGetAllRegistration(type, typeKey.Key, out registration))
-                        throw new StyletIoCRegistrationException(String.Format("No registrations found for service {0}.", type.GetDescription()));
+                        throw new StyletIoCRegistrationException(string.Format("No registrations found for service {0}.", type.GetDescription()));
 
                     // Got this far? Good. There's actually a 'get all' collection type. Proceed with that
                     readOnlyRegistrations = new SingleRegistration(registration);
@@ -408,7 +408,7 @@ namespace StyletIoC.Internal
             }
             catch (StyletIoCRegistrationException e)
             {
-                throw new StyletIoCRegistrationException(String.Format("{0} Service type: {1}, key: '{2}'", e.Message, Type.GetTypeFromHandle(typeKey.TypeHandle).GetDescription(), typeKey.Key), e);
+                throw new StyletIoCRegistrationException(string.Format("{0} Service type: {1}, key: '{2}'", e.Message, Type.GetTypeFromHandle(typeKey.TypeHandle).GetDescription(), typeKey.Key), e);
             }
         }
 
@@ -424,7 +424,7 @@ namespace StyletIoC.Internal
             }
             // Is there an existing registration for this type?
             if (unboundGenerics.Any(x => x.Type == unboundGeneric.Type))
-                throw new StyletIoCRegistrationException(String.Format("Multiple registrations for type {0} found", Type.GetTypeFromHandle(typeKey.TypeHandle).GetDescription()));
+                throw new StyletIoCRegistrationException(string.Format("Multiple registrations for type {0} found", Type.GetTypeFromHandle(typeKey.TypeHandle).GetDescription()));
 
             unboundGenerics.Add(unboundGeneric);
         }

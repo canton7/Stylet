@@ -19,11 +19,8 @@ namespace Stylet
         /// <summary>
         /// Gets the root ViewModel, creating it first if necessary
         /// </summary>
-        protected virtual TRootViewModel RootViewModel
-        {
-            get { return this._rootViewModel ?? (this._rootViewModel = this.Container.Get<TRootViewModel>()); }
-        }
-        
+        protected virtual TRootViewModel RootViewModel => this._rootViewModel ??= this.Container.Get<TRootViewModel>();
+
         /// <summary>
         /// Called when the application is launched. Displays the root view.
         /// </summary>

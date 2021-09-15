@@ -44,10 +44,7 @@ namespace Stylet
         /// <param name="application">Application within which Stylet is running</param>
         public void Setup(Application application)
         {
-            if (application == null)
-                throw new ArgumentNullException("application");
-
-            this.Application = application;
+            this.Application = application ?? throw new ArgumentNullException(nameof(application));
 
             // Use the current application's dispatcher for Execute
             Execute.Dispatcher = new ApplicationDispatcher(this.Application.Dispatcher);

@@ -20,11 +20,11 @@ namespace StyletIoC.Internal.Registrations
             this.parentContext.Disposing += (o, e) =>
             {
                 IDisposable disposable;
-                lock (this.lockObject)
+                lock (this.LockObject)
                 {
                     disposable = this.instance as IDisposable;
                     this.instance = null;
-                    this.generator = null;
+                    this.Generator = null;
                 }
                 if (disposable != null)
                     disposable.Dispose();
@@ -35,7 +35,7 @@ namespace StyletIoC.Internal.Registrations
         {
             if (this.instance == null)
             {
-                lock (this.lockObject)
+                lock (this.LockObject)
                 {
                     if (this.instance == null)
                         this.instance = Expression.Lambda<Func<IRegistrationContext, object>>(this.Creator.GetInstanceExpression(registrationContext), registrationContext).Compile()(this.parentContext);

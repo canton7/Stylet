@@ -21,8 +21,8 @@ namespace StyletUnitTests
             private bool _canDoSomethingWithGuard;
             public bool CanDoSomethingWithGuard
             {
-                get { return this._canDoSomethingWithGuard; }
-                set { SetAndNotify(ref this._canDoSomethingWithGuard, value);  }
+                get => this._canDoSomethingWithGuard;
+                set => SetAndNotify(ref this._canDoSomethingWithGuard, value);
             }
 
             public bool DoSomethingWithGuardCalled;

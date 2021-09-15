@@ -72,10 +72,10 @@ namespace Stylet
                 {
                     // Temporary, until we remove 'State'
 #pragma warning disable CS0618 // Type or member is obsolete
-                    this.NotifyOfPropertyChange("State");
+                    this.NotifyOfPropertyChange(nameof(this.State));
 #pragma warning restore CS0618 // Type or member is obsolete
                 }
-                this.NotifyOfPropertyChange("IsActive");
+                this.NotifyOfPropertyChange(nameof(this.IsActive));
             }
         }
 
@@ -230,7 +230,7 @@ namespace Stylet
         void IViewAware.AttachView(UIElement view)
         {
             if (this.View != null)
-                throw new InvalidOperationException(String.Format("Tried to attach View {0} to ViewModel {1}, but it already has a view attached", view.GetType().Name, this.GetType().Name));
+                throw new InvalidOperationException(string.Format("Tried to attach View {0} to ViewModel {1}, but it already has a view attached", view.GetType().Name, this.GetType().Name));
 
             this.View = view;
 
@@ -311,7 +311,7 @@ namespace Stylet
             }
             else
             {
-                var e = new InvalidOperationException(String.Format("Unable to close ViewModel {0} as it must have a conductor as a parent (note that windows and dialogs automatically have such a parent)", this.GetType()));
+                var e = new InvalidOperationException(string.Format("Unable to close ViewModel {0} as it must have a conductor as a parent (note that windows and dialogs automatically have such a parent)", this.GetType()));
                 this.logger.Error(e);
                 throw e;
             }

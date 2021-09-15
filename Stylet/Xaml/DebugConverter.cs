@@ -9,7 +9,6 @@ namespace Stylet.Xaml
     /// <summary>
     /// Converter which passes through values, but uses Debug.WriteLine to log them. Useful for debugging
     /// </summary>
-    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1126:PrefixCallsCorrectly", Justification = "Don't agree with prefixing static method calls with the class name")]
     public class DebugConverter : DependencyObject, IValueConverter
     {
         /// <summary>
@@ -74,9 +73,9 @@ namespace Stylet.Xaml
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (parameter == null)
-                this.Logger(String.Format(culture, "Convert: Value = '{0}' TargetType = '{1}'", value, targetType), this.Name);
+                this.Logger(string.Format(culture, "Convert: Value = '{0}' TargetType = '{1}'", value, targetType), this.Name);
             else
-                this.Logger(String.Format(culture, "Convert: Value = '{0}' TargetType = '{1}' Parameter = '{2}'", value, targetType, parameter), this.Name);
+                this.Logger(string.Format(culture, "Convert: Value = '{0}' TargetType = '{1}' Parameter = '{2}'", value, targetType, parameter), this.Name);
 
             return value;
         }
@@ -92,9 +91,9 @@ namespace Stylet.Xaml
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (parameter == null)
-                this.Logger(String.Format(culture, "ConvertBack: Value = '{0}' TargetType = '{1}'", value, targetType), this.Name);
+                this.Logger(string.Format(culture, "ConvertBack: Value = '{0}' TargetType = '{1}'", value, targetType), this.Name);
             else
-                this.Logger(String.Format(culture, "ConvertBack: Value = '{0}' TargetType = '{1}' Parameter = '{2}'", value, targetType, parameter), this.Name);
+                this.Logger(string.Format(culture, "ConvertBack: Value = '{0}' TargetType = '{1}' Parameter = '{2}'", value, targetType, parameter), this.Name);
 
             return value;
         }

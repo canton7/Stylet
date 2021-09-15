@@ -15,7 +15,7 @@ namespace StyletIoC.Internal.Builders
             foreach (var serviceType in this.ServiceTypes)
             {
                 if (serviceType.Type.IsGenericTypeDefinition)
-                    throw new StyletIoCRegistrationException(String.Format("A factory cannot be used to implement unbound generic type {0}", serviceType.Type.GetDescription()));
+                    throw new StyletIoCRegistrationException(string.Format("A factory cannot be used to implement unbound generic type {0}", serviceType.Type.GetDescription()));
                 this.EnsureTypeAgainstServiceTypes(typeof(TImplementation), assertImplementation: false);
             }
             this.factory = factory;

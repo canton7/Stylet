@@ -33,7 +33,7 @@ namespace StyletIoC.Internal.Builders
 
             if (!this.allowZeroImplementations && candidates.Count == 0)
             {
-                throw new StyletIoCRegistrationException(String.Format("Did not find any implementations of the type {0}", this.ServiceType.Type));
+                throw new StyletIoCRegistrationException(string.Format("Did not find any implementations of the type {0}", this.ServiceType.Type));
             }
 
             foreach (var candidate in candidates)
@@ -45,7 +45,7 @@ namespace StyletIoC.Internal.Builders
                 }
                 catch (StyletIoCRegistrationException e)
                 {
-                    Debug.WriteLine(String.Format("Unable to auto-bind type {0} to {1}: {2}", candidate.Base.Name, candidate.Type.GetDescription(), e.Message), "StyletIoC");
+                    Debug.WriteLine(string.Format("Unable to auto-bind type {0} to {1}: {2}", candidate.Base.Name, candidate.Type.GetDescription(), e.Message), "StyletIoC");
                 }
             }
         }

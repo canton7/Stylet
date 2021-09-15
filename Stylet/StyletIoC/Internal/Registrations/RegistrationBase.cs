@@ -10,10 +10,10 @@ namespace StyletIoC.Internal.Registrations
     internal abstract class RegistrationBase : IRegistration
     {
         protected readonly ICreator Creator;
-        public RuntimeTypeHandle TypeHandle { get { return this.Creator.TypeHandle; } }
+        public RuntimeTypeHandle TypeHandle => this.Creator.TypeHandle;
 
-        protected readonly object lockObject = new object();
-        protected Func<IRegistrationContext, object> generator;
+        protected readonly object LockObject = new();
+        protected Func<IRegistrationContext, object> Generator;
 
         protected RegistrationBase(ICreator creator)
         {
@@ -22,14 +22,14 @@ namespace StyletIoC.Internal.Registrations
 
         public virtual Func<IRegistrationContext, object> GetGenerator()
         {
-            if (this.generator != null)
-                return this.generator;
+            if (this.Generator != null)
+                return this.Generator;
 
-            lock (this.lockObject)
+            lock (this.LockObject)
             {
-                if (this.generator == null)
-                    this.generator = this.GetGeneratorInternal();
-                return this.generator;
+                if (this.Generator == null)
+                    this.Generator = this.GetGeneratorInternal();
+                return this.Generator;
             }
         }
 
