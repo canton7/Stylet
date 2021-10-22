@@ -27,6 +27,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedAllSources>true</EmbedAllSources>
     <DebugType>portable</DebugType>
+
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\Stylet.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorPublicKey>00240000048000009400000006020000002400005253413100040000010001008d654871fde4e7dd797e650053ddc565e37fe2769a336ccf1cdf89366d35c4806f13f178f7c6a78bc34a794ed7c6fb67bf4bf4fd1d6fbc1ef0786d8a1f301d0e6338f1db4aae22975b7cc9dd8666bb1e28ea37e58ffab1a009477ae6fa25b8fbe7db128de3cd5dbe64e528e50520ca3a90c728061b9a085d3d8d9ffb34d722df</AssemblyOriginatorPublicKey>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net45'">
