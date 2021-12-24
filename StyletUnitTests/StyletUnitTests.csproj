@@ -1,7 +1,7 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.23">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net5.0-windows</TargetFrameworks>
+    <TargetFrameworks>net472;net5.0-windows;net6.0-windows</TargetFrameworks>
 
     <UseWpf>true</UseWpf>
     <IsPackable>false</IsPackable>

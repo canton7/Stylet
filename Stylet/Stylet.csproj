@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net45;netcoreapp3.0;netcoreapp3.1;net5.0-windows</TargetFrameworks>
+    <TargetFrameworks>net45;netcoreapp3.0;netcoreapp3.1;net5.0-windows;net6.0-windows</TargetFrameworks>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <UseWPF>true</UseWPF>
 
