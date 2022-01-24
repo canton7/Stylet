@@ -36,6 +36,7 @@ namespace Stylet.Samples.OverridingViewManager
                            select new { View = type, ViewModel = attribute.ViewModel };
 
             this.viewModelToViewMapping = mappings.ToDictionary(x => x.ViewModel, x => x.View);
+            this.viewModelToViewMapping.Add(typeof(MessageBoxViewModel), typeof(MessageBoxView));
         }
 
         protected override Type LocateViewForModel(Type modelType)
