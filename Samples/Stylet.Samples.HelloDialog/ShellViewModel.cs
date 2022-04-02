@@ -24,13 +24,12 @@ namespace Stylet.Samples.HelloDialog
             this.NameString = "Click the button to show the dialog";
         }
 
-        public async System.Threading.Tasks.Task ShowDialog()
+        public void ShowDialog()
         {
-            throw new Exception("KABLAMMO");
             var dialogVm = this.dialogFactory.CreateDialog1();
             var result = this.windowManager.ShowDialog(dialogVm);
             if (result.GetValueOrDefault())
-                this.NameString = String.Format("Your name is {0}", dialogVm.Name);
+                this.NameString = $"Your name is {dialogVm.Name}";
             else
                 this.NameString = "Dialog cancelled";
         }
