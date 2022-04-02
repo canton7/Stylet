@@ -19,8 +19,8 @@ namespace Stylet
         // Can't be an auto-property, since it's virtual so we can't set it in the ctor 
         public virtual bool DisposeChildren
         {
-            get { return this._disposeChildren; }
-            set { this._disposeChildren = value; }
+            get => this._disposeChildren;
+            set => this._disposeChildren = value;
         }
 
         /// <summary>
@@ -55,8 +55,7 @@ namespace Stylet
         {
             Debug.Assert(newItem != null);
 
-            var newItemAsChild = newItem as IChild;
-            if (newItemAsChild != null && newItemAsChild.Parent != this)
+            if (newItem is IChild newItemAsChild && newItemAsChild.Parent != this)
                 newItemAsChild.Parent = this;
         }
 
@@ -69,7 +68,7 @@ namespace Stylet
         {
             // We need to call these in order: we don't want them all do show "are you sure you
             // want to close" dialogs at once, for instance.
-            foreach (var itemToClose in itemsToClose)
+            foreach (T itemToClose in itemsToClose)
             {
                 if (!await this.CanCloseItem(itemToClose))
                     return false;
@@ -85,8 +84,7 @@ namespace Stylet
         /// <returns>Task indicating whether the item can be closed</returns>
         protected virtual Task<bool> CanCloseItem(T item)
         {
-            var itemAsGuardClose = item as IGuardClose;
-            if (itemAsGuardClose != null)
+            if (item is IGuardClose itemAsGuardClose)
                 return itemAsGuardClose.CanCloseAsync();
             else
                 return Task.FromResult(true);
@@ -99,8 +97,7 @@ namespace Stylet
         /// <param name="dialogResult">Unused in this scenario</param>
         void IChildDelegate.CloseItem(object item, bool? dialogResult)
         {
-            T typedItem = item as T;
-            if (typedItem != null)
+            if (item is T typedItem)
                 this.CloseItem(typedItem);
         }
     }

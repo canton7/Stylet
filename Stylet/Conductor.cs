@@ -47,7 +47,7 @@ namespace Stylet
                 return;
 
             if (await this.CanCloseItem(item))
-                 this.ChangeActiveItem(default(T), true);
+                 this.ChangeActiveItem(default, true);
         }
 
         /// <summary>

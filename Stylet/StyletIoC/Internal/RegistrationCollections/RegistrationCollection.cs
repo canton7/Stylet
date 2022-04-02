@@ -7,7 +7,7 @@ namespace StyletIoC.Internal.RegistrationCollections
 {
     internal class RegistrationCollection : IRegistrationCollection
     {
-        private readonly object registrationsLock = new object();
+        private readonly object registrationsLock = new();
         private readonly List<IRegistration> registrations;
 
         public RegistrationCollection(List<IRegistration> registrations)

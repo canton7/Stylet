@@ -11,7 +11,7 @@ namespace StyletUnitTests
     {
         private class StringTraceListener : TraceListener
         {
-            public readonly List<string> messages = new List<string>();
+            public readonly List<string> Messages = new();
 
             public override void Write(string message)
             {
@@ -20,7 +20,7 @@ namespace StyletUnitTests
 
             public override void WriteLine(string message)
             {
-                this.messages.Add(message);
+                this.Messages.Add(message);
             }
         }
 
@@ -40,8 +40,8 @@ namespace StyletUnitTests
             var logger = new TraceLogger("testName");
             logger.Info("{0} message", "test");
 
-            Assert.AreEqual(1, this.listener.messages.Count);
-            var message = this.listener.messages[0];
+            Assert.AreEqual(1, this.listener.Messages.Count);
+            string message = this.listener.Messages[0];
 
             Assert.That(message, Contains.Substring("INFO")); // Log level
             Assert.That(message, Contains.Substring("Stylet")); // Category
@@ -55,8 +55,8 @@ namespace StyletUnitTests
             var logger = new TraceLogger("loggerName");
             logger.Warn("this is a {0} message", "test");
 
-            Assert.AreEqual(1, this.listener.messages.Count);
-            var message = this.listener.messages[0];
+            Assert.AreEqual(1, this.listener.Messages.Count);
+            string message = this.listener.Messages[0];
 
             Assert.That(message, Contains.Substring("WARN")); // Log level
             Assert.That(message, Contains.Substring("Stylet")); // Category
@@ -71,8 +71,8 @@ namespace StyletUnitTests
             var e = new Exception("exception message");
             logger.Error(e, "accompanying message");
 
-            Assert.AreEqual(1, this.listener.messages.Count);
-            var message = this.listener.messages[0];
+            Assert.AreEqual(1, this.listener.Messages.Count);
+            string message = this.listener.Messages[0];
 
             Assert.That(message, Contains.Substring("ERROR")); // Log level
             Assert.That(message, Contains.Substring("Stylet")); // Category
@@ -88,8 +88,8 @@ namespace StyletUnitTests
             var e = new Exception("exception message");
             logger.Error(e);
 
-            Assert.AreEqual(1, this.listener.messages.Count);
-            var message = this.listener.messages[0];
+            Assert.AreEqual(1, this.listener.Messages.Count);
+            string message = this.listener.Messages[0];
 
             Assert.That(message, Contains.Substring("ERROR")); // Log level
             Assert.That(message, Contains.Substring("Stylet")); // Category

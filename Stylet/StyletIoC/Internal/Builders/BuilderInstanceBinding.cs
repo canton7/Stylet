@@ -22,7 +22,7 @@ namespace StyletIoC.Internal.Builders
         {
             var registration = new InstanceRegistration(container, this.instance, this.disposeWithContainer);
 
-            foreach (var serviceType in this.ServiceTypes)
+            foreach (BuilderTypeKey serviceType in this.ServiceTypes)
             {
                 container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key), registration);
             }

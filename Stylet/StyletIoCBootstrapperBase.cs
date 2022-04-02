@@ -23,7 +23,7 @@ namespace Stylet
         /// <summary>
         /// Overridden from BootstrapperBase, this sets up the IoC container
         /// </summary>
-        protected override sealed void ConfigureBootstrapper()
+        protected sealed override void ConfigureBootstrapper()
         {
             var builder = new StyletIoCBuilder();
             builder.Assemblies = new List<Assembly>(new List<Assembly>() { this.GetType().Assembly });

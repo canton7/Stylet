@@ -78,7 +78,7 @@ namespace Stylet
         {
             if (this.isNotifying)
             {
-                var handler = this.CollectionChanging;
+                NotifyCollectionChangedEventHandler handler = this.CollectionChanging;
                 if (handler != null)
                 {
                     using (this.BlockReentrancy())
@@ -109,10 +109,10 @@ namespace Stylet
             {
                 this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 
-                var previousNotificationSetting = this.isNotifying;
+                bool previousNotificationSetting = this.isNotifying;
                 this.isNotifying = false;
-                var index = this.Count;
-                foreach (var item in items)
+                int index = this.Count;
+                foreach (T item in items)
                 {
                     base.InsertItem(index, item);
                     index++;
@@ -135,11 +135,11 @@ namespace Stylet
             {
                 this.OnCollectionChanging(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 
-                var previousNotificationSetting = this.isNotifying;
+                bool previousNotificationSetting = this.isNotifying;
                 this.isNotifying = false;
-                foreach (var item in items)
+                foreach (T item in items)
                 {
-                    var index = this.IndexOf(item);
+                    int index = this.IndexOf(item);
                     if (index >= 0)
                         base.RemoveItem(index);
                 }

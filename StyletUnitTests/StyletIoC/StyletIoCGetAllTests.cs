@@ -9,16 +9,21 @@ namespace StyletUnitTests.StyletIoC
     [TestFixture]
     public class StyletIoCGetAllTests
     {
-        interface IC1 { }
-        class C11 : IC1 { }
-        class C12 : IC1 { }
-        class C13 : IC1 { }
+        private interface IC1 { }
 
-        interface IC2 { }
-        class C21 : IC2 { }
-        class C22 : IC2 { }
+        private class C11 : IC1 { }
 
-        class C3
+        private class C12 : IC1 { }
+
+        private class C13 : IC1 { }
+
+        private interface IC2 { }
+
+        private class C21 : IC2 { }
+
+        private class C22 : IC2 { }
+
+        private class C3
         {
             public List<IC2> C2s;
             public C3(IEnumerable<IC2> c2s)
@@ -37,7 +42,7 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<IC1>().To<C12>();
             builder.Bind<IC1>().To<C13>();
             builder.Bind<IC2>().To<C21>();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var results1 = ioc.GetAll<IC1>().ToList();
             var results2 = ioc.GetAll<IC1>().ToList();
@@ -59,7 +64,7 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind(typeof(IC1)).To(typeof(C12));
             builder.Bind(typeof(IC1)).To(typeof(C13));
             builder.Bind(typeof(IC2)).To(typeof(C21));
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var results1 = ioc.GetAll(typeof(IC1)).ToList();
             var results2 = ioc.GetAll(typeof(IC1)).ToList();
@@ -80,7 +85,7 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<IC1>().To<C12>().InSingletonScope();
             builder.Bind<IC1>().To<C13>().InSingletonScope();
             builder.Bind<IC2>().To<C21>().InSingletonScope();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var results1 = ioc.GetAll<IC1>().ToList();
             var results2 = ioc.GetAll<IC1>().ToList();
@@ -101,7 +106,7 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind(typeof(IC1)).To(typeof(C12)).InSingletonScope();
             builder.Bind(typeof(IC1)).To(typeof(C13)).InSingletonScope();
             builder.Bind(typeof(IC2)).To(typeof(C21)).InSingletonScope();
-            var ioc = builder.BuildContainer(); 
+            IContainer ioc = builder.BuildContainer(); 
 
             var results1 = ioc.GetAll(typeof(IC1)).ToList();
             var results2 = ioc.GetAll(typeof(IC1)).ToList();
@@ -119,7 +124,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<IC1>().To<C11>();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var results = ioc.GetAll<IC1>().ToList();
 
@@ -131,7 +136,7 @@ namespace StyletUnitTests.StyletIoC
         public void GetAllDoesNotThrowIfNoRegistrationsFound()
         {
             var builder = new StyletIoCBuilder();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
             Assert.DoesNotThrow(() => ioc.GetAll<IC1>());
         }
 
@@ -139,7 +144,7 @@ namespace StyletUnitTests.StyletIoC
         public void GetAllThrowsIfTypeIsNull()
         {
             var builder = new StyletIoCBuilder();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
             Assert.Throws<ArgumentNullException>(() => ioc.GetAll(null));
         }
 
@@ -149,9 +154,9 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<IC1>().To<C11>();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var result = ioc.GetTypeOrAll<IC1>();
+            IC1 result = ioc.GetTypeOrAll<IC1>();
             Assert.IsInstanceOf<C11>(result);
         }
 
@@ -161,9 +166,9 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<IC1>().To<C11>();
             builder.Bind<IC1>().To<C12>();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var result = ioc.GetTypeOrAll<IEnumerable<IC1>>();
+            IEnumerable<IC1> result = ioc.GetTypeOrAll<IEnumerable<IC1>>();
             Assert.IsInstanceOf<IEnumerable<IC1>>(result);
 
             var list = ((IEnumerable<IC1>)result).ToList();
@@ -176,7 +181,7 @@ namespace StyletUnitTests.StyletIoC
         public void GetTypeOrAllThrowsIfTypeIsNull()
         {
             var builder = new StyletIoCBuilder();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
             Assert.Throws<ArgumentNullException>(() => ioc.GetTypeOrAll(null));
         }
 
@@ -188,10 +193,10 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<IC2>().To<C21>();
             builder.Bind<IC2>().To<C22>();
             builder.Bind<C3>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var c2s = ioc.GetAll<IC2>().ToList();
-            var c3 = ioc.Get<C3>();
+            C3 c3 = ioc.Get<C3>();
 
             Assert.NotNull(c3.C2s);
             Assert.AreEqual(2, c3.C2s.Count);

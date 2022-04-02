@@ -12,7 +12,7 @@ namespace StyletIoC.Internal.Creators
     {
         private readonly Func<IRegistrationContext, T> factory;
 
-        public override RuntimeTypeHandle TypeHandle { get { return typeof(T).TypeHandle; } }
+        public override RuntimeTypeHandle TypeHandle => typeof(T).TypeHandle;
 
         public FactoryCreator(Func<IRegistrationContext, T> factory, IRegistrationContext parentContext)
             : base(parentContext)
@@ -24,9 +24,9 @@ namespace StyletIoC.Internal.Creators
         {
             // Unfortunately we can't cache the result of this, as it relies on registrationContext
             var expr = (Expression<Func<IRegistrationContext, T>>)(ctx => this.factory(ctx));
-            var invoked = Expression.Invoke(expr, registrationContext);
+            InvocationExpression invoked = Expression.Invoke(expr, registrationContext);
 
-            var completeExpression = this.CompleteExpressionFromCreator(invoked, registrationContext);
+            Expression completeExpression = this.CompleteExpressionFromCreator(invoked, registrationContext);
             return completeExpression;
         }
     }

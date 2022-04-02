@@ -48,10 +48,7 @@ namespace Stylet.Xaml
             : base(target, methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
         { }
 
-        private string GuardName
-        {
-            get { return "Can" + this.MethodName; }
-        }
+        private string guardName => "Can" + this.MethodName;
 
         /// <summary>
         /// Invoked when a new non-null target is set, which has non-null MethodInfo. Used to assert that the method signature is correct
@@ -60,7 +57,7 @@ namespace Stylet.Xaml
         /// <param name="newTargetType">Type of new target</param>
         private protected override void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType)
         {
-            var methodParameters = targetMethodInfo.GetParameters();
+            ParameterInfo[] methodParameters = targetMethodInfo.GetParameters();
             if (methodParameters.Length > 1)
             {
                 var e = new ActionSignatureInvalidException(string.Format("Method {0} on {1} must have zero or one parameters", this.MethodName, newTargetType.Name));
@@ -77,30 +74,30 @@ namespace Stylet.Xaml
         private protected override void OnTargetChanged(object oldTarget, object newTarget)
         {
             if (oldTarget is INotifyPropertyChanged oldInpc)
-                PropertyChangedEventManager.RemoveHandler(oldInpc, this.PropertyChangedHandler, this.GuardName);
+                PropertyChangedEventManager.RemoveHandler(oldInpc, this.PropertyChangedHandler, this.guardName);
 
             this.guardPropertyGetter = null;
-            var guardPropertyInfo = newTarget?.GetType().GetProperty(this.GuardName);
+            PropertyInfo guardPropertyInfo = newTarget?.GetType().GetProperty(this.guardName);
             if (guardPropertyInfo != null)
             {
                 if (guardPropertyInfo.PropertyType == typeof(bool))
                 {
-                    var targetExpression = Expressions.Expression.Constant(newTarget);
-                    var propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
+                    Expressions.ConstantExpression targetExpression = Expressions.Expression.Constant(newTarget);
+                    Expressions.MemberExpression propertyAccess = Expressions.Expression.Property(targetExpression, guardPropertyInfo);
                     this.guardPropertyGetter = Expressions.Expression.Lambda<Func<bool>>(propertyAccess).Compile();
                 }
                 else
                 {
-                    logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.GuardName, this.MethodName, newTarget);
+                    logger.Warn("Found guard property {0} for action {1} on target {2}, but its return type wasn't bool. Therefore, ignoring", this.guardName, this.MethodName, newTarget);
                 }
             }
 
             if (this.guardPropertyGetter != null)
             {
                 if (newTarget is INotifyPropertyChanged inpc)
-                    PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.GuardName);
+                    PropertyChangedEventManager.AddHandler(inpc, this.PropertyChangedHandler, this.guardName);
                 else
-                    logger.Warn("Found guard property {0} for action {1} on target {2}, but the target doesn't implement INotifyPropertyChanged, so changes won't be observed", this.GuardName, this.MethodName, newTarget);
+                    logger.Warn("Found guard property {0} for action {1} on target {2}, but the target doesn't implement INotifyPropertyChanged, so changes won't be observed", this.guardName, this.MethodName, newTarget);
             }
 
             this.UpdateCanExecute();
@@ -113,7 +110,7 @@ namespace Stylet.Xaml
 
         private void UpdateCanExecute()
         {
-            var handler = this.CanExecuteChanged;
+            EventHandler handler = this.CanExecuteChanged;
             // So. While we're safe firing PropertyChanged events on a non-UI thread, we
             // are not safe firing CanExecuteChanged events on other threads...
             // Therefore make sure we're on the UI thread
@@ -169,7 +166,7 @@ namespace Stylet.Xaml
                 return;
 
             // This is not going to be called very often, so don't bother to generate a delegate, in the way that we do for the method guard
-            var parameters = this.TargetMethodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
+            object[] parameters = this.TargetMethodInfo.GetParameters().Length == 1 ? new[] { parameter } : null;
             this.InvokeTargetMethod(parameters);
         }
     }

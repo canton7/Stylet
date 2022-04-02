@@ -74,7 +74,7 @@ namespace Stylet
         /// </summary>
         public Func<Type, object> ViewFactory
         {
-            get { return this._viewFactory; }
+            get => this._viewFactory;
             set => this._viewFactory = value ?? throw new ArgumentNullException(nameof(this.ViewFactory));
         }
 
@@ -89,20 +89,15 @@ namespace Stylet
             set => this._viewAssemblies = value ?? throw new ArgumentNullException(nameof(this.ViewAssemblies));
         }
 
-        private Dictionary<string, string> _namespaceTransformations = new Dictionary<string, string>();
+        private Dictionary<string, string> _namespaceTransformations = new();
 
         /// <summary>
         /// Gets or sets a set of transformations to be applied to the ViewModel's namespace: string to find -> string to replace it with
         /// </summary>
         public Dictionary<string, string> NamespaceTransformations
         {
-            get { return this._namespaceTransformations; }
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException();
-                this._namespaceTransformations = value;
-            }
+            get => this._namespaceTransformations;
+            set => this._namespaceTransformations = value ?? throw new ArgumentNullException(nameof(this.NamespaceTransformations));
         }
 
         private string _viewNameSuffix = "View";
@@ -112,13 +107,8 @@ namespace Stylet
         /// </summary>
         public string ViewNameSuffix
         {
-            get { return this._viewNameSuffix; }
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException();
-                this._viewNameSuffix = value;
-            }
+            get => this._viewNameSuffix;
+            set => this._viewNameSuffix = value ?? throw new ArgumentNullException(nameof(this.ViewNameSuffix));
         }
 
         private string _viewModelNameSuffix = "ViewModel";
@@ -128,11 +118,8 @@ namespace Stylet
         /// </summary>
         public string ViewModelNameSuffix
         {
-            get { return this._viewModelNameSuffix; }
-            set
-            {
-                this._viewModelNameSuffix = value ?? throw new ArgumentNullException();
-            }
+            get => this._viewModelNameSuffix;
+            set => this._viewModelNameSuffix = value ?? throw new ArgumentNullException(nameof(this.ViewModelNameSuffix));
         }
 
         /// <summary>
@@ -141,11 +128,13 @@ namespace Stylet
         /// <param name="config">Configuration object</param>
         public ViewManager(ViewManagerConfig config)
         {
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
             // Config.ViewAssemblies cannot be null - ViewManagerConfig ensures this
             if (config.ViewFactory == null)
                 throw new ArgumentNullException("viewFactory");
             if (config.ViewAssemblies == null)
                 throw new ArgumentNullException("viewAssemblies");
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
 
             this.ViewFactory = config.ViewFactory;
             this.ViewAssemblies = config.ViewAssemblies;
@@ -165,7 +154,7 @@ namespace Stylet
             if (newValue != null)
             {
                 logger.Info("View.Model changed for {0} from {1} to {2}", targetLocation, oldValue, newValue);
-                var view = this.CreateAndBindViewForModelIfNecessary(newValue);
+                UIElement view = this.CreateAndBindViewForModelIfNecessary(newValue);
                 if (view is Window)
                 {
                     var e = new StyletInvalidViewTypeException(string.Format("s:View.Model=\"...\" tried to show a View of type '{0}', but that View derives from the Window class. " +
@@ -189,8 +178,7 @@ namespace Stylet
         /// <returns>Newly created View, bound to the given ViewModel</returns>
         public virtual UIElement CreateAndBindViewForModelIfNecessary(object model)
         {
-            var modelAsViewAware = model as IViewAware;
-            if (modelAsViewAware != null && modelAsViewAware.View != null)
+            if (model is IViewAware modelAsViewAware && modelAsViewAware.View != null)
             {
                 logger.Info("ViewModel {0} already has a View attached to it. Not attaching another", model);
                 return modelAsViewAware.View;
@@ -209,7 +197,7 @@ namespace Stylet
             // Need to bind before we initialize the view
             // Otherwise e.g. the Command bindings get evaluated (by InitializeComponent) but the ActionTarget hasn't been set yet
             logger.Info("Instantiating and binding a new View to ViewModel {0}", model);
-            var view = this.CreateViewForModel(model);
+            UIElement view = this.CreateViewForModel(model);
             this.BindViewToModel(view, model);
             return view;
         }
@@ -238,7 +226,7 @@ namespace Stylet
         {
             string transformed = modelTypeName;
 
-            foreach (var transformation in this.NamespaceTransformations)
+            foreach (KeyValuePair<string, string> transformation in this.NamespaceTransformations)
             {
                 if (transformed.StartsWith(transformation.Key + "."))
                 {
@@ -261,13 +249,13 @@ namespace Stylet
         /// <returns>Type of the ViewModel's View</returns>
         protected virtual Type LocateViewForModel(Type modelType)
         {
-            var modelName = modelType.FullName;
-            var viewName = this.ViewTypeNameForModelTypeName(modelName);
+            string modelName = modelType.FullName;
+            string viewName = this.ViewTypeNameForModelTypeName(modelName);
             if (modelName == viewName)
                 throw new StyletViewLocationException(string.Format("Unable to transform ViewModel name {0} into a suitable View name", modelName), viewName);
 
             // Also include the ViewModel's assembly, to be helpful
-            var viewType = this.ViewTypeForViewName(viewName, new[] { modelType.Assembly });
+            Type viewType = this.ViewTypeForViewName(viewName, new[] { modelType.Assembly });
             if (viewType == null)
             {
                 var e = new StyletViewLocationException(string.Format("Unable to find a View with type {0}", viewName), viewName);
@@ -289,7 +277,7 @@ namespace Stylet
         /// <returns>Instantiated and setup view</returns>
         public virtual UIElement CreateViewForModel(object model)
         {
-            var viewType = this.LocateViewForModel(model.GetType());
+            Type viewType = this.LocateViewForModel(model.GetType());
 
             if (viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
             {
@@ -314,7 +302,7 @@ namespace Stylet
         {
             // If it doesn't have a code-behind, this won't be called
             // We have to use this reflection here, since the InitializeComponent is a method on the View, not on any of its base classes
-            var initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo initializer = viewType.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
             if (initializer != null)
                 initializer.Invoke(view, null);
         }
@@ -329,15 +317,13 @@ namespace Stylet
             logger.Info("Setting {0}'s ActionTarget to {1}", view, viewModel);
             View.SetActionTarget(view, viewModel);
 
-            var viewAsFrameworkElement = view as FrameworkElement;
-            if (viewAsFrameworkElement != null)
+            if (view is FrameworkElement viewAsFrameworkElement)
             {
                 logger.Info("Setting {0}'s DataContext to {1}", view, viewModel);
                 viewAsFrameworkElement.DataContext = viewModel;
             }
 
-            var viewModelAsViewAware = viewModel as IViewAware;
-            if (viewModelAsViewAware != null)
+            if (viewModel is IViewAware viewModelAsViewAware)
             {
                 logger.Info("Setting {0}'s View to {1}", viewModel, view);
                 viewModelAsViewAware.AttachView(view);
@@ -348,7 +334,6 @@ namespace Stylet
     /// <summary>
     /// Exception raised while attempting to locate a View for a ViewModel
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class StyletViewLocationException : Exception
     {
         /// <summary>
@@ -371,7 +356,6 @@ namespace Stylet
     /// <summary>
     /// Exception raise when the located View is of the wrong type (Window when expected UserControl, etc)
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class StyletInvalidViewTypeException : Exception
     {
         /// <summary>

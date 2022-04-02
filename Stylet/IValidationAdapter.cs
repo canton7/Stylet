@@ -14,7 +14,6 @@ namespace Stylet
     /// and request a new IModelValidator{MyViewModelType} in your ViewModel's constructor.
     /// </remarks>
     /// <typeparam name="T">Type of model being validated</typeparam>
-    // ReSharper disable once UnusedTypeParameter
     public interface IModelValidator<in T> : IModelValidator
     {
     }
@@ -37,7 +36,7 @@ namespace Stylet
         /// <summary>
         /// Validate a single property by name, and return an array of validation errors for that property (or null if validation was successful)
         /// </summary>
-        /// <param name="propertyName">Property to validate, or <see cref="String.Empty"/> to validate the entire model</param>
+        /// <param name="propertyName">Property to validate, or <see cref="string.Empty"/> to validate the entire model</param>
         /// <returns>Array of validation errors, or null / empty if validation was successful</returns>
         Task<IEnumerable<string>> ValidatePropertyAsync(string propertyName);
 
@@ -45,7 +44,7 @@ namespace Stylet
         /// Validate all properties, and return the results for all properties
         /// </summary>
         /// <remarks>
-        /// Use a key of <see cref="String.Empty"/> to indicate validation errors for the entire model.
+        /// Use a key of <see cref="string.Empty"/> to indicate validation errors for the entire model.
         /// 
         /// If a property validates successfully, you MUST return a null entry for it in the returned dictionary!
         /// </remarks>

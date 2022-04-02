@@ -35,7 +35,7 @@ namespace StyletIoC.Internal.Registrations
 
         protected virtual Func<IRegistrationContext, object> GetGeneratorInternal()
         {
-            var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
+            ParameterExpression registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
             return Expression.Lambda<Func<IRegistrationContext, object>>(this.GetInstanceExpression(registrationContext), registrationContext).Compile();
         }
 

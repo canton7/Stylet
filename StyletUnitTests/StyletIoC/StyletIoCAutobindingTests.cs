@@ -9,25 +9,32 @@ namespace StyletUnitTests.StyletIoC
     [TestFixture]
     public class StyletIoCAutobindingTests
     {
-        interface I1 { }
-        class C11 : I1 { }
-        class C12 : I1 { }
-        abstract class C13 : I1 { }
+        private interface I1 { }
 
-        interface I2<T> { }
-        class C21<T> : I2<T> { }
-        class C22<T> : I2<T> { }
+        private class C11 : I1 { }
 
+        private class C12 : I1 { }
 
-        interface I3<T> { }
-        class C31 : I3<int> { }
-        class C32 : I3<string> { }
+        private abstract class C13 : I1 { }
+
+        private interface I2<T> { }
+
+        private class C21<T> : I2<T> { }
+
+        private class C22<T> : I2<T> { }
+
+        private interface I3<T> { }
+
+        private class C31 : I3<int> { }
+
+        private class C32 : I3<string> { }
 
         [Inject("Key")]
-        class C4 { }
+        private class C4 { }
 
-        interface I5 { }
-        class C5 { }
+        private interface I5 { }
+
+        private class C5 { }
 
         [Test]
         public void NongenericInterfaceToAllImplementations()
@@ -35,7 +42,7 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
 
             builder.Bind<I1>().ToAllImplementations();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var result = ioc.GetAll<I1>().ToList();
             Assert.AreEqual(2, result.Count);
@@ -48,7 +55,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind(typeof(I2<>)).ToAllImplementations();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
             
             var result = ioc.GetAll<I2<int>>().ToList();
             Assert.AreEqual(2, result.Count);
@@ -61,7 +68,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().ToAllImplementations();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var result = ioc.GetAll<I1>().ToList();
             Assert.AreEqual(2, result.Count);
@@ -74,9 +81,9 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Autobind(Enumerable.Empty<Assembly>());
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var result = ioc.Get<C11>();
+            C11 result = ioc.Get<C11>();
             Assert.IsInstanceOf<C11>(result);
         }
 
@@ -85,9 +92,9 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Autobind();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var result = ioc.Get<C21<int>>();
+            C21<int> result = ioc.Get<C21<int>>();
             Assert.IsInstanceOf<C21<int>>(result);
         }
 
@@ -96,7 +103,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Autobind();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.Throws<StyletIoCRegistrationException>(() => ioc.Get<I1>());
         }
@@ -106,9 +113,9 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Autobind();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var result = ioc.Get<C4>("Key");
+            C4 result = ioc.Get<C4>("Key");
             Assert.IsInstanceOf<C4>(result);
         }
 
@@ -118,10 +125,10 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Autobind();
             builder.Bind<C11>().ToSelf().InSingletonScope();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var result1 = ioc.Get<C11>();
-            var result2 = ioc.Get<C11>();
+            C11 result1 = ioc.Get<C11>();
+            C11 result2 = ioc.Get<C11>();
             Assert.AreEqual(result2, result1);
         }
 
@@ -130,9 +137,9 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind(typeof(I3<>)).ToAllImplementations();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var c31 = ioc.Get<I3<int>>();
+            I3<int> c31 = ioc.Get<I3<int>>();
             Assert.IsInstanceOf<C31>(c31);
         }
 
@@ -141,7 +148,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().ToAllImplementations((IEnumerable<Assembly>)null);
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var results = ioc.GetAll<I1>().ToList();
             Assert.AreEqual(2, results.Count);
@@ -161,7 +168,7 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Assemblies = null;
             builder.Autobind(typeof(StyletIoCAutobindingTests).Assembly);
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.IsInstanceOf<C11>(ioc.Get<C11>());
         }

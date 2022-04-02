@@ -9,7 +9,7 @@ namespace Company.StyletApplication1.Pages
     {
         public ShellView()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
     }
 }

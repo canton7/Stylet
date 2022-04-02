@@ -12,7 +12,7 @@ namespace Stylet
         public class StackNavigation : ConductorBaseWithActiveItem<T>
         {
             // We need to remove arbitrary items, so no Stack<T> here!
-            private readonly List<T> history = new List<T>();
+            private readonly List<T> history = new();
 
             /// <summary>
             /// Activate the given item. This deactivates the previous item, and pushes it onto the history stack
@@ -55,7 +55,7 @@ namespace Stylet
             /// </summary>
             public void Clear()
             {
-                foreach (var item in this.history)
+                foreach (T item in this.history)
                 {
                     this.CloseAndCleanUp(item, this.DisposeChildren);
                 }
@@ -108,7 +108,7 @@ namespace Stylet
             protected override void OnClose()
             {
                 // We've already been deactivated by this point
-                foreach (var item in this.history)
+                foreach (T item in this.history)
                     this.CloseAndCleanUp(item, this.DisposeChildren);
                 this.history.Clear();
 

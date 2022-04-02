@@ -25,7 +25,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<I11>().And<C1>().To<C1>().InSingletonScope();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.AreEqual(ioc.Get<C1>(), ioc.Get<I11>());
         }
@@ -35,7 +35,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<I11>().And<C1>().ToFactory(x => new C1()).InSingletonScope();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.AreEqual(ioc.Get<C1>(), ioc.Get<I11>());
         }
@@ -45,7 +45,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<I11>().And<C1>().ToInstance(new C1());
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.AreEqual(ioc.Get<C1>(), ioc.Get<I11>());
         }
@@ -71,7 +71,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<I11>().WithKey("foo").And<I11>().To<C1>().InSingletonScope();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.AreEqual(ioc.Get<I11>(), ioc.Get<I11>("foo"));
         }
@@ -81,7 +81,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<I11>().And<C1>().To<C1>().WithKey("foo").InSingletonScope();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.DoesNotThrow(() => ioc.Get<I11>("foo"));
             Assert.DoesNotThrow(() => ioc.Get<C1>("foo"));
@@ -94,7 +94,7 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<I11>().And<C1>().To<C1>().AsWeakBinding();
             builder.Bind<I12>().And<C1>().To<C1>();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.AreEqual(0, ioc.GetAll<I11>().Count());
             Assert.AreEqual(1, ioc.GetAll<C1>().Count());

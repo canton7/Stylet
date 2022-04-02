@@ -10,10 +10,11 @@ namespace StyletUnitTests.StyletIoC
     [TestFixture]
     public class StyletIoCConstructorInjectionTests
     {
-        interface I1 { }
+        private interface I1 { }
 
-        class C1 : I1 { }
-        class C2 : I1
+        private class C1 : I1 { }
+
+        private class C2 : I1
         {
             public C1 C1;
             public C2(C1 c1)
@@ -22,7 +23,7 @@ namespace StyletUnitTests.StyletIoC
             }
         }
 
-        class C3
+        private class C3
         {
             public C1 C1;
             public C2 C2;
@@ -33,7 +34,7 @@ namespace StyletUnitTests.StyletIoC
             }
         }
 
-        class C4
+        private class C4
         {
             public C1 C1;
             public C4([Inject("key1")] C1 c1)
@@ -42,7 +43,7 @@ namespace StyletUnitTests.StyletIoC
             }
         }
 
-        class C5
+        private class C5
         {
             public bool RightConstructorCalled;
             public C5(C1 c1, C2 c2 = null, C3 c3 = null, C4 c4 = null)
@@ -59,7 +60,7 @@ namespace StyletUnitTests.StyletIoC
             }
         }
 
-        class C6
+        private class C6
         {
             public bool RightConstructorCalled;
             [Inject]
@@ -73,7 +74,7 @@ namespace StyletUnitTests.StyletIoC
             }
         }
 
-        class C7
+        private class C7
         {
             [Inject]
             public C7()
@@ -86,7 +87,7 @@ namespace StyletUnitTests.StyletIoC
             }
         }
 
-        class C8
+        private class C8
         {
             public IEnumerable<I1> I1s;
             public C8(IEnumerable<I1> i1s)
@@ -95,21 +96,21 @@ namespace StyletUnitTests.StyletIoC
             }
         }
 
-        class C9
+        private class C9
         {
             public C9(I1 i1)
             {
             }
         }
 
-        class C10
+        private class C10
         {
             public C10(ObservableCollection<C10> c1s)
             {
             }
         }
 
-        class C11
+        private class C11
         {
             public C11(C11 other)
             {
@@ -124,9 +125,9 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<C1>().ToSelf();
             builder.Bind<C2>().ToSelf();
             builder.Bind<C3>().ToSelf();
-            var ioc = builder.BuildContainer(); 
+            IContainer ioc = builder.BuildContainer();
 
-            var c3 = ioc.Get<C3>();
+            C3 c3 = ioc.Get<C3>();
 
             Assert.IsInstanceOf<C3>(c3);
             Assert.IsInstanceOf<C1>(c3.C1);
@@ -140,9 +141,9 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf().WithKey("key1");
             builder.Bind<C4>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var c4 = ioc.Get<C4>();
+            C4 c4 = ioc.Get<C4>();
 
             Assert.IsInstanceOf<C1>(c4.C1);
         }
@@ -153,7 +154,7 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<C4>().ToSelf();
             builder.Bind<C1>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C4>());
         }
@@ -165,9 +166,9 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<C1>().ToSelf();
             builder.Bind<C2>().ToSelf();
             builder.Bind<C5>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var c5 = ioc.Get<C5>();
+            C5 c5 = ioc.Get<C5>();
             Assert.IsTrue(c5.RightConstructorCalled);
         }
 
@@ -178,9 +179,9 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<C1>().ToSelf();
             builder.Bind<C2>().ToSelf();
             builder.Bind<C6>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var c6 = ioc.Get<C6>();
+            C6 c6 = ioc.Get<C6>();
             Assert.IsTrue(c6.RightConstructorCalled);
         }
 
@@ -190,7 +191,7 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
             builder.Bind<C7>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C7>());
         }
@@ -200,7 +201,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C5>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C5>());
         }
@@ -210,7 +211,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C11>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             // This actually causes a StackOverflow on failure...
             Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C11>());
@@ -223,9 +224,9 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<C1>().ToSelf().InSingletonScope();
             builder.Bind<C2>().ToSelf();
             builder.Bind<C3>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var c3 = ioc.Get<C3>();
+            C3 c3 = ioc.Get<C3>();
             Assert.AreEqual(ioc.Get<C1>(), c3.C1);
             Assert.AreEqual(ioc.Get<C2>().C1, c3.C1);
         }
@@ -238,9 +239,9 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<I1>().To<C1>();
             builder.Bind<I1>().To<C2>();
             builder.Bind<C8>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var c8 = ioc.Get<C8>();
+            C8 c8 = ioc.Get<C8>();
             var i1s = c8.I1s.ToList();
 
             Assert.AreEqual(2, i1s.Count);
@@ -253,7 +254,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C6>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
             Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C6>());
         }
 
@@ -264,7 +265,7 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<I1>().To<C1>();
             builder.Bind<I1>().To<C2>();
             builder.Bind<C9>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.Throws<StyletIoCRegistrationException>(() => ioc.Get<C9>());
         }
@@ -278,7 +279,7 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
             builder.Bind<C10>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.Throws<StyletIoCFindConstructorException>(() => ioc.Get<C10>());
         }

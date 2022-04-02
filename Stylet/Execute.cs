@@ -22,14 +22,8 @@ namespace Stylet
         /// </remarks>
         public static IDispatcher Dispatcher
         {
-            get { return _dispatcher ?? SynchronousDispatcher.Instance; }
-
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException();
-                _dispatcher = value;
-            }
+            get => _dispatcher ?? SynchronousDispatcher.Instance;
+            set => _dispatcher = value ?? throw new ArgumentNullException(nameof(Dispatcher));
         }
 
         private static bool? inDesignMode;
@@ -160,7 +154,7 @@ namespace Stylet
                 return inDesignMode.Value;
             }
 
-            set { inDesignMode = value; }
+            set => inDesignMode = value;
         }
     }
 }

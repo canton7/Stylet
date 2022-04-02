@@ -25,14 +25,14 @@ namespace StyletUnitTests
         [Test]
         public void ReturnsNullIfValueIsNull()
         {
-            var result = this.converter.Convert(null, null, null, null);
+            object result = this.converter.Convert(null, null, null, null);
             Assert.IsNull(result);
         }
 
         [Test]
         public void ReturnsNullIfNonObjectPassed()
         {
-            var result = this.converter.Convert(5, null, null, null);
+            object result = this.converter.Convert(5, null, null, null);
             Assert.IsNull(result);
         }
 

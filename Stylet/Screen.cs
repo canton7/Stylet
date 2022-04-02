@@ -22,10 +22,9 @@ namespace Stylet
         /// Initialises a new instance of the <see cref="Screen"/> class, which can validate properties using the given validator
         /// </summary>
         /// <param name="validator">Validator to use</param>
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "Can be safely called from the Ctor, as it doesn't depend on state being set")]
         public Screen(IModelValidator validator) : base(validator)
         {
-            var type = this.GetType();
+            Type type = this.GetType();
             this.DisplayName = type.FullName;
             this.logger = LogManager.GetLogger(type);
         }
@@ -40,8 +39,8 @@ namespace Stylet
         /// </summary>
         public string DisplayName
         {
-            get { return this._displayName; }
-            set { this.SetAndNotify(ref this._displayName, value); }
+            get => this._displayName;
+            set => this.SetAndNotify(ref this._displayName, value);
         }
 
         #endregion
@@ -56,8 +55,8 @@ namespace Stylet
         [Obsolete("State is deprecated, please use ScreenState instead")]
         public virtual ScreenState State
         {
-            get { return this.ScreenState; }
-            protected set { this.ScreenState = value; }
+            get => this.ScreenState;
+            protected set => this.ScreenState = value;
         }
 
         /// <summary>
@@ -65,7 +64,7 @@ namespace Stylet
         /// </summary>
         public virtual ScreenState ScreenState
         {
-            get { return this._screenState; }
+            get => this._screenState;
             protected set
             {
                 if (this.SetAndNotify(ref this._screenState, value))
@@ -82,10 +81,7 @@ namespace Stylet
         /// <summary>
         /// Gets a value indicating whether the current state is ScreenState.Active
         /// </summary>
-        public bool IsActive
-        {
-            get { return this.ScreenState == ScreenState.Active; }
-        }
+        public bool IsActive => this.ScreenState == ScreenState.Active;
 
         private bool haveActivated = false;
 
@@ -146,7 +142,7 @@ namespace Stylet
             if (newState == this.ScreenState)
                 return;
 
-            var previousState = this.ScreenState;
+            ScreenState previousState = this.ScreenState;
             this.ScreenState = newState;
 
             this.logger.Info("Setting state from {0} to {1}", previousState, newState);
@@ -154,12 +150,11 @@ namespace Stylet
             this.OnStateChanged(previousState, newState);
             changedHandler(previousState, newState);
 
-            var handler = this.StateChanged;
+            EventHandler<ScreenStateChangedEventArgs> handler = this.StateChanged;
             if (handler != null)
                 Execute.OnUIThread(() => handler(this, new ScreenStateChangedEventArgs(newState, previousState)));
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IScreenState.Activate()
         {
             this.SetState(ScreenState.Active, (oldState, newState) =>
@@ -173,13 +168,12 @@ namespace Stylet
 
                 this.OnActivate();
 
-                var handler = this.Activated;
+                EventHandler<ActivationEventArgs> handler = this.Activated;
                 if (handler != null)
                     Execute.OnUIThread(() => handler(this, new ActivationEventArgs(oldState, isInitialActivate)));
             });
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IScreenState.Deactivate()
         {
             // Avoid going from Closed -> Deactivated without going via Activated
@@ -190,13 +184,12 @@ namespace Stylet
             {
                 this.OnDeactivate();
 
-                var handler = this.Deactivated;
+                EventHandler<DeactivationEventArgs> handler = this.Deactivated;
                 if (handler != null)
                     Execute.OnUIThread(() => handler(this, new DeactivationEventArgs(oldState)));
             });
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IScreenState.Close()
         {
             // Avoid going from Activated -> Closed without going via Deactivated
@@ -211,7 +204,7 @@ namespace Stylet
             {
                 this.OnClose();
 
-                var handler = this.Closed;
+                EventHandler<CloseEventArgs> handler = this.Closed;
                 if (handler != null)
                     Execute.OnUIThread(() => handler(this, new CloseEventArgs(oldState)));
             });
@@ -226,7 +219,6 @@ namespace Stylet
         /// </summary>
         public UIElement View { get; private set; }
 
-        [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes", Justification = "As this is a framework type, don't want to make it too easy for users to call this method")]
         void IViewAware.AttachView(UIElement view)
         {
             if (this.View != null)
@@ -236,8 +228,7 @@ namespace Stylet
 
             this.logger.Info("Attaching view {0}", view);
 
-            var viewAsFrameworkElement = view as FrameworkElement;
-            if (viewAsFrameworkElement != null)
+            if (view is FrameworkElement viewAsFrameworkElement)
             {
                 if (viewAsFrameworkElement.IsLoaded)
                     this.OnViewLoaded();
@@ -262,8 +253,8 @@ namespace Stylet
         /// </summary>
         public object Parent
         {
-            get { return this._parent; }
-            set { this.SetAndNotify(ref this._parent, value); }
+            get => this._parent;
+            set => this.SetAndNotify(ref this._parent, value);
         }
 
         #endregion
@@ -303,8 +294,7 @@ namespace Stylet
         /// <param name="dialogResult">DialogResult to return, if this is a dialog</param>
         public virtual void RequestClose(bool? dialogResult = null)
         {
-            var conductor = this.Parent as IChildDelegate;
-            if (conductor != null)
+            if (this.Parent is IChildDelegate conductor)
             {
                 this.logger.Info("RequstClose called. Conductor: {0}; DialogResult: {1}", conductor, dialogResult);
                 conductor.CloseItem(this, dialogResult);

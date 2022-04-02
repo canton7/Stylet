@@ -19,8 +19,8 @@ namespace Stylet
         [System.Xml.Serialization.XmlIgnore]
         public virtual Action<Action> PropertyChangedDispatcher
         {
-            get { return this._propertyChangedDispatcher; }
-            set { this._propertyChangedDispatcher = value; }
+            get => this._propertyChangedDispatcher;
+            set => this._propertyChangedDispatcher = value;
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Stylet
         /// </summary>
         public void Refresh()
         {
-            this.NotifyOfPropertyChange(String.Empty);
+            this.NotifyOfPropertyChange(string.Empty);
         }
 
         /// <summary>
@@ -65,12 +65,7 @@ namespace Stylet
         {
             if (this.PropertyChanged != null)
             {
-                this.PropertyChangedDispatcher(() => 
-                {
-                    var handler = this.PropertyChanged;
-                    if (handler != null)
-                        handler(this, new PropertyChangedEventArgs(propertyName));
-                });
+                this.PropertyChangedDispatcher(() => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)));
             }
         }
 

@@ -64,8 +64,8 @@ namespace Stylet
         /// </summary>
         public static readonly string DefaultChannel = "DefaultChannel";
 
-        private readonly List<Handler> handlers = new List<Handler>();
-        private readonly object handlersLock = new object();
+        private readonly List<Handler> handlers = new();
+        private readonly object handlersLock = new();
 
         /// <summary>
         /// Register an instance as wanting to receive events. Implement IHandle{T} for each event type you want to receive.
@@ -77,7 +77,7 @@ namespace Stylet
             lock (this.handlersLock)
             {
                 // Is it already subscribed?
-                var subscribed = this.handlers.FirstOrDefault(x => x.IsHandlerForInstance(handler));
+                Handler subscribed = this.handlers.FirstOrDefault(x => x.IsHandlerForInstance(handler));
                 if (subscribed == null)
                     this.handlers.Add(new Handler(handler, channels)); // Adds default topic if appropriate
                 else
@@ -94,7 +94,7 @@ namespace Stylet
         {
             lock (this.handlersLock)
             {
-                var existingHandler = this.handlers.FirstOrDefault(x => x.IsHandlerForInstance(handler));
+                Handler existingHandler = this.handlers.FirstOrDefault(x => x.IsHandlerForInstance(handler));
                 if (existingHandler != null && existingHandler.UnsubscribeFromChannels(channels)) // Handles default topic appropriately
                     this.handlers.Remove(existingHandler);
             }
@@ -116,10 +116,10 @@ namespace Stylet
                 // Start by clearing up dead handlers
                 this.handlers.RemoveAll(x => !x.IsAlive);
 
-                var messageType = message.GetType();
-                var invokers = this.handlers.SelectMany(x => x.GetInvokers(messageType, channels)).ToArray();
+                Type messageType = message.GetType();
+                HandlerInvoker[] invokers = this.handlers.SelectMany(x => x.GetInvokers(messageType, channels)).ToArray();
 
-                foreach (var invoker in invokers)
+                foreach (HandlerInvoker invoker in invokers)
                 {
                     dispatcher(() => invoker.Invoke(message));
                 }
@@ -131,22 +131,19 @@ namespace Stylet
             private static readonly string[] DefaultChannelArray = new[] { DefaultChannel };
 
             private readonly WeakReference target;
-            private readonly List<HandlerInvoker> invokers = new List<HandlerInvoker>();
-            private readonly HashSet<string> channels = new HashSet<string>();
+            private readonly List<HandlerInvoker> invokers = new();
+            private readonly HashSet<string> channels = new();
 
-            public bool IsAlive
-            {
-                get { return this.target.IsAlive; }
-            }
+            public bool IsAlive => this.target.IsAlive;
 
             public Handler(object handler, string[] channels)
             {
-                var handlerType = handler.GetType();
+                Type handlerType = handler.GetType();
                 this.target = new WeakReference(handler);
 
-                foreach (var implementation in handler.GetType().GetInterfaces().Where(x => x.IsGenericType && typeof(IHandle).IsAssignableFrom(x)))
+                foreach (Type implementation in handler.GetType().GetInterfaces().Where(x => x.IsGenericType && typeof(IHandle).IsAssignableFrom(x)))
                 {
-                    var messageType = implementation.GetGenericArguments()[0];
+                    Type messageType = implementation.GetGenericArguments()[0];
                     this.invokers.Add(new HandlerInvoker(this.target, handlerType, messageType, implementation.GetMethod("Handle")));
                 }
 
@@ -200,11 +197,11 @@ namespace Stylet
             {
                 this.target = target;
                 this.messageType = messageType;
-                var targetParam = Expression.Parameter(typeof(object), "target");
-                var messageParam = Expression.Parameter(typeof(object), "message");
-                var castTarget = Expression.Convert(targetParam, targetType);
-                var castMessage = Expression.Convert(messageParam, messageType);
-                var callExpression = Expression.Call(castTarget, invocationMethod, castMessage);
+                ParameterExpression targetParam = Expression.Parameter(typeof(object), "target");
+                ParameterExpression messageParam = Expression.Parameter(typeof(object), "message");
+                UnaryExpression castTarget = Expression.Convert(targetParam, targetType);
+                UnaryExpression castMessage = Expression.Convert(messageParam, messageType);
+                MethodCallExpression callExpression = Expression.Call(castTarget, invocationMethod, castMessage);
                 this.invoker = Expression.Lambda<Action<object, object>>(callExpression, targetParam, messageParam).Compile();
             }
 
@@ -215,7 +212,7 @@ namespace Stylet
 
             public void Invoke(object message)
             {
-                var target = this.target.Target;
+                object target = this.target.Target;
                 // Just in case it's expired...
                 if (target != null)
                     this.invoker(target, message);

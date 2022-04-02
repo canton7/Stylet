@@ -18,7 +18,7 @@ namespace StyletIoC.Internal
             var assemblyName = new AssemblyName(StyletIoCContainer.FactoryAssemblyName);
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
 
-            var moduleBuilder = assemblyBuilder.DefineDynamicModule("StyletIoCFactoryModule");
+            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("StyletIoCFactoryModule");
             this.moduleBuilder = moduleBuilder;
         }
 
@@ -32,19 +32,19 @@ namespace StyletIoC.Internal
                 throw new StyletIoCCreateFactoryException(string.Format("Unable to create a factory implementing type {0}, as it isn't an interface", serviceType.GetDescription()));
 
             // If the service is 'ISomethingFactory', call our new class 'GeneratedSomethingFactory'
-            var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(serviceType), TypeAttributes.Public);
+            TypeBuilder typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(serviceType), TypeAttributes.Public);
             typeBuilder.AddInterfaceImplementation(serviceType);
 
             // Define a field which holds a reference to the registration context
-            var registrationContextField = typeBuilder.DefineField("registrationContext", typeof(IRegistrationContext), FieldAttributes.Private);
+            FieldBuilder registrationContextField = typeBuilder.DefineField("registrationContext", typeof(IRegistrationContext), FieldAttributes.Private);
 
             // Add a constructor which takes one argument - the container - and sets the field
             // public Name(IRegistrationContext registrationContext)
             // {
             //    this.registrationContext = registrationContext;
             // }
-            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { typeof(IRegistrationContext) });
-            var ilGenerator = ctorBuilder.GetILGenerator();
+            ConstructorBuilder ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { typeof(IRegistrationContext) });
+            ILGenerator ilGenerator = ctorBuilder.GetILGenerator();
             // Load 'this' and the registration context onto the stack
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Ldarg_1);
@@ -55,24 +55,24 @@ namespace StyletIoC.Internal
             // These are needed by all methods, so get them now
             // IRegistrationContext.GetTypeOrAll(Type, string)
             // IRegistrationContext extends ICreator, and it's ICreator that actually implements this
-            var containerGetMethod = typeof(IContainer).GetMethod("GetTypeOrAll", new[] { typeof(Type), typeof(string) });
+            MethodInfo containerGetMethod = typeof(IContainer).GetMethod("GetTypeOrAll", new[] { typeof(Type), typeof(string) });
             // Type.GetTypeFromHandler(RuntimeTypeHandle)
-            var typeFromHandleMethod = typeof(Type).GetMethod("GetTypeFromHandle");
+            MethodInfo typeFromHandleMethod = typeof(Type).GetMethod("GetTypeFromHandle");
 
             // Go through each method, emmitting an implementation for each
-            foreach (var methodInfo in serviceType.GetMethods())
+            foreach (MethodInfo methodInfo in serviceType.GetMethods())
             {
-                var parameters = methodInfo.GetParameters();
+                ParameterInfo[] parameters = methodInfo.GetParameters();
                 if (!(parameters.Length == 0 || (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))))
                     throw new StyletIoCCreateFactoryException("Can only implement methods with zero arguments, or a single string argument");
 
                 if (methodInfo.ReturnType == typeof(void))
                     throw new StyletIoCCreateFactoryException("Can only implement methods which return something");
 
-                var attribute = methodInfo.GetCustomAttribute<InjectAttribute>(true);
+                InjectAttribute attribute = methodInfo.GetCustomAttribute<InjectAttribute>(true);
 
-                var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
-                var methodIlGenerator = methodBuilder.GetILGenerator();
+                MethodBuilder methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
+                ILGenerator methodIlGenerator = methodBuilder.GetILGenerator();
                 // Load 'this' onto stack
                 // Stack: [this]
                 methodIlGenerator.Emit(OpCodes.Ldarg_0);
@@ -124,16 +124,16 @@ namespace StyletIoC.Internal
 
         private void AddFriendlierNameForType(StringBuilder sb, Type type)
         {
-            var typeInfo = type.GetTypeInfo();
+            TypeInfo typeInfo = type.GetTypeInfo();
             if (typeInfo.IsGenericType)
             {
                 sb.Append(type.GetGenericTypeDefinition().FullName.Replace('.', '+'));
                 sb.Append("<>["); // Just so that they can't fool us with carefully-crafted interface names...
-                foreach (var arg in typeInfo.GetGenericArguments())
+                foreach (Type arg in typeInfo.GetGenericArguments())
                 {
                     this.AddFriendlierNameForType(sb, arg);
                 }
-                sb.Append("]");
+                sb.Append(']');
             }
             else
             {

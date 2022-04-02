@@ -6,19 +6,22 @@ namespace StyletUnitTests.StyletIoC
     [TestFixture]
     public class StyletIoCUnboundGenericTests
     {
-        interface I1<T> { }
-        class C1<T> : I1<T> { }
-        class C12<T> { }
+        private interface I1<T> { }
 
-        interface I2<T, U> { }
-        class C2<T, U> : I2<U, T> { }
+        private class C1<T> : I1<T> { }
+
+        private class C12<T> { }
+
+        private interface I2<T1, T2> { }
+
+        private class C2<T1, T2> : I2<T2, T1> { }
 
         [Test]
         public void ResolvesSingleGenericType()
         {
             var builder = new StyletIoCBuilder();
             builder.Bind(typeof(C1<>)).ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.DoesNotThrow(() => ioc.Get<C1<int>>());
         }
@@ -28,9 +31,9 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind(typeof(I1<>)).To(typeof(C1<>));
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var result = ioc.Get<I1<int>>();
+            I1<int> result = ioc.Get<I1<int>>();
             Assert.IsInstanceOf<C1<int>>(result);
         }
 
@@ -39,9 +42,9 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind(typeof(I2<,>)).To(typeof(C2<,>));
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var c2 = ioc.Get<I2<int, bool>>();
+            I2<int, bool> c2 = ioc.Get<I2<int, bool>>();
             Assert.IsInstanceOf<C2<bool, int>>(c2);
         }
 
@@ -50,7 +53,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind(typeof(I1<>)).To(typeof(C1<>)).InSingletonScope();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.AreEqual(ioc.Get<I1<int>>(), ioc.Get<I1<int>>());
         }
@@ -60,7 +63,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind(typeof(I1<>)).To(typeof(C1<>)).WithKey("test");
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.NotNull(ioc.Get<I1<int>>("test"));
         }

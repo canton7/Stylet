@@ -26,7 +26,7 @@ namespace Stylet.Xaml
         /// </summary>
         public IBootstrapper Bootstrapper
         {
-            get { return this._bootstrapper; }
+            get => this._bootstrapper;
             set
             {
                 this._bootstrapper = value;
@@ -41,7 +41,7 @@ namespace Stylet.Xaml
         /// </summary>
         public bool LoadStyletResources
         {
-            get { return this._loadStyletResources; }
+            get => this._loadStyletResources;
             set
             {
                 this._loadStyletResources = value;

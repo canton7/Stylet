@@ -79,7 +79,7 @@ namespace StyletUnitTests
         [Test]
         public void CreateWindowAsksViewManagerForView()
         {
-            var model = new object();
+            object model = new();
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Verifiable();
             // Don't care if this throws - that's OK
             try { this.windowManager.CreateWindow(model, false);  }
@@ -90,7 +90,7 @@ namespace StyletUnitTests
         [Test]
         public void CreateWindowThrowsIfViewIsntAWindow()
         {
-            var model = new object();
+            object model = new();
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(new UIElement());
             Assert.Throws<StyletInvalidViewTypeException>(() => this.windowManager.CreateWindow(model, false));
         }
@@ -104,7 +104,7 @@ namespace StyletUnitTests
             
             this.windowManager.CreateWindow(model, false);
 
-            var e = window.GetBindingExpression(Window.TitleProperty);
+            BindingExpression e = window.GetBindingExpression(Window.TitleProperty);
             Assert.NotNull(e);
             Assert.AreEqual(BindingMode.TwoWay, e.ParentBinding.Mode);
             Assert.AreEqual("DisplayName", e.ParentBinding.Path.Path);
@@ -120,7 +120,7 @@ namespace StyletUnitTests
 
             this.windowManager.CreateWindow(model, false);
 
-            var e = window.GetBindingExpression(Window.TitleProperty);
+            BindingExpression e = window.GetBindingExpression(Window.TitleProperty);
             Assert.IsNull(e);
             Assert.AreEqual("Foo", window.Title);
         }
@@ -136,7 +136,7 @@ namespace StyletUnitTests
 
             this.windowManager.CreateWindow(model, false);
 
-            var e = window.GetBindingExpression(Window.TitleProperty);
+            BindingExpression e = window.GetBindingExpression(Window.TitleProperty);
             Assert.AreEqual("Test", e.ParentBinding.Path.Path);
         }
 
@@ -150,7 +150,7 @@ namespace StyletUnitTests
 
             this.windowManager.CreateWindow(model, false);
 
-            var e = window.GetBindingExpression(Window.TitleProperty);
+            BindingExpression e = window.GetBindingExpression(Window.TitleProperty);
             Assert.AreEqual("DisplayName", e.ParentBinding.Path.Path);
         }
 
@@ -337,7 +337,7 @@ namespace StyletUnitTests
         [Test]
         public void CreateWindowSetsWindowStartupLocationToCenterScreenIfThereIsNoOwnerAndItHasNotBeenSetAlready()
         {
-            var model = new object();
+            object model = new();
             var window = new Window();
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
 
@@ -349,7 +349,7 @@ namespace StyletUnitTests
         [Test]
         public void CreateWindowDoesNotSetStartupLocationIfItIsNotManual()
         {
-            var model = new object();
+            object model = new();
             var window = new Window();
             window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
@@ -362,7 +362,7 @@ namespace StyletUnitTests
         [Test]
         public void CreateWindowDoesNotSetStartupLocationIfLeftSet()
         {
-            var model = new object();
+            object model = new();
             var window = new Window();
             window.Left = 1;
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
@@ -375,7 +375,7 @@ namespace StyletUnitTests
         [Test]
         public void CreateWindowDoesNotSetStartupLocationIfTopSet()
         {
-            var model = new object();
+            object model = new();
             var window = new Window();
             window.Top = 1;
             this.viewManager.Setup(x => x.CreateAndBindViewForModelIfNecessary(model)).Returns(window);
@@ -391,7 +391,7 @@ namespace StyletUnitTests
             // We can't actually set the window successfully, since it'll throw an InvalidOperationException
             // ("can't set owner to a window which has not been shown previously")
 
-            var model = new object();
+            object model = new();
             var window = new Window();
             var activeWindow = new Window();
 

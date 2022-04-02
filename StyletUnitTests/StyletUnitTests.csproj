@@ -5,6 +5,7 @@
 
     <UseWpf>true</UseWpf>
     <IsPackable>false</IsPackable>
+    <LangVersion>10</LangVersion>
 
     <Copyright>Copyright © 2014 Antony Male</Copyright>
   </PropertyGroup>

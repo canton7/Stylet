@@ -22,7 +22,7 @@ namespace StyletUnitTests
             public bool CanDoSomethingWithGuard
             {
                 get => this._canDoSomethingWithGuard;
-                set => SetAndNotify(ref this._canDoSomethingWithGuard, value);
+                set => this.SetAndNotify(ref this._canDoSomethingWithGuard, value);
             }
 
             public bool DoSomethingWithGuardCalled;
@@ -41,10 +41,7 @@ namespace StyletUnitTests
             {
             }
 
-            public object CanDoSomethingWithBadGuard
-            {
-                get { return false; }
-            }
+            public object CanDoSomethingWithBadGuard => false;
             public void DoSomethingWithBadGuard() { }
 
             public void DoSomethingUnsuccessfully()
@@ -52,10 +49,7 @@ namespace StyletUnitTests
                 throw new InvalidOperationException("woo");
             }
 
-            public bool CanDoSomethingWithUnsuccessfulGuardMethod
-            {
-                get { throw new InvalidOperationException("foo"); }
-            }
+            public bool CanDoSomethingWithUnsuccessfulGuardMethod => throw new InvalidOperationException("foo");
 
             public void DoSomethingWithUnsuccessfulGuardMethod()
             {
@@ -74,7 +68,7 @@ namespace StyletUnitTests
 
         public class StaticTarget
         {
-            public static bool DidSomething;
+            public static bool DidSomething { get; set; }
             public static void DoSomething() => DidSomething = true;
         }
 
@@ -238,7 +232,7 @@ namespace StyletUnitTests
         public void ExecutePassesArgumentIfGiven()
         {
             var cmd = new CommandAction(this.subject, null, "DoSomethingWithArgument", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
-            var arg = "hello";
+            string arg = "hello";
             cmd.Execute(arg);
             Assert.AreEqual("hello", this.target.DoSomethingArgument);
         }
@@ -253,7 +247,7 @@ namespace StyletUnitTests
         public void PropagatesActionException()
         {
             var cmd = new CommandAction(this.subject, null, "DoSomethingUnsuccessfully", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
-            var e = Assert.Throws<InvalidOperationException>(() => cmd.Execute(null));
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(() => cmd.Execute(null));
             Assert.AreEqual("woo", e.Message);
         }
 
@@ -261,7 +255,7 @@ namespace StyletUnitTests
         public void PropagatesGuardPropertException()
         {
             var cmd = new CommandAction(this.subject, null, "DoSomethingWithUnsuccessfulGuardMethod", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
-            var e = Assert.Throws<InvalidOperationException>(() => cmd.CanExecute(null));
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(() => cmd.CanExecute(null));
             Assert.AreEqual("foo", e.Message);
         }
 
@@ -292,7 +286,7 @@ namespace StyletUnitTests
                 return new WeakReference(view);
             }
 
-            var weakView = Test();
+            WeakReference weakView = Test();
 
             GC.Collect();
 

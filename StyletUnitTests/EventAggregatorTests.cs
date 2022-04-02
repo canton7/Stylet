@@ -106,7 +106,7 @@ namespace StyletUnitTests
                 return new WeakReference(target);
             }
 
-            var weakTarget = Test();
+            WeakReference weakTarget = Test();
 
             GC.Collect();
 

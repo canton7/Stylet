@@ -27,7 +27,7 @@ namespace StyletIoC.Internal
         /// <returns>Base types implemented by the given type</returns>
         public static IEnumerable<Type> GetBaseTypes(this Type type)
         {
-            for (var baseType = type.BaseType; baseType != null; baseType = baseType.BaseType)
+            for (Type baseType = type.BaseType; baseType != null; baseType = baseType.BaseType)
             {
                 yield return baseType;
             }
@@ -49,7 +49,7 @@ namespace StyletIoC.Internal
                 implementationType.GetBaseTypesAndInterfaces().Any(x => x == serviceType || (x.IsGenericType && x.GetGenericTypeDefinition() == serviceType));
         }
 
-        private static readonly Dictionary<Type, string> primitiveNameMapping = new Dictionary<Type, string>()
+        private static readonly Dictionary<Type, string> primitiveNameMapping = new()
         {
             { typeof(byte), "byte" },
             { typeof(sbyte), "sbyte" },
@@ -78,14 +78,14 @@ namespace StyletIoC.Internal
         public static string GetDescription(this Type type)
         {
             if (type.IsGenericTypeDefinition)
-                return string.Format("{0}<{1}>", type.Name.Split('`')[0], String.Join(", ", type.GetTypeInfo().GenericTypeParameters.Select(x => x.Name)));
-            var genericArguments = type.GetGenericArguments();
+                return string.Format("{0}<{1}>", type.Name.Split('`')[0], string.Join(", ", type.GetTypeInfo().GenericTypeParameters.Select(x => x.Name)));
+            Type[] genericArguments = type.GetGenericArguments();
 
             string name;
             if (genericArguments.Length > 0)
             {
-                var genericArgumentNames = genericArguments.Select(x => primitiveNameMapping.TryGetValue(x, out name) ? name : x.Name);
-                return string.Format("{0}<{1}>", type.Name.Split('`')[0], String.Join(", ", genericArgumentNames));
+                IEnumerable<string> genericArgumentNames = genericArguments.Select(x => primitiveNameMapping.TryGetValue(x, out name) ? name : x.Name);
+                return string.Format("{0}<{1}>", type.Name.Split('`')[0], string.Join(", ", genericArgumentNames));
             }
             else
             {

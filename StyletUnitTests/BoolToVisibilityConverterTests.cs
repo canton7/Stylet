@@ -38,7 +38,7 @@ namespace StyletUnitTests
         [Test]
         public void ConvertReturnsVisibleForTrueByDefault()
         {
-            var result = this.converter.Convert(true, null, null, null);
+            object result = this.converter.Convert(true, null, null, null);
             Assert.AreEqual(Visibility.Visible, result);
         }
 
@@ -46,14 +46,14 @@ namespace StyletUnitTests
         public void ConvertReturnsSetTrueVisibility()
         {
             this.converter.TrueVisibility = Visibility.Hidden;
-            var result = this.converter.Convert(true, null, null, null);
+            object result = this.converter.Convert(true, null, null, null);
             Assert.AreEqual(Visibility.Hidden, result);
         }
 
         [Test]
         public void ConvertReturnsCollapsedForFalseByDefault()
         {
-            var result = this.converter.Convert(false, null, null, null);
+            object result = this.converter.Convert(false, null, null, null);
             Assert.AreEqual(Visibility.Collapsed, result);
         }
 
@@ -61,7 +61,7 @@ namespace StyletUnitTests
         public void ConvertReturnsSetFalseVisibility()
         {
             this.converter.FalseVisibility = Visibility.Visible;
-            var result = this.converter.Convert(false, null, null, null);
+            object result = this.converter.Convert(false, null, null, null);
             Assert.AreEqual(Visibility.Visible, result);
         }
 
@@ -159,7 +159,7 @@ namespace StyletUnitTests
         public void ConvertBackReturnsTrueIfValueIsTrueVisibility()
         {
             this.converter.TrueVisibility = Visibility.Hidden;
-            var result = this.converter.ConvertBack(Visibility.Hidden, typeof(bool), null, null);
+            object result = this.converter.ConvertBack(Visibility.Hidden, typeof(bool), null, null);
             Assert.AreEqual(true, result);
         }
 
@@ -167,21 +167,21 @@ namespace StyletUnitTests
         public void ConvertBackReturnsFalseIfValueIsFalseVisibility()
         {
             this.converter.FalseVisibility = Visibility.Hidden;
-            var result = this.converter.ConvertBack(Visibility.Hidden, typeof(bool), null, null);
+            object result = this.converter.ConvertBack(Visibility.Hidden, typeof(bool), null, null);
             Assert.AreEqual(false, result);
         }
 
         [Test]
         public void ConvertBackReturnsNullIfValueIsNotAVisibility()
         {
-            var result = this.converter.ConvertBack(new object(), typeof(bool), null, null);
+            object result = this.converter.ConvertBack(new object(), typeof(bool), null, null);
             Assert.Null(result);
         }
 
         [Test]
         public void ConvertBackReturnsNullIfValueIsNotAConfiguredVisibility()
         {
-            var result = this.converter.ConvertBack(Visibility.Hidden, typeof(bool), null, null);
+            object result = this.converter.ConvertBack(Visibility.Hidden, typeof(bool), null, null);
             Assert.Null(result);
         }
     }

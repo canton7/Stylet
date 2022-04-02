@@ -12,7 +12,7 @@ namespace StyletIoC.Creation
     {
         private readonly RuntimeTypeHandle typeHandle;
         private readonly IRegistrationContext parentContext;
-        private readonly object implementorLock = new object();
+        private readonly object implementorLock = new();
         private Action<IRegistrationContext, object> implementor;
 
         /// <summary>
@@ -55,13 +55,13 @@ namespace StyletIoC.Creation
 
         private Expression ExpressionForMember(Expression objExpression, MemberInfo member, Type memberType, ParameterExpression registrationContext)
         {
-            var attribute = member.GetCustomAttribute<InjectAttribute>(true);
+            InjectAttribute attribute = member.GetCustomAttribute<InjectAttribute>(true);
             if (attribute == null)
                 return null;
 
-            var memberAccess = Expression.MakeMemberAccess(objExpression, member);
-            var memberValue = this.parentContext.GetSingleRegistration(memberType, attribute.Key, true).GetInstanceExpression(registrationContext);
-            var assign = Expression.Assign(memberAccess, memberValue);
+            MemberExpression memberAccess = Expression.MakeMemberAccess(objExpression, member);
+            Expression memberValue = this.parentContext.GetSingleRegistration(memberType, attribute.Key, true).GetInstanceExpression(registrationContext);
+            BinaryExpression assign = Expression.Assign(memberAccess, memberValue);
             // Only actually do the assignment if the field/property is currently null
             return Expression.IfThen(Expression.Equal(memberAccess, Expression.Constant(null, memberType)), assign);
         }
@@ -79,9 +79,9 @@ namespace StyletIoC.Creation
 
                 var type = Type.GetTypeFromHandle(this.typeHandle);
 
-                var parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
-                var registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
-                var typedParameterExpression = Expression.Convert(parameterExpression, type);
+                ParameterExpression parameterExpression = Expression.Parameter(typeof(object), "inputParameter");
+                ParameterExpression registrationContext = Expression.Parameter(typeof(IRegistrationContext), "registrationContext");
+                UnaryExpression typedParameterExpression = Expression.Convert(parameterExpression, type);
                 this.implementor = Expression.Lambda<Action<IRegistrationContext, object>>(this.GetExpression(typedParameterExpression, registrationContext, type), registrationContext, parameterExpression).Compile();
 
                 return this.implementor;

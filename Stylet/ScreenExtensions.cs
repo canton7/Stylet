@@ -13,8 +13,7 @@ namespace Stylet
         /// <param name="screen">Screen to activate</param>
         public static void TryActivate(object screen)
         {
-            var screenAsScreenState = screen as IScreenState;
-            if (screenAsScreenState != null)
+            if (screen is IScreenState screenAsScreenState)
                 screenAsScreenState.Activate();
         }
 
@@ -24,8 +23,7 @@ namespace Stylet
         /// <param name="screen">Screen to deactivate</param>
         public static void TryDeactivate(object screen)
         {
-            var screenAsScreenState = screen as IScreenState;
-            if (screenAsScreenState != null)
+            if (screen is IScreenState screenAsScreenState)
                 screenAsScreenState.Deactivate();
         }
 
@@ -35,8 +33,7 @@ namespace Stylet
         /// <param name="screen">Screen to close</param>
         public static void TryClose(object screen)
         {
-            var screenAsScreenState = screen as IScreenState;
-            if (screenAsScreenState != null)
+            if (screen is IScreenState screenAsScreenState)
                 screenAsScreenState.Close();
         }
 
@@ -46,8 +43,7 @@ namespace Stylet
         /// <param name="screen">Screen to dispose</param>
         public static void TryDispose(object screen)
         {
-            var screenAsDispose = screen as IDisposable;
-            if (screenAsDispose != null)
+            if (screen is IDisposable screenAsDispose)
                 screenAsDispose.Dispose();
         }
 
@@ -60,16 +56,15 @@ namespace Stylet
         public static void ActivateWith(this IScreenState child, IScreenState parent)
         {
             var weakChild = new WeakReference<IScreenState>(child);
-            EventHandler<ActivationEventArgs> handler = null;
-            handler = (o, e) =>
+            void Handler(object o, ActivationEventArgs e)
             {
-                IScreenState strongChild;
-                if (weakChild.TryGetTarget(out strongChild))
+                if (weakChild.TryGetTarget(out var strongChild))
                     strongChild.Activate();
                 else
-                    parent.Activated -= handler;
-            };
-            parent.Activated += handler;
+                    parent.Activated -= Handler;
+            }
+
+            parent.Activated += Handler;
         }
 
         /// <summary>
@@ -81,16 +76,15 @@ namespace Stylet
         public static void DeactivateWith(this IScreenState child, IScreenState parent)
         {
             var weakChild = new WeakReference<IScreenState>(child);
-            EventHandler<DeactivationEventArgs> handler = null;
-            handler = (o, e) =>
+            void Handler(object o, DeactivationEventArgs e)
             {
-                IScreenState strongChild;
-                if (weakChild.TryGetTarget(out strongChild))
+                if (weakChild.TryGetTarget(out var strongChild))
                     strongChild.Deactivate();
                 else
-                    parent.Deactivated -= handler;
-            };
-            parent.Deactivated += handler;
+                    parent.Deactivated -= Handler;
+            }
+
+            parent.Deactivated += Handler;
         }
 
         /// <summary>
@@ -102,16 +96,15 @@ namespace Stylet
         public static void CloseWith(this IScreenState child, IScreenState parent)
         {
             var weakChild = new WeakReference<IScreenState>(child);
-            EventHandler<CloseEventArgs> handler = null;
-            handler = (o, e) =>
+            void Handler(object o, CloseEventArgs e)
             {
-                IScreenState strongChild;
-                if (weakChild.TryGetTarget(out strongChild))
+                if (weakChild.TryGetTarget(out var strongChild))
                     TryClose(strongChild);
                 else
-                    parent.Closed -= handler;
-            };
-            parent.Closed += handler;
+                    parent.Closed -= Handler;
+            }
+
+            parent.Closed += Handler;
         }
 
         /// <summary>

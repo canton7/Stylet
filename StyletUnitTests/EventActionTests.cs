@@ -76,7 +76,7 @@ namespace StyletUnitTests
 
         public class StaticTarget
         {
-            public static bool DidSomething;
+            public static bool DidSomething { get; set; }
             public static void DoSomething() => DidSomething = true;
         }
 
@@ -120,7 +120,7 @@ namespace StyletUnitTests
         {
             var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Throw);
             Assert.DoesNotThrow(() => View.SetActionTarget(this.subject, new Target2()));
-            var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, new RoutedEventArgs()));
+            TargetInvocationException e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, new RoutedEventArgs()));
             Assert.IsInstanceOf<ActionNotFoundException>(e.InnerException);
         }
 
@@ -185,7 +185,7 @@ namespace StyletUnitTests
         public void InvokingCommandCallsMethodWithSenderAndEventArgs()
         {
             var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomethingWithObjectAndEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
-            var sender = new object();
+            object sender = new();
             var arg = new RoutedEventArgs();
             cmd.GetDelegate().DynamicInvoke(sender, arg);
 
@@ -206,7 +206,7 @@ namespace StyletUnitTests
         public void InvokingCommandCallsMethodWithSenderAndDependencyChangedEventArgs()
         {
             var cmd = new EventAction(this.subject, null, this.dependencyChangedEventInfo.EventHandlerType, "DoSomethingWithObjectAndDependencyChangedEventArgs", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
-            var sender = new object();
+            object sender = new();
             var arg = new DependencyPropertyChangedEventArgs();
             cmd.GetDelegate().DynamicInvoke(sender, arg);
 
@@ -225,7 +225,7 @@ namespace StyletUnitTests
         public void PropagatesActionException()
         {
             var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomethingUnsuccessfully", ActionUnavailableBehaviour.Enable, ActionUnavailableBehaviour.Enable);
-            var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, null));
+            TargetInvocationException e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, null));
             Assert.IsInstanceOf<InvalidOperationException>(e.InnerException);
             Assert.AreEqual("foo", e.InnerException.Message);
         }
@@ -235,7 +235,7 @@ namespace StyletUnitTests
         {
             View.SetActionTarget(this.subject, View.InitialActionTarget);
             var cmd = new EventAction(this.subject, null, this.eventInfo.EventHandlerType, "DoSomething", ActionUnavailableBehaviour.Throw, ActionUnavailableBehaviour.Throw);
-            var e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, null));
+            TargetInvocationException e = Assert.Throws<TargetInvocationException>(() => cmd.GetDelegate().DynamicInvoke(null, null));
             Assert.IsInstanceOf<ActionNotSetException>(e.InnerException);
         }
 
@@ -250,7 +250,7 @@ namespace StyletUnitTests
                 return new WeakReference(view);
             }
 
-            var weakView = Test();
+            WeakReference weakView = Test();
 
             GC.Collect();
 

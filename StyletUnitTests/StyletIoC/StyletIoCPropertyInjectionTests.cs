@@ -6,11 +6,13 @@ namespace StyletUnitTests.StyletIoC
     [TestFixture]
     public class StyletIoCPropertyInjectionTests
     {
-        class C1 { }
-        interface I2 { }
-        class C2 : I2 { }
+        private class C1 { }
 
-        class Subject1
+        private interface I2 { }
+
+        private class C2 : I2 { }
+
+        private class Subject1
         {
             public C1 Ignored = null;
 
@@ -18,37 +20,39 @@ namespace StyletUnitTests.StyletIoC
             public C1 C1 = null;
         }
 
-        class Subject2
+        private class Subject2
         {
             [Inject]
+#pragma warning disable IDE0044 // Add readonly modifier
             private C1 c1 = null;
+#pragma warning restore IDE0044 // Add readonly modifier
             public C1 GetC1() { return this.c1; }
         }
 
-        class Subject3
+        private class Subject3
         {
             [Inject]
             public C1 C1 { get; set; }
         }
 
-        class Subject4
+        private class Subject4
         {
             [Inject]
             public C1 C11 { get; private set; }
             [Inject]
-            private C1 C12 { get; set; }
+            private C1 c12 { get; set; }
 
-            public C1 GetC11() { return this.C11; }
-            public C1 GetC12() { return this.C12; }
+            public C1 GetC11() => this.C11;
+            public C1 GetC12() => this.c12;
         }
 
-        class Subject5
+        private class Subject5
         {
             [Inject("key")]
             public C1 C1 = null;
         }
 
-        class Subject6 : IInjectionAware
+        private class Subject6 : IInjectionAware
         {
             [Inject]
             public C1 C1 = null;
@@ -57,11 +61,12 @@ namespace StyletUnitTests.StyletIoC
             public void ParametersInjected() { this.ParametersInjectedCalledCorrectly = this.C1 != null; }
         }
 
-        class C3
+        private class C3
         {
             public C3(C4 c2) { }
         }
-        class C4
+
+        private class C4
         {
             public C4(C3 c3) { }
         }
@@ -71,7 +76,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var subject = new Subject1();
             ioc.BuildUp(subject);
@@ -85,7 +90,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var subject = new Subject2();
             ioc.BuildUp(subject);
@@ -98,7 +103,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var subject = new Subject3();
             ioc.BuildUp(subject);
@@ -111,7 +116,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var subject = new Subject4();
             ioc.BuildUp(subject);
@@ -125,7 +130,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf().WithKey("key");
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var subject = new Subject5();
             ioc.BuildUp(subject);
@@ -137,7 +142,7 @@ namespace StyletUnitTests.StyletIoC
         public void ThrowsIfCanNotResolve()
         {
             var builder = new StyletIoCBuilder();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var subject = new Subject1();
             Assert.Throws<StyletIoCRegistrationException>(() => ioc.BuildUp(subject));
@@ -149,9 +154,9 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
             builder.Bind<Subject1>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var subject = ioc.Get<Subject1>();
+            Subject1 subject = ioc.Get<Subject1>();
 
             Assert.IsInstanceOf<C1>(subject.C1);
             Assert.IsNull(subject.Ignored);
@@ -163,9 +168,9 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
             builder.Bind<Subject6>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var subject = ioc.Get<Subject6>();
+            Subject6 subject = ioc.Get<Subject6>();
 
             Assert.IsInstanceOf<C1>(subject.C1);
             Assert.IsTrue(subject.ParametersInjectedCalledCorrectly);
@@ -177,9 +182,9 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
             builder.Bind<Subject1>().ToFactory(c => new Subject1());
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var subject = ioc.Get<Subject1>();
+            Subject1 subject = ioc.Get<Subject1>();
 
             Assert.IsInstanceOf<C1>(subject.C1);
         }
@@ -189,11 +194,11 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var s = new Subject1();
             ioc.BuildUp(s);
-            var firstC1 = s.C1;
+            C1 firstC1 = s.C1;
             ioc.BuildUp(s);
             Assert.AreEqual(s.C1, firstC1);
         }

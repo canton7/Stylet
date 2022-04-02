@@ -56,7 +56,7 @@ namespace StyletUnitTests
         public void DisplaysRequestedButtons()
         {
             this.vm.Setup(null, null, MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.None, MessageBoxResult.None, MessageBoxResult.None, null, null, null);
-            var buttons = vm.ButtonList.ToList();
+            var buttons = this.vm.ButtonList.ToList();
             Assert.AreEqual(2, buttons.Count);
             Assert.AreEqual("OK", buttons[0].Label);
             Assert.AreEqual(MessageBoxResult.OK, buttons[0].Value);

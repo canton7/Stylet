@@ -9,21 +9,20 @@ namespace Stylet.Xaml
     /// <summary>
     /// Converter to compare a number of values, and return true (or false if Invert is true) if they are all equal
     /// </summary>
-    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1126:PrefixCallsCorrectly", Justification = "Don't agree with prefixing static method calls with the class name")]
     public class EqualityConverter : DependencyObject, IMultiValueConverter
     {
         /// <summary>
         /// Singleton instance of this converter. Usage: Converter="{x:Static s:EqualityConverter.Instance}"
         /// </summary>
-        public static readonly EqualityConverter Instance = new EqualityConverter();
+        public static readonly EqualityConverter Instance = new();
 
         /// <summary>
         /// Gets or sets a value indicating whether to return false, instead of true, if call values are equal
         /// </summary>
         public bool Invert
         {
-            get { return (bool)this.GetValue(InvertProperty); }
-            set { this.SetValue(InvertProperty, value); }
+            get => (bool)this.GetValue(InvertProperty);
+            set => this.SetValue(InvertProperty, value);
         }
 
         /// <summary>
@@ -48,8 +47,8 @@ namespace Stylet.Xaml
         {
             if (values == null || values.Length == 0)
                 return null;
-            var first = values.FirstOrDefault();
-            var result = values.Skip(1).All(x => x.Equals(first));
+            object first = values.FirstOrDefault();
+            bool result = values.Skip(1).All(x => x.Equals(first));
             return this.Invert ? !result : result;
         }
 

@@ -26,7 +26,7 @@ namespace StyletUnitTests
         [Test]
         public void GetLoggerReturnsNullLoggerIfDisabled()
         {
-            var logger = LogManager.GetLogger("test");
+            ILogger logger = LogManager.GetLogger("test");
             Assert.IsInstanceOf<NullLogger>(logger);
         }
 
@@ -34,7 +34,7 @@ namespace StyletUnitTests
         public void GetLoggerReturnsDebugLoggerByDefaultIfEnabled()
         {
             LogManager.Enabled = true;
-            var logger = LogManager.GetLogger("test");
+            ILogger logger = LogManager.GetLogger("test");
             Assert.IsInstanceOf<TraceLogger>(logger);
         }
 

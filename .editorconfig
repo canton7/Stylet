@@ -31,7 +31,7 @@ dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
 
 # Expression-level preferences
-dotnet_style_object_initializer = true:suggestion
+dotnet_style_object_initializer = true:silent
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:none
@@ -49,7 +49,7 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = false:suggest
 # .NET code quality settings
 
 # Parameter preferences
-dotnet_code_quality_unused_parameters = all:suggestion
+dotnet_code_quality_unused_parameters = non_public:silent
 
 # C# code style settings
 
@@ -90,8 +90,9 @@ csharp_style_unused_value_expression_statement_preference = discard_variable:sil
 csharp_style_unused_value_assignment_preference = discard_variable:silent
 
 # Index and range preferences
-csharp_style_prefer_index_operator = true:suggestion
-csharp_style_prefer_range_operator = true:suggestion
+# We can't use these, as we target old frameworks
+csharp_style_prefer_index_operator = false:hidden
+csharp_style_prefer_range_operator = false:hidden
 
 # Miscellanious preferences
 csharp_style_deconstructed_variable_declaration = true:suggestion
@@ -162,7 +163,7 @@ csharp_preserve_single_line_blocks = true
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
 # Style: camel case style
-dotnet_name_style.camel_case.capitalization = camel_case
+dotnet_naming_style.camel_case.capitalization = camel_case
 
 # Symbols: non-private members
 dotnet_naming_symbols.non_private_members.applicable_kinds = property,field,event
@@ -183,13 +184,15 @@ dotnet_naming_rule.const_fields_must_be_capitalized.symbols = const_fields
 dotnet_naming_rule.const_fields_must_be_capitalized.severity = warning
 
 # Symbols: private fields, properties, events
-dotnet_naming_symbols.non_public_fields_properties_events.applicable_kinds = property,field,event
-dotnet_naming_symbols.non_public_fields_properties_events.applicable_accessibilities = private
+dotnet_naming_symbols.non_public_properties_events.applicable_kinds = property,event
+dotnet_naming_symbols.non_public_properties_events.applicable_accessibilities = private
 
 # Rule: private fields, properties, events must not be capitalized
 dotnet_naming_rule.private_fields_properties_events_must_not_be_capitalized.style = camel_case
-dotnet_naming_rule.private_fields_properties_events_must_not_be_capitalized.symbols = non_public_fields_properties_events
+dotnet_naming_rule.private_fields_properties_events_must_not_be_capitalized.symbols = non_public_properties_events
 dotnet_naming_rule.private_fields_properties_events_must_not_be_capitalized.severity = warning
+
+# TODO: Private fields. Currently there's no way to specify an optional leading _, and we do this extensively
 
 # Symbols: interfaces
 dotnet_naming_symbols.interfaces.applicable_kinds = interface
@@ -235,4 +238,6 @@ dotnet_naming_rule.type_parameters_must_begin_with_t.severity = warning
 # Suppressions
 
 dotnet_diagnostic.CA1816.severity = none
+dotnet_diagnostic.CA1822.severity = none # We have lots of test instance methods which "could" be static
+dotnet_diagnostic.CA1825.severity = none # Can't use Array.Empty as we target old frameworks
 dotnet_diagnostic.IDE0079.severity = none # Seems to be mis-firing all the time

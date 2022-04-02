@@ -7,18 +7,18 @@ namespace StyletUnitTests
     [TestFixture]
     public class PropertyChangedBaseTests
     {
-        class PropertyChanged : PropertyChangedBase
+        private class PropertyChanged : PropertyChangedBase
         {
             public int IntProperty { get; set; }
             public string StringProperty
             {
-                set { this.NotifyOfPropertyChange(); }
+                set => this.NotifyOfPropertyChange();
             }
             private double _doubleProperty;
             public double DoubleProperty
             {
-                get { return this._doubleProperty; }
-                set { SetAndNotify(ref this._doubleProperty, value); }
+                get => this._doubleProperty;
+                set => this.SetAndNotify(ref this._doubleProperty, value);
             }
             public void RaiseIntPropertyChangedWithExpression()
             {
@@ -26,7 +26,7 @@ namespace StyletUnitTests
             }
             public void RaiseIntPropertyChangedWithString()
             {
-                this.NotifyOfPropertyChange("IntProperty");
+                this.NotifyOfPropertyChange(nameof(this.IntProperty));
             }
         }
 
@@ -37,7 +37,7 @@ namespace StyletUnitTests
             string changedProperty = null;
             pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
             pc.Refresh();
-            Assert.AreEqual(String.Empty, changedProperty);
+            Assert.AreEqual(string.Empty, changedProperty);
         }
 
         [Test]
@@ -92,7 +92,7 @@ namespace StyletUnitTests
         public void UsesStaticDispatcherByDefault()
         {
             Action action = null;
-            var oldDispatcher = Execute.DefaultPropertyChangedDispatcher;
+            Action<Action> oldDispatcher = Execute.DefaultPropertyChangedDispatcher;
             Execute.DefaultPropertyChangedDispatcher = a => action = a;
 
             var pc = new PropertyChanged();

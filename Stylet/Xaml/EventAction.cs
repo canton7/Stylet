@@ -68,7 +68,7 @@ namespace Stylet.Xaml
         /// <param name="newTargetType">Type of new target</param>
         private protected override void AssertTargetMethodInfo(MethodInfo targetMethodInfo, Type newTargetType)
         {
-            var methodParameters = targetMethodInfo.GetParameters();
+            ParameterInfo[] methodParameters = targetMethodInfo.GetParameters();
             if (!(methodParameters.Length == 0 ||
                 (methodParameters.Length == 1 && (typeof(EventArgs).IsAssignableFrom(methodParameters[0].ParameterType) || methodParameters[0].ParameterType == typeof(DependencyPropertyChangedEventArgs))) ||
                 (methodParameters.Length == 2 && (typeof(EventArgs).IsAssignableFrom(methodParameters[1].ParameterType) || methodParameters[1].ParameterType == typeof(DependencyPropertyChangedEventArgs)))))
@@ -86,7 +86,7 @@ namespace Stylet.Xaml
         public Delegate GetDelegate()
         {
             Delegate del = null;
-            foreach (var invokeCommandMethodInfo in invokeCommandMethodInfos)
+            foreach (MethodInfo invokeCommandMethodInfo in invokeCommandMethodInfos)
             {
                 del = Delegate.CreateDelegate(this.eventHandlerType, this, invokeCommandMethodInfo, false);
                 if (del != null)
@@ -95,7 +95,7 @@ namespace Stylet.Xaml
 
             if (del == null)
             {
-                var msg = string.Format("Event being bound to does not have a signature we know about. Method {0} on target {1}. Valid signatures are:" +
+                string msg = string.Format("Event being bound to does not have a signature we know about. Method {0} on target {1}. Valid signatures are:" +
                     "Valid signatures are:\n" +
                     " - '(object sender, EventArgsOrSubclass e)'\n" +
                     " - '(object sender, DependencyPropertyChangedEventArgs e)'", this.MethodName, this.Target);
@@ -107,6 +107,7 @@ namespace Stylet.Xaml
             return del;
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         private void InvokeDependencyCommand(object sender, DependencyPropertyChangedEventArgs e)
         {
             this.InvokeCommand(sender, e);
@@ -116,8 +117,8 @@ namespace Stylet.Xaml
         {
             this.InvokeCommand(sender, e);
         }
+#pragma warning restore IDE0051 // Remove unused private members
 
-        // ReSharper disable once UnusedMember.Local
         private void InvokeCommand(object sender, object e)
         {
             this.AssertTargetSet();
@@ -125,22 +126,12 @@ namespace Stylet.Xaml
             // Any throwing will have been handled above
             if (this.Target == null || this.TargetMethodInfo == null)
                 return;
-
-            object[] parameters;
-            switch (this.TargetMethodInfo.GetParameters().Length)
+            object[] parameters = this.TargetMethodInfo.GetParameters().Length switch
             {
-                case 1:
-                    parameters = new object[] { e };
-                    break;
-                    
-                case 2:
-                    parameters = new[] { sender, e };
-                    break;
-
-                default:
-                    parameters = null;
-                    break;
-            }
+                1 => new object[] { e },
+                2 => new[] { sender, e },
+                _ => null,
+            };
             this.InvokeTargetMethod(parameters);
         }
     }
@@ -148,7 +139,6 @@ namespace Stylet.Xaml
     /// <summary>
     /// You tried to use an EventAction with an event that doesn't follow the EventHandler signature
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class ActionEventSignatureInvalidException : Exception
     {
         internal ActionEventSignatureInvalidException(string message) : base(message) { }

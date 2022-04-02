@@ -51,8 +51,8 @@ namespace StyletUnitTests
         [Test]
         public void AddRangeUsesDispatcherToAddElements()
         {
-            var itemsToAdd = new[] { new Element(), new Element() };
-            var existingItems = new[] { new Element() };
+            Element[] itemsToAdd = new[] { new Element(), new Element() };
+            Element[] existingItems = new[] { new Element() };
             var collection = new BindableCollection<Element>(existingItems);
 
             var dispatcher = new TestDispatcher();
@@ -71,8 +71,8 @@ namespace StyletUnitTests
         [Test]
         public void RemoveRangeUsesDispatcherToRemoveElements()
         {
-            var itemsToRemove = new[] { new Element(), new Element() };
-            var existingItems = new[] { new Element() };
+            Element[] itemsToRemove = new[] { new Element(), new Element() };
+            Element[] existingItems = new[] { new Element() };
             var collection = new BindableCollection<Element>(itemsToRemove.Concat(existingItems));
 
             var dispatcher = new TestDispatcher();
@@ -120,7 +120,7 @@ namespace StyletUnitTests
             collection.AddRange(new[] { new Element() });
 
             Assert.AreEqual(1, changedEvents.Count);
-            var changedEvent = changedEvents[0];
+            NotifyCollectionChangedEventArgs changedEvent = changedEvents[0];
             Assert.AreEqual(NotifyCollectionChangedAction.Reset, changedEvent.Action);
         }
 
@@ -136,18 +136,18 @@ namespace StyletUnitTests
                 changedEvents.Add(e);
             };
 
-            var elementsToAdd = new[] { new Element(), new Element() };
+            Element[] elementsToAdd = new[] { new Element(), new Element() };
             collection.AddRange(elementsToAdd);
 
             Assert.AreEqual(1, changedEvents.Count);
-            var changedEvent = changedEvents[0];
+            NotifyCollectionChangedEventArgs changedEvent = changedEvents[0];
             Assert.AreEqual(NotifyCollectionChangedAction.Reset, changedEvent.Action);
         }
 
         [Test]
         public void RemoveRangeFiresPropertyChangedAfterRemovingItems()
         {
-            var itemsToRemove = new[] { new Element(), new Element() };
+            Element[] itemsToRemove = new[] { new Element(), new Element() };
             var collection = new BindableCollection<Element>(new[] { new Element() }.Concat(itemsToRemove));
 
             var changedProperties = new List<string>();
@@ -177,14 +177,14 @@ namespace StyletUnitTests
             collection.RemoveRange(new[] { new Element() });
 
             Assert.AreEqual(1, changedEvents.Count);
-            var changedEvent = changedEvents[0];
+            NotifyCollectionChangedEventArgs changedEvent = changedEvents[0];
             Assert.AreEqual(NotifyCollectionChangedAction.Reset, changedEvent.Action);
         }
 
         [Test]
         public void RemoveRangeFiresCollectionChangedAfterRemovingItems()
         {
-            var itemsToRemove = new[] { new Element(), new Element() };
+            Element[] itemsToRemove = new[] { new Element(), new Element() };
             var collection = new BindableCollection<Element>(new[] { new Element() }.Concat(itemsToRemove));
 
             var changedEvents = new List<NotifyCollectionChangedEventArgs>();
@@ -197,7 +197,7 @@ namespace StyletUnitTests
             collection.RemoveRange(itemsToRemove);
 
             Assert.AreEqual(1, changedEvents.Count);
-            var changedEvent = changedEvents[0];
+            NotifyCollectionChangedEventArgs changedEvent = changedEvents[0];
             Assert.AreEqual(NotifyCollectionChangedAction.Reset, changedEvent.Action);
         }
 
@@ -225,7 +225,7 @@ namespace StyletUnitTests
             collection.Refresh();
 
             Assert.AreEqual(1, changedEvents.Count);
-            var changedEvent = changedEvents[0];
+            NotifyCollectionChangedEventArgs changedEvent = changedEvents[0];
             Assert.AreEqual(NotifyCollectionChangedAction.Reset, changedEvent.Action);
         }
 
@@ -240,7 +240,7 @@ namespace StyletUnitTests
             collection.Refresh();
 
             Assert.AreEqual(1, changedEvents.Count);
-            var changedEvent = changedEvents[0];
+            NotifyCollectionChangedEventArgs changedEvent = changedEvents[0];
             Assert.AreEqual(NotifyCollectionChangedAction.Reset, changedEvent.Action);
         }
 

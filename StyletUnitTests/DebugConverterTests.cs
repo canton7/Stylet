@@ -1,11 +1,10 @@
 ﻿using NUnit.Framework;
 using Stylet.Xaml;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace StyletUnitTests
 {
-    using System.Globalization;
-
     [TestFixture]
     public class DebugConverterTests
     {
@@ -17,7 +16,7 @@ namespace StyletUnitTests
         {
             this.log = new List<string>();
             this.converter = new DebugConverter();
-            this.converter.Logger = (msg, name) => log.Add(msg);
+            this.converter.Logger = (msg, name) => this.log.Add(msg);
         }
 
         [Test]
@@ -29,21 +28,21 @@ namespace StyletUnitTests
         [Test]
         public void ConvertPassesThroughValue()
         {
-            var result = this.converter.Convert(5, null, null, CultureInfo.InvariantCulture);
+            object result = this.converter.Convert(5, null, null, CultureInfo.InvariantCulture);
             Assert.AreEqual(5, result);
         }
 
         [Test]
         public void ConvertBackPassesThrough()
         {
-            var result = this.converter.ConvertBack("hello", null, null, CultureInfo.InvariantCulture);
+            object result = this.converter.ConvertBack("hello", null, null, CultureInfo.InvariantCulture);
             Assert.AreEqual("hello", result);
         }
 
         [Test]
         public void NameIsUsedInLogger()
         {
-            this.converter.Logger = (msg, name) => log.Add(name);
+            this.converter.Logger = (msg, name) => this.log.Add(name);
             this.converter.Name = "Test";
             this.converter.Convert(new object(), null, null, CultureInfo.InvariantCulture);
 

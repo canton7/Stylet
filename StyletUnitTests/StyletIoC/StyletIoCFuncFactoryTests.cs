@@ -32,10 +32,10 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var func = ioc.Get<Func<C1>>();
-            var result = func();
+            Func<C1> func = ioc.Get<Func<C1>>();
+            C1 result = func();
             Assert.IsNotNull(result);
         }
 
@@ -45,10 +45,10 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
             builder.Bind<C2>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var c2 = ioc.Get<C2>();
-            var c1Func = c2.C1Func;
+            C2 c2 = ioc.Get<C2>();
+            Func<C1> c1Func = c2.C1Func;
             Assert.IsNotNull(c1Func());
         }
 
@@ -57,9 +57,9 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var func = ioc.Get<Func<C1>>();
+            Func<C1> func = ioc.Get<Func<C1>>();
             Assert.AreNotEqual(func(), func());
         }
 
@@ -68,9 +68,9 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<C1>().ToSelf().InSingletonScope();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var func = ioc.Get<Func<C1>>();
+            Func<C1> func = ioc.Get<Func<C1>>();
             Assert.AreEqual(func(), func());
         }
 
@@ -80,9 +80,9 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().To<C11>();
             builder.Bind<I1>().To<C12>();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var func = ioc.Get<Func<IEnumerable<I1>>>();
+            Func<IEnumerable<I1>> func = ioc.Get<Func<IEnumerable<I1>>>();
             var results = func().ToList();
             Assert.AreEqual(2, results.Count);
             Assert.IsInstanceOf<C11>(results[0]);
@@ -95,10 +95,10 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().To<C11>();
             builder.Bind<I1>().To<C12>();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             var funcCollection = ioc.GetTypeOrAll<IEnumerable<Func<I1>>>().ToList();
-            var result = funcCollection[0]();
+            I1 result = funcCollection[0]();
 
             Assert.AreEqual(2, funcCollection.Count);
             Assert.IsInstanceOf<C11>(funcCollection[0]());
@@ -111,11 +111,11 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().To<C11>();
             builder.Bind<I1Factory>().ToAbstractFactory();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var func = ioc.Get<Func<I1Factory>>();
+            Func<I1Factory> func = ioc.Get<Func<I1Factory>>();
             Assert.IsNotNull(func);
-            var i1 = func().GetI1();
+            I1 i1 = func().GetI1();
             Assert.IsInstanceOf<C11>(i1);
         }
     }

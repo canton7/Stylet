@@ -12,7 +12,6 @@ namespace Stylet.Xaml
     /// <summary>
     /// Converter to take an Icon, and convert it to a BitmapSource
     /// </summary>
-    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1126:PrefixCallsCorrectly", Justification = "Don't agree with prefixing static method calls with the class name")]
     public class IconToBitmapSourceConverter : IValueConverter
     {
         private static readonly ILogger logger = LogManager.GetLogger(typeof(IconToBitmapSourceConverter));
@@ -20,7 +19,7 @@ namespace Stylet.Xaml
         /// <summary>
         /// Singleton instance of this converter. Usage e.g. Converter="{x:Static s:IconToBitmapSourceConverter.Instance}"
         /// </summary>
-        public static readonly IconToBitmapSourceConverter Instance = new IconToBitmapSourceConverter();
+        public static readonly IconToBitmapSourceConverter Instance = new();
 
         /// <summary>
         /// Converts a value
@@ -32,13 +31,12 @@ namespace Stylet.Xaml
         /// <returns>Converted value</returns>
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            var icon = value as Icon;
-            if (icon == null)
+            if (value is not Icon icon)
                 return null;
 
             try
             {
-                var bs = Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                BitmapSource bs = Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
                 bs.Freeze();
                 return bs;
             }

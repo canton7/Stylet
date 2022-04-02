@@ -37,7 +37,7 @@ namespace StyletUnitTests
         [Test]
         public void ReturnsTrueIfASingleItemGiven()
         {
-            var value = this.converter.Convert(new object[] { 5 }, null, null, null);
+            object value = this.converter.Convert(new object[] { 5 }, null, null, null);
             Assert.IsInstanceOf<bool>(value);
             Assert.True((bool)value);
         }
@@ -45,8 +45,8 @@ namespace StyletUnitTests
         [Test]
         public void ReturnsTrueIfAllItemsAreEqual()
         {
-            var obj = new object();
-            var value = this.converter.Convert(new[] { obj, obj, obj }, null, null, null);
+            object obj = new();
+            object value = this.converter.Convert(new[] { obj, obj, obj }, null, null, null);
             Assert.IsInstanceOf<bool>(value);
             Assert.True((bool)value);
         }
@@ -54,9 +54,9 @@ namespace StyletUnitTests
         [Test]
         public void ReturnsFalseIfAllItemsAreEqualAndInvertIsTrue()
         {
-            var obj = new object();
+            object obj = new();
             this.converter.Invert = true;
-            var value = this.converter.Convert(new[] { obj, obj, obj }, null, null, null);
+            object value = this.converter.Convert(new[] { obj, obj, obj }, null, null, null);
             Assert.IsInstanceOf<bool>(value);
             Assert.False((bool)value);
         }
@@ -64,8 +64,8 @@ namespace StyletUnitTests
         [Test]
         public void ReturnsFalseIfOneItemsDiffers()
         {
-            var obj = new object();
-            var value = this.converter.Convert(new[] { obj, new object(), obj }, null, null, null);
+            object obj = new();
+            object value = this.converter.Convert(new[] { obj, new object(), obj }, null, null, null);
             Assert.IsInstanceOf<bool>(value);
             Assert.False((bool)value);
         }
@@ -73,8 +73,8 @@ namespace StyletUnitTests
         [Test]
         public void ReturnsTrueIfOneItemsDiffersAndInvertIsTrue()
         {
-            var obj = new object();
-            var value = this.converter.Convert(new[] { obj, new object(), obj }, null, null, null);
+            object obj = new();
+            object value = this.converter.Convert(new[] { obj, new object(), obj }, null, null, null);
             Assert.IsInstanceOf<bool>(value);
             Assert.False((bool)value);
         }

@@ -19,10 +19,9 @@ namespace Stylet
         /// <param name="active">True to active the item, false to deactive it</param>
         public static void SetParentAndSetActive<T>(this IConductor<T> parent, IEnumerable items, bool active)
         {
-            foreach (var item in items)
+            foreach (object item in items)
             {
-                var itemAsChild = item as IChild;
-                if (itemAsChild != null)
+                if (item is IChild itemAsChild)
                     itemAsChild.Parent = parent;
 
                 if (active)
@@ -43,8 +42,7 @@ namespace Stylet
         {
             ScreenExtensions.TryClose(item);
 
-            var itemAsChild = item as IChild;
-            if (itemAsChild != null && itemAsChild.Parent == parent)
+            if (item is IChild itemAsChild && itemAsChild.Parent == parent)
                 itemAsChild.Parent = null;
 
             if (dispose)
@@ -60,7 +58,7 @@ namespace Stylet
         /// <param name="dispose">True to dispose children as well as close them</param>
         public static void CloseAndCleanUp<T>(this IConductor<T> parent, IEnumerable items, bool dispose)
         {
-            foreach (var item in items.OfType<T>())
+            foreach (T item in items.OfType<T>())
             {
                 parent.CloseAndCleanUp(item, dispose);
             }

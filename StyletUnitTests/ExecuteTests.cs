@@ -81,7 +81,7 @@ namespace StyletUnitTests
             sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             bool actionCalled = false;
-            var task = Execute.PostToUIThreadAsync(() => actionCalled = true);
+            System.Threading.Tasks.Task task = Execute.PostToUIThreadAsync(() => actionCalled = true);
 
             Assert.IsFalse(task.IsCompleted);
             Assert.IsFalse(actionCalled);
@@ -131,7 +131,7 @@ namespace StyletUnitTests
             sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             bool actionCalled = false;
-            var task = Execute.OnUIThreadAsync(() => actionCalled = true);
+            System.Threading.Tasks.Task task = Execute.OnUIThreadAsync(() => actionCalled = true);
 
             Assert.IsFalse(task.IsCompleted);
             Assert.IsFalse(actionCalled);
@@ -149,7 +149,7 @@ namespace StyletUnitTests
             sync.SetupGet(x => x.IsCurrent).Returns(true);
 
             bool actionCalled = false;
-            var task = Execute.OnUIThreadAsync(() => actionCalled = true);
+            System.Threading.Tasks.Task task = Execute.OnUIThreadAsync(() => actionCalled = true);
 
             Assert.IsTrue(task.IsCompleted);
             Assert.IsTrue(actionCalled);
@@ -165,7 +165,7 @@ namespace StyletUnitTests
             sync.Setup(x => x.Send(It.IsAny<Action>())).Callback<Action>(a => a());
 
             Exception caughtEx = null;
-            try { Execute.OnUIThreadSync(() => { throw ex; }); }
+            try { Execute.OnUIThreadSync(() => throw ex); }
             catch (Exception e) { caughtEx = e; }
 
             Assert.IsInstanceOf<System.Reflection.TargetInvocationException>(caughtEx);
@@ -182,7 +182,7 @@ namespace StyletUnitTests
             sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             var ex = new Exception("test");
-            var task = Execute.OnUIThreadAsync(() => { throw ex; });
+            System.Threading.Tasks.Task task = Execute.OnUIThreadAsync(() => throw ex);
 
             passedAction();
             Assert.IsTrue(task.IsFaulted);
@@ -199,7 +199,7 @@ namespace StyletUnitTests
             sync.Setup(x => x.Post(It.IsAny<Action>())).Callback((Action a) => passedAction = a);
 
             var ex = new Exception("test");
-            var task = Execute.PostToUIThreadAsync(() => { throw ex; });
+            System.Threading.Tasks.Task task = Execute.PostToUIThreadAsync(() => throw ex);
 
             passedAction();
             Assert.IsTrue(task.IsFaulted);
@@ -215,7 +215,7 @@ namespace StyletUnitTests
         [Test]
         public void DefaultDispatcherIsSynchronous()
         {
-            var dispatcher = Execute.Dispatcher;
+            IDispatcher dispatcher = Execute.Dispatcher;
 
             Assert.IsTrue(dispatcher.IsCurrent);
 

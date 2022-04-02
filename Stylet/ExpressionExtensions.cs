@@ -17,14 +17,12 @@ namespace Stylet
         public static string NameForProperty<TDelegate>(this Expression<TDelegate> propertyExpression)
         {
             Expression body;
-            var expression = propertyExpression.Body as UnaryExpression;
-            if (expression != null)
+            if (propertyExpression.Body is UnaryExpression expression)
                 body = expression.Operand;
             else
                 body = propertyExpression.Body;
 
-            var member = body as MemberExpression;
-            if (member == null)
+            if (body is not MemberExpression member)
                 throw new ArgumentException("Property must be a MemberExpression");
 
             return member.Member.Name;

@@ -12,7 +12,7 @@ namespace StyletIoC.Internal.Builders
         private readonly Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies;
         public List<BuilderTypeKey> ServiceTypes { get; private set; }
         private BuilderBindingBase builderBinding;
-        public bool IsWeak { get { return this.builderBinding?.IsWeak ?? false; } }
+        public bool IsWeak => this.builderBinding?.IsWeak ?? false;
 
         public BuilderBindTo(Type serviceType, Func<IEnumerable<Assembly>, string, IEnumerable<Assembly>> getAssemblies)
         {

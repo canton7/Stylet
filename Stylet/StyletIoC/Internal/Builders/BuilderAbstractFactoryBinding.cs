@@ -9,7 +9,7 @@ namespace StyletIoC.Internal.Builders
 {
     internal class BuilderAbstractFactoryBinding : BuilderBindingBase
     {
-        private BuilderTypeKey ServiceType { get { return this.ServiceTypes[0]; } }
+        private BuilderTypeKey serviceType => this.ServiceTypes[0];
 
         public BuilderAbstractFactoryBinding(List<BuilderTypeKey> serviceTypes)
             : base(serviceTypes)
@@ -17,17 +17,17 @@ namespace StyletIoC.Internal.Builders
             // This should be ensured by the fluent interfaces
             Trace.Assert(serviceTypes.Count == 1);
 
-            if (this.ServiceType.Type.IsGenericTypeDefinition)
-                throw new StyletIoCRegistrationException(string.Format("Unbound generic type {0} can't be used as an abstract factory", this.ServiceType.Type.GetDescription()));
+            if (this.serviceType.Type.IsGenericTypeDefinition)
+                throw new StyletIoCRegistrationException(string.Format("Unbound generic type {0} can't be used as an abstract factory", this.serviceType.Type.GetDescription()));
         }
 
         public override void Build(Container container)
         {
-            var factoryType = container.GetFactoryForType(this.ServiceType.Type);
+            Type factoryType = container.GetFactoryForType(this.serviceType.Type);
             var creator = new AbstractFactoryCreator(factoryType);
             var registration = new TransientRegistration(creator);
 
-            container.AddRegistration(new TypeKey(this.ServiceType.Type.TypeHandle, this.ServiceType.Key), registration);
+            container.AddRegistration(new TypeKey(this.serviceType.Type.TypeHandle, this.serviceType.Key), registration);
         }
     }
 }

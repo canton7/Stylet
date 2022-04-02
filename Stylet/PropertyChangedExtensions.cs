@@ -159,7 +159,7 @@ namespace Stylet
                 throw new ArgumentNullException(nameof(handler));
 
             string propertyName = targetSelector.NameForProperty();
-            var propertyAccess = targetSelector.Compile();
+            Func<TSource, TProperty> propertyAccess = targetSelector.Compile();
             // Make sure we don't capture target strongly, otherwise we'll retain it when we shouldn't
             // If it does get released, we're released from the delegate list
             var weakTarget = new WeakReference<TSource>(target);
@@ -198,7 +198,7 @@ namespace Stylet
         [Obsolete("Don't use this - use Bind instead and explicitly .Unbind it when appropriate.", error: true)]
         public static IEventBinding BindWeak<TSource, TProperty>(this TSource target, Expression<Func<TSource, TProperty>> targetSelector, EventHandler<PropertyChangedExtendedEventArgs<TProperty>> handler) where TSource : class, INotifyPropertyChanged
         {
-            var attribute = handler.Target.GetType().GetCustomAttribute<CompilerGeneratedAttribute>();
+            CompilerGeneratedAttribute attribute = handler.Target.GetType().GetCustomAttribute<CompilerGeneratedAttribute>();
             if (attribute != null)
                 throw new InvalidOperationException("Handler passed to BindWeak refers to a compiler-generated class. You may not capture local variables in the handler");
 

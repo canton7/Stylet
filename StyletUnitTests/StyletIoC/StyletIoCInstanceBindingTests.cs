@@ -7,9 +7,11 @@ namespace StyletUnitTests.StyletIoC.StyletIoC
     [TestFixture]
     public class StyletIoCInstanceBindingTests
     {
-        interface I1 { }
-        class C1 : I1 { }
-        class C2 : IDisposable
+        private interface I1 { }
+
+        private class C1 : I1 { }
+
+        private class C2 : IDisposable
         {
             public bool Disposed;
             public void Dispose()
@@ -25,7 +27,7 @@ namespace StyletUnitTests.StyletIoC.StyletIoC
 
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().ToInstance(c1);
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.AreEqual(c1, ioc.Get<I1>());
             Assert.AreEqual(c1, ioc.Get<I1>());
@@ -38,7 +40,7 @@ namespace StyletUnitTests.StyletIoC.StyletIoC
 
             var builder = new StyletIoCBuilder();
             builder.Bind<C2>().ToInstance(c2);
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             ioc.Dispose();
             Assert.True(c2.Disposed);
@@ -51,7 +53,7 @@ namespace StyletUnitTests.StyletIoC.StyletIoC
 
             var builder = new StyletIoCBuilder();
             builder.Bind<C2>().ToInstance(c2).DisposeWithContainer(false);
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             ioc.Dispose();
             Assert.False(c2.Disposed);

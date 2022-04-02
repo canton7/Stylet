@@ -7,29 +7,29 @@ namespace StyletUnitTests
     [TestFixture]
     public class PropertyChangedExtensionsTests
     {
-        class NotifyingClass : PropertyChangedBase
+        private class NotifyingClass : PropertyChangedBase
         {
             private string _foo;
             public string Foo
             {
-                get { return this._foo; }
-                set { SetAndNotify(ref this._foo, value); }
+                get => this._foo;
+                set => this.SetAndNotify(ref this._foo, value);
             }
 
             private string _bar;
             public string Bar
             {
-                get { return this._bar; }
-                set { SetAndNotify(ref this._bar, value);  }
+                get => this._bar;
+                set => this.SetAndNotify(ref this._bar, value);
             }
 
             public void NotifyAll()
             {
-                this.NotifyOfPropertyChange(String.Empty);
+                this.NotifyOfPropertyChange(string.Empty);
             }
         }
 
-        class BindingClass
+        private class BindingClass
         {
             public string LastFoo;
 
@@ -88,7 +88,7 @@ namespace StyletUnitTests
                 return new WeakReference(notifying);
             }
 
-            var weakNotifying = Test(out var retained);
+            WeakReference weakNotifying = Test(out IEventBinding retained);
 
             GC.Collect();
 
@@ -111,7 +111,7 @@ namespace StyletUnitTests
         {
             string newVal = null;
             var c1 = new NotifyingClass();
-            var binding = c1.Bind(x => x.Bar, (o, e) => newVal = e.NewValue);
+            IEventBinding binding = c1.Bind(x => x.Bar, (o, e) => newVal = e.NewValue);
             binding.Unbind();
             c1.Bar = "bar";
 

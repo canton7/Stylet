@@ -103,7 +103,7 @@ namespace StyletUnitTests
             public Type ViewType;
             protected override Type ViewTypeForViewName(string viewName, IEnumerable<Assembly> extraAssemblies)
             {
-                return ViewType;
+                return this.ViewType;
             }
 
             public new Type LocateViewForModel(Type modelType)
@@ -172,7 +172,7 @@ namespace StyletUnitTests
         [Test]
         public void OnModelChangedDoesNothingIfNoChange()
         {
-            var val = new object();
+            object val = new();
             this.viewManager.OnModelChanged(null, val, val);
         }
 
@@ -201,7 +201,7 @@ namespace StyletUnitTests
         public void OnModelChangedCreatesAndBindsView()
         {
             var target = new ContentControl();
-            var model = new object();
+            object model = new();
             var view = new UIElement();
             var viewManager = new CreatingAndBindingViewManager(new ViewManagerConfig()
             {
@@ -223,7 +223,7 @@ namespace StyletUnitTests
         public void OnModelChangedThrowsIfViewIsAWindow()
         {
             var target = new ContentControl();
-            var model = new object();
+            object model = new();
             var view = new Window();
             var viewManager = new CreatingAndBindingViewManager(this.config);
 
@@ -261,7 +261,7 @@ namespace StyletUnitTests
         public void LocateViewForModelFindsViewForModel()
         {
             var viewManager = new AccessibleViewManager(new ViewManagerConfig() { ViewFactory = type => null, ViewAssemblies = new List<Assembly>() { Assembly.GetExecutingAssembly() } });
-            var viewType = viewManager.LocateViewForModel(typeof(ViewManagerTestsViewModel));
+            Type viewType = viewManager.LocateViewForModel(typeof(ViewManagerTestsViewModel));
             Assert.AreEqual(typeof(ViewManagerTestsView), viewType);
         }
 
@@ -292,7 +292,7 @@ namespace StyletUnitTests
 
             viewManager.LocatedViewType = typeof(TestView);
 
-            var returnedView = viewManager.CreateAndBindViewForModelIfNecessary(new object());
+            UIElement returnedView = viewManager.CreateAndBindViewForModelIfNecessary(new object());
 
             Assert.True(view.InitializeComponentCalled);
             Assert.AreEqual(view, returnedView);
@@ -305,7 +305,7 @@ namespace StyletUnitTests
             var viewModel = new Mock<IViewAware>();
             viewModel.SetupGet(x => x.View).Returns(view);
 
-            var returnedView = this.viewManager.CreateAndBindViewForModelIfNecessary(viewModel.Object);
+            UIElement returnedView = this.viewManager.CreateAndBindViewForModelIfNecessary(viewModel.Object);
 
             Assert.AreEqual(view, returnedView);
         }
@@ -321,7 +321,7 @@ namespace StyletUnitTests
             });
             viewManager.LocatedViewType = typeof(UIElement);
 
-            var returnedView = viewManager.CreateAndBindViewForModelIfNecessary(new object());
+            UIElement returnedView = viewManager.CreateAndBindViewForModelIfNecessary(new object());
 
             Assert.AreEqual(view, returnedView);
         }
@@ -330,7 +330,7 @@ namespace StyletUnitTests
         public void BindViewToModelSetsActionTarget()
         {
             var view = new UIElement();
-            var model = new object();
+            object model = new();
             var viewManager = new AccessibleViewManager(this.config);
 
             viewManager.BindViewToModel(view, model);
@@ -342,7 +342,7 @@ namespace StyletUnitTests
         public void BindViewToModelSetsDataContext()
         {
             var view = new FrameworkElement();
-            var model = new object();
+            object model = new();
             var viewManager = new AccessibleViewManager(this.config);
             viewManager.BindViewToModel(view, model);
 
@@ -384,7 +384,7 @@ namespace StyletUnitTests
             this.viewManager.ViewNameSuffix = "Viiiiew";
             this.viewManager.ViewModelNameSuffix = "ViiiiiewModel";
 
-            Assert.AreEqual("Root.Test.ThingViiiiew", viewManager.ViewTypeNameForModelTypeName("Root.Test.ThingViiiiiewModel"));
+            Assert.AreEqual("Root.Test.ThingViiiiew", this.viewManager.ViewTypeNameForModelTypeName("Root.Test.ThingViiiiiewModel"));
         }
 
         [Test]
@@ -392,8 +392,8 @@ namespace StyletUnitTests
         {
             this.viewManager.NamespaceTransformations["Foo.Bar"] = "Baz.Yay";
 
-            Assert.AreEqual("Baz.Yay.ThingView", viewManager.ViewTypeNameForModelTypeName("Foo.Bar.ThingViewModel"));
-            Assert.AreEqual("Baz.Yay.Thing", viewManager.ViewTypeNameForModelTypeName("Foo.Bar.Thing"));
+            Assert.AreEqual("Baz.Yay.ThingView", this.viewManager.ViewTypeNameForModelTypeName("Foo.Bar.ThingViewModel"));
+            Assert.AreEqual("Baz.Yay.Thing", this.viewManager.ViewTypeNameForModelTypeName("Foo.Bar.Thing"));
         }
 
         [Test]
@@ -402,8 +402,8 @@ namespace StyletUnitTests
             this.viewManager.NamespaceTransformations["Foo.Bar"] = "Baz.Yay";
             this.viewManager.NamespaceTransformations["Baz.Yay"] = "One.Two";
 
-            Assert.AreEqual("Baz.Yay.ThingView", viewManager.ViewTypeNameForModelTypeName("Foo.Bar.ThingViewModel"));
-            Assert.AreEqual("One.Two.ThingView", viewManager.ViewTypeNameForModelTypeName("Baz.Yay.ThingViewModel"));
+            Assert.AreEqual("Baz.Yay.ThingView", this.viewManager.ViewTypeNameForModelTypeName("Foo.Bar.ThingViewModel"));
+            Assert.AreEqual("One.Two.ThingView", this.viewManager.ViewTypeNameForModelTypeName("Baz.Yay.ThingViewModel"));
         }
     }
 }

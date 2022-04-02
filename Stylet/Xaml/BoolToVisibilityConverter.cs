@@ -9,7 +9,6 @@ namespace Stylet.Xaml
     /// <summary>
     /// Turn a boolean value into a Visibility
     /// </summary>
-    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1126:PrefixCallsCorrectly", Justification = "Don't agree with prefixing static method calls with the class name")]
     public class BoolToVisibilityConverter : DependencyObject, IValueConverter
     {
         /// <summary>
@@ -37,8 +36,8 @@ namespace Stylet.Xaml
         /// </summary>
         public Visibility TrueVisibility
         {
-            get { return (Visibility)this.GetValue(TrueVisibilityProperty); }
-            set { this.SetValue(TrueVisibilityProperty, value); }
+            get => (Visibility)this.GetValue(TrueVisibilityProperty);
+            set => this.SetValue(TrueVisibilityProperty, value);
         }
 
         /// <summary>
@@ -52,8 +51,8 @@ namespace Stylet.Xaml
         /// </summary>
         public Visibility FalseVisibility
         {
-            get { return (Visibility)this.GetValue(FalseVisibilityProperty); }
-            set { this.SetValue(FalseVisibilityProperty, value); }
+            get => (Visibility)this.GetValue(FalseVisibilityProperty);
+            set => this.SetValue(FalseVisibilityProperty, value);
         }
 
         /// <summary>
@@ -77,16 +76,15 @@ namespace Stylet.Xaml
             {
                 result = false;
             }
-            else if (value is bool)
+            else if (value is bool boolean)
             {
-                result = (bool)value;
+                result = boolean;
             }
-            // ReSharper disable once CanBeReplacedWithTryCastAndCheckForNull
-            else if (value is IEnumerable)
+            else if (value is IEnumerable enumerable)
             {
-                result = ((IEnumerable)value).GetEnumerator().MoveNext();
+                result = enumerable.GetEnumerator().MoveNext();
             }
-            else if (!(value is ValueType))
+            else if (value is not ValueType)
             {
                 result = true; // Non-null non-enumerable reference type = true
             }
@@ -122,7 +120,7 @@ namespace Stylet.Xaml
             if (targetType != typeof(bool))
                 throw new ArgumentException("Can't ConvertBack on BoolToVisibilityConverter when TargetType is not bool");
 
-            if (!(value is Visibility))
+            if (value is not Visibility)
                 return null;
 
             var vis = (Visibility)value;

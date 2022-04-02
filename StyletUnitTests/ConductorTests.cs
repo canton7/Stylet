@@ -15,7 +15,7 @@ namespace StyletUnitTests
         private class MyConductor : Conductor<IScreen>
         {
             public bool CanCloseValue = true;
-            public async override Task<bool> CanCloseAsync()
+            public override async Task<bool> CanCloseAsync()
             {
                 return this.CanCloseValue && await base.CanCloseAsync();
             }

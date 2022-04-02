@@ -28,21 +28,18 @@ namespace StyletUnitTests
         {
             public new IContainer Container
             {
-                get { return base.Container; }
-                set { base.Container = value; }
+                get => base.Container;
+                set => base.Container = value;
             }
 
-            public new T RootViewModel
-            {
-                get { return base.RootViewModel; }
-            }
+            public new T RootViewModel => base.RootViewModel;
 
             public new void Configure()
             {
                 base.ConfigureBootstrapper();
             }
 
-            public RootViewModel MyRootViewModel = new RootViewModel();
+            public RootViewModel MyRootViewModel = new();
 
             public bool ConfigureIoCCalled;
             protected override void ConfigureIoC(IStyletIoCBuilder builder)
@@ -67,7 +64,7 @@ namespace StyletUnitTests
         public void ConfigureBindsRequiredTypes()
         {
             this.bootstrapper.Configure();
-            var ioc = this.bootstrapper.Container;
+            IContainer ioc = this.bootstrapper.Container;
 
             Assert.IsInstanceOf<WindowManager>(ioc.Get<IWindowManager>());
             Assert.IsInstanceOf<IEventAggregator>(ioc.Get<IEventAggregator>());
@@ -83,7 +80,7 @@ namespace StyletUnitTests
         public void ConfigureCallsConfigureIoCWithCorrectBuilder()
         {
             this.bootstrapper.Configure();
-            var ioc = this.bootstrapper.Container;
+            IContainer ioc = this.bootstrapper.Container;
 
             Assert.True(this.bootstrapper.ConfigureIoCCalled);
             Assert.IsInstanceOf<C1>(ioc.Get<I1>());
@@ -96,7 +93,7 @@ namespace StyletUnitTests
             this.bootstrapper.Container = container.Object;
 
             container.Setup(x => x.Get(typeof(string), null)).Returns("hello").Verifiable();
-            var result = this.bootstrapper.GetInstance(typeof(string));
+            object result = this.bootstrapper.GetInstance(typeof(string));
             Assert.AreEqual("hello", result);
             container.Verify();
         }
@@ -124,7 +121,7 @@ namespace StyletUnitTests
             this.bootstrapper.Configure();
 
             // Force it to be created
-            var dummy = this.bootstrapper.RootViewModel;
+            RootViewModel dummy = this.bootstrapper.RootViewModel;
             this.bootstrapper.Dispose();
             Assert.True(this.bootstrapper.MyRootViewModel.Disposed);
         }

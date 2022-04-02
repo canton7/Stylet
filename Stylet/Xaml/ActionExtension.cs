@@ -75,25 +75,17 @@ namespace Stylet.Xaml
             this.Method = method;
         }
 
-        private ActionUnavailableBehaviour CommandNullTargetBehaviour
-        {
-            get { return this.NullTarget == ActionUnavailableBehaviour.Default ? (Execute.InDesignMode ? ActionUnavailableBehaviour.Enable : ActionUnavailableBehaviour.Disable) : this.NullTarget; }
-        }
+        private ActionUnavailableBehaviour commandNullTargetBehaviour =>
+            this.NullTarget == ActionUnavailableBehaviour.Default ? (Execute.InDesignMode ? ActionUnavailableBehaviour.Enable : ActionUnavailableBehaviour.Disable) : this.NullTarget;
 
-        private ActionUnavailableBehaviour CommandActionNotFoundBehaviour
-        {
-            get { return this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound; }
-        }
+        private ActionUnavailableBehaviour commandActionNotFoundBehaviour =>
+            this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
 
-        private ActionUnavailableBehaviour EventNullTargetBehaviour
-        {
-            get { return this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Enable : this.NullTarget; }
-        }
+        private ActionUnavailableBehaviour eventNullTargetBehaviour =>
+            this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Enable : this.NullTarget;
 
-        private ActionUnavailableBehaviour EventActionNotFoundBehaviour
-        {
-            get { return this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound; }
-        }
+        private ActionUnavailableBehaviour eventActionNotFoundBehaviour =>
+            this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
 
         /// <summary>
         /// When implemented in a derived class, returns an object that is provided as the value of the target property for this markup extension.
@@ -107,17 +99,14 @@ namespace Stylet.Xaml
 
             var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
 
-            switch (valueService.TargetObject)
+            return valueService.TargetObject switch
             {
-                case DependencyObject targetObject:
-                    return this.HandleDependencyObject(serviceProvider, valueService, targetObject);
-                case CommandBinding commandBinding:
-                    return this.CreateEventAction(serviceProvider, null, ((EventInfo)valueService.TargetProperty).EventHandlerType, isCommandBinding: true);
-                default:
-                    // Seems this is the case when we're in a template. We'll get called again properly in a second.
-                    // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
-                    return this;
-            }
+                DependencyObject targetObject => this.HandleDependencyObject(serviceProvider, valueService, targetObject),
+                CommandBinding commandBinding => this.CreateEventAction(serviceProvider, null, ((EventInfo)valueService.TargetProperty).EventHandlerType, isCommandBinding: true),
+                // Seems this is the case when we're in a template. We'll get called again properly in a second.
+                // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
+                _ => this,
+            };
         }
 
         private object HandleDependencyObject(IServiceProvider serviceProvider, IProvideValueTarget valueService, DependencyObject targetObject)
@@ -130,14 +119,14 @@ namespace Stylet.Xaml
                 case EventInfo eventInfo:
                     return this.CreateEventAction(serviceProvider, targetObject, eventInfo.EventHandlerType);
                 case MethodInfo methodInfo: // For attached events
+                {
+                    var parameters = methodInfo.GetParameters();
+                    if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
                     {
-                        var parameters = methodInfo.GetParameters();
-                        if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
-                        {
-                            return this.CreateEventAction(serviceProvider, targetObject, parameters[1].ParameterType);
-                        }
-                        throw new ArgumentException("Action used with an attached event (or something similar) which didn't follow the normal pattern");
+                        return this.CreateEventAction(serviceProvider, targetObject, parameters[1].ParameterType);
                     }
+                    throw new ArgumentException("Action used with an attached event (or something similar) which didn't follow the normal pattern");
+                }
                 default:
                     throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
             }
@@ -149,11 +138,11 @@ namespace Stylet.Xaml
             {
                 var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
                 var rootObject = rootObjectProvider?.RootObject as DependencyObject;
-                return new CommandAction(targetObject, rootObject, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
+                return new CommandAction(targetObject, rootObject, this.Method, this.commandNullTargetBehaviour, this.commandActionNotFoundBehaviour);
             }
             else
             {
-                return new CommandAction(this.Target, this.Method, this.CommandNullTargetBehaviour, this.CommandActionNotFoundBehaviour);
+                return new CommandAction(this.Target, this.Method, this.commandNullTargetBehaviour, this.commandActionNotFoundBehaviour);
             }
         }
 
@@ -163,21 +152,23 @@ namespace Stylet.Xaml
             if (this.Target == null)
             {
                 var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
+#pragma warning disable IDE0019 // Use pattern matching
                 var rootObject = rootObjectProvider?.RootObject as DependencyObject;
+#pragma warning restore IDE0019 // Use pattern matching
                 if (isCommandBinding)
                 {
                     if (rootObject == null)
                         throw new InvalidOperationException("Action may only be used with CommandBinding from a XAML view (unable to retrieve IRootObjectProvider.RootObject)");
-                    ec = new EventAction(rootObject, null, eventType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                    ec = new EventAction(rootObject, null, eventType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
                 }
                 else
                 {
-                    ec = new EventAction(targetObject, rootObject, eventType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                    ec = new EventAction(targetObject, rootObject, eventType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
                 }
             }
             else
             {
-                ec = new EventAction(this.Target, eventType, this.Method, this.EventNullTargetBehaviour, this.EventActionNotFoundBehaviour);
+                ec = new EventAction(this.Target, eventType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
             }
 
             return ec.GetDelegate();
@@ -187,7 +178,6 @@ namespace Stylet.Xaml
     /// <summary>
     /// The View.ActionTarget was not set. This probably means the item is in a ContextMenu/Popup
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class ActionNotSetException : Exception
     {
         internal ActionNotSetException(string message) : base(message) { }
@@ -196,7 +186,6 @@ namespace Stylet.Xaml
     /// <summary>
     /// The Action Target was null, and shouldn't have been (NullTarget = Throw)
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class ActionTargetNullException : Exception
     {
         internal ActionTargetNullException(string message) : base(message) { }
@@ -205,7 +194,6 @@ namespace Stylet.Xaml
     /// <summary>
     /// The method specified could not be found on the Action Target
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class ActionNotFoundException : Exception
     {
         internal ActionNotFoundException(string message) : base(message) { }
@@ -214,7 +202,6 @@ namespace Stylet.Xaml
     /// <summary>
     /// The method specified does not have the correct signature
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     public class ActionSignatureInvalidException : Exception
     {
         internal ActionSignatureInvalidException(string message) : base(message) { }

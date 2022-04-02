@@ -20,20 +20,20 @@ namespace StyletUnitTests
             private int _intProperty;
             public int IntProperty
             {
-                get { return this._intProperty; }
-                set { SetAndNotify(ref this._intProperty, value); }
+                get => this._intProperty;
+                set => this.SetAndNotify(ref this._intProperty, value);
             }
 
             public new bool AutoValidate
             {
-                get { return base.AutoValidate; }
-                set { base.AutoValidate = value; }
+                get => base.AutoValidate;
+                set => base.AutoValidate = value;
             }
 
             public new IModelValidator Validator
             {
-                get { return base.Validator; }
-                set { base.Validator = value; }
+                get => base.Validator;
+                set => base.Validator = value;
             }
 
             public new bool Validate()
@@ -82,14 +82,14 @@ namespace StyletUnitTests
         public void PropertySetsAndInitialisesModelValidator()
         {
             this.validator.Verify(x => x.Initialize(this.model));
-            Assert.AreEqual(validator.Object, this.model.Validator);
+            Assert.AreEqual(this.validator.Object, this.model.Validator);
         }
 
         [Test]
         public void ConstructorSetsAndInitialisesModelValidator()
         {
-            this.validator.Verify(x => x.Initialize(model));
-            Assert.AreEqual(validator.Object, model.Validator);
+            this.validator.Verify(x => x.Initialize(this.model));
+            Assert.AreEqual(this.validator.Object, this.model.Validator);
         }
 
         [Test]
@@ -139,8 +139,8 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyAsyncWitNullCallsAdapterValidatePropertyWithEmptyString()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync(String.Empty)).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
-            this.model.ValidatePropertyAsync(String.Empty).Wait();
+            this.validator.Setup(x => x.ValidatePropertyAsync(string.Empty)).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
+            this.model.ValidatePropertyAsync(string.Empty).Wait();
 
             this.validator.Verify();
         }
@@ -149,8 +149,8 @@ namespace StyletUnitTests
         [Test]
         public void ValidatePropertyAsyncWithEmptyStringCallsAdapterValidatePropertyWithEmptyString()
         {
-            this.validator.Setup(x => x.ValidatePropertyAsync(String.Empty)).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
-            this.model.ValidatePropertyAsync(String.Empty).Wait();
+            this.validator.Setup(x => x.ValidatePropertyAsync(string.Empty)).ReturnsAsync(Enumerable.Empty<string>()).Verifiable();
+            this.model.ValidatePropertyAsync(string.Empty).Wait();
 
             this.validator.Verify();
         }
@@ -176,7 +176,7 @@ namespace StyletUnitTests
         public void ValidatePropertyReturnsTrueIfValidationPassed()
         {
             this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync((IEnumerable<string>)null);
-            var result = this.model.ValidateProperty("IntProperty");
+            bool result = this.model.ValidateProperty("IntProperty");
             Assert.True(result);
 
             this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync(new string[0]);
@@ -188,7 +188,7 @@ namespace StyletUnitTests
         public void ValidatePropertyReturnsFalseIfValidationFailed()
         {
             this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync(new[] { "error" });
-            var result = this.model.ValidateProperty("IntProperty");
+            bool result = this.model.ValidateProperty("IntProperty");
             Assert.False(result);
         }
 
@@ -199,7 +199,7 @@ namespace StyletUnitTests
                 {
                     { "IntProperty", null }
                 });
-            var result = this.model.Validate();
+            bool result = this.model.Validate();
             Assert.True(result);
 
             this.validator.Setup(x => x.ValidateAllPropertiesAsync()).ReturnsAsync(new Dictionary<string, IEnumerable<string>>()
@@ -217,7 +217,7 @@ namespace StyletUnitTests
                 {
                     { "IntProperty", new[] { "error" } }
                 });
-            var result = this.model.Validate();
+            bool result = this.model.Validate();
             Assert.False(result);
         }
 
@@ -329,7 +329,7 @@ namespace StyletUnitTests
         [Test]
         public void GetErrorsReturnsNullIfNoErrorsForThatProperty()
         {
-            var errors = this.model.GetErrors("FooBar");
+            System.Collections.IEnumerable errors = this.model.GetErrors("FooBar");
             Assert.Null(errors);
         }
 
@@ -338,7 +338,7 @@ namespace StyletUnitTests
         {
             this.validator.Setup(x => x.ValidatePropertyAsync("IntProperty")).ReturnsAsync(new[] { "error1", "error2" });
             this.model.ValidateProperty("IntProperty");
-            var errors = this.model.GetErrors("IntProperty");
+            System.Collections.IEnumerable errors = this.model.GetErrors("IntProperty");
             Assert.That(errors, Is.EquivalentTo(new[] { "error1", "error2" }));
         }
 
@@ -351,7 +351,7 @@ namespace StyletUnitTests
             });
 
             this.model.Validate();
-            var errors = this.model.GetErrors(null);
+            System.Collections.IEnumerable errors = this.model.GetErrors(null);
             Assert.That(errors, Is.EquivalentTo(new[] { "error1", "error2" }));
         }
 

@@ -35,7 +35,7 @@ namespace StyletUnitTests
                     uie.RemoveHandler(TestExtensions.TestEvent, handler);
             }
 
-            public static void InvalidHandler(DependencyObject d)
+            public static void InvalidHandler(DependencyObject _)
             {
             }
         }
@@ -130,7 +130,7 @@ namespace StyletUnitTests
         [Test]
         public void OverridesTargetIfSetCommand()
         {
-            var target = new object();
+            object target = new();
             this.actionExtension.Target = target;
 
             this.provideValueTarget.Setup(x => x.TargetProperty).Returns(Button.CommandProperty);

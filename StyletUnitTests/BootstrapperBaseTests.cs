@@ -24,8 +24,8 @@ namespace StyletUnitTests
 
         private class MyBootstrapperBase : BootstrapperBase
         {
-            private IViewManager viewManager;
-            private IWindowManager windowManager;
+            private readonly IViewManager viewManager;
+            private readonly IWindowManager windowManager;
 
             public MyBootstrapperBase(IViewManager viewManager, IWindowManager windowManager)
             {
@@ -35,12 +35,9 @@ namespace StyletUnitTests
                 this.Start(new string[0]);
             }
 
-            public new Application Application
-            {
-                get { return base.Application; }
-            }
+            public new Application Application => base.Application;
 
-            public readonly RootViewModel MyRootViewModel = new BootstrapperBaseTests.RootViewModel();
+            public readonly RootViewModel MyRootViewModel = new();
 
             public bool GetInstanceCalled;
             public override object GetInstance(Type service)
@@ -107,10 +104,7 @@ namespace StyletUnitTests
                 throw new NotImplementedException();
             }
 
-            public bool IsCurrent
-            {
-                get { throw new NotImplementedException(); }
-            }
+            public bool IsCurrent => throw new NotImplementedException();
         }
 
         
@@ -172,7 +166,7 @@ namespace StyletUnitTests
         [Test]
         public void DisplayRootViewDisplaysTheRootView()
         {
-            var viewModel = new object();
+            object viewModel = new();
             this.bootstrapper.DisplayRootView(viewModel);
 
             this.windowManager.Verify(x => x.ShowWindow(viewModel));

@@ -15,8 +15,8 @@ namespace Stylet
         /// </summary>
         public T ActiveItem
         {
-            get { return this._activeItem; }
-            set { this.ActivateItem(value); }
+            get => this._activeItem;
+            set => this.ActivateItem(value);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Stylet
                     ScreenExtensions.TryDeactivate(newItem);
             }
 
-            this.NotifyOfPropertyChange("ActiveItem");
+            this.NotifyOfPropertyChange(nameof(this.ActiveItem));
         }
 
         /// <summary>

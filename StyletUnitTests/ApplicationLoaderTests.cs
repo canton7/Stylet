@@ -15,7 +15,7 @@ namespace StyletUnitTests
         public void SetUp()
         {
             // This will set up the URI registrations for the pack:// and application
-            var a = Application.Current;
+            Application a = Application.Current;
 
             this.applicationLoader = new ApplicationLoader();
         }
@@ -24,7 +24,7 @@ namespace StyletUnitTests
         public void ConstructorSetsResourceDictionary()
         {
             Assert.AreEqual(1, this.applicationLoader.MergedDictionaries.Count);
-            var dict = this.applicationLoader.MergedDictionaries[0];
+            ResourceDictionary dict = this.applicationLoader.MergedDictionaries[0];
             Assert.AreEqual("pack://application:,,,/Stylet;component/Xaml/StyletResourceDictionary.xaml", dict.Source.AbsoluteUri);
         }
 

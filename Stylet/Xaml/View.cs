@@ -20,7 +20,7 @@ namespace Stylet.Xaml
         /// Initial value of the ActionTarget property.
         /// This can be used as a marker - if the property has this value, it hasn't yet been assigned to anything else.
         /// </summary>
-        public static readonly object InitialActionTarget = new object();
+        public static readonly object InitialActionTarget = new();
 
         /// <summary>
         /// Get the ActionTarget associated with the given object
@@ -68,7 +68,7 @@ namespace Stylet.Xaml
             obj.SetValue(ModelProperty, value);
         }
 
-        private static readonly object defaultModelValue = new object();
+        private static readonly object defaultModelValue = new();
 
         /// <summary>
         /// Property specifying the ViewModel currently associated with a given object
@@ -76,13 +76,11 @@ namespace Stylet.Xaml
         public static readonly DependencyProperty ModelProperty =
             DependencyProperty.RegisterAttached("Model", typeof(object), typeof(View), new PropertyMetadata(defaultModelValue, (d, e) =>
             {
-                var viewManager = ((FrameworkElement)d).TryFindResource(ViewManagerResourceKey) as IViewManager;
-
-                if (viewManager == null)
+                if (((FrameworkElement)d).TryFindResource(ViewManagerResourceKey) is not IViewManager viewManager)
                 {
                     if (Execute.InDesignMode)
                     {
-                        var bindingExpression = BindingOperations.GetBindingExpression(d, ModelProperty);
+                        BindingExpression bindingExpression = BindingOperations.GetBindingExpression(d, ModelProperty);
                         string text;
                         if (bindingExpression == null)
                             text = "View for [Broken Binding]";
@@ -112,11 +110,11 @@ namespace Stylet.Xaml
         /// <param name="view">View to set as the object's Content</param>
         public static void SetContentProperty(DependencyObject targetLocation, UIElement view)
         {
-            var type = targetLocation.GetType();
-            var attribute = type.GetCustomAttribute<ContentPropertyAttribute>();
+            Type type = targetLocation.GetType();
+            ContentPropertyAttribute attribute = type.GetCustomAttribute<ContentPropertyAttribute>();
             // No attribute? Try a property called 'Content'...
             string propertyName = attribute != null ? attribute.Name : "Content";
-            var property = type.GetProperty(propertyName);
+            PropertyInfo property = type.GetProperty(propertyName);
             if (property == null)
                 throw new InvalidOperationException(string.Format("Unable to find a Content property on type {0}. Make sure you're using 's:View.Model' on a suitable container, e.g. a ContentControl", type.Name));
             property.SetValue(targetLocation, view);

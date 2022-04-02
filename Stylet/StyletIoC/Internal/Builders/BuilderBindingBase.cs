@@ -24,9 +24,7 @@ namespace StyletIoC.Internal.Builders
 
         public IAsWeakBinding WithRegistrationFactory(RegistrationFactory registrationFactory)
         {
-            if (registrationFactory == null)
-                throw new ArgumentNullException("registrationFactory");
-            this.RegistrationFactory = registrationFactory;
+            this.RegistrationFactory = registrationFactory ?? throw new ArgumentNullException(nameof(registrationFactory));
             return this;
         }
 
@@ -41,7 +39,7 @@ namespace StyletIoC.Internal.Builders
 
         public IInScopeOrAsWeakBinding WithKey(string key)
         {
-            foreach (var serviceType in this.ServiceTypes)
+            foreach (BuilderTypeKey serviceType in this.ServiceTypes)
             {
                 serviceType.Key = key;
             }
@@ -50,7 +48,7 @@ namespace StyletIoC.Internal.Builders
 
         protected void EnsureTypeAgainstServiceTypes(Type implementationType, bool assertImplementation = true)
         {
-            foreach (var serviceType in this.ServiceTypes)
+            foreach (BuilderTypeKey serviceType in this.ServiceTypes)
             {
                 EnsureType(implementationType, serviceType.Type, assertImplementation);
             }
@@ -87,15 +85,15 @@ namespace StyletIoC.Internal.Builders
         {
             if (this.ServiceTypes.Count > 1)
             {
-                var firstGenericType = this.ServiceTypes.FirstOrDefault(x => x.Type.IsGenericTypeDefinition);
+                BuilderTypeKey firstGenericType = this.ServiceTypes.FirstOrDefault(x => x.Type.IsGenericTypeDefinition);
 
                 if (firstGenericType != null)
                     throw new StyletIoCRegistrationException(string.Format("Cannot create a multiple-service binding with an unbound generic type {0}", firstGenericType.Type.GetDescription()));
 
                 var creator = new TypeCreator(implementationType, container);
-                var registration = this.CreateRegistration(container, creator);
+                IRegistration registration = this.CreateRegistration(container, creator);
 
-                foreach (var serviceType in this.ServiceTypes)
+                foreach (BuilderTypeKey serviceType in this.ServiceTypes)
                 {
                     container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key ?? creator.AttributeKey), registration);
                 }
@@ -117,7 +115,7 @@ namespace StyletIoC.Internal.Builders
             else
             {
                 var creator = new TypeCreator(implementationType, container);
-                var registration = this.CreateRegistration(container, creator);
+                IRegistration registration = this.CreateRegistration(container, creator);
 
                 container.AddRegistration(new TypeKey(serviceType.TypeHandle, key ?? creator.AttributeKey), registration);
             }

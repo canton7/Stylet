@@ -7,18 +7,27 @@ namespace StyletUnitTests.StyletIoC
     [TestFixture]
     public class StyletIoCBindingChecksTests
     {
-        interface I1 { }
-        class C1 : I1 { }
-        class C2 { }
-        interface I3 : I1 { }
-        abstract class C4 : I1 { }
-        class C5<T> : I1 { }
-        
-        interface I6<T> { }
-        class C6<T> : I6<T> { }
-        interface I7<T, U> { }
-        class C7<T, U> { }
-        class C8 : I6<int> { }
+        private interface I1 { }
+
+        private class C1 : I1 { }
+
+        private class C2 { }
+
+        private interface I3 : I1 { }
+
+        private abstract class C4 : I1 { }
+
+        private class C5<T> : I1 { }
+
+        private interface I6<T> { }
+
+        private class C6<T> : I6<T> { }
+
+        private interface I7<T1, T2> { }
+
+        private class C7<T1, T2> { }
+
+        private class C8 : I6<int> { }
 
         [Test]
         public void ThrowsIfTypeDoesNotImplementService()

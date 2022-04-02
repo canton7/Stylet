@@ -15,8 +15,8 @@ namespace StyletUnitTests
         {
             public new IModelValidator Validator
             {
-                get { return base.Validator; }
-                set { base.Validator = value; }
+                get => base.Validator;
+                set => base.Validator = value;
             }
 
             public MyScreen() { }
@@ -354,7 +354,7 @@ namespace StyletUnitTests
         [Test]
         public void SettingParentRaisesPropertyChange()
         {
-            var parent = new object();
+            object parent = new();
             string changedProperty = null;
             this.screen.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
             this.screen.Parent = parent;
@@ -366,7 +366,7 @@ namespace StyletUnitTests
         [Test]
         public void CanCloseAsyncReturnsTrueByDefault()
         {
-            var task = this.screen.CanCloseAsync();
+            Task<bool> task = this.screen.CanCloseAsync();
             Assert.IsTrue(task.IsCompleted);
             Assert.IsTrue(task.Result);
         }
@@ -375,7 +375,7 @@ namespace StyletUnitTests
         public void CanCloseAsyncReturnsResultOfCanClose()
         {
             this.screen.CanCloseResult = false;
-            var task = this.screen.CanCloseAsync();
+            Task<bool> task = this.screen.CanCloseAsync();
             Assert.IsTrue(task.IsCompleted);
             Assert.IsFalse(task.Result);
         }
@@ -391,7 +391,7 @@ namespace StyletUnitTests
         public void RequestCloseCallsParentCloseItemPassingDialogResult()
         {
             var parent = new Mock<IChildDelegate>();
-            screen.Parent = parent.Object;
+            this.screen.Parent = parent.Object;
             this.screen.RequestClose(true);
             parent.Verify(x => x.CloseItem(this.screen, true));
         }
@@ -411,7 +411,7 @@ namespace StyletUnitTests
         public void TryCloseCallsParentCloseItemPassingDialogResult()
         {
             var parent = new Mock<IChildDelegate>();
-            screen.Parent = parent.Object;
+            this.screen.Parent = parent.Object;
             this.screen.TryClose(true);
             parent.Verify(x => x.CloseItem(this.screen, true));
         }

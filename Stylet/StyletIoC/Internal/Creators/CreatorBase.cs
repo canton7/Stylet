@@ -23,10 +23,10 @@ namespace StyletIoC.Internal.Creators
         {
             var type = Type.GetTypeFromHandle(this.TypeHandle);
 
-            var instanceVar = Expression.Variable(type, "instance");
-            var assignment = Expression.Assign(instanceVar, creator);
+            ParameterExpression instanceVar = Expression.Variable(type, "instance");
+            BinaryExpression assignment = Expression.Assign(instanceVar, creator);
 
-            var buildUpExpression = this.ParentContext.GetBuilderUpper(type).GetExpression(instanceVar, registrationContext);
+            Expression buildUpExpression = this.ParentContext.GetBuilderUpper(type).GetExpression(instanceVar, registrationContext);
 
             // We always start with:
             // var instance = new Class(.....)
@@ -39,7 +39,7 @@ namespace StyletIoC.Internal.Creators
                 blockItems.Add(Expression.Call(instanceVar, typeof(IInjectionAware).GetMethod("ParametersInjected")));
             // Final appearance of instanceVar, as this sets the return value of the block
             blockItems.Add(instanceVar);
-            var completeExpression = Expression.Block(new[] { instanceVar }, blockItems);
+            BlockExpression completeExpression = Expression.Block(new[] { instanceVar }, blockItems);
             return completeExpression;
         }
 

@@ -14,17 +14,14 @@ namespace Stylet
             /// </summary>
             public class OneActive : ConductorBaseWithActiveItem<T>
             {
-                private readonly BindableCollection<T> items = new BindableCollection<T>();
+                private readonly BindableCollection<T> items = new();
 
                 private List<T> itemsBeforeReset;
 
                 /// <summary>
                 /// Gets the tems owned by this Conductor, one of which is active
                 /// </summary>
-                public IObservableCollection<T> Items
-                {
-                    get { return this.items; }
-                }
+                public IObservableCollection<T> Items => this.items;
 
                 /// <summary>
                 /// Initialises a new instance of the <see cref="Conductor{T}.Collection.OneActive"/> class
@@ -126,7 +123,7 @@ namespace Stylet
 
                     if (item.Equals(this.ActiveItem))
                     {
-                        var nextItem = this.DetermineNextItemToActivate(item);
+                        T nextItem = this.DetermineNextItemToActivate(item);
                         this.ChangeActiveItem(nextItem, false);
                     }
                     else
@@ -146,7 +143,7 @@ namespace Stylet
 
                     if (item.Equals(this.ActiveItem))
                     {
-                        var nextItem = this.DetermineNextItemToActivate(item);
+                        T nextItem = this.DetermineNextItemToActivate(item);
                         // Counter-intuitively, we *don't* want to close the old ActiveItem. Removing it from 'this.items' below
                         // will do that, and we don't want to do it twice.
                         this.ChangeActiveItem(nextItem, false);
@@ -170,7 +167,7 @@ namespace Stylet
                     else if (this.items.Count > 1)
                     {
                         // indexOfItemBeingRemoved *can* be -1 - if the item being removed doesn't exist in the list
-                        var indexOfItemBeingRemoved = this.items.IndexOf(itemToRemove);
+                        int indexOfItemBeingRemoved = this.items.IndexOf(itemToRemove);
 
                         if (indexOfItemBeingRemoved < 0)
                             return this.items[0];
@@ -181,7 +178,7 @@ namespace Stylet
                     }
                     else
                     {
-                        return default(T);
+                        return default;
                     }
                 }
 

@@ -68,7 +68,7 @@ namespace StyletIoC
     /// </summary>
     public class StyletIoCBuilder : IStyletIoCBuilder
     {
-        private readonly List<BuilderBindTo> bindings = new List<BuilderBindTo>();
+        private readonly List<BuilderBindTo> bindings = new();
         private List<Assembly> autobindAssemblies;
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace StyletIoC
         public void Autobind(IEnumerable<Assembly> assemblies)
         {
             // If they've called Autobind before, then add the new set of assemblies on
-            var existing = this.autobindAssemblies ?? Enumerable.Empty<Assembly>();
+            IEnumerable<Assembly> existing = this.autobindAssemblies ?? Enumerable.Empty<Assembly>();
             this.autobindAssemblies = existing.Concat(this.GetAssemblies(assemblies, "Autobind")).Distinct().ToList();
         }
 
@@ -150,7 +150,7 @@ namespace StyletIoC
         /// <param name="modules">Modules to add</param>
         public void AddModules(params StyletIoCModule[] modules)
         {
-            foreach (var module in modules)
+            foreach (StyletIoCModule module in modules)
             {
                 this.AddModule(module);
             }
@@ -176,12 +176,12 @@ namespace StyletIoC
                           select new { ServiceType = serviceType, Binding = binding })
                           .ToLookup(x => x.ServiceType);
 
-            var filtered = from binding in bindings
+            IEnumerable<BuilderBindTo> filtered = from binding in bindings
                            where !(binding.IsWeak &&
                                 binding.ServiceTypes.Any(serviceType => groups.Contains(serviceType) && groups[serviceType].Any(groupItem => !groupItem.Binding.IsWeak)))
                            select binding;
 
-            foreach (var binding in filtered)
+            foreach (BuilderBindTo binding in filtered)
             {
                 binding.Build(container);
             }

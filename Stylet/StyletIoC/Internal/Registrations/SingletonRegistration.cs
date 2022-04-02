@@ -43,7 +43,7 @@ namespace StyletIoC.Internal.Registrations
             }
 
             // This expression yields the actual type of instance, not 'object'
-            var instanceExpression = Expression.Constant(this.instance);
+            ConstantExpression instanceExpression = Expression.Constant(this.instance);
             return instanceExpression;
         }
     }

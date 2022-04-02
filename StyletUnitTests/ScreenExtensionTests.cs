@@ -92,7 +92,7 @@ namespace StyletUnitTests
                 return new WeakReference(child);
             }
 
-            var weakChild = Test();
+            WeakReference weakChild = Test();
 
             GC.Collect();
 
@@ -128,7 +128,7 @@ namespace StyletUnitTests
                 return new WeakReference(child);
             }
 
-            var weakChild = Test();
+            WeakReference weakChild = Test();
 
             GC.Collect();
 
@@ -164,7 +164,7 @@ namespace StyletUnitTests
                 return new WeakReference(child);
             }
 
-            var weakChild = Test();
+            WeakReference weakChild = Test();
 
             GC.Collect();
 
@@ -190,7 +190,7 @@ namespace StyletUnitTests
                 return new WeakReference(child);
             }
 
-            var weakChild = Test();
+            WeakReference weakChild = Test();
 
             GC.Collect();
 

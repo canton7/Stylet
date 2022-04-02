@@ -43,8 +43,8 @@ namespace Stylet
         /// <summary>
         /// Display a MessageBox
         /// </summary>
-        /// <param name="messageBoxText">A <see cref="System.String"/> that specifies the text to display.</param>
-        /// <param name="caption">A <see cref="System.String"/> that specifies the title bar caption to display.</param>
+        /// <param name="messageBoxText">A <see cref="string"/> that specifies the text to display.</param>
+        /// <param name="caption">A <see cref="string"/> that specifies the title bar caption to display.</param>
         /// <param name="buttons">A <see cref="System.Windows.MessageBoxButton"/> value that specifies which button or buttons to display.</param>
         /// <param name="icon">A <see cref="System.Windows.MessageBoxImage"/> value that specifies the icon to display.</param>
         /// <param name="defaultResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the default result of the message box.</param>
@@ -141,8 +141,8 @@ namespace Stylet
         /// <summary>
         /// Display a MessageBox
         /// </summary>
-        /// <param name="messageBoxText">A <see cref="System.String"/> that specifies the text to display.</param>
-        /// <param name="caption">A <see cref="System.String"/> that specifies the title bar caption to display.</param>
+        /// <param name="messageBoxText">A <see cref="string"/> that specifies the text to display.</param>
+        /// <param name="caption">A <see cref="string"/> that specifies the title bar caption to display.</param>
         /// <param name="buttons">A <see cref="System.Windows.MessageBoxButton"/> value that specifies which button or buttons to display.</param>
         /// <param name="icon">A <see cref="System.Windows.MessageBoxImage"/> value that specifies the icon to display.</param>
         /// <param name="defaultResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the default result of the message box.</param>
@@ -160,7 +160,7 @@ namespace Stylet
             FlowDirection? flowDirection = null,
             TextAlignment? textAlignment = null)
         {
-            var vm = this.messageBoxViewModelFactory();
+            IMessageBoxViewModel vm = this.messageBoxViewModelFactory();
             vm.Setup(messageBoxText, caption, buttons, icon, defaultResult, cancelResult, buttonLabels, flowDirection, textAlignment);
             this.ShowDialog(vm);
             return vm.ClickedButton;
@@ -175,9 +175,8 @@ namespace Stylet
         /// <returns>Window which was created and set up</returns>
         protected virtual Window CreateWindow(object viewModel, bool isDialog, IViewAware ownerViewModel)
         {
-            var view = this.viewManager.CreateAndBindViewForModelIfNecessary(viewModel);
-            var window = view as Window;
-            if (window == null)
+            UIElement view = this.viewManager.CreateAndBindViewForModelIfNecessary(viewModel);
+            if (view is not Window window)
             {
                 var e = new StyletInvalidViewTypeException(string.Format("WindowManager.ShowWindow or .ShowDialog tried to show a View of type '{0}', but that View doesn't derive from the Window class. " +
                     "Make sure any Views you display using WindowManager.ShowWindow or .ShowDialog derive from Window (not UserControl, etc)",
@@ -187,8 +186,7 @@ namespace Stylet
             }
 
             // Only set this it hasn't been set / bound to anything
-            var haveDisplayName = viewModel as IHaveDisplayName;
-            if (haveDisplayName != null && (String.IsNullOrEmpty(window.Title) || window.Title == view.GetType().Name) && BindingOperations.GetBindingBase(window, Window.TitleProperty) == null)
+            if (viewModel is IHaveDisplayName haveDisplayName && (string.IsNullOrEmpty(window.Title) || window.Title == view.GetType().Name) && BindingOperations.GetBindingBase(window, Window.TitleProperty) == null)
             {
                 var binding = new Binding("DisplayName") { Mode = BindingMode.TwoWay };
                 window.SetBinding(Window.TitleProperty, binding);
@@ -200,7 +198,7 @@ namespace Stylet
             }
             else if (isDialog)
             {
-                var owner = this.InferOwnerOf(window);
+                Window owner = this.InferOwnerOf(window);
                 if (owner != null)
                 {
                     // We can end up in a really weird situation if they try and display more than one dialog as the application's closing
@@ -228,22 +226,23 @@ namespace Stylet
 
             // If and only if they haven't tried to position the window themselves...
             // Has to be done after we're attempted to set the owner
-            if (window.WindowStartupLocation == WindowStartupLocation.Manual && Double.IsNaN(window.Top) && Double.IsNaN(window.Left) &&
+            if (window.WindowStartupLocation == WindowStartupLocation.Manual && double.IsNaN(window.Top) && double.IsNaN(window.Left) &&
                 BindingOperations.GetBinding(window, Window.TopProperty) == null && BindingOperations.GetBinding(window, Window.LeftProperty) == null)
             {
                 window.WindowStartupLocation = window.Owner == null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner;
             }
 
             // This gets itself retained by the window, by registering events
-            // ReSharper disable once ObjectCreationAsStatement
+#pragma warning disable CA1806 // Do not ignore method results
             new WindowConductor(window, viewModel);
+#pragma warning restore CA1806 // Do not ignore method results
 
             return window;
         }
 
         private Window InferOwnerOf(Window window)
         {
-            var active = this.getActiveWindow();
+            Window active = this.getActiveWindow();
             return ReferenceEquals(active, window) ? null : active;
         }
 
@@ -258,14 +257,12 @@ namespace Stylet
                 this.viewModel = viewModel;
 
                 // They won't be able to request a close unless they implement IChild anyway...
-                var viewModelAsChild = this.viewModel as IChild;
-                if (viewModelAsChild != null)
+                if (this.viewModel is IChild viewModelAsChild)
                     viewModelAsChild.Parent = this;
 
                 ScreenExtensions.TryActivate(this.viewModel);
 
-                var viewModelAsScreenState = this.viewModel as IScreenState;
-                if (viewModelAsScreenState != null)
+                if (this.viewModel is IScreenState viewModelAsScreenState)
                 {
                     window.StateChanged += this.WindowStateChanged;
                     window.Closed += this.WindowClosed;
@@ -311,7 +308,7 @@ namespace Stylet
                 logger.Info("ViewModel {0} close requested because its View was closed", this.viewModel);
 
                 // See if the task completed synchronously
-                var task = ((IGuardClose)this.viewModel).CanCloseAsync();
+                System.Threading.Tasks.Task<bool> task = ((IGuardClose)this.viewModel).CanCloseAsync();
                 if (task.IsCompleted)
                 {
                     // The closed event handler will take things from here if we don't cancel
@@ -349,8 +346,7 @@ namespace Stylet
                     return;
                 }
 
-                var guardClose = this.viewModel as IGuardClose;
-                if (guardClose != null && !await guardClose.CanCloseAsync())
+                if (this.viewModel is IGuardClose guardClose && !await guardClose.CanCloseAsync())
                 {
                     logger.Info("Close of ViewModel {0} cancelled because CanCloseAsync returned false", this.viewModel);
                     return;

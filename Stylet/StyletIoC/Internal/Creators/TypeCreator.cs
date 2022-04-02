@@ -23,18 +23,17 @@ namespace StyletIoC.Internal.Creators
             this.TypeHandle = type.TypeHandle;
 
             // Use the key from InjectAttribute (if present), and let someone else override it if they want
-            var attribute = type.GetCustomAttribute<InjectAttribute>(true);
+            InjectAttribute attribute = type.GetCustomAttribute<InjectAttribute>(true);
             if (attribute != null)
                 this.AttributeKey = attribute.Key;
         }
 
         private string KeyForParameter(ParameterInfo parameter)
         {
-            var attribute = parameter.GetCustomAttribute<InjectAttribute>(true);
+            InjectAttribute attribute = parameter.GetCustomAttribute<InjectAttribute>(true);
             return attribute?.Key;
         }
 
-        [SuppressMessage("StyleCop.CSharp.Readability", "SA1118:ParameterMustNotSpanMultipleLines", Justification = "Honestly, it's clearer like this")]
         public override Expression GetInstanceExpression(ParameterExpression registrationContext)
         {
             if (this.creationExpression != null)
@@ -53,7 +52,7 @@ namespace StyletIoC.Internal.Creators
             {
                 ctor = ctorsWithAttribute[0];
                 string key = ctorsWithAttribute[0].GetCustomAttribute<InjectAttribute>(true).Key;
-                var cantResolve = ctor.GetParameters().FirstOrDefault(p => !this.ParentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue);
+                ParameterInfo cantResolve = ctor.GetParameters().FirstOrDefault(p => !this.ParentContext.CanResolve(p.ParameterType, key) && !p.HasDefaultValue);
                 if (cantResolve != null)
                     throw new StyletIoCFindConstructorException(string.Format("Found a constructor with [Inject] on type {0}, but can't resolve parameter '{1}' (of type {2}, and doesn't have a default value).", type.GetDescription(), cantResolve.Name, cantResolve.ParameterType.GetDescription()));
             }
@@ -87,7 +86,7 @@ namespace StyletIoC.Internal.Creators
             // If we get circular dependencies, we'll just blow the stack. They're a pain to resolve.
 
             // If there parameter's got an InjectAttribute with a key, use that key to resolve
-            var ctorParams = ctor.GetParameters().Select(x =>
+            System.Collections.Generic.IEnumerable<Expression> ctorParams = ctor.GetParameters().Select(x =>
             {
                 string key = this.KeyForParameter(x);
                 if (this.ParentContext.CanResolve(x.ParameterType, key))
@@ -105,9 +104,9 @@ namespace StyletIoC.Internal.Creators
                 return Expression.Convert(Expression.Constant(x.DefaultValue), x.ParameterType);
             });
 
-            var creator = Expression.New(ctor, ctorParams);
+            NewExpression creator = Expression.New(ctor, ctorParams);
 
-            var completeExpression = this.CompleteExpressionFromCreator(creator, registrationContext);
+            Expression completeExpression = this.CompleteExpressionFromCreator(creator, registrationContext);
 
             if (StyletIoCContainer.CacheGeneratedExpressions)
             {

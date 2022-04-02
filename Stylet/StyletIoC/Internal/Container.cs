@@ -13,10 +13,6 @@ using System.Reflection;
 
 namespace StyletIoC.Internal
 {
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1611:ElementParametersMustBeDocumented", Justification = "Internal class, but some documentation added for readability. StyleCop ignores 'Internal only' setting if some documentation exists on member")]
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1615:ElementReturnValueMustBeDocumented", Justification = "Internal class, but some documentation added for readability. StyleCop ignores 'Internal only' setting if some documentation exists on member")]
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1618:GenericTypeParametersMustBeDocumented", Justification = "Internal class, but some documentation added for readability. StyleCop ignores 'Internal only' setting if some documentation exists on member")]
-    // ReSharper disable once RedundantExtendsListEntry
     internal class Container : IContainer, IRegistrationContext
     {
         private readonly List<Assembly> autobindAssemblies;
@@ -24,25 +20,25 @@ namespace StyletIoC.Internal
         /// <summary>
         /// Maps a [type, key] pair to a collection of registrations for that keypair. You can retrieve an instance of the type from the registration
         /// </summary>
-        private readonly ConcurrentDictionary<TypeKey, IRegistrationCollection> registrations = new ConcurrentDictionary<TypeKey, IRegistrationCollection>();
+        private readonly ConcurrentDictionary<TypeKey, IRegistrationCollection> registrations = new();
 
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is the T in IEnumerable{T}, to a registration which can create a List{T} implementing that IEnumerable.
         /// This is separate from 'registrations' as some code paths - e.g. Get() - won't search it (while things like constructor/property injection will).
         /// </summary>
-        private readonly ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new ConcurrentDictionary<TypeKey, IRegistration>();
+        private readonly ConcurrentDictionary<TypeKey, IRegistration> getAllRegistrations = new();
 
         /// <summary>
         /// Maps a [type, key] pair, where 'type' is an unbound generic (something like IValidator{}) to something which, given a type, can create an IRegistration for that type.
         /// So if they've bound an IValidator{} to a an IntValidator, StringValidator, etc, and request an IValidator{string}, one of the UnboundGenerics here can generatr a StringValidator.
         /// </summary>
         /// <remarks>Dictionary{TKey, TValue} and List{T} are thread-safe for concurrent reads, which is all that happens after building</remarks>
-        private readonly Dictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new Dictionary<TypeKey, List<UnboundGeneric>>();
+        private readonly Dictionary<TypeKey, List<UnboundGeneric>> unboundGenerics = new();
 
         /// <summary>
         /// Maps a type onto a BuilderUpper for that type, which can create an Expresson/Delegate to build up that type.
         /// </summary>
-        private readonly ConcurrentDictionary<RuntimeTypeHandle, BuilderUpper> builderUppers = new ConcurrentDictionary<RuntimeTypeHandle, BuilderUpper>();
+        private readonly ConcurrentDictionary<RuntimeTypeHandle, BuilderUpper> builderUppers = new();
 
         /// <summary>
         /// Builder used to build abstract factories
@@ -66,9 +62,9 @@ namespace StyletIoC.Internal
         /// </summary>
         public void Compile(bool throwOnError = true)
         {
-            foreach (var value in this.registrations.Values)
+            foreach (IRegistrationCollection value in this.registrations.Values)
             {
-                foreach (var registration in value.GetAll())
+                foreach (IRegistration registration in value.GetAll())
                 {
                     try
                     {
@@ -90,7 +86,7 @@ namespace StyletIoC.Internal
         public object Get(Type type, string key = null)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             return this.Get(type.TypeHandle, key, type);
         }
 
@@ -104,7 +100,7 @@ namespace StyletIoC.Internal
 
         private object Get(RuntimeTypeHandle typeHandle, string key = null, Type typeIfAvailable = null)
         {
-            var generator = this.GetRegistrations(new TypeKey(typeHandle, key), false, typeIfAvailable).GetSingle().GetGenerator();
+            Func<IRegistrationContext, object> generator = this.GetRegistrations(new TypeKey(typeHandle, key), false, typeIfAvailable).GetSingle().GetGenerator();
             return generator(this);
         }
 
@@ -114,7 +110,7 @@ namespace StyletIoC.Internal
         public IEnumerable<object> GetAll(Type type, string key = null)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             return this.GetAll(type.TypeHandle, key, type);
         }
 
@@ -131,9 +127,9 @@ namespace StyletIoC.Internal
             var typeKey = new TypeKey(typeHandle, key);
             IRegistration registration;
             // This can currently never fail, since we pass in null
-            var result = this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration, elementTypeIfAvailable);
+            bool result = this.TryRetrieveGetAllRegistrationFromElementType(typeKey, null, out registration, elementTypeIfAvailable);
             Debug.Assert(result);
-            var generator = registration.GetGenerator();
+            Func<IRegistrationContext, object> generator = registration.GetGenerator();
             return (IEnumerable<object>)generator(this);
         }
 
@@ -143,7 +139,7 @@ namespace StyletIoC.Internal
         public object GetTypeOrAll(Type type, string key = null)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             return this.GetTypeOrAll(type.TypeHandle, key, type);
         }
 
@@ -157,7 +153,7 @@ namespace StyletIoC.Internal
 
         private object GetTypeOrAll(RuntimeTypeHandle typeHandle, string key = null, Type typeIfAvailable = null)
         {
-            var generator = this.GetRegistrations(new TypeKey(typeHandle, key), true, typeIfAvailable).GetSingle().GetGenerator();
+            Func<IRegistrationContext, object> generator = this.GetRegistrations(new TypeKey(typeHandle, key), true, typeIfAvailable).GetSingle().GetGenerator();
             return generator(this);
         }
 
@@ -166,7 +162,7 @@ namespace StyletIoC.Internal
         /// </summary>
         public void BuildUp(object item)
         {
-            var builderUpper = this.GetBuilderUpper(item.GetType());
+            BuilderUpper builderUpper = this.GetBuilderUpper(item.GetType());
             builderUpper.GetImplementor()(this, item);
         }
 
@@ -218,8 +214,8 @@ namespace StyletIoC.Internal
                 return true;
 
             // Failed :( Have to fetch the Type
-            var elementType = elementTypeIfAvailable ?? Type.GetTypeFromHandle(elementTypeKey.TypeHandle);
-            var listType = typeof(List<>).MakeGenericType(elementType);
+            Type elementType = elementTypeIfAvailable ?? Type.GetTypeFromHandle(elementTypeKey.TypeHandle);
+            Type listType = typeof(List<>).MakeGenericType(elementType);
             if (collectionTypeOrNull != null && !collectionTypeOrNull.IsAssignableFrom(listType))
                 return false;
 
@@ -237,7 +233,7 @@ namespace StyletIoC.Internal
         private bool TryRetrieveGetAllRegistration(Type type, string key, out IRegistration registration)
         {
             registration = null;
-            var elementType = this.GetElementTypeFromCollectionType(type);
+            Type elementType = this.GetElementTypeFromCollectionType(type);
             if (elementType == null)
                 return false;
 
@@ -251,7 +247,7 @@ namespace StyletIoC.Internal
             if (type.IsAbstract || !type.IsClass)
                 return false;
 
-            var injectAttribute = type.GetCustomAttribute<InjectAttribute>(true);
+            InjectAttribute injectAttribute = type.GetCustomAttribute<InjectAttribute>(true);
             if (injectAttribute != null && injectAttribute.Key != key)
                 return false;
 
@@ -276,13 +272,13 @@ namespace StyletIoC.Internal
             if (!type.IsGenericType)
                 return false;
 
-            var genericType = type.GetGenericTypeDefinition();
-            var genericArguments = type.GetGenericArguments();
+            Type genericType = type.GetGenericTypeDefinition();
+            Type[] genericArguments = type.GetGenericArguments();
 
             if (genericType == typeof(Func<>))
             {
                 var typeKey = new TypeKey(type.TypeHandle, key);
-                foreach (var registration in this.GetRegistrations(new TypeKey(genericArguments[0].TypeHandle, key), true, genericArguments[0]).GetAll())
+                foreach (IRegistration registration in this.GetRegistrations(new TypeKey(genericArguments[0].TypeHandle, key), true, genericArguments[0]).GetAll())
                 {
                     registrations = this.AddRegistration(typeKey, new FuncRegistration(registration));
                 }
@@ -312,7 +308,7 @@ namespace StyletIoC.Internal
             if (!this.unboundGenerics.TryGetValue(new TypeKey(unboundGenericType.TypeHandle, key), out unboundGenerics))
                 return false;
 
-            foreach (var unboundGeneric in unboundGenerics)
+            foreach (UnboundGeneric unboundGeneric in unboundGenerics)
             {
                 // Consider this scenario:
                 // interface IC<T, U> { } class C<T, U> : IC<U, T> { }
@@ -328,7 +324,7 @@ namespace StyletIoC.Internal
                 }
                 else
                 {
-                    var implOfUnboundGenericType = unboundGeneric.Type.GetBaseTypesAndInterfaces().Single(x => x.Name == unboundGenericType.Name);
+                    Type implOfUnboundGenericType = unboundGeneric.Type.GetBaseTypesAndInterfaces().Single(x => x.Name == unboundGenericType.Name);
                     var mapping = implOfUnboundGenericType.GenericTypeArguments.Zip(type.GenericTypeArguments, (n, t) => new { Type = t, Name = n });
 
                     newType = unboundGeneric.Type.MakeGenericType(unboundGeneric.Type.GetTypeInfo().GenericTypeParameters.Select(x => mapping.Single(t => t.Name.Name == x.Name).Type).ToArray());
@@ -338,7 +334,7 @@ namespace StyletIoC.Internal
                 Debug.Assert(type.IsAssignableFrom(newType));
 
                 // Right! We've made a new generic type we can use
-                var registration = unboundGeneric.CreateRegistrationForTypeAndKey(newType, key);
+                IRegistration registration = unboundGeneric.CreateRegistrationForTypeAndKey(newType, key);
 
                 // AddRegistration returns the IRegistrationCollection which was added/updated, so the one returned from the final
                 // call to AddRegistration is the final IRegistrationCollection for this key
@@ -373,7 +369,7 @@ namespace StyletIoC.Internal
             {
                 // At this point we need to fetch the type from its handle
                 // This is the rare path - once we've hit it once, the result is cached in registrations
-                var type = typeIfAvailable ?? Type.GetTypeFromHandle(typeKey.TypeHandle);
+                Type type = typeIfAvailable ?? Type.GetTypeFromHandle(typeKey.TypeHandle);
                 if (this.TryCreateFuncFactory(type, typeKey.Key, out registrations) ||
                     this.TryCreateGenericTypesForUnboundGeneric(type, typeKey.Key, out registrations) ||
                     this.TryCreateSelfBinding(type, typeKey.Key, out registrations))
@@ -439,16 +435,14 @@ namespace StyletIoC.Internal
 
         public BuilderUpper GetBuilderUpper(Type type)
         {
-            var typeHandle = type.TypeHandle;
+            RuntimeTypeHandle typeHandle = type.TypeHandle;
             return this.builderUppers.GetOrAdd(typeHandle, x => new BuilderUpper(typeHandle, this));
         }
 
         public void Dispose()
         {
             this.disposed = true;
-            var handler = this.Disposing;
-            if (handler != null)
-                handler(this, EventArgs.Empty);
+            this.Disposing?.Invoke(this, EventArgs.Empty);
         }
 
         private void CheckDisposed()

@@ -16,8 +16,8 @@ namespace Stylet
         /// </summary>
         public string Label
         {
-            get { return this._label; }
-            set { this.SetAndNotify(ref this._label, value); }
+            get => this._label;
+            set => this.SetAndNotify(ref this._label, value);
         }
 
         private T _value;
@@ -27,8 +27,8 @@ namespace Stylet
         /// </summary>
         public T Value
         {
-            get { return this._value; }
-            set { this.SetAndNotify(ref this._value, value); }
+            get => this._value;
+            set => this.SetAndNotify(ref this._value, value);
         }
 
         /// <summary>

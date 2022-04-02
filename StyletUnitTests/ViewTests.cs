@@ -64,7 +64,7 @@ namespace StyletUnitTests
         {
             var obj = new FrameworkElement();
             obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
-            var model = new object();
+            object model = new();
             View.SetModel(obj, null);
 
             object oldValue = null;

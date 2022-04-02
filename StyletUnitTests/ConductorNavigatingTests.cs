@@ -292,7 +292,7 @@ namespace StyletUnitTests
         {
             var screen1 = new Mock<Screen>() { CallBase = true };
             var screen2 = new Screen();
-            screen1.Protected().Setup("OnActivate").Callback(() => conductor.ActivateItem(screen2));
+            screen1.Protected().Setup("OnActivate").Callback(() => this.conductor.ActivateItem(screen2));
             ((IScreenState)this.conductor).Activate();
 
             this.conductor.ActivateItem(screen1.Object);

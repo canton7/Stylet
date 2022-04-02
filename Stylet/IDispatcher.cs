@@ -66,10 +66,7 @@ namespace Stylet
         }
 
         /// <inheritdoc/>
-        public bool IsCurrent
-        {
-            get { return this.dispatcher.CheckAccess(); }
-        }
+        public bool IsCurrent => this.dispatcher.CheckAccess();
     }
 
     /// <summary>
@@ -97,9 +94,6 @@ namespace Stylet
         }
 
         /// <inheritdoc/>
-        public bool IsCurrent
-        {
-            get { return true; }
-        }
+        public bool IsCurrent => true;
     }
 }

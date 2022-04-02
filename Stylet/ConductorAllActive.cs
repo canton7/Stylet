@@ -18,17 +18,14 @@ namespace Stylet
             /// </summary>
             public class AllActive : ConductorBase<T>
             {
-                private readonly BindableCollection<T> items = new BindableCollection<T>();
+                private readonly BindableCollection<T> items = new();
 
                 private List<T> itemsBeforeReset;
 
                 /// <summary>
                 /// Gets all items associated with this conductor
                 /// </summary>
-                public IObservableCollection<T> Items
-                {
-                    get { return this.items; }
-                }
+                public IObservableCollection<T> Items => this.items;
 
                 /// <summary>
                 /// Initialises a new instance of the <see cref="Conductor{T}.Collection.AllActive"/> class
@@ -87,7 +84,7 @@ namespace Stylet
                 {
                     // Copy the list, in case someone tries to modify it as a result of being activated
                     var itemsToActivate = this.items.OfType<IScreenState>().ToList();
-                    foreach (var item in itemsToActivate)
+                    foreach (IScreenState item in itemsToActivate)
                     {
                         item.Activate();
                     }
@@ -100,7 +97,7 @@ namespace Stylet
                 {
                     // Copy the list, in case someone tries to modify it as a result of being activated
                     var itemsToDeactivate = this.items.OfType<IScreenState>().ToList();
-                    foreach (var item in itemsToDeactivate)
+                    foreach (IScreenState item in itemsToDeactivate)
                     {
                         item.Deactivate();
                     }
@@ -114,7 +111,7 @@ namespace Stylet
                     // Copy the list, in case someone tries to modify it as a result of being closed
                     // We've already been deactivated by this point    
                     var itemsToClose = this.items.ToList();
-                    foreach (var item in itemsToClose)
+                    foreach (T item in itemsToClose)
                     {
                         this.CloseAndCleanUp(item, this.DisposeChildren);
                     }

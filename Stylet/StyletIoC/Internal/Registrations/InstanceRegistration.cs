@@ -12,7 +12,7 @@ namespace StyletIoC.Internal.Registrations
 
         public InstanceRegistration(IRegistrationContext parentContext, object instance, bool disposeWithContainer)
         {
-            var type = instance.GetType();
+            Type type = instance.GetType();
             this.TypeHandle = type.TypeHandle;
             this.instance = instance;
             this.instanceExpression = Expression.Constant(instance, type);
@@ -21,8 +21,7 @@ namespace StyletIoC.Internal.Registrations
             {
                 parentContext.Disposing += (o, e) =>
                 {
-                    var disposable = this.instance as IDisposable;
-                    if (disposable != null)
+                    if (this.instance is IDisposable disposable)
                         disposable.Dispose();
                 };
             }

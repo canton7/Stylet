@@ -15,8 +15,8 @@ namespace Stylet
         /// <summary>
         /// Setup the MessageBoxViewModel with the information it needs
         /// </summary>
-        /// <param name="messageBoxText">A <see cref="System.String"/> that specifies the text to display.</param>
-        /// <param name="caption">A <see cref="System.String"/> that specifies the title bar caption to display.</param>
+        /// <param name="messageBoxText">A <see cref="string"/> that specifies the text to display.</param>
+        /// <param name="caption">A <see cref="string"/> that specifies the title bar caption to display.</param>
         /// <param name="buttons">A <see cref="System.Windows.MessageBoxButton"/> value that specifies which button or buttons to display.</param>
         /// <param name="icon">A <see cref="System.Windows.MessageBoxImage"/> value that specifies the icon to display.</param>
         /// <param name="defaultResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the default result of the message box.</param>
@@ -120,8 +120,8 @@ namespace Stylet
         /// <summary>
         /// Setup the MessageBoxViewModel with the information it needs
         /// </summary>
-        /// <param name="messageBoxText">A <see cref="System.String"/> that specifies the text to display.</param>
-        /// <param name="caption">A <see cref="System.String"/> that specifies the title bar caption to display.</param>
+        /// <param name="messageBoxText">A <see cref="string"/> that specifies the text to display.</param>
+        /// <param name="caption">A <see cref="string"/> that specifies the title bar caption to display.</param>
         /// <param name="buttons">A <see cref="System.Windows.MessageBoxButton"/> value that specifies which button or buttons to display.</param>
         /// <param name="icon">A <see cref="System.Windows.MessageBoxImage"/> value that specifies the icon to display.</param>
         /// <param name="defaultResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the default result of the message box.</param>
@@ -146,7 +146,7 @@ namespace Stylet
 
             var buttonList = new BindableCollection<LabelledValue<MessageBoxResult>>();
             this.ButtonList = buttonList;
-            foreach (var val in ButtonToResults[buttons])
+            foreach (MessageBoxResult val in ButtonToResults[buttons])
             {
                 string label;
                 if (buttonLabels == null || !buttonLabels.TryGetValue(val, out label))
@@ -202,10 +202,7 @@ namespace Stylet
         /// <summary>
         /// Gets a value indicating whether the Text contains many lines
         /// </summary>
-        public virtual bool TextIsMultiline
-        {
-            get { return this.Text.Contains("\n"); }
-        }
+        public virtual bool TextIsMultiline => this.Text.Contains("\n");
 
         /// <summary>
         /// Gets or sets the icon which the user specified
@@ -215,10 +212,7 @@ namespace Stylet
         /// <summary>
         /// Gets or the icon which is shown next to the text in the View
         /// </summary>
-        public virtual Icon ImageIcon
-        {
-            get { return IconMapping[this.Icon]; }
-        }
+        public virtual Icon ImageIcon => IconMapping[this.Icon];
 
         /// <summary>
         /// Gets or sets which way the document should flow

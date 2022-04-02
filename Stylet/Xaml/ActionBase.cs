@@ -48,15 +48,12 @@ namespace Stylet.Xaml
         /// </summary>
         public object Target
         {
-            get { return this.GetValue(targetProperty); }
-            private set { this.SetValue(targetProperty, value); }
+            get => this.GetValue(targetProperty);
+            private set => this.SetValue(targetProperty, value);
         }
 
         private static readonly DependencyProperty targetProperty =
-            DependencyProperty.Register("target", typeof(object), typeof(ActionBase), new PropertyMetadata(null, (d, e) =>
-            {
-                ((ActionBase)d).UpdateActionTarget(e.OldValue, e.NewValue);
-            }));
+            DependencyProperty.Register("target", typeof(object), typeof(ActionBase), new PropertyMetadata(null, (d, e) => ((ActionBase)d).UpdateActionTarget(e.OldValue, e.NewValue)));
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ActionBase"/> class to use <see cref="View.ActionTargetProperty"/> to get the target
@@ -112,10 +109,7 @@ namespace Stylet.Xaml
         public ActionBase(object target, string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
             : this(methodName, targetNullBehaviour, actionNonExistentBehaviour, logger)
         {
-            if (target == null)
-                throw new ArgumentNullException(nameof(target));
-
-            this.Target = target;
+            this.Target = target ?? throw new ArgumentNullException(nameof(target));
         }
 
         private ActionBase(string methodName, ActionUnavailableBehaviour targetNullBehaviour, ActionUnavailableBehaviour actionNonExistentBehaviour, ILogger logger)
@@ -229,12 +223,12 @@ namespace Stylet.Xaml
         /// <param name="parameters">Parameters to pass to the target method</param>
         private protected void InvokeTargetMethod(object[] parameters)
         {
-            this.logger.Info("Invoking method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : String.Join(", ", parameters));
+            this.logger.Info("Invoking method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : string.Join(", ", parameters));
 
             try
             {
-                var target = this.TargetMethodInfo.IsStatic ? null : this.Target;
-                var result = this.TargetMethodInfo.Invoke(target, parameters);
+                object target = this.TargetMethodInfo.IsStatic ? null : this.Target;
+                object result = this.TargetMethodInfo.Invoke(target, parameters);
                 // Be nice and make sure that any exceptions get rethrown
                 if (result is Task task)
                 {
@@ -245,7 +239,7 @@ namespace Stylet.Xaml
             {
                 // Be nice and unwrap this for them
                 // They want a stack track for their VM method, not us
-                this.logger.Error(e.InnerException, string.Format("Failed to invoke method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : String.Join(", ", parameters)));
+                this.logger.Error(e.InnerException, string.Format("Failed to invoke method {0} on {1} with parameters ({2})", this.MethodName, this.TargetName(), parameters == null ? "none" : string.Join(", ", parameters)));
                 // http://stackoverflow.com/a/17091351/1086121
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
             }
