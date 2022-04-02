@@ -4,34 +4,33 @@ using StyletIoC.Creation;
 using StyletIoC.Internal.Creators;
 using StyletIoC.Internal.Registrations;
 
-namespace StyletIoC.Internal.Builders
+namespace StyletIoC.Internal.Builders;
+
+internal class BuilderInstanceBinding : BuilderBindingBase, IWithKeyOrAsWeakBindingOrDisposeWithContainer
 {
-    internal class BuilderInstanceBinding : BuilderBindingBase, IWithKeyOrAsWeakBindingOrDisposeWithContainer
+    private readonly object instance;
+    private bool disposeWithContainer = true;
+
+    public BuilderInstanceBinding(List<BuilderTypeKey> serviceTypes, object instance)
+        : base(serviceTypes)
     {
-        private readonly object instance;
-        private bool disposeWithContainer = true;
+        this.EnsureTypeAgainstServiceTypes(instance.GetType(), assertImplementation: false);
+        this.instance = instance;
+    }
 
-        public BuilderInstanceBinding(List<BuilderTypeKey> serviceTypes, object instance)
-            : base(serviceTypes)
+    public override void Build(Container container)
+    {
+        var registration = new InstanceRegistration(container, this.instance, this.disposeWithContainer);
+
+        foreach (BuilderTypeKey serviceType in this.ServiceTypes)
         {
-            this.EnsureTypeAgainstServiceTypes(instance.GetType(), assertImplementation: false);
-            this.instance = instance;
+            container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key), registration);
         }
+    }
 
-        public override void Build(Container container)
-        {
-            var registration = new InstanceRegistration(container, this.instance, this.disposeWithContainer);
-
-            foreach (BuilderTypeKey serviceType in this.ServiceTypes)
-            {
-                container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key), registration);
-            }
-        }
-
-        public IWithKeyOrAsWeakBinding DisposeWithContainer(bool disposeWithContainer)
-        {
-            this.disposeWithContainer = disposeWithContainer;
-            return this;
-        }
+    public IWithKeyOrAsWeakBinding DisposeWithContainer(bool disposeWithContainer)
+    {
+        this.disposeWithContainer = disposeWithContainer;
+        return this;
     }
 }

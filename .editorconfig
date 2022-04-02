@@ -102,6 +102,8 @@ csharp_prefer_static_local_function = false:silent
 csharp_prefer_simple_using_statement = false:silent
 csharp_style_prefer_switch_expression = true:suggestion
 
+csharp_style_namespace_declarations = file_scoped:warning
+
 # .NET formatting settings
 
 # Organize usings

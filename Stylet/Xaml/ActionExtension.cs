@@ -5,205 +5,204 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Xaml;
 
-namespace Stylet.Xaml
+namespace Stylet.Xaml;
+
+/// <summary>
+/// What to do if the given target is null, or if the given action doesn't exist on the target
+/// </summary>
+public enum ActionUnavailableBehaviour
 {
     /// <summary>
-    /// What to do if the given target is null, or if the given action doesn't exist on the target
+    /// The default behaviour. What this is depends on whether this applies to an action or target, and an event or ICommand
     /// </summary>
-    public enum ActionUnavailableBehaviour
+    Default,
+
+    /// <summary>
+    /// Enable the control anyway. Clicking/etc the control won't do anything
+    /// </summary>
+    Enable,
+
+    /// <summary>
+    /// Disable the control. This is only valid for commands, not events
+    /// </summary>
+    Disable,
+
+    /// <summary>
+    /// An exception will be thrown when the control is clicked
+    /// </summary>
+    Throw
+}
+
+/// <summary>
+/// MarkupExtension used for binding Commands and Events to methods on the View.ActionTarget
+/// </summary>
+public class ActionExtension : MarkupExtension
+{
+    /// <summary>
+    /// Gets or sets the name of the method to call
+    /// </summary>
+    [ConstructorArgument("method")]
+    public string Method { get; set; }
+
+    /// <summary>
+    /// Gets or sets a target to override that set with View.ActionTarget
+    /// </summary>
+    public object Target { get; set; }
+
+    /// <summary>
+    /// Gets or sets the behaviour if the View.ActionTarget is nulil
+    /// </summary>
+    public ActionUnavailableBehaviour NullTarget { get; set; }
+
+    /// <summary>
+    /// Gets or sets the behaviour if the action itself isn't found on the View.ActionTarget
+    /// </summary>
+    public ActionUnavailableBehaviour ActionNotFound { get; set; }
+
+    /// <summary>
+    /// Initialises a new instance of the <see cref="ActionExtension"/> class
+    /// </summary>
+    public ActionExtension()
     {
-        /// <summary>
-        /// The default behaviour. What this is depends on whether this applies to an action or target, and an event or ICommand
-        /// </summary>
-        Default,
-
-        /// <summary>
-        /// Enable the control anyway. Clicking/etc the control won't do anything
-        /// </summary>
-        Enable,
-
-        /// <summary>
-        /// Disable the control. This is only valid for commands, not events
-        /// </summary>
-        Disable,
-
-        /// <summary>
-        /// An exception will be thrown when the control is clicked
-        /// </summary>
-        Throw
     }
 
     /// <summary>
-    /// MarkupExtension used for binding Commands and Events to methods on the View.ActionTarget
+    /// Initialises a new instance of the <see cref="ActionExtension"/> class with the given method name
     /// </summary>
-    public class ActionExtension : MarkupExtension
+    /// <param name="method">Name of the method to call</param>
+    public ActionExtension(string method)
     {
-        /// <summary>
-        /// Gets or sets the name of the method to call
-        /// </summary>
-        [ConstructorArgument("method")]
-        public string Method { get; set; }
+        this.Method = method;
+    }
 
-        /// <summary>
-        /// Gets or sets a target to override that set with View.ActionTarget
-        /// </summary>
-        public object Target { get; set; }
+    private ActionUnavailableBehaviour commandNullTargetBehaviour =>
+        this.NullTarget == ActionUnavailableBehaviour.Default ? (Execute.InDesignMode ? ActionUnavailableBehaviour.Enable : ActionUnavailableBehaviour.Disable) : this.NullTarget;
 
-        /// <summary>
-        /// Gets or sets the behaviour if the View.ActionTarget is nulil
-        /// </summary>
-        public ActionUnavailableBehaviour NullTarget { get; set; }
+    private ActionUnavailableBehaviour commandActionNotFoundBehaviour =>
+        this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
 
-        /// <summary>
-        /// Gets or sets the behaviour if the action itself isn't found on the View.ActionTarget
-        /// </summary>
-        public ActionUnavailableBehaviour ActionNotFound { get; set; }
+    private ActionUnavailableBehaviour eventNullTargetBehaviour =>
+        this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Enable : this.NullTarget;
 
-        /// <summary>
-        /// Initialises a new instance of the <see cref="ActionExtension"/> class
-        /// </summary>
-        public ActionExtension()
+    private ActionUnavailableBehaviour eventActionNotFoundBehaviour =>
+        this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
+
+    /// <summary>
+    /// When implemented in a derived class, returns an object that is provided as the value of the target property for this markup extension.
+    /// </summary>
+    /// <param name="serviceProvider">A service provider helper that can provide services for the markup extension.</param>
+    /// <returns>The object value to set on the property where the extension is applied.</returns>
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        if (this.Method == null)
+            throw new InvalidOperationException("Method has not been set");
+
+        var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
+
+        return valueService.TargetObject switch
         {
-        }
+            DependencyObject targetObject => this.HandleDependencyObject(serviceProvider, valueService, targetObject),
+            CommandBinding commandBinding => this.CreateEventAction(serviceProvider, null, ((EventInfo)valueService.TargetProperty).EventHandlerType, isCommandBinding: true),
+            // Seems this is the case when we're in a template. We'll get called again properly in a second.
+            // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
+            _ => this,
+        };
+    }
 
-        /// <summary>
-        /// Initialises a new instance of the <see cref="ActionExtension"/> class with the given method name
-        /// </summary>
-        /// <param name="method">Name of the method to call</param>
-        public ActionExtension(string method)
+    private object HandleDependencyObject(IServiceProvider serviceProvider, IProvideValueTarget valueService, DependencyObject targetObject)
+    {
+        switch (valueService.TargetProperty)
         {
-            this.Method = method;
-        }
-
-        private ActionUnavailableBehaviour commandNullTargetBehaviour =>
-            this.NullTarget == ActionUnavailableBehaviour.Default ? (Execute.InDesignMode ? ActionUnavailableBehaviour.Enable : ActionUnavailableBehaviour.Disable) : this.NullTarget;
-
-        private ActionUnavailableBehaviour commandActionNotFoundBehaviour =>
-            this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
-
-        private ActionUnavailableBehaviour eventNullTargetBehaviour =>
-            this.NullTarget == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Enable : this.NullTarget;
-
-        private ActionUnavailableBehaviour eventActionNotFoundBehaviour =>
-            this.ActionNotFound == ActionUnavailableBehaviour.Default ? ActionUnavailableBehaviour.Throw : this.ActionNotFound;
-
-        /// <summary>
-        /// When implemented in a derived class, returns an object that is provided as the value of the target property for this markup extension.
-        /// </summary>
-        /// <param name="serviceProvider">A service provider helper that can provide services for the markup extension.</param>
-        /// <returns>The object value to set on the property where the extension is applied.</returns>
-        public override object ProvideValue(IServiceProvider serviceProvider)
-        {
-            if (this.Method == null)
-                throw new InvalidOperationException("Method has not been set");
-
-            var valueService = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
-
-            return valueService.TargetObject switch
+            case DependencyProperty dependencyProperty when dependencyProperty.PropertyType == typeof(ICommand):
+                // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
+                return this.CreateCommandAction(serviceProvider, targetObject);
+            case EventInfo eventInfo:
+                return this.CreateEventAction(serviceProvider, targetObject, eventInfo.EventHandlerType);
+            case MethodInfo methodInfo: // For attached events
             {
-                DependencyObject targetObject => this.HandleDependencyObject(serviceProvider, valueService, targetObject),
-                CommandBinding commandBinding => this.CreateEventAction(serviceProvider, null, ((EventInfo)valueService.TargetProperty).EventHandlerType, isCommandBinding: true),
-                // Seems this is the case when we're in a template. We'll get called again properly in a second.
-                // http://social.msdn.microsoft.com/Forums/vstudio/en-US/a9ead3d5-a4e4-4f9c-b507-b7a7d530c6a9/gaining-access-to-target-object-instead-of-shareddp-in-custom-markupextensions-providevalue-method?forum=wpf
-                _ => this,
-            };
-        }
-
-        private object HandleDependencyObject(IServiceProvider serviceProvider, IProvideValueTarget valueService, DependencyObject targetObject)
-        {
-            switch (valueService.TargetProperty)
-            {
-                case DependencyProperty dependencyProperty when dependencyProperty.PropertyType == typeof(ICommand):
-                    // If they're in design mode and haven't set View.ActionTarget, default to looking sensible
-                    return this.CreateCommandAction(serviceProvider, targetObject);
-                case EventInfo eventInfo:
-                    return this.CreateEventAction(serviceProvider, targetObject, eventInfo.EventHandlerType);
-                case MethodInfo methodInfo: // For attached events
+                var parameters = methodInfo.GetParameters();
+                if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
                 {
-                    var parameters = methodInfo.GetParameters();
-                    if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
-                    {
-                        return this.CreateEventAction(serviceProvider, targetObject, parameters[1].ParameterType);
-                    }
-                    throw new ArgumentException("Action used with an attached event (or something similar) which didn't follow the normal pattern");
+                    return this.CreateEventAction(serviceProvider, targetObject, parameters[1].ParameterType);
                 }
-                default:
-                    throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
+                throw new ArgumentException("Action used with an attached event (or something similar) which didn't follow the normal pattern");
             }
+            default:
+                throw new ArgumentException("Can only use ActionExtension with a Command property or an event handler");
         }
+    }
 
-        private ICommand CreateCommandAction(IServiceProvider serviceProvider, DependencyObject targetObject)
+    private ICommand CreateCommandAction(IServiceProvider serviceProvider, DependencyObject targetObject)
+    {
+        if (this.Target == null)
         {
-            if (this.Target == null)
-            {
-                var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
-                var rootObject = rootObjectProvider?.RootObject as DependencyObject;
-                return new CommandAction(targetObject, rootObject, this.Method, this.commandNullTargetBehaviour, this.commandActionNotFoundBehaviour);
-            }
-            else
-            {
-                return new CommandAction(this.Target, this.Method, this.commandNullTargetBehaviour, this.commandActionNotFoundBehaviour);
-            }
+            var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
+            var rootObject = rootObjectProvider?.RootObject as DependencyObject;
+            return new CommandAction(targetObject, rootObject, this.Method, this.commandNullTargetBehaviour, this.commandActionNotFoundBehaviour);
         }
-
-        private Delegate CreateEventAction(IServiceProvider serviceProvider, DependencyObject targetObject, Type eventType, bool isCommandBinding = false)
+        else
         {
-            EventAction ec;
-            if (this.Target == null)
-            {
-                var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
+            return new CommandAction(this.Target, this.Method, this.commandNullTargetBehaviour, this.commandActionNotFoundBehaviour);
+        }
+    }
+
+    private Delegate CreateEventAction(IServiceProvider serviceProvider, DependencyObject targetObject, Type eventType, bool isCommandBinding = false)
+    {
+        EventAction ec;
+        if (this.Target == null)
+        {
+            var rootObjectProvider = (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider));
 #pragma warning disable IDE0019 // Use pattern matching
-                var rootObject = rootObjectProvider?.RootObject as DependencyObject;
+            var rootObject = rootObjectProvider?.RootObject as DependencyObject;
 #pragma warning restore IDE0019 // Use pattern matching
-                if (isCommandBinding)
-                {
-                    if (rootObject == null)
-                        throw new InvalidOperationException("Action may only be used with CommandBinding from a XAML view (unable to retrieve IRootObjectProvider.RootObject)");
-                    ec = new EventAction(rootObject, null, eventType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
-                }
-                else
-                {
-                    ec = new EventAction(targetObject, rootObject, eventType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
-                }
+            if (isCommandBinding)
+            {
+                if (rootObject == null)
+                    throw new InvalidOperationException("Action may only be used with CommandBinding from a XAML view (unable to retrieve IRootObjectProvider.RootObject)");
+                ec = new EventAction(rootObject, null, eventType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
             }
             else
             {
-                ec = new EventAction(this.Target, eventType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
+                ec = new EventAction(targetObject, rootObject, eventType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
             }
-
-            return ec.GetDelegate();
         }
-    }
+        else
+        {
+            ec = new EventAction(this.Target, eventType, this.Method, this.eventNullTargetBehaviour, this.eventActionNotFoundBehaviour);
+        }
 
-    /// <summary>
-    /// The View.ActionTarget was not set. This probably means the item is in a ContextMenu/Popup
-    /// </summary>
-    public class ActionNotSetException : Exception
-    {
-        internal ActionNotSetException(string message) : base(message) { }
+        return ec.GetDelegate();
     }
+}
 
-    /// <summary>
-    /// The Action Target was null, and shouldn't have been (NullTarget = Throw)
-    /// </summary>
-    public class ActionTargetNullException : Exception
-    {
-        internal ActionTargetNullException(string message) : base(message) { }
-    }
+/// <summary>
+/// The View.ActionTarget was not set. This probably means the item is in a ContextMenu/Popup
+/// </summary>
+public class ActionNotSetException : Exception
+{
+    internal ActionNotSetException(string message) : base(message) { }
+}
 
-    /// <summary>
-    /// The method specified could not be found on the Action Target
-    /// </summary>
-    public class ActionNotFoundException : Exception
-    {
-        internal ActionNotFoundException(string message) : base(message) { }
-    }
+/// <summary>
+/// The Action Target was null, and shouldn't have been (NullTarget = Throw)
+/// </summary>
+public class ActionTargetNullException : Exception
+{
+    internal ActionTargetNullException(string message) : base(message) { }
+}
 
-    /// <summary>
-    /// The method specified does not have the correct signature
-    /// </summary>
-    public class ActionSignatureInvalidException : Exception
-    {
-        internal ActionSignatureInvalidException(string message) : base(message) { }
-    }
+/// <summary>
+/// The method specified could not be found on the Action Target
+/// </summary>
+public class ActionNotFoundException : Exception
+{
+    internal ActionNotFoundException(string message) : base(message) { }
+}
+
+/// <summary>
+/// The method specified does not have the correct signature
+/// </summary>
+public class ActionSignatureInvalidException : Exception
+{
+    internal ActionSignatureInvalidException(string message) : base(message) { }
 }

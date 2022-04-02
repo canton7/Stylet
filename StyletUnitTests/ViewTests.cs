@@ -10,154 +10,153 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace StyletUnitTests
+namespace StyletUnitTests;
+
+[TestFixture, Apartment(ApartmentState.STA)]
+public class ViewTests
 {
-    [TestFixture, Apartment(ApartmentState.STA)]
-    public class ViewTests
+    private class TestViewModel
     {
-        private class TestViewModel
+        public BindableCollection<object> SubViewModels { get; set; }
+
+        public object SubViewModel { get; set; }
+
+        public TestViewModel()
         {
-            public BindableCollection<object> SubViewModels { get; set; }
+            this.SubViewModels = new BindableCollection<object>() { new object() };
+            this.SubViewModel = new object();
+        }
+    }
 
-            public object SubViewModel { get; set; }
+    private Mock<IViewManager> viewManager;
 
-            public TestViewModel()
+    [SetUp]
+    public void SetUp()
+    {
+        this.viewManager = new Mock<IViewManager>();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        Execute.InDesignMode = false;
+    }
+
+    [Test]
+    public void ActionTargetStores()
+    {
+        var obj = new DependencyObject();
+        View.SetActionTarget(obj, 5);
+        Assert.AreEqual(5, View.GetActionTarget(obj));
+    }
+
+    [Test]
+    public void ModelStores()
+    {
+        var obj = new FrameworkElement();
+        obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
+        View.SetModel(obj, 5);
+        Assert.AreEqual(5, View.GetModel(obj));
+    }
+
+    [Test]
+    public void ChangingModelCallsOnModelChanged()
+    {
+        var obj = new FrameworkElement();
+        obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
+        object model = new();
+        View.SetModel(obj, null);
+
+        object oldValue = null;
+        object newValue = null;
+        this.viewManager.Setup(x => x.OnModelChanged(obj, It.IsAny<object>(), It.IsAny<object>()))
+            .Callback<DependencyObject, object, object>((d, eOldValue, eNewValue) =>
             {
-                this.SubViewModels = new BindableCollection<object>() { new object() };
-                this.SubViewModel = new object();
-            }
-        }
+                oldValue = eOldValue;
+                newValue = eNewValue;
+            }).Verifiable();
+        View.SetModel(obj, model);
 
-        private Mock<IViewManager> viewManager;
+        this.viewManager.Verify();
+        Assert.Null(oldValue);
+        Assert.AreEqual(model, newValue);
+    }
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.viewManager = new Mock<IViewManager>();
-        }
+    [Test]
+    public void SetsContentControlContentProperty()
+    {
+        var obj = new ContentControl();
+        var view = new UIElement();
 
-        [TearDown]
-        public void TearDown()
-        {
-            Execute.InDesignMode = false;
-        }
+        View.SetContentProperty(obj, view);
+        Assert.AreEqual(obj.Content, view);
+    }
 
-        [Test]
-        public void ActionTargetStores()
-        {
-            var obj = new DependencyObject();
-            View.SetActionTarget(obj, 5);
-            Assert.AreEqual(5, View.GetActionTarget(obj));
-        }
+    [Test]
+    public void SetContentControlThrowsIfNoContentProperty()
+    {
+        var obj = new DependencyObject();
+        var view = new UIElement();
 
-        [Test]
-        public void ModelStores()
-        {
-            var obj = new FrameworkElement();
-            obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
-            View.SetModel(obj, 5);
-            Assert.AreEqual(5, View.GetModel(obj));
-        }
+        Assert.Throws<InvalidOperationException>(() => View.SetContentProperty(obj, view));
+    }
 
-        [Test]
-        public void ChangingModelCallsOnModelChanged()
-        {
-            var obj = new FrameworkElement();
-            obj.Resources.Add(View.ViewManagerResourceKey, this.viewManager.Object);
-            object model = new();
-            View.SetModel(obj, null);
+    [Test]
+    public void SettingModelThrowsExceptionIfViewManagerNotSet()
+    {
+        var view = new FrameworkElement();
+        Assert.Throws<InvalidOperationException>(() => View.SetModel(view, new object()));
+    }
 
-            object oldValue = null;
-            object newValue = null;
-            this.viewManager.Setup(x => x.OnModelChanged(obj, It.IsAny<object>(), It.IsAny<object>()))
-                .Callback<DependencyObject, object, object>((d, eOldValue, eNewValue) =>
-                {
-                    oldValue = eOldValue;
-                    newValue = eNewValue;
-                }).Verifiable();
-            View.SetModel(obj, model);
+    [Test]
+    public void InDesignModeSettingViewModelWithBrokenBindingGivesAppropriateMessage()
+    {
+        Execute.InDesignMode = true;
 
-            this.viewManager.Verify();
-            Assert.Null(oldValue);
-            Assert.AreEqual(model, newValue);
-        }
+        var element = new ContentControl();
+        // Don't set View.Model to a binding - just a random object
+        View.SetModel(element, null);
 
-        [Test]
-        public void SetsContentControlContentProperty()
-        {
-            var obj = new ContentControl();
-            var view = new UIElement();
+        Assert.IsInstanceOf<TextBlock>(element.Content);
 
-            View.SetContentProperty(obj, view);
-            Assert.AreEqual(obj.Content, view);
-        }
+        var content = (TextBlock)element.Content;
+        Assert.AreEqual("View for [Broken Binding]", content.Text);
+    }
 
-        [Test]
-        public void SetContentControlThrowsIfNoContentProperty()
-        {
-            var obj = new DependencyObject();
-            var view = new UIElement();
+    [Test]
+    public void InDesignModeSettingViewModelWithCollectionBindingGivesAppropriateMessage()
+    {
+        Execute.InDesignMode = true;
 
-            Assert.Throws<InvalidOperationException>(() => View.SetContentProperty(obj, view));
-        }
+        var element = new ContentControl();
+        var vm = new TestViewModel();
 
-        [Test]
-        public void SettingModelThrowsExceptionIfViewManagerNotSet()
-        {
-            var view = new FrameworkElement();
-            Assert.Throws<InvalidOperationException>(() => View.SetModel(view, new object()));
-        }
+        var binding = new Binding();
+        binding.Source = vm;
+        element.SetBinding(View.ModelProperty, binding);
 
-        [Test]
-        public void InDesignModeSettingViewModelWithBrokenBindingGivesAppropriateMessage()
-        {
-            Execute.InDesignMode = true;
+        Assert.IsInstanceOf<TextBlock>(element.Content);
 
-            var element = new ContentControl();
-            // Don't set View.Model to a binding - just a random object
-            View.SetModel(element, null);
+        var content = (TextBlock)element.Content;
+        Assert.AreEqual("View for child ViewModel on TestViewModel", content.Text);
+    }
 
-            Assert.IsInstanceOf<TextBlock>(element.Content);
+    [Test]
+    public void InDesignModeSettingViewModelWithGoodBindingGivesAppropriateMessage()
+    {
+        Execute.InDesignMode = true;
 
-            var content = (TextBlock)element.Content;
-            Assert.AreEqual("View for [Broken Binding]", content.Text);
-        }
+        var element = new ContentControl();
+        var vm = new TestViewModel();
 
-        [Test]
-        public void InDesignModeSettingViewModelWithCollectionBindingGivesAppropriateMessage()
-        {
-            Execute.InDesignMode = true;
+        var binding = new Binding("SubViewModel");
+        binding.Source = vm;
+        element.SetBinding(View.ModelProperty, binding);
 
-            var element = new ContentControl();
-            var vm = new TestViewModel();
+        Assert.IsInstanceOf<TextBlock>(element.Content);
 
-            var binding = new Binding();
-            binding.Source = vm;
-            element.SetBinding(View.ModelProperty, binding);
-
-            Assert.IsInstanceOf<TextBlock>(element.Content);
-
-            var content = (TextBlock)element.Content;
-            Assert.AreEqual("View for child ViewModel on TestViewModel", content.Text);
-        }
-
-        [Test]
-        public void InDesignModeSettingViewModelWithGoodBindingGivesAppropriateMessage()
-        {
-            Execute.InDesignMode = true;
-
-            var element = new ContentControl();
-            var vm = new TestViewModel();
-
-            var binding = new Binding("SubViewModel");
-            binding.Source = vm;
-            element.SetBinding(View.ModelProperty, binding);
-
-            Assert.IsInstanceOf<TextBlock>(element.Content);
-
-            var content = (TextBlock)element.Content;
-            Assert.AreEqual("View for TestViewModel.SubViewModel", content.Text);
-        }
+        var content = (TextBlock)element.Content;
+        Assert.AreEqual("View for TestViewModel.SubViewModel", content.Text);
     }
 }
 

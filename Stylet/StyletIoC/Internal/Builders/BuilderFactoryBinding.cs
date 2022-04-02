@@ -3,33 +3,32 @@ using StyletIoC.Internal.Creators;
 using System;
 using System.Collections.Generic;
 
-namespace StyletIoC.Internal.Builders
+namespace StyletIoC.Internal.Builders;
+
+internal class BuilderFactoryBinding<TImplementation> : BuilderBindingBase
 {
-    internal class BuilderFactoryBinding<TImplementation> : BuilderBindingBase
+    private readonly Func<IRegistrationContext, TImplementation> factory;
+
+    public BuilderFactoryBinding(List<BuilderTypeKey> serviceTypes, Func<IRegistrationContext, TImplementation> factory)
+        : base(serviceTypes)
     {
-        private readonly Func<IRegistrationContext, TImplementation> factory;
-
-        public BuilderFactoryBinding(List<BuilderTypeKey> serviceTypes, Func<IRegistrationContext, TImplementation> factory)
-            : base(serviceTypes)
+        foreach (BuilderTypeKey serviceType in this.ServiceTypes)
         {
-            foreach (BuilderTypeKey serviceType in this.ServiceTypes)
-            {
-                if (serviceType.Type.IsGenericTypeDefinition)
-                    throw new StyletIoCRegistrationException(string.Format("A factory cannot be used to implement unbound generic type {0}", serviceType.Type.GetDescription()));
-                this.EnsureTypeAgainstServiceTypes(typeof(TImplementation), assertImplementation: false);
-            }
-            this.factory = factory;
+            if (serviceType.Type.IsGenericTypeDefinition)
+                throw new StyletIoCRegistrationException(string.Format("A factory cannot be used to implement unbound generic type {0}", serviceType.Type.GetDescription()));
+            this.EnsureTypeAgainstServiceTypes(typeof(TImplementation), assertImplementation: false);
         }
+        this.factory = factory;
+    }
 
-        public override void Build(Container container)
+    public override void Build(Container container)
+    {
+        var creator = new FactoryCreator<TImplementation>(this.factory, container);
+        IRegistration registration = this.CreateRegistration(container, creator);
+
+        foreach (BuilderTypeKey serviceType in this.ServiceTypes)
         {
-            var creator = new FactoryCreator<TImplementation>(this.factory, container);
-            IRegistration registration = this.CreateRegistration(container, creator);
-
-            foreach (BuilderTypeKey serviceType in this.ServiceTypes)
-            {
-                container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key), registration);
-            }
+            container.AddRegistration(new TypeKey(serviceType.Type.TypeHandle, serviceType.Key), registration);
         }
     }
 }

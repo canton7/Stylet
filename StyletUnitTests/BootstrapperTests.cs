@@ -4,126 +4,125 @@ using Stylet;
 using StyletIoC;
 using System;
 
-namespace StyletUnitTests
+namespace StyletUnitTests;
+
+[TestFixture]
+public class BootstrapperTests
 {
-    [TestFixture]
-    public class BootstrapperTests
+    private interface I1 { }
+    private class C1 : I1 { }
+
+    private class RootViewModel : IDisposable
     {
-        private interface I1 { }
-        private class C1 : I1 { }
+        public bool Disposed;
 
-        private class RootViewModel : IDisposable
+        public void Dispose()
         {
-            public bool Disposed;
+            this.Disposed = true;
+        }
+    }
 
-            public void Dispose()
-            {
-                this.Disposed = true;
-            }
+    private class RandomClass { }
+
+    private class MyBootstrapper<T> : Bootstrapper<T> where T : class
+    {
+        public new IContainer Container
+        {
+            get => base.Container;
+            set => base.Container = value;
         }
 
-        private class RandomClass { }
+        public new T RootViewModel => base.RootViewModel;
 
-        private class MyBootstrapper<T> : Bootstrapper<T> where T : class
+        public new void Configure()
         {
-            public new IContainer Container
-            {
-                get => base.Container;
-                set => base.Container = value;
-            }
-
-            public new T RootViewModel => base.RootViewModel;
-
-            public new void Configure()
-            {
-                base.ConfigureBootstrapper();
-            }
-
-            public RootViewModel MyRootViewModel = new();
-
-            public bool ConfigureIoCCalled;
-            protected override void ConfigureIoC(IStyletIoCBuilder builder)
-            {
-                this.ConfigureIoCCalled = true;
-                builder.Bind<I1>().To<C1>();
-                // Singleton, so we can test against it
-                builder.Bind<RootViewModel>().ToInstance(this.MyRootViewModel).DisposeWithContainer(false);
-                base.ConfigureIoC(builder);
-            }
+            base.ConfigureBootstrapper();
         }
 
-        private MyBootstrapper<RootViewModel> bootstrapper;
+        public RootViewModel MyRootViewModel = new();
 
-        [SetUp]
-        public void SetUp()
+        public bool ConfigureIoCCalled;
+        protected override void ConfigureIoC(IStyletIoCBuilder builder)
         {
-            this.bootstrapper = new MyBootstrapper<RootViewModel>();
+            this.ConfigureIoCCalled = true;
+            builder.Bind<I1>().To<C1>();
+            // Singleton, so we can test against it
+            builder.Bind<RootViewModel>().ToInstance(this.MyRootViewModel).DisposeWithContainer(false);
+            base.ConfigureIoC(builder);
         }
+    }
 
-        [Test]
-        public void ConfigureBindsRequiredTypes()
-        {
-            this.bootstrapper.Configure();
-            IContainer ioc = this.bootstrapper.Container;
+    private MyBootstrapper<RootViewModel> bootstrapper;
 
-            Assert.IsInstanceOf<WindowManager>(ioc.Get<IWindowManager>());
-            Assert.IsInstanceOf<IEventAggregator>(ioc.Get<IEventAggregator>());
-            Assert.IsInstanceOf<ViewManager>(ioc.Get<IViewManager>());
-            Assert.IsInstanceOf<ViewManager>(ioc.Get<ViewManager>());
-            Assert.IsInstanceOf<MessageBoxViewModel>(ioc.Get<IMessageBoxViewModel>());
+    [SetUp]
+    public void SetUp()
+    {
+        this.bootstrapper = new MyBootstrapper<RootViewModel>();
+    }
 
-            // Test autobinding
-            Assert.DoesNotThrow(() => ioc.Get<RootViewModel>());
-        }
+    [Test]
+    public void ConfigureBindsRequiredTypes()
+    {
+        this.bootstrapper.Configure();
+        IContainer ioc = this.bootstrapper.Container;
 
-        [Test]
-        public void ConfigureCallsConfigureIoCWithCorrectBuilder()
-        {
-            this.bootstrapper.Configure();
-            IContainer ioc = this.bootstrapper.Container;
+        Assert.IsInstanceOf<WindowManager>(ioc.Get<IWindowManager>());
+        Assert.IsInstanceOf<IEventAggregator>(ioc.Get<IEventAggregator>());
+        Assert.IsInstanceOf<ViewManager>(ioc.Get<IViewManager>());
+        Assert.IsInstanceOf<ViewManager>(ioc.Get<ViewManager>());
+        Assert.IsInstanceOf<MessageBoxViewModel>(ioc.Get<IMessageBoxViewModel>());
 
-            Assert.True(this.bootstrapper.ConfigureIoCCalled);
-            Assert.IsInstanceOf<C1>(ioc.Get<I1>());
-        }
+        // Test autobinding
+        Assert.DoesNotThrow(() => ioc.Get<RootViewModel>());
+    }
 
-        [Test]
-        public void GetInstanceMappedToContainer()
-        {
-            var container = new Mock<IContainer>();
-            this.bootstrapper.Container = container.Object;
+    [Test]
+    public void ConfigureCallsConfigureIoCWithCorrectBuilder()
+    {
+        this.bootstrapper.Configure();
+        IContainer ioc = this.bootstrapper.Container;
 
-            container.Setup(x => x.Get(typeof(string), null)).Returns("hello").Verifiable();
-            object result = this.bootstrapper.GetInstance(typeof(string));
-            Assert.AreEqual("hello", result);
-            container.Verify();
-        }
+        Assert.True(this.bootstrapper.ConfigureIoCCalled);
+        Assert.IsInstanceOf<C1>(ioc.Get<I1>());
+    }
 
-        [Test]
-        public void DisposeDisposesContainer()
-        {
-            var container = new Mock<IContainer>();
-            this.bootstrapper.Container = container.Object;
-            this.bootstrapper.Dispose();
-            container.Verify(x => x.Dispose());
-        }
+    [Test]
+    public void GetInstanceMappedToContainer()
+    {
+        var container = new Mock<IContainer>();
+        this.bootstrapper.Container = container.Object;
 
-        [Test]
-        public void DisposeDoesNotCreateRootViewModel()
-        {
-            this.bootstrapper.Configure();
-            this.bootstrapper.Dispose();
-            Assert.False(this.bootstrapper.MyRootViewModel.Disposed);
-        }
+        container.Setup(x => x.Get(typeof(string), null)).Returns("hello").Verifiable();
+        object result = this.bootstrapper.GetInstance(typeof(string));
+        Assert.AreEqual("hello", result);
+        container.Verify();
+    }
 
-        [Test]
-        public void DisposeDisposesRootViewModel()
-        {
-            this.bootstrapper.Configure();
+    [Test]
+    public void DisposeDisposesContainer()
+    {
+        var container = new Mock<IContainer>();
+        this.bootstrapper.Container = container.Object;
+        this.bootstrapper.Dispose();
+        container.Verify(x => x.Dispose());
+    }
 
-            // Force it to be created
-            RootViewModel dummy = this.bootstrapper.RootViewModel;
-            this.bootstrapper.Dispose();
-            Assert.True(this.bootstrapper.MyRootViewModel.Disposed);
-        }
+    [Test]
+    public void DisposeDoesNotCreateRootViewModel()
+    {
+        this.bootstrapper.Configure();
+        this.bootstrapper.Dispose();
+        Assert.False(this.bootstrapper.MyRootViewModel.Disposed);
+    }
+
+    [Test]
+    public void DisposeDisposesRootViewModel()
+    {
+        this.bootstrapper.Configure();
+
+        // Force it to be created
+        RootViewModel dummy = this.bootstrapper.RootViewModel;
+        this.bootstrapper.Dispose();
+        Assert.True(this.bootstrapper.MyRootViewModel.Disposed);
     }
 }
