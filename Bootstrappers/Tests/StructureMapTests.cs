@@ -6,65 +6,64 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bootstrappers.Tests
+namespace Bootstrappers.Tests;
+
+public class MyStructureMapBootstrapper : StructureMapBootstrapper<TestRootViewModel>, ITestBootstrapper
 {
-    public class MyStructureMapBootstrapper : StructureMapBootstrapper<TestRootViewModel>, ITestBootstrapper
+    public List<string> ConfigureLog { get; set; }
+
+    public int DisposeCount { get; private set; }
+
+    public MyStructureMapBootstrapper()
     {
-        public List<string> ConfigureLog { get; set; }
-
-        public int DisposeCount { get; private set; }
-
-        public MyStructureMapBootstrapper()
-        {
-            this.ConfigureLog = new List<string>();
-        }
-
-        protected override void Configure()
-        {
-            base.Configure();
-            this.ConfigureLog.Add("Configure");
-        }
-
-        protected override void DefaultConfigureIoC(ConfigurationExpression config)
-        {
-            base.DefaultConfigureIoC(config);
-            this.ConfigureLog.Add("DefaultConfigureIoC");
-        }
-
-        protected override void ConfigureIoC(ConfigurationExpression config)
-        {
-            base.ConfigureIoC(config);
-            this.ConfigureLog.Add("ConfigureIoC");
-        }
-
-        public new object GetInstance(Type type)
-        {
-            return base.GetInstance(type);
-        }
-
-        public new void ConfigureBootstrapper()
-        {
-            base.ConfigureBootstrapper();
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
-            this.DisposeCount++;
-        }
+        this.ConfigureLog = new List<string>();
     }
 
-    [TestFixture(Category = "StructureMap")]
-    public class StructureMapTests : BootstrapperTests<MyStructureMapBootstrapper>
+    protected override void Configure()
     {
-        public StructureMapTests()
-        {
-            this.Autobinds = true;
-        }
+        base.Configure();
+        this.ConfigureLog.Add("Configure");
+    }
 
-        public override MyStructureMapBootstrapper CreateBootstrapper()
-        {
-            return new MyStructureMapBootstrapper();
-        }
+    protected override void DefaultConfigureIoC(ConfigurationExpression config)
+    {
+        base.DefaultConfigureIoC(config);
+        this.ConfigureLog.Add("DefaultConfigureIoC");
+    }
+
+    protected override void ConfigureIoC(ConfigurationExpression config)
+    {
+        base.ConfigureIoC(config);
+        this.ConfigureLog.Add("ConfigureIoC");
+    }
+
+    public new object GetInstance(Type type)
+    {
+        return base.GetInstance(type);
+    }
+
+    public new void ConfigureBootstrapper()
+    {
+        base.ConfigureBootstrapper();
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        this.DisposeCount++;
+    }
+}
+
+[TestFixture(Category = "StructureMap")]
+public class StructureMapTests : BootstrapperTests<MyStructureMapBootstrapper>
+{
+    public StructureMapTests()
+    {
+        this.Autobinds = true;
+    }
+
+    public override MyStructureMapBootstrapper CreateBootstrapper()
+    {
+        return new MyStructureMapBootstrapper();
     }
 }

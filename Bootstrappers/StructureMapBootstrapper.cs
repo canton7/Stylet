@@ -6,73 +6,69 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 
-namespace Bootstrappers
+namespace Bootstrappers;
+
+public class StructureMapBootstrapper<TRootViewModel> : BootstrapperBase where TRootViewModel : class
 {
-    public class StructureMapBootstrapper<TRootViewModel> : BootstrapperBase where TRootViewModel : class
+    private IContainer container;
+
+    private TRootViewModel _rootViewModel;
+    protected virtual TRootViewModel RootViewModel => this._rootViewModel ??= (TRootViewModel)this.GetInstance(typeof(TRootViewModel));
+
+    protected override void ConfigureBootstrapper()
     {
-        private IContainer container;
-
-        private TRootViewModel _rootViewModel;
-        protected virtual TRootViewModel RootViewModel
+        this.container = new Container(config =>
         {
-            get { return this._rootViewModel ?? (this._rootViewModel = (TRootViewModel)this.GetInstance(typeof(TRootViewModel))); }
-        }
+            this.DefaultConfigureIoC(config);
+            this.ConfigureIoC(config);
+        });
+    }
 
-        protected override void ConfigureBootstrapper()
+    /// <summary>
+    /// Carries out default configuration of the IoC container. Override if you don't want to do this
+    /// </summary>
+    protected virtual void DefaultConfigureIoC(ConfigurationExpression config)
+    {
+        var viewManagerConfig = new ViewManagerConfig()
         {
-            this.container = new Container(config =>
-            {
-                this.DefaultConfigureIoC(config);
-                this.ConfigureIoC(config);
-            });
-        }
+            ViewFactory = this.GetInstance,
+            ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+        };
+        config.For<IViewManager>().Add(new ViewManager(viewManagerConfig));
 
-        /// <summary>
-        /// Carries out default configuration of the IoC container. Override if you don't want to do this
-        /// </summary>
-        protected virtual void DefaultConfigureIoC(ConfigurationExpression config)
+        // Trick it into not taking ownership of (and disposing) the instance
+        config.For<IWindowManagerConfig>().Add(c => this).LifecycleIs<UniquePerRequestLifecycle>();
+        config.For<IWindowManager>().Add<WindowManager>().LifecycleIs<SingletonLifecycle>();
+        config.For<IEventAggregator>().Add<EventAggregator>().LifecycleIs<SingletonLifecycle>();
+        config.For<IMessageBoxViewModel>().Add<MessageBoxViewModel>().LifecycleIs<UniquePerRequestLifecycle>();
+        config.Scan(x =>
         {
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewFactory = this.GetInstance,
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
-            };
-            config.For<IViewManager>().Add(new ViewManager(viewManagerConfig));
+            x.Assembly(this.GetType().Assembly);
+            x.WithDefaultConventions();
+        });
+    }
 
-            // Trick it into not taking ownership of (and disposing) the instance
-            config.For<IWindowManagerConfig>().Add(c => this).LifecycleIs<UniquePerRequestLifecycle>();
-            config.For<IWindowManager>().Add<WindowManager>().LifecycleIs<SingletonLifecycle>();
-            config.For<IEventAggregator>().Add<EventAggregator>().LifecycleIs<SingletonLifecycle>();
-            config.For<IMessageBoxViewModel>().Add<MessageBoxViewModel>().LifecycleIs<UniquePerRequestLifecycle>();
-            config.Scan(x =>
-            {
-                x.Assembly(this.GetType().Assembly);
-                x.WithDefaultConventions();
-            });
-        }
+    /// <summary>
+    /// Override to add your own types to the IoC container.
+    /// </summary>
+    protected virtual void ConfigureIoC(ConfigurationExpression config) { }
 
-        /// <summary>
-        /// Override to add your own types to the IoC container.
-        /// </summary>
-        protected virtual void ConfigureIoC(ConfigurationExpression config) { }
+    public override object GetInstance(Type type)
+    {
+        return this.container.GetInstance(type);
+    }
 
-        public override object GetInstance(Type type)
-        {
-            return this.container.GetInstance(type);
-        }
+    protected override void Launch()
+    {
+        base.DisplayRootView(this.RootViewModel);
+    }
 
-        protected override void Launch()
-        {
-            base.DisplayRootView(this.RootViewModel);
-        }
+    public override void Dispose()
+    {
+        ScreenExtensions.TryDispose(this._rootViewModel);
+        if (this.container != null)
+            this.container.Dispose();
 
-        public override void Dispose()
-        {
-            ScreenExtensions.TryDispose(this._rootViewModel);
-            if (this.container != null)
-                this.container.Dispose();
-
-            base.Dispose();
-        }
+        base.Dispose();
     }
 }
