@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace Stylet.Samples.Hello
+namespace Stylet.Samples.Hello;
+
+public class HelloBootstrapper : Bootstrapper<ShellViewModel>
 {
-    class HelloBootstrapper : Bootstrapper<ShellViewModel>
-    {
-    }
 }

@@ -1,25 +1,23 @@
 ﻿using System;
 
-namespace Stylet.Samples.DesignMode
+namespace Stylet.Samples.DesignMode;
+
+public class UsingViewModelLocatorViewModel : Screen
 {
-    public class UsingViewModelLocatorViewModel : Screen
+#pragma warning disable IDE0052 // Remove unread private members
+    private readonly IEventAggregator eventAggregator;
+#pragma warning restore IDE0052 // Remove unread private members
+
+    public string TextBoxText { get; set; }
+
+    public UsingViewModelLocatorViewModel(IEventAggregator eventAggregator)
     {
-       private readonly IEventAggregator eventAggregator;
+        this.eventAggregator = eventAggregator;
+    }
 
-        public string TextBoxText { get; set; }
+    public bool CanDoSomething => false;
 
-        public UsingViewModelLocatorViewModel(IEventAggregator eventAggregator)
-        {
-            this.eventAggregator = eventAggregator;
-        }
-
-        public bool CanDoSomething
-        {
-            get { return false; }
-        }
-
-        public void DoSomething()
-        {
-        }
+    public void DoSomething()
+    {
     }
 }

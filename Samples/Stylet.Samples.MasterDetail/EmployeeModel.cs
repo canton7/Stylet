@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace Stylet.Samples.MasterDetail
+namespace Stylet.Samples.MasterDetail;
+
+public class EmployeeModel : PropertyChangedBase
 {
-    public class EmployeeModel : PropertyChangedBase
+    private string _name;
+    public string Name
     {
-        private string _name;
-        public string Name
-        {
-            get { return this._name; }
-            set { this.SetAndNotify(ref this._name, value); }
-        }
+        get => this._name;
+        set => this.SetAndNotify(ref this._name, value);
     }
 }

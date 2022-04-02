@@ -58,7 +58,7 @@ public static class ScreenExtensions
         var weakChild = new WeakReference<IScreenState>(child);
         void Handler(object o, ActivationEventArgs e)
         {
-            if (weakChild.TryGetTarget(out var strongChild))
+            if (weakChild.TryGetTarget(out IScreenState strongChild))
                 strongChild.Activate();
             else
                 parent.Activated -= Handler;
@@ -78,7 +78,7 @@ public static class ScreenExtensions
         var weakChild = new WeakReference<IScreenState>(child);
         void Handler(object o, DeactivationEventArgs e)
         {
-            if (weakChild.TryGetTarget(out var strongChild))
+            if (weakChild.TryGetTarget(out IScreenState strongChild))
                 strongChild.Deactivate();
             else
                 parent.Deactivated -= Handler;
@@ -98,7 +98,7 @@ public static class ScreenExtensions
         var weakChild = new WeakReference<IScreenState>(child);
         void Handler(object o, CloseEventArgs e)
         {
-            if (weakChild.TryGetTarget(out var strongChild))
+            if (weakChild.TryGetTarget(out IScreenState strongChild))
                 TryClose(strongChild);
             else
                 parent.Closed -= Handler;

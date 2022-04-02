@@ -120,7 +120,7 @@ public class ActionExtension : MarkupExtension
                 return this.CreateEventAction(serviceProvider, targetObject, eventInfo.EventHandlerType);
             case MethodInfo methodInfo: // For attached events
             {
-                var parameters = methodInfo.GetParameters();
+                ParameterInfo[] parameters = methodInfo.GetParameters();
                 if (parameters.Length == 2 && typeof(Delegate).IsAssignableFrom(parameters[1].ParameterType))
                 {
                     return this.CreateEventAction(serviceProvider, targetObject, parameters[1].ParameterType);

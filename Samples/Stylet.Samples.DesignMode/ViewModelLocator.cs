@@ -1,17 +1,16 @@
 ﻿using System;
 
-namespace Stylet.Samples.DesignMode
+namespace Stylet.Samples.DesignMode;
+
+public class ViewModelLocator
 {
-    public class ViewModelLocator
+    public UsingViewModelLocatorViewModel UsingViewModelLocatorViewModel
     {
-        public UsingViewModelLocatorViewModel UsingViewModelLocatorViewModel
+        get
         {
-            get
-            {
-                var vm = new UsingViewModelLocatorViewModel(null);
-                vm.TextBoxText = "This is some dummy text.";
-                return vm;
-            }
+            var vm = new UsingViewModelLocatorViewModel(null);
+            vm.TextBoxText = "This is some dummy text.";
+            return vm;
         }
     }
 }
