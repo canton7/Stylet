@@ -7,7 +7,7 @@ namespace Stylet;
 /// Key-value pair useful for attaching labels to objects and displaying them in the view
 /// </summary>
 /// <typeparam name="T">Type of the value</typeparam>
-public class LabelledValue<T> : PropertyChangedBase, IEquatable<LabelledValue<T>>
+public partial class LabelledValue<T> : IEquatable<LabelledValue<T>>
 {
     private string _label;
 
@@ -56,9 +56,9 @@ public class LabelledValue<T> : PropertyChangedBase, IEquatable<LabelledValue<T>
     /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
     public bool Equals(LabelledValue<T> other)
     {
-        if (Object.ReferenceEquals(this, other))
+        if (ReferenceEquals(this, other))
             return true;
-        if (Object.ReferenceEquals(other, null))
+        if (ReferenceEquals(other, null))
             return false;
 
        return this.Label == other.Label && EqualityComparer<T>.Default.Equals(this.Value, other.Value);

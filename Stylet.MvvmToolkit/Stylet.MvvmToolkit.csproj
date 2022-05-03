@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0-windows</TargetFramework>
+	<LangVersion>10</LangVersion>
+	<UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Common\**\*.cs" Exclude="..\Common\**\*.*.cs" />
+    <Compile Include="..\Common\**\*.MvvmToolkit.cs" />
+    <Page Include="**\*.xaml" Generator="MSBuild:Compile" SubType="Designer" />
+    <Page Include="..\Common\**\*.xaml" Exclude="..\Common\**\*.*.xaml" Generator="MSBuild:Compile" SubType="Designer" />
+  </ItemGroup>
+
+</Project>

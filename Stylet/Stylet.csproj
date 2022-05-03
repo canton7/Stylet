@@ -36,20 +36,14 @@
   
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
+    <Compile Include="..\Common\**\*.cs" Exclude="..\Common\**\*.*.cs" />
+    <Compile Include="..\Common\**\*.Wpf.cs" />
+    <Page Include="**\*.xaml" Generator="MSBuild:Compile" SubType="Designer" />
+    <Page Include="..\Common\**\*.xaml" Exclude="..\Common\**\*.*.xaml" Generator="MSBuild:Compile" SubType="Designer" />
+	  
     <None Remove="**\*.cs" />
 
-    <None Include="Settings.StyleCop" />
-    <None Include="Stylet.ruleset" />
     <None Include="..\StyletIcon.png" Pack="true" PackagePath="\" />
     <None Include="..\NuGet\readme.txt" Pack="true" PackagePath="." />
-
-    <Page Include="MessageBoxView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Xaml\StyletResourceDictionary.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
   </ItemGroup>
 </Project>

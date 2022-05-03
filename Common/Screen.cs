@@ -1,5 +1,6 @@
 ﻿using Stylet.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using System.Windows;
@@ -9,20 +10,19 @@ namespace Stylet;
 /// <summary>
 /// Implementation of IScreen. Useful as a base class for your ViewModels
 /// </summary>
-public class Screen : ValidatingModelBase, IScreen
+public partial class Screen : IScreen
 {
-    private readonly ILogger logger;
+    private ILogger logger;
 
     /// <summary>
     /// Initialises a new instance of the <see cref="Screen"/> class, without setting up a validator
     /// </summary>
-    public Screen() : this(null) { }
+    public Screen()
+    {
+        this.Initialize();
+    }
 
-    /// <summary>
-    /// Initialises a new instance of the <see cref="Screen"/> class, which can validate properties using the given validator
-    /// </summary>
-    /// <param name="validator">Validator to use</param>
-    public Screen(IModelValidator validator) : base(validator)
+    private void Initialize()
     {
         Type type = this.GetType();
         this.DisplayName = type.FullName;

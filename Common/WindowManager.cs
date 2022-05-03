@@ -10,7 +10,7 @@ namespace Stylet;
 /// <summary>
 /// Manager capable of taking a ViewModel instance, instantiating its View and showing it as a dialog or window
 /// </summary>
-public interface IWindowManager
+public partial interface IWindowManager
 {
     /// <summary>
     /// Given a ViewModel, show its corresponding View as a window
@@ -39,28 +39,6 @@ public interface IWindowManager
     /// <param name="ownerViewModel">The ViewModel for the View which should own this dialog</param>
     /// <returns>DialogResult of the View</returns>
     bool? ShowDialog(object viewModel, IViewAware ownerViewModel);
-
-    /// <summary>
-    /// Display a MessageBox
-    /// </summary>
-    /// <param name="messageBoxText">A <see cref="string"/> that specifies the text to display.</param>
-    /// <param name="caption">A <see cref="string"/> that specifies the title bar caption to display.</param>
-    /// <param name="buttons">A <see cref="System.Windows.MessageBoxButton"/> value that specifies which button or buttons to display.</param>
-    /// <param name="icon">A <see cref="System.Windows.MessageBoxImage"/> value that specifies the icon to display.</param>
-    /// <param name="defaultResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the default result of the message box.</param>
-    /// <param name="cancelResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the cancel result of the message box</param>
-    /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
-    /// <param name="flowDirection">The <see cref="System.Windows.FlowDirection"/> to use, overrides the <see cref="MessageBoxViewModel.DefaultFlowDirection"/></param>
-    /// <param name="textAlignment">The <see cref="System.Windows.TextAlignment"/> to use, overrides the <see cref="MessageBoxViewModel.DefaultTextAlignment"/></param>
-    /// <returns>The result chosen by the user</returns>
-    MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "",
-        MessageBoxButton buttons = MessageBoxButton.OK,
-        MessageBoxImage icon = MessageBoxImage.None,
-        MessageBoxResult defaultResult = MessageBoxResult.None,
-        MessageBoxResult cancelResult = MessageBoxResult.None,
-        IDictionary<MessageBoxResult, string> buttonLabels = null,
-        FlowDirection? flowDirection = null,
-        TextAlignment? textAlignment = null);
 }
 
 /// <summary>
@@ -78,23 +56,20 @@ public interface IWindowManagerConfig
 /// <summary>
 /// Default implementation of IWindowManager, is capable of showing a ViewModel's View as a dialog or a window
 /// </summary>
-public class WindowManager : IWindowManager
+public partial class WindowManager : IWindowManager
 {
     private static readonly ILogger logger = LogManager.GetLogger(typeof(WindowManager));
     private readonly IViewManager viewManager;
-    private readonly Func<IMessageBoxViewModel> messageBoxViewModelFactory;
     private readonly Func<Window> getActiveWindow;
 
     /// <summary>
     /// Initialises a new instance of the <see cref="WindowManager"/> class, using the given <see cref="IViewManager"/>
     /// </summary>
     /// <param name="viewManager">IViewManager to use when creating views</param>
-    /// <param name="messageBoxViewModelFactory">Delegate which returns a new IMessageBoxViewModel instance when invoked</param>
     /// <param name="config">Configuration object</param>
-    public WindowManager(IViewManager viewManager, Func<IMessageBoxViewModel> messageBoxViewModelFactory, IWindowManagerConfig config)
+    public WindowManager(IViewManager viewManager, IWindowManagerConfig config)
     {
         this.viewManager = viewManager;
-        this.messageBoxViewModelFactory = messageBoxViewModelFactory;
         this.getActiveWindow = config.GetActiveWindow;
     }
 
@@ -136,34 +111,6 @@ public class WindowManager : IWindowManager
     public bool? ShowDialog(object viewModel, IViewAware ownerViewModel)
     {
         return this.CreateWindow(viewModel, true, ownerViewModel).ShowDialog();
-    }
-
-    /// <summary>
-    /// Display a MessageBox
-    /// </summary>
-    /// <param name="messageBoxText">A <see cref="string"/> that specifies the text to display.</param>
-    /// <param name="caption">A <see cref="string"/> that specifies the title bar caption to display.</param>
-    /// <param name="buttons">A <see cref="System.Windows.MessageBoxButton"/> value that specifies which button or buttons to display.</param>
-    /// <param name="icon">A <see cref="System.Windows.MessageBoxImage"/> value that specifies the icon to display.</param>
-    /// <param name="defaultResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the default result of the message box.</param>
-    /// <param name="cancelResult">A <see cref="System.Windows.MessageBoxResult"/> value that specifies the cancel result of the message box</param>
-    /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
-    /// <param name="flowDirection">The <see cref="System.Windows.FlowDirection"/> to use, overrides the <see cref="MessageBoxViewModel.DefaultFlowDirection"/></param>
-    /// <param name="textAlignment">The <see cref="System.Windows.TextAlignment"/> to use, overrides the <see cref="MessageBoxViewModel.DefaultTextAlignment"/></param>
-    /// <returns>The result chosen by the user</returns>
-    public MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "",
-        MessageBoxButton buttons = MessageBoxButton.OK,
-        MessageBoxImage icon = MessageBoxImage.None,
-        MessageBoxResult defaultResult = MessageBoxResult.None,
-        MessageBoxResult cancelResult = MessageBoxResult.None,
-        IDictionary<MessageBoxResult, string> buttonLabels = null,
-        FlowDirection? flowDirection = null,
-        TextAlignment? textAlignment = null)
-    {
-        IMessageBoxViewModel vm = this.messageBoxViewModelFactory();
-        vm.Setup(messageBoxText, caption, buttons, icon, defaultResult, cancelResult, buttonLabels, flowDirection, textAlignment);
-        this.ShowDialog(vm);
-        return vm.ClickedButton;
     }
 
     /// <summary>
