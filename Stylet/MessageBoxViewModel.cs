@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Media;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 
 namespace Stylet;
 
@@ -229,6 +231,9 @@ public class MessageBoxViewModel : Screen, IMessageBoxViewModel
     /// </summary>
     public virtual MessageBoxResult ClickedButton { get; protected set; }
 
+    [DllImport("user32.dll")]
+    private static extern int EnableWindow(IntPtr handle, bool enable);
+
     /// <summary>
     /// When the View loads, play a sound if appropriate
     /// </summary>
@@ -239,6 +244,23 @@ public class MessageBoxViewModel : Screen, IMessageBoxViewModel
         SoundMapping.TryGetValue(this.Icon, out sound);
         if (sound != null)
             sound.Play();
+
+        // Enable other windows when owner is set.
+        if (this.View is Window dlgWindow && dlgWindow.Owner != null)
+        {
+            var windows = Application.Current.Windows;
+            // enable the window != owner to let message box freeze the owner only.
+            foreach (Window w in windows)
+            {
+                if (w == dlgWindow.Owner)
+                    continue;
+                if (w is { IsLoaded: true })
+                {
+                    if (HwndSource.FromVisual(w) is HwndSource hwndSource)
+                        EnableWindow(hwndSource.Handle, true);
+                }
+            }
+        }
     }
 
     /// <summary>
