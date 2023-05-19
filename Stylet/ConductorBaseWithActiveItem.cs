@@ -8,6 +8,25 @@ namespace Stylet;
 /// <typeparam name="T">Type of item being conducted</typeparam>
 public abstract class ConductorBaseWithActiveItem<T> : ConductorBase<T>, IHaveActiveItem<T> where T : class
 {
+    public ConductorBaseWithActiveItem()
+    {
+        this.Activated += (o, e) =>
+        {
+            ScreenExtensions.TryActivate(this.ActiveItem);
+        };
+
+        this.Deactivated += (o, e) =>
+        {
+            ScreenExtensions.TryDeactivate(this.ActiveItem);
+        };
+
+        this.Closed += (o, e) =>
+        {
+            this.CloseAndCleanUp(this.ActiveItem, this.DisposeChildren);
+        };
+    }
+
+
     private T _activeItem;
 
     /// <summary>
@@ -52,29 +71,5 @@ public abstract class ConductorBaseWithActiveItem<T> : ConductorBase<T>, IHaveAc
         }
 
         this.NotifyOfPropertyChange(nameof(this.ActiveItem));
-    }
-
-    /// <summary>
-    /// When we're activated, also activate the ActiveItem
-    /// </summary>
-    protected override void OnActivate()
-    {
-        ScreenExtensions.TryActivate(this.ActiveItem);
-    }
-
-    /// <summary>
-    /// When we're deactivated, also deactivate the ActiveItem
-    /// </summary>
-    protected override void OnDeactivate()
-    {
-        ScreenExtensions.TryDeactivate(this.ActiveItem);
-    }
-
-    /// <summary>
-    /// When we're closed, also close the ActiveItem
-    /// </summary>
-    protected override void OnClose()
-    {
-        this.CloseAndCleanUp(this.ActiveItem, this.DisposeChildren);
     }
 }

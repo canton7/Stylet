@@ -32,6 +32,42 @@ public partial class Conductor<T>
             /// </summary>
             public AllActive()
             {
+                // Activate all items whenever this conductor is activated
+                this.Activated += (o, e) =>
+                {
+                    // Copy the list, in case someone tries to modify it as a result of being activated
+                    var itemsToActivate = this.items.OfType<IScreenState>().ToList();
+                    foreach (var item in itemsToActivate)
+                    {
+                        item.Activate();
+                    }
+                };
+
+                // Deactivate all items whenever this conductor is deactivated
+                this.Deactivated += (o, e) =>
+                {
+                    // Copy the list, in case someone tries to modify it as a result of being activated
+                    var itemsToDeactivate = this.items.OfType<IScreenState>().ToList();
+                    foreach (var item in itemsToDeactivate)
+                    {
+                        item.Deactivate();
+                    }
+                };
+
+                // Close, and clean up, all items when this conductor is closed
+                this.Closed += (o, e) =>
+                {
+                    // Copy the list, in case someone tries to modify it as a result of being closed
+                    // We've already been deactivated by this point    
+                    var itemsToClose = this.items.ToList();
+                    foreach (var item in itemsToClose)
+                    {
+                        this.CloseAndCleanUp(item, this.DisposeChildren);
+                    }
+
+                    this.items.Clear();
+                };
+
                 this.items.CollectionChanging += (o, e) =>
                 {
                     switch (e.Action)
@@ -78,48 +114,6 @@ public partial class Conductor<T>
             }
 
             /// <summary>
-            /// Activates all items whenever this conductor is activated
-            /// </summary>
-            protected override void OnActivate()
-            {
-                // Copy the list, in case someone tries to modify it as a result of being activated
-                var itemsToActivate = this.items.OfType<IScreenState>().ToList();
-                foreach (IScreenState item in itemsToActivate)
-                {
-                    item.Activate();
-                }
-            }
-
-            /// <summary>
-            /// Deactivates all items whenever this conductor is deactivated
-            /// </summary>
-            protected override void OnDeactivate()
-            {
-                // Copy the list, in case someone tries to modify it as a result of being activated
-                var itemsToDeactivate = this.items.OfType<IScreenState>().ToList();
-                foreach (IScreenState item in itemsToDeactivate)
-                {
-                    item.Deactivate();
-                }
-            }
-
-            /// <summary>
-            /// Close, and clean up, all items when this conductor is closed
-            /// </summary>
-            protected override void OnClose()
-            {
-                // Copy the list, in case someone tries to modify it as a result of being closed
-                // We've already been deactivated by this point    
-                var itemsToClose = this.items.ToList();
-                foreach (T item in itemsToClose)
-                {
-                    this.CloseAndCleanUp(item, this.DisposeChildren);
-                }
-                
-                this.items.Clear();
-            }
-
-            /// <summary>
             /// Determine if the conductor can close. Returns true if and when all items can close
             /// </summary>
             /// <returns>A Task indicating whether this conductor can close</returns>
@@ -151,7 +145,7 @@ public partial class Conductor<T>
             }
 
             /// <summary>
-            /// Deactive the given item
+            /// Deactivate the given item
             /// </summary>
             /// <param name="item">Item to deactivate</param>
             public override void DeactivateItem(T item)
