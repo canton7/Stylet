@@ -111,18 +111,19 @@ public class EventAggregator : IEventAggregator
         // We have to be re-entrant, since a handler can fire another message, or subscribe. This means that we can't
         // be in the middle of iterating this.handlers when we invoke a handler.
 
+        HandlerInvoker[] invokers;
         lock (this.handlersLock)
         {
             // Start by clearing up dead handlers
             this.handlers.RemoveAll(x => !x.IsAlive);
 
             Type messageType = message.GetType();
-            HandlerInvoker[] invokers = this.handlers.SelectMany(x => x.GetInvokers(messageType, channels)).ToArray();
+            invokers = this.handlers.SelectMany(x => x.GetInvokers(messageType, channels)).ToArray();
+        }
 
-            foreach (HandlerInvoker invoker in invokers)
-            {
-                dispatcher(() => invoker.Invoke(message));
-            }
+        foreach (HandlerInvoker invoker in invokers)
+        {
+            dispatcher(() => invoker.Invoke(message));
         }
     }
 
