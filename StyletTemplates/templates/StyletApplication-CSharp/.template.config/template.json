@@ -12,43 +12,5 @@
   },
   "sourceName": "Company.StyletApplication1",
   "preferNameDirectory": true,
-  "defaultName": "StyletApp1",
-  "symbols": {
-    "Framework": {
-      "type": "parameter",
-      "description": "The target framework for the project",
-      "datatype": "choice",
-      "choices": [
-        {
-          "choice": "net6.0-windows",
-          "description": "Target .NET 6"
-        },
-        {
-          "choice": "netcoreapp3.1",
-          "description": "Target .NET Core 3.1"
-        }
-      ],
-      "replaces": "net6.0-windows",
-      "defaultValue": "net6.0-windows"
-    },
-    "SDK": {
-      "type": "generated",
-      "generator": "switch",
-      "parameters": {
-        "evaluator": "C++",
-        "datatype": "string",
-        "cases": [
-          {
-            "condition": "((Framework == 'netcoreapp3.0') || (Framework == 'netcoreapp3.1'))",
-            "value": "Microsoft.NET.Sdk.WindowsDesktop",
-          },
-          {
-            "condition": "(true)",
-            "value": "Microsoft.NET.Sdk"
-          }
-        ]
-      },
-      "replaces": "Microsoft.NET.Sdk"
-    }
-  }
+  "defaultName": "StyletApp1"
 }
