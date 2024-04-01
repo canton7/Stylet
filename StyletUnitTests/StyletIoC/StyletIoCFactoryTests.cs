@@ -44,7 +44,7 @@ namespace StyletUnitTests.StyletIoC
             I1 GetI1WithKey(string key);
         }
 
-        interface IPrivateFactory
+        private interface IPrivateFactory
         {
         }
 
@@ -69,12 +69,12 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().To<C1>();
             builder.Bind<I1Factory>().ToAbstractFactory();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var factory = ioc.Get<I1Factory>();
+            I1Factory factory = ioc.Get<I1Factory>();
             Assert.IsNotNull(factory);
 
-            var result = factory.GetI1();
+            I1 result = factory.GetI1();
             Assert.IsInstanceOf<C1>(result);
         }
 
@@ -84,12 +84,12 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().To<C1>().WithKey("key");
             builder.Bind<I1Factory2>().ToAbstractFactory();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var factory = ioc.Get<I1Factory2>();
+            I1Factory2 factory = ioc.Get<I1Factory2>();
             Assert.IsNotNull(factory);
 
-            var result = factory.GetI1("key");
+            I1 result = factory.GetI1("key");
             Assert.IsInstanceOf<C1>(result);
         }
 
@@ -100,9 +100,9 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<I1>().To<C1>();
             builder.Bind<I1>().To<C12>();
             builder.Bind<I1Factory3>().ToAbstractFactory();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var factory = ioc.Get<I1Factory3>();
+            I1Factory3 factory = ioc.Get<I1Factory3>();
             Assert.IsNotNull(factory);
 
             var results = factory.GetAllI1s().ToList();
@@ -119,10 +119,10 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<I1>().To<C1>().WithKey("Key");
             builder.Bind<I1>().To<C12>();
             builder.Bind<IFactoryWithKeys>().ToAbstractFactory();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var factory = ioc.Get<IFactoryWithKeys>();
-            var result = factory.GetI1WithoutKey();
+            IFactoryWithKeys factory = ioc.Get<IFactoryWithKeys>();
+            I1 result = factory.GetI1WithoutKey();
             Assert.IsInstanceOf<C1>(result);
         }
 
@@ -133,10 +133,10 @@ namespace StyletUnitTests.StyletIoC
             builder.Bind<I1>().To<C1>().WithKey("Key2");
             builder.Bind<I1>().To<C12>();
             builder.Bind<IFactoryWithKeys>().ToAbstractFactory();
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
-            var factory = ioc.Get<IFactoryWithKeys>();
-            var result = factory.GetI1WithKey("Key2");
+            IFactoryWithKeys factory = ioc.Get<IFactoryWithKeys>();
+            I1 result = factory.GetI1WithKey("Key2");
             Assert.IsInstanceOf<C1>(result);
         }
 
@@ -177,7 +177,7 @@ namespace StyletUnitTests.StyletIoC
         {
             var builder = new StyletIoCBuilder();
             builder.Bind<I1Factory>().ToAbstractFactory().WithKey("hello");
-            var ioc = builder.BuildContainer();
+            IContainer ioc = builder.BuildContainer();
 
             Assert.Throws<StyletIoCRegistrationException>(() => ioc.Get<I1Factory>());
             Assert.NotNull(ioc.Get<I1Factory>("hello"));
@@ -196,8 +196,8 @@ namespace StyletUnitTests.StyletIoC
             var builder = new StyletIoCBuilder();
             builder.Bind<I1>().To<C1>();
             builder.Bind<IGenericFactory<I1>>().ToAbstractFactory();
-            var ioc = builder.BuildContainer();
-            var factory = ioc.Get<IGenericFactory<I1>>();
+            IContainer ioc = builder.BuildContainer();
+            IGenericFactory<I1> factory = ioc.Get<IGenericFactory<I1>>();
             Assert.IsInstanceOf<C1>(factory.GetI1());
         }
 

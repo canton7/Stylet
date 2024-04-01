@@ -4,20 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bootstrappers.Tests
+namespace Bootstrappers.Tests;
+
+public class StubType : IDisposable
 {
-    public class StubType : IDisposable
+    public static int DisposeCount { get; private set; }
+
+    public static void Reset()
     {
-        public static int DisposeCount { get; private set; }
+        DisposeCount = 0;
+    }
 
-        public static void Reset()
-        {
-            DisposeCount = 0;
-        }
-
-        public void Dispose()
-        {
-            DisposeCount++;
-        }
+    public void Dispose()
+    {
+        DisposeCount++;
     }
 }

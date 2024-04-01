@@ -7,65 +7,64 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bootstrappers.Tests
+namespace Bootstrappers.Tests;
+
+public class MyMicrosoftDependencyInjectionBootstrapper : MicrosoftDependencyInjectionBootstrapper<TestRootViewModel>, ITestBootstrapper
 {
-    public class MyMicrosoftDependencyInjectionBootstrapper : MicrosoftDependencyInjectionBootstrapper<TestRootViewModel>, ITestBootstrapper
+    public List<string> ConfigureLog { get; set; }
+
+    public int DisposeCount { get; private set; }
+
+    public MyMicrosoftDependencyInjectionBootstrapper()
     {
-        public List<string> ConfigureLog { get; set; }
-
-        public int DisposeCount { get; private set; }
-
-        public MyMicrosoftDependencyInjectionBootstrapper()
-        {
-            this.ConfigureLog = new List<string>();
-        }
-
-        protected override void Configure()
-        {
-            base.Configure();
-            this.ConfigureLog.Add("Configure");
-        }
-
-        protected override void DefaultConfigureIoC(IServiceCollection services)
-        {
-            base.DefaultConfigureIoC(services);
-            this.ConfigureLog.Add("DefaultConfigureIoC");
-        }
-
-        protected override void ConfigureIoC(IServiceCollection services)
-        {
-            base.ConfigureIoC(services);
-            this.ConfigureLog.Add("ConfigureIoC");
-        }
-
-        public new object GetInstance(Type type)
-        {
-            return base.GetInstance(type);
-        }
-
-        public new void ConfigureBootstrapper()
-        {
-            base.ConfigureBootstrapper();
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
-            this.DisposeCount++;
-        }
+        this.ConfigureLog = new List<string>();
     }
 
-    [TestFixture(Category = "ServiceCollection")]
-    public class MicrosoftDependencyInjectionTests : BootstrapperTests<MyMicrosoftDependencyInjectionBootstrapper>
+    protected override void Configure()
     {
-        public MicrosoftDependencyInjectionTests()
-        {
-            this.Autobinds = false;
-        }
+        base.Configure();
+        this.ConfigureLog.Add("Configure");
+    }
 
-        public override MyMicrosoftDependencyInjectionBootstrapper CreateBootstrapper()
-        {
-            return new MyMicrosoftDependencyInjectionBootstrapper();
-        }
+    protected override void DefaultConfigureIoC(IServiceCollection services)
+    {
+        base.DefaultConfigureIoC(services);
+        this.ConfigureLog.Add("DefaultConfigureIoC");
+    }
+
+    protected override void ConfigureIoC(IServiceCollection services)
+    {
+        base.ConfigureIoC(services);
+        this.ConfigureLog.Add("ConfigureIoC");
+    }
+
+    public new object GetInstance(Type type)
+    {
+        return base.GetInstance(type);
+    }
+
+    public new void ConfigureBootstrapper()
+    {
+        base.ConfigureBootstrapper();
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        this.DisposeCount++;
+    }
+}
+
+[TestFixture(Category = "ServiceCollection")]
+public class MicrosoftDependencyInjectionTests : BootstrapperTests<MyMicrosoftDependencyInjectionBootstrapper>
+{
+    public MicrosoftDependencyInjectionTests()
+    {
+        this.Autobinds = false;
+    }
+
+    public override MyMicrosoftDependencyInjectionBootstrapper CreateBootstrapper()
+    {
+        return new MyMicrosoftDependencyInjectionBootstrapper();
     }
 }

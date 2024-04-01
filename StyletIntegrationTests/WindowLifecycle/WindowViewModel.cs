@@ -10,7 +10,7 @@ namespace StyletIntegrationTests.WindowLifecycle
 {
     public class WindowViewModel : Screen
     {
-        private IWindowManager windowManager;
+        private readonly IWindowManager windowManager;
 
         public BindableCollection<string> Log { get; private set; }
 

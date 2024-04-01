@@ -12,17 +12,16 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace Stylet.Samples.OverridingViewManager
+namespace Stylet.Samples.OverridingViewManager;
+
+/// <summary>
+/// Interaction logic for ShellView.xaml
+/// </summary>
+[ViewModel(typeof(ShellViewModel))]
+public partial class ShellView : Window
 {
-    /// <summary>
-    /// Interaction logic for ShellView.xaml
-    /// </summary>
-    [ViewModel(typeof(ShellViewModel))]
-    public partial class ShellView : Window
+    public ShellView()
     {
-        public ShellView()
-        {
-            InitializeComponent();
-        }
+        this.InitializeComponent();
     }
 }

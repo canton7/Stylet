@@ -1,35 +1,31 @@
 ﻿using System;
 
-namespace Stylet.Samples.Hello
+namespace Stylet.Samples.Hello;
+
+public class ShellViewModel : Screen
 {
-    class ShellViewModel : Screen
+    private readonly IWindowManager windowManager;
+
+    private string _name;
+    public string Name
     {
-        private IWindowManager windowManager;
+        get => this._name;
+        set
+        {
+            this.SetAndNotify(ref this._name, value);
+            this.NotifyOfPropertyChange(() => this.CanSayHello);
+        }
+    }
 
-        private string _name;
-        public string Name
-        {
-            get { return this._name; }
-            set
-            {
-                SetAndNotify(ref this._name, value);
-                this.NotifyOfPropertyChange(() => this.CanSayHello);
-            }
-        }
+    public ShellViewModel(IWindowManager windowManager)
+    {
+        this.DisplayName = "Hello, Stylet";
+        this.windowManager = windowManager;
+    }
 
-        public ShellViewModel(IWindowManager windowManager)
-        {
-            this.DisplayName = "Hello, Stylet";
-            this.windowManager = windowManager;
-        }
-
-        public bool CanSayHello
-        {
-            get { return !String.IsNullOrEmpty(this.Name); }
-        }
-        public void SayHello()
-        {
-            this.windowManager.ShowMessageBox(String.Format("Hello, {0}", this.Name));
-        }
+    public bool CanSayHello => !string.IsNullOrEmpty(this.Name);
+    public void SayHello()
+    {
+        this.windowManager.ShowMessageBox($"Hello, {this.Name}");
     }
 }

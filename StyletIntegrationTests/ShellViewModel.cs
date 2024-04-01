@@ -24,8 +24,8 @@ namespace StyletIntegrationTests
         private bool? _showDialogAndDialogResultDialogResult;
         public bool? ShowDialogAndDialogResultDialogResult
         {
-            get { return this._showDialogAndDialogResultDialogResult; }
-            set { SetAndNotify(ref this._showDialogAndDialogResultDialogResult, value);  }
+            get => this._showDialogAndDialogResultDialogResult;
+            set => this.SetAndNotify(ref this._showDialogAndDialogResultDialogResult, value);
         }
 
         public void ShowDialogAndDialogResult()
@@ -47,7 +47,7 @@ namespace StyletIntegrationTests
 
         public async void TestDispatcher()
         {
-            var dispatcher = Execute.Dispatcher;
+            IDispatcher dispatcher = Execute.Dispatcher;
             var log = new List<string>();
 
             await Task.Run(() => dispatcher.Send(() => { lock(log) { log.Add("One"); }; }));

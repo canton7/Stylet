@@ -2,124 +2,123 @@
 using Stylet;
 using System;
 
-namespace StyletUnitTests
+namespace StyletUnitTests;
+
+[TestFixture]
+public class PropertyChangedBaseTests
 {
-    [TestFixture]
-    public class PropertyChangedBaseTests
+    private class PropertyChanged : PropertyChangedBase
     {
-        class PropertyChanged : PropertyChangedBase
+        public int IntProperty { get; set; }
+        public string StringProperty
         {
-            public int IntProperty { get; set; }
-            public string StringProperty
-            {
-                set { this.NotifyOfPropertyChange(); }
-            }
-            private double _doubleProperty;
-            public double DoubleProperty
-            {
-                get { return this._doubleProperty; }
-                set { SetAndNotify(ref this._doubleProperty, value); }
-            }
-            public void RaiseIntPropertyChangedWithExpression()
-            {
-                this.NotifyOfPropertyChange(() => this.IntProperty);
-            }
-            public void RaiseIntPropertyChangedWithString()
-            {
-                this.NotifyOfPropertyChange("IntProperty");
-            }
+            set => this.NotifyOfPropertyChange();
         }
-
-        [Test]
-        public void RefreshRaisesPropertyChangedWithEmptyString()
+        private double _doubleProperty;
+        public double DoubleProperty
         {
-            var pc = new PropertyChanged();
-            string changedProperty = null;
-            pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
-            pc.Refresh();
-            Assert.AreEqual(String.Empty, changedProperty);
+            get => this._doubleProperty;
+            set => this.SetAndNotify(ref this._doubleProperty, value);
         }
-
-        [Test]
-        public void NotifyOfPropertyChangedWithExpressionRaises()
+        public void RaiseIntPropertyChangedWithExpression()
         {
-            var pc = new PropertyChanged();
-            string changedProperty = null;
-            pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
-            pc.RaiseIntPropertyChangedWithExpression();
-            Assert.AreEqual("IntProperty", changedProperty);
+            this.NotifyOfPropertyChange(() => this.IntProperty);
         }
-
-        [Test]
-        public void NotifyOfPropertyChangedWithStringRaises()
+        public void RaiseIntPropertyChangedWithString()
         {
-            var pc = new PropertyChanged();
-            string changedProperty = null;
-            pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
-            pc.RaiseIntPropertyChangedWithString();
-            Assert.AreEqual("IntProperty", changedProperty);
+            this.NotifyOfPropertyChange(nameof(this.IntProperty));
         }
+    }
 
-        [Test]
-        public void NotifyOfPropertyChangedWithCallerMemberName()
-        {
-            var pc = new PropertyChanged();
-            string changedProperty = null;
-            pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
-            pc.StringProperty = "hello";
-            Assert.AreEqual("StringProperty", changedProperty);
-        }
+    [Test]
+    public void RefreshRaisesPropertyChangedWithEmptyString()
+    {
+        var pc = new PropertyChanged();
+        string changedProperty = null;
+        pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
+        pc.Refresh();
+        Assert.AreEqual(string.Empty, changedProperty);
+    }
 
-        [Test]
-        public void UsesDispatcher()
-        {
-            var pc = new PropertyChanged();
-            string changedProperty = null;
-            pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
+    [Test]
+    public void NotifyOfPropertyChangedWithExpressionRaises()
+    {
+        var pc = new PropertyChanged();
+        string changedProperty = null;
+        pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
+        pc.RaiseIntPropertyChangedWithExpression();
+        Assert.AreEqual("IntProperty", changedProperty);
+    }
 
-            Action action = null;
-            pc.PropertyChangedDispatcher = a => action = a;
+    [Test]
+    public void NotifyOfPropertyChangedWithStringRaises()
+    {
+        var pc = new PropertyChanged();
+        string changedProperty = null;
+        pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
+        pc.RaiseIntPropertyChangedWithString();
+        Assert.AreEqual("IntProperty", changedProperty);
+    }
 
-            pc.RaiseIntPropertyChangedWithExpression();
-            Assert.IsNull(changedProperty);
-            Assert.IsNotNull(action);
+    [Test]
+    public void NotifyOfPropertyChangedWithCallerMemberName()
+    {
+        var pc = new PropertyChanged();
+        string changedProperty = null;
+        pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
+        pc.StringProperty = "hello";
+        Assert.AreEqual("StringProperty", changedProperty);
+    }
 
-            action();
-            Assert.AreEqual("IntProperty", changedProperty);
-        }
+    [Test]
+    public void UsesDispatcher()
+    {
+        var pc = new PropertyChanged();
+        string changedProperty = null;
+        pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
 
-        [Test]
-        public void UsesStaticDispatcherByDefault()
-        {
-            Action action = null;
-            var oldDispatcher = Execute.DefaultPropertyChangedDispatcher;
-            Execute.DefaultPropertyChangedDispatcher = a => action = a;
+        Action action = null;
+        pc.PropertyChangedDispatcher = a => action = a;
 
-            var pc = new PropertyChanged();
-            string changedProperty = null;
-            pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
+        pc.RaiseIntPropertyChangedWithExpression();
+        Assert.IsNull(changedProperty);
+        Assert.IsNotNull(action);
 
-            pc.RaiseIntPropertyChangedWithExpression();
-            Assert.IsNull(changedProperty);
-            Assert.IsNotNull(action);
+        action();
+        Assert.AreEqual("IntProperty", changedProperty);
+    }
 
-            action();
-            Assert.AreEqual("IntProperty", changedProperty);
+    [Test]
+    public void UsesStaticDispatcherByDefault()
+    {
+        Action action = null;
+        Action<Action> oldDispatcher = Execute.DefaultPropertyChangedDispatcher;
+        Execute.DefaultPropertyChangedDispatcher = a => action = a;
 
-            Execute.DefaultPropertyChangedDispatcher = oldDispatcher;
-        }
+        var pc = new PropertyChanged();
+        string changedProperty = null;
+        pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
 
-        [Test]
-        public void SetAndNotifyWorks()
-        {
-            var pc = new PropertyChanged();
-            string changedProperty = null;
-            pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
+        pc.RaiseIntPropertyChangedWithExpression();
+        Assert.IsNull(changedProperty);
+        Assert.IsNotNull(action);
 
-            pc.DoubleProperty = 5;
+        action();
+        Assert.AreEqual("IntProperty", changedProperty);
 
-            Assert.AreEqual("DoubleProperty", changedProperty);
-            Assert.AreEqual(5, pc.DoubleProperty);
-        }
+        Execute.DefaultPropertyChangedDispatcher = oldDispatcher;
+    }
+
+    [Test]
+    public void SetAndNotifyWorks()
+    {
+        var pc = new PropertyChanged();
+        string changedProperty = null;
+        pc.PropertyChanged += (o, e) => changedProperty = e.PropertyName;
+
+        pc.DoubleProperty = 5;
+
+        Assert.AreEqual("DoubleProperty", changedProperty);
+        Assert.AreEqual(5, pc.DoubleProperty);
     }
 }

@@ -6,70 +6,66 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 
-namespace Bootstrappers
+namespace Bootstrappers;
+
+public class AutofacBootstrapper<TRootViewModel> : BootstrapperBase where TRootViewModel : class
 {
-    public class AutofacBootstrapper<TRootViewModel> : BootstrapperBase where TRootViewModel : class
+    private IContainer container;
+
+    private TRootViewModel _rootViewModel;
+    protected virtual TRootViewModel RootViewModel => this._rootViewModel ??= (TRootViewModel)this.GetInstance(typeof(TRootViewModel));
+
+    protected override void ConfigureBootstrapper()
     {
-        private IContainer container;
+        var builder = new ContainerBuilder();
+        this.DefaultConfigureIoC(builder);
+        this.ConfigureIoC(builder);
+        this.container = builder.Build();
+    }
 
-        private TRootViewModel _rootViewModel;
-        protected virtual TRootViewModel RootViewModel
+    /// <summary>
+    /// Carries out default configuration of the IoC container. Override if you don't want to do this
+    /// </summary>
+    protected virtual void DefaultConfigureIoC(ContainerBuilder builder)
+    {
+        var viewManagerConfig = new ViewManagerConfig()
         {
-            get { return this._rootViewModel ?? (this._rootViewModel = (TRootViewModel)this.GetInstance(typeof(TRootViewModel))); }
-        }
+            ViewFactory = this.GetInstance,
+            ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+        };
+        builder.RegisterInstance<IViewManager>(new ViewManager(viewManagerConfig));
+        builder.RegisterType<MessageBoxView>();
 
-        protected override void ConfigureBootstrapper()
-        {
-            var builder = new ContainerBuilder();
-            this.DefaultConfigureIoC(builder);
-            this.ConfigureIoC(builder);
-            this.container = builder.Build();
-        }
+        builder.RegisterInstance<IWindowManagerConfig>(this).ExternallyOwned();
+        builder.RegisterType<WindowManager>().As<IWindowManager>().SingleInstance();
+        builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
+        builder.RegisterType<MessageBoxViewModel>().As<IMessageBoxViewModel>().ExternallyOwned(); // Not singleton!
 
-        /// <summary>
-        /// Carries out default configuration of the IoC container. Override if you don't want to do this
-        /// </summary>
-        protected virtual void DefaultConfigureIoC(ContainerBuilder builder)
-        {
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewFactory = this.GetInstance,
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
-            };
-            builder.RegisterInstance<IViewManager>(new ViewManager(viewManagerConfig));
-            builder.RegisterType<MessageBoxView>();
+        // See https://github.com/canton7/Stylet/discussions/211
+        builder.RegisterAssemblyTypes(this.GetType().Assembly).Where(x => !x.Name.Contains("ProcessedByFody")).ExternallyOwned();
+    }
 
-            builder.RegisterInstance<IWindowManagerConfig>(this).ExternallyOwned();
-            builder.RegisterType<WindowManager>().As<IWindowManager>().SingleInstance();
-            builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
-            builder.RegisterType<MessageBoxViewModel>().As<IMessageBoxViewModel>().ExternallyOwned(); // Not singleton!
+    /// <summary>
+    /// Override to add your own types to the IoC container.
+    /// </summary>
+    protected virtual void ConfigureIoC(ContainerBuilder builder) { }
 
-            // See https://github.com/canton7/Stylet/discussions/211
-            builder.RegisterAssemblyTypes(this.GetType().Assembly).Where(x => !x.Name.Contains("ProcessedByFody")).ExternallyOwned();
-        }
+    public override object GetInstance(Type type)
+    {
+        return this.container.Resolve(type);
+    }
 
-        /// <summary>
-        /// Override to add your own types to the IoC container.
-        /// </summary>
-        protected virtual void ConfigureIoC(ContainerBuilder builder) { }
+    protected override void Launch()
+    {
+        base.DisplayRootView(this.RootViewModel);
+    }
 
-        public override object GetInstance(Type type)
-        {
-            return this.container.Resolve(type);
-        }
+    public override void Dispose()
+    {
+        ScreenExtensions.TryDispose(this._rootViewModel);
+        if (this.container != null)
+            this.container.Dispose();
 
-        protected override void Launch()
-        {
-            base.DisplayRootView(this.RootViewModel);
-        }
-
-        public override void Dispose()
-        {
-            ScreenExtensions.TryDispose(this._rootViewModel);
-            if (this.container != null)
-                this.container.Dispose();
-
-            base.Dispose();
-        }
+        base.Dispose();
     }
 }

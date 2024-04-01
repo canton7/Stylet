@@ -6,12 +6,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Stylet.Samples.ModelValidation
+namespace Stylet.Samples.ModelValidation;
+
+/// <summary>
+/// Interaction logic for App.xaml
+/// </summary>
+public partial class App : Application
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
-    {
-    }
 }

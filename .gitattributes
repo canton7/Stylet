@@ -1,3 +1,4 @@
 *.cs	eol=crlf
 *.xaml	eol=crlf
 *.ps1   eol=crlf
+*       text=auto

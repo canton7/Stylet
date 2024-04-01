@@ -1,17 +1,16 @@
 ﻿using System.Windows;
 
-namespace Stylet
+namespace Stylet;
+
+/// <summary>
+/// Interface specifying a bootstrapper, as loaded by the ApplicationLoader
+/// </summary>
+public interface IBootstrapper
 {
     /// <summary>
-    /// Interface specifying a bootstrapper, as loaded by the ApplicationLoader
+    /// Called during application setup, allowing the bootstrapper to configure itself.
+    /// Should hook into Application.Startup
     /// </summary>
-    public interface IBootstrapper
-    {
-        /// <summary>
-        /// Called during application setup, allowing the bootstrapper to configure itself.
-        /// Should hook into Application.Startup
-        /// </summary>
-        /// <param name="application">Reference to the current application</param>
-        void Setup(Application application);
-    }
+    /// <param name="application">Reference to the current application</param>
+    void Setup(Application application);
 }

@@ -4,46 +4,40 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 
-namespace Stylet.Samples.OverridingViewManager
+namespace Stylet.Samples.OverridingViewManager;
+
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+public sealed class ViewModelAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    sealed class ViewModelAttribute : Attribute
+    public ViewModelAttribute(Type viewModel)
     {
-        readonly Type viewModel;
-
-        public ViewModelAttribute(Type viewModel)
-        {
-            this.viewModel = viewModel;
-        }
-
-        public Type ViewModel
-        {
-            get { return viewModel; }
-        }
+        this.ViewModel = viewModel;
     }
 
-    public class CustomViewManager : ViewManager
+    public Type ViewModel { get; }
+}
+
+public class CustomViewManager : ViewManager
+{
+    // Dictionary of ViewModel type -> View type
+    private readonly Dictionary<Type, Type> viewModelToViewMapping;
+
+    public CustomViewManager(ViewManagerConfig config)
+        : base(config)
     {
-        // Dictionary of ViewModel type -> View type
-        private readonly Dictionary<Type, Type> viewModelToViewMapping;
+        var mappings = from type in this.ViewAssemblies.SelectMany(x => x.GetExportedTypes())
+                       let attribute = type.GetCustomAttribute<ViewModelAttribute>()
+                       where attribute != null && typeof(UIElement).IsAssignableFrom(type)
+                       select new { View = type, ViewModel = attribute.ViewModel };
 
-        public CustomViewManager(ViewManagerConfig config)
-            : base(config)
-        {
-            var mappings = from type in this.ViewAssemblies.SelectMany(x => x.GetExportedTypes())
-                           let attribute = type.GetCustomAttribute<ViewModelAttribute>()
-                           where attribute != null && typeof(UIElement).IsAssignableFrom(type)
-                           select new { View = type, ViewModel = attribute.ViewModel };
+        this.viewModelToViewMapping = mappings.ToDictionary(x => x.ViewModel, x => x.View);
+    }
 
-            this.viewModelToViewMapping = mappings.ToDictionary(x => x.ViewModel, x => x.View);
-        }
-
-        protected override Type LocateViewForModel(Type modelType)
-        {
-            Type viewType;
-            if (!this.viewModelToViewMapping.TryGetValue(modelType, out viewType))
-                throw new Exception(String.Format("Could not find View for ViewModel {0}", modelType.Name));
-            return viewType;
-        }
+    protected override Type LocateViewForModel(Type modelType)
+    {
+        Type viewType;
+        if (!this.viewModelToViewMapping.TryGetValue(modelType, out viewType))
+            throw new Exception(string.Format("Could not find View for ViewModel {0}", modelType.Name));
+        return viewType;
     }
 }

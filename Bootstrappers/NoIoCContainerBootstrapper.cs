@@ -3,64 +3,63 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Bootstrappers
+namespace Bootstrappers;
+
+public abstract class NoIoCContainerBootstrapper : BootstrapperBase
 {
-    public abstract class NoIoCContainerBootstrapper : BootstrapperBase
+    protected readonly Dictionary<Type, Func<object>> Container = new();
+
+    protected override void ConfigureBootstrapper()
     {
-        protected readonly Dictionary<Type, Func<object>> Container = new Dictionary<Type, Func<object>>();
+        this.DefaultConfigureContainer();
+        this.ConfigureContainer();
+    }
 
-        protected override void ConfigureBootstrapper()
+    protected abstract object RootViewModel { get; }
+
+    protected virtual void DefaultConfigureContainer()
+    {
+        var viewManagerConfig = new ViewManagerConfig()
         {
-            this.DefaultConfigureContainer();
-            this.ConfigureContainer();
-        }
+            ViewFactory = this.GetInstance,
+            ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+        };
+        var viewManager = new ViewManager(viewManagerConfig);
+        this.Container.Add(typeof(IViewManager), () => viewManager);
 
-        protected abstract object RootViewModel { get; }
+        var windowManager = new WindowManager(viewManager, () => (IMessageBoxViewModel)this.Container[typeof(IMessageBoxViewModel)](), this);
+        this.Container.Add(typeof(IWindowManager), () => windowManager);
 
-        protected virtual void DefaultConfigureContainer()
-        {
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewFactory = this.GetInstance,
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
-            };
-            var viewManager = new ViewManager(viewManagerConfig);
-            this.Container.Add(typeof(IViewManager), () => viewManager);
+        var eventAggregator = new EventAggregator();
+        this.Container.Add(typeof(IEventAggregator), () => eventAggregator);
 
-            var windowManager = new WindowManager(viewManager, () => (IMessageBoxViewModel)this.Container[typeof(IMessageBoxViewModel)](), this);
-            this.Container.Add(typeof(IWindowManager), () => windowManager);
+        this.Container.Add(typeof(IMessageBoxViewModel), () => new MessageBoxViewModel());
+        this.Container.Add(typeof(MessageBoxView), () => new MessageBoxView());
+    }
 
-            var eventAggregator = new EventAggregator();
-            this.Container.Add(typeof(IEventAggregator), () => eventAggregator);
+    /// <summary>
+    /// Use this to add your own types to this.Container
+    /// </summary>
+    protected virtual void ConfigureContainer() { }
 
-            this.Container.Add(typeof(IMessageBoxViewModel), () => new MessageBoxViewModel());
-            this.Container.Add(typeof(MessageBoxView), () => new MessageBoxView());
-        }
+    protected override void Launch()
+    {
+        base.DisplayRootView(this.RootViewModel);
+    }
 
-        /// <summary>
-        /// Use this to add your own types to this.Container
-        /// </summary>
-        protected virtual void ConfigureContainer() { }
+    public override object GetInstance(Type type)
+    {
+        Func<object> factory;
+        if (this.Container.TryGetValue(type, out factory))
+            return factory();
+        else
+            return null;
+    }
 
-        protected override void Launch()
-        {
-            base.DisplayRootView(this.RootViewModel);
-        }
+    public override void Dispose()
+    {
+        ScreenExtensions.TryDispose(this.RootViewModel);
 
-        public override object GetInstance(Type type)
-        {
-            Func<object> factory;
-            if (this.Container.TryGetValue(type, out factory))
-                return factory();
-            else
-                return null;
-        }
-
-        public override void Dispose()
-        {
-            ScreenExtensions.TryDispose(this.RootViewModel);
-
-            base.Dispose();
-        }
+        base.Dispose();
     }
 }

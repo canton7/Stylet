@@ -4,46 +4,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Stylet.Samples.RedditBrowser.RedditApi
+namespace Stylet.Samples.RedditBrowser.RedditApi;
+
+public class CommentCollection
 {
-    public class CommentCollection
+    private readonly IRedditApi api;
+    private readonly string subreddit;
+    private readonly string postId;
+
+    public IReadOnlyList<Comment> Comments { get; private set; }
+
+    public CommentCollection(IRedditApi api, string subreddit, string postId)
     {
-        private IRedditApi api;
-        private string subreddit;
-        private string postId;
-
-        public IReadOnlyList<Comment> Comments { get; private set; }
-
-        public CommentCollection(IRedditApi api, string subreddit, string postId)
-        {
-            this.api = api;
-            this.subreddit = subreddit;
-            this.postId = postId;
-        }
-
-        public async Task LoadAsync()
-        {
-            var comments = await this.api.FetchCommentsAsync(this.subreddit, this.postId);
-            this.Comments = comments.SelectMany(x => x.Data.Children).Where(x => x.Kind == "t1").Select(x => this.ContractToComment(x.Data)).ToList();
-        }
-
-        private Comment ContractToComment(CommentData data)
-        {
-            var comment = new Comment()
-            {
-                Body = data.Body,
-                Author = data.Author
-            };
-            if (data.Replies != null && data.Replies.Data != null)
-                comment.Replies = data.Replies.Data.Children.Select(x => this.ContractToComment(x.Data)).ToList();
-            return comment;
-        }
+        this.api = api;
+        this.subreddit = subreddit;
+        this.postId = postId;
     }
 
-    public class Comment
+    public async Task LoadAsync()
     {
-        public string Body { get; set; }
-        public string Author { get; set; }
-        public List<Comment> Replies { get; set; }
+        List<CommentsResponse> comments = await this.api.FetchCommentsAsync(this.subreddit, this.postId);
+        this.Comments = comments.SelectMany(x => x.Data.Children).Where(x => x.Kind == "t1").Select(x => this.ContractToComment(x.Data)).ToList();
     }
+
+    private Comment ContractToComment(CommentData data)
+    {
+        var comment = new Comment()
+        {
+            Body = data.Body,
+            Author = data.Author
+        };
+        if (data.Replies != null && data.Replies.Data != null)
+            comment.Replies = data.Replies.Data.Children.Select(x => this.ContractToComment(x.Data)).ToList();
+        return comment;
+    }
+}
+
+public class Comment
+{
+    public string Body { get; set; }
+    public string Author { get; set; }
+    public List<Comment> Replies { get; set; }
 }

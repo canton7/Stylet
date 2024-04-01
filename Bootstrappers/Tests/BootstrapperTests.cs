@@ -7,167 +7,166 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Bootstrappers.Tests
-{
-    public class TestRootViewModel { }
+namespace Bootstrappers.Tests;
 
-    public interface ITestBootstrapper
+public class TestRootViewModel { }
+
+public interface ITestBootstrapper
+{
+    int DisposeCount { get; }
+    object GetInstance(Type type);
+    void ConfigureBootstrapper();
+    List<string> ConfigureLog { get; }
+}
+
+public abstract class BootstrapperTests<TBootstrapper> where TBootstrapper : ITestBootstrapper, IDisposable
+{
+    protected TBootstrapper Bootstrapper;
+
+    public abstract TBootstrapper CreateBootstrapper();
+    protected virtual bool Autobinds { get; set; }
+
+    [SetUp]
+    public void SetUp()
     {
-        int DisposeCount { get; }
-        object GetInstance(Type type);
-        void ConfigureBootstrapper();
-        List<string> ConfigureLog { get; }
+        this.Bootstrapper = this.CreateBootstrapper();
+        this.Bootstrapper.ConfigureBootstrapper();
     }
 
-    public abstract class BootstrapperTests<TBootstrapper> where TBootstrapper : ITestBootstrapper, IDisposable
+    [Test]
+    public void CallsConfiguredInCorrectOrder()
     {
-        protected TBootstrapper bootstrapper;
+        Assert.That(this.Bootstrapper.ConfigureLog, Is.EquivalentTo(new[] { "DefaultConfigureIoC", "ConfigureIoC" }));
+    }
 
-        public abstract TBootstrapper CreateBootstrapper();
-        protected virtual bool Autobinds { get; set; }
+    [Test]
+    public void ReturnsCorrectViewManager()
+    {
+        object vm = this.Bootstrapper.GetInstance(typeof(IViewManager));
+        Assert.IsInstanceOf<ViewManager>(vm);
+    }
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.bootstrapper = this.CreateBootstrapper();
-            this.bootstrapper.ConfigureBootstrapper();
-        }
+    [Test]
+    public void ReturnsSingletonViewManager()
+    {
+        object vm1 = this.Bootstrapper.GetInstance(typeof(IViewManager));
+        object vm2 = this.Bootstrapper.GetInstance(typeof(IViewManager));
+        Assert.AreEqual(vm1, vm2);
+    }
 
-        [Test]
-        public void CallsConfiguredInCorrectOrder()
-        {
-            Assert.That(this.bootstrapper.ConfigureLog, Is.EquivalentTo(new[] { "DefaultConfigureIoC", "ConfigureIoC" }));
-        }
+    [Test]
+    public void ReturnsCorrectWindowManager()
+    {
+        object wm = this.Bootstrapper.GetInstance(typeof(IWindowManager));
+        Assert.IsInstanceOf<WindowManager>(wm);
+    }
 
-        [Test]
-        public void ReturnsCorrectViewManager()
-        {
-            var vm = this.bootstrapper.GetInstance(typeof(IViewManager));
-            Assert.IsInstanceOf<ViewManager>(vm);
-        }
+    [Test]
+    public void ReturnsSingletonWindowManager()
+    {
+        object wm1 = this.Bootstrapper.GetInstance(typeof(IWindowManager));
+        object wm2 = this.Bootstrapper.GetInstance(typeof(IWindowManager));
+        Assert.AreEqual(wm1, wm2);
+    }
 
-        [Test]
-        public void ReturnsSingletonViewManager()
-        {
-            var vm1 = this.bootstrapper.GetInstance(typeof(IViewManager));
-            var vm2 = this.bootstrapper.GetInstance(typeof(IViewManager));
-            Assert.AreEqual(vm1, vm2);
-        }
+    [Test]
+    public void ReturnsCorrectEventAggregator()
+    {
+        object ea = this.Bootstrapper.GetInstance(typeof(IEventAggregator));
+        Assert.IsInstanceOf<EventAggregator>(ea);
+    }
 
-        [Test]
-        public void ReturnsCorrectWindowManager()
-        {
-            var wm = this.bootstrapper.GetInstance(typeof(IWindowManager));
-            Assert.IsInstanceOf<WindowManager>(wm);
-        }
+    [Test]
+    public void ReturnsSingletonEventAggregator()
+    {
+        object ea1 = this.Bootstrapper.GetInstance(typeof(IEventAggregator));
+        object ea2 = this.Bootstrapper.GetInstance(typeof(IEventAggregator));
+        Assert.AreEqual(ea1, ea2);
+    }
 
-        [Test]
-        public void ReturnsSingletonWindowManager()
-        {
-            var wm1 = this.bootstrapper.GetInstance(typeof(IWindowManager));
-            var wm2 = this.bootstrapper.GetInstance(typeof(IWindowManager));
-            Assert.AreEqual(wm1, wm2);
-        }
+    [Test]
+    public void ReturnsCorrectMessageBoxViewModel()
+    {
+        object mb = this.Bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
+        Assert.IsInstanceOf<MessageBoxViewModel>(mb);
+    }
 
-        [Test]
-        public void ReturnsCorrectEventAggregator()
-        {
-            var ea = this.bootstrapper.GetInstance(typeof(IEventAggregator));
-            Assert.IsInstanceOf<EventAggregator>(ea);
-        }
+    [Test]
+    public void ReturnsTransientMessageBoxViewModel()
+    {
+        object mb1 = this.Bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
+        object mb2 = this.Bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
+        Assert.AreNotEqual(mb1, mb2);
+    }
 
-        [Test]
-        public void ReturnsSingletonEventAggregator()
-        {
-            var ea1 = this.bootstrapper.GetInstance(typeof(IEventAggregator));
-            var ea2 = this.bootstrapper.GetInstance(typeof(IEventAggregator));
-            Assert.AreEqual(ea1, ea2);
-        }
+    [Test, Apartment(ApartmentState.STA)]
+    public void ReturnsMessageBoxView()
+    {
+        object view = this.Bootstrapper.GetInstance(typeof(MessageBoxView));
+        Assert.NotNull(view);
+    }
 
-        [Test]
-        public void ReturnsCorrectMessageBoxViewModel()
-        {
-            var mb = this.bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
-            Assert.IsInstanceOf<MessageBoxViewModel>(mb);
-        }
+    [Test, Apartment(ApartmentState.STA)]
+    public void ReturnsTransientMessageBoxView()
+    {
+        object view1 = this.Bootstrapper.GetInstance(typeof(MessageBoxView));
+        object view2 = this.Bootstrapper.GetInstance(typeof(MessageBoxView));
+        Assert.AreNotEqual(view1, view2);
+    }
 
-        [Test]
-        public void ReturnsTransientMessageBoxViewModel()
-        {
-            var mb1 = this.bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
-            var mb2 = this.bootstrapper.GetInstance(typeof(IMessageBoxViewModel));
-            Assert.AreNotEqual(mb1, mb2);
-        }
+    [Test]
+    public void ResolvesAutoSelfBoundTypesFromCallingAssemblyAsTransient()
+    {
+        if (!this.Autobinds)
+            Assert.Ignore("Autobinding not supported");
 
-        [Test, Apartment(ApartmentState.STA)]
-        public void ReturnsMessageBoxView()
-        {
-            var view = this.bootstrapper.GetInstance(typeof(MessageBoxView));
-            Assert.NotNull(view);
-        }
+        Assert.DoesNotThrow(() => this.Bootstrapper.GetInstance(typeof(TestRootViewModel)));
+        object vm1 = this.Bootstrapper.GetInstance(typeof(TestRootViewModel));
+        object vm2 = this.Bootstrapper.GetInstance(typeof(TestRootViewModel));
 
-        [Test, Apartment(ApartmentState.STA)]
-        public void ReturnsTransientMessageBoxView()
-        {
-            var view1 = this.bootstrapper.GetInstance(typeof(MessageBoxView));
-            var view2 = this.bootstrapper.GetInstance(typeof(MessageBoxView));
-            Assert.AreNotEqual(view1, view2);
-        }
+        Assert.NotNull(vm1);
+        Assert.AreNotEqual(vm1, vm2); 
+    }
 
-        [Test]
-        public void ResolvesAutoSelfBoundTypesFromCallingAssemblyAsTransient()
-        {
-            if (!this.Autobinds)
-                Assert.Ignore("Autobinding not supported");
+    [Test]
+    public void ResolvesAutoSelfBoundTypesFromOwnAssemblyAsTransient()
+    {
+        if (!this.Autobinds)
+            Assert.Ignore("Autobinding not supported");
 
-            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance(typeof(TestRootViewModel)));
-            var vm1 = this.bootstrapper.GetInstance(typeof(TestRootViewModel));
-            var vm2 = this.bootstrapper.GetInstance(typeof(TestRootViewModel));
+        // Pick a random class with no dependencies...
+        Assert.DoesNotThrow(() => this.Bootstrapper.GetInstance(typeof(StubType)));
+        object vm1 = this.Bootstrapper.GetInstance(typeof(StubType));
+        object vm2 = this.Bootstrapper.GetInstance(typeof(StubType));
 
-            Assert.NotNull(vm1);
-            Assert.AreNotEqual(vm1, vm2); 
-        }
+        Assert.NotNull(vm1);
+        Assert.AreNotEqual(vm1, vm2);
+    }
 
-        [Test]
-        public void ResolvesAutoSelfBoundTypesFromOwnAssemblyAsTransient()
-        {
-            if (!this.Autobinds)
-                Assert.Ignore("Autobinding not supported");
+    [Test]
+    public void DoesNotMultiplyDisposeWindowManagerConfig()
+    {
+        // The bootstrapper implements the IWindowManagerConfig. Fetch the IWindowManager to force the
+        // IWindowManagerConfig to be constructed, then dispose the bootstrapper, and make sure that
+        // the container doesn't dispose the IWindowManagerConfig again
 
-            // Pick a random class with no dependencies...
-            Assert.DoesNotThrow(() => this.bootstrapper.GetInstance(typeof(StubType)));
-            var vm1 = this.bootstrapper.GetInstance(typeof(StubType));
-            var vm2 = this.bootstrapper.GetInstance(typeof(StubType));
+        object windowManager = this.Bootstrapper.GetInstance(typeof(IWindowManager));
+        this.Bootstrapper.Dispose();
 
-            Assert.NotNull(vm1);
-            Assert.AreNotEqual(vm1, vm2);
-        }
+        Assert.AreEqual(1, this.Bootstrapper.DisposeCount);
+    }
 
-        [Test]
-        public void DoesNotMultiplyDisposeWindowManagerConfig()
-        {
-            // The bootstrapper implements the IWindowManagerConfig. Fetch the IWindowManager to force the
-            // IWindowManagerConfig to be constructed, then dispose the bootstrapper, and make sure that
-            // the container doesn't dispose the IWindowManagerConfig again
+    [Test]
+    public void DoesNotDisposeTransientInstances()
+    {
+        if (!this.Autobinds)
+            Assert.Ignore("Autobinding not supported");
+            
+        StubType.Reset();
 
-            var windowManager = this.bootstrapper.GetInstance(typeof(IWindowManager));
-            this.bootstrapper.Dispose();
+        object vm = this.Bootstrapper.GetInstance(typeof(StubType));
+        this.Bootstrapper.Dispose();
+        Assert.AreEqual(0, StubType.DisposeCount);
 
-            Assert.AreEqual(1, this.bootstrapper.DisposeCount);
-        }
-
-        [Test]
-        public void DoesNotDisposeTransientInstances()
-        {
-            if (!this.Autobinds)
-                Assert.Ignore("Autobinding not supported");
-                
-            StubType.Reset();
-
-            var vm = this.bootstrapper.GetInstance(typeof(StubType));
-            this.bootstrapper.Dispose();
-            Assert.AreEqual(0, StubType.DisposeCount);
-
-        }
     }
 }

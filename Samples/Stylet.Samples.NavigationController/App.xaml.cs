@@ -6,12 +6,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Stylet.Samples.NavigationController
+namespace Stylet.Samples.NavigationController;
+
+/// <summary>
+/// Interaction logic for App.xaml
+/// </summary>
+public partial class App : Application
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
-    {
-    }
 }

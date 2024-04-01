@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace Stylet.Samples.ModelValidation.Pages
-{
-    public class ShellViewModel : Conductor<IScreen>
-    {
-        public ShellViewModel(UserViewModel userViewModel)
-        {
-            this.DisplayName = "Stylet.Samples.ModelValidation";
+namespace Stylet.Samples.ModelValidation.Pages;
 
-            this.ActiveItem = userViewModel;
-        }
+public class ShellViewModel : Conductor<IScreen>
+{
+    public ShellViewModel(UserViewModel userViewModel)
+    {
+        this.DisplayName = "Stylet.Samples.ModelValidation";
+
+        this.ActiveItem = userViewModel;
     }
 }

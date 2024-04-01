@@ -3,198 +3,197 @@ using NUnit.Framework;
 using Stylet;
 using System;
 
-namespace StyletUnitTests
+namespace StyletUnitTests;
+
+[TestFixture]
+public class ScreenExtensionTests
 {
-    [TestFixture]
-    public class ScreenExtensionTests
+    public interface IMyScreen : IScreen, IDisposable
+    { }
+
+    private Screen parent;
+    private Mock<IMyScreen> child;
+
+    [SetUp]
+    public void SetUp()
     {
-        public interface IMyScreen : IScreen, IDisposable
-        { }
+        this.parent = new Screen();
+        this.child = new Mock<IMyScreen>();
+    }
 
-        private Screen parent;
-        private Mock<IMyScreen> child;
+    [Test]
+    public void TryActivateActivatesIScreenState()
+    {
+        var screen = new Mock<IScreenState>();
+        ScreenExtensions.TryActivate(screen.Object);
+        screen.Verify(x => x.Activate());
+    }
 
-        [SetUp]
-        public void SetUp()
+    [Test]
+    public void TryActivateDoesNothingToNonIScreenState()
+    {
+        var screen = new Mock<IGuardClose>(MockBehavior.Strict);
+        ScreenExtensions.TryActivate(screen.Object);
+    }
+
+    [Test]
+    public void TryDeactivateDeactivatesIScreenState()
+    {
+        var screen = new Mock<IScreenState>();
+        ScreenExtensions.TryDeactivate(screen.Object);
+        screen.Verify(x => x.Deactivate());
+    }
+
+    [Test]
+    public void TryDeactivateDoesNothingToNonIScreenState()
+    {
+        var screen = new Mock<IGuardClose>(MockBehavior.Strict);
+        ScreenExtensions.TryDeactivate(screen.Object);
+    }
+
+    [Test]
+    public void TryCloseClosesIScreenState()
+    {
+        var screen = new Mock<IScreenState>();
+        ScreenExtensions.TryClose(screen.Object);
+        screen.Verify(x => x.Close());
+    }
+
+    [Test]
+    public void TryDisposeDisposesIDisposable()
+    {
+        var screen = new Mock<IDisposable>();
+        ScreenExtensions.TryDispose(screen.Object);
+        screen.Verify(x => x.Dispose());
+    }
+
+    [Test]
+    public void TryCloseDoesNothingToNonIScreenState()
+    {
+        var screen = new Mock<IGuardClose>(MockBehavior.Strict);
+        ScreenExtensions.TryClose(screen.Object);
+    }
+
+    [Test]
+    public void ActivateWithActivates()
+    {
+        this.child.Object.ActivateWith(this.parent);
+        ((IScreenState)this.parent).Activate();
+        this.child.Verify(x => x.Activate());
+    }
+
+    [Test]
+    public void ActivateWithDoesNotRetainChild()
+    {
+        WeakReference Test()
         {
-            this.parent = new Screen();
-            this.child = new Mock<IMyScreen>();
+            var child = new Screen();
+            child.ActivateWith(this.parent);
+            return new WeakReference(child);
         }
 
-        [Test]
-        public void TryActivateActivatesIScreenState()
+        WeakReference weakChild = Test();
+
+        GC.Collect();
+
+        ((IScreenState)this.parent).Activate();
+        Assert.Null(weakChild.Target);
+    }
+
+    [Test]
+    public void ConductWithActivates()
+    {
+        this.child.Object.ConductWith(this.parent);
+        ((IScreenState)this.parent).Activate();
+        this.child.Verify(x => x.Activate());
+    }
+
+    [Test]
+    public void DeactivateWithDeactivates()
+    {
+        // Needs to be active....
+        ((IScreenState)this.parent).Activate();
+        this.child.Object.DeactivateWith(this.parent);
+        ((IScreenState)this.parent).Deactivate();
+        this.child.Verify(x => x.Deactivate());
+    }
+
+    [Test]
+    public void DeactivateDoesNotRetainChild()
+    {
+        WeakReference Test()
         {
-            var screen = new Mock<IScreenState>();
-            ScreenExtensions.TryActivate(screen.Object);
-            screen.Verify(x => x.Activate());
+            var child = new Screen();
+            child.DeactivateWith(this.parent);
+            return new WeakReference(child);
         }
 
-        [Test]
-        public void TryActivateDoesNothingToNonIScreenState()
+        WeakReference weakChild = Test();
+
+        GC.Collect();
+
+        ((IScreenState)this.parent).Deactivate();
+        Assert.Null(weakChild.Target);
+    }
+
+    [Test]
+    public void ConductWithDeactivates()
+    {
+        // Needs to be active....
+        ((IScreenState)this.parent).Activate();
+        this.child.Object.ConductWith(this.parent);
+        ((IScreenState)this.parent).Deactivate();
+        this.child.Verify(x => x.Deactivate());
+    }
+
+    [Test]
+    public void CloseWithCloses()
+    {
+        this.child.Object.CloseWith(this.parent);
+        ((IScreenState)this.parent).Close();
+        this.child.Verify(x => x.Close());
+    }
+
+    [Test]
+    public void CloseWithDoesNotRetain()
+    {
+        WeakReference Test()
         {
-            var screen = new Mock<IGuardClose>(MockBehavior.Strict);
-            ScreenExtensions.TryActivate(screen.Object);
+            var child = new Screen();
+            child.CloseWith(this.parent);
+            return new WeakReference(child);
         }
 
-        [Test]
-        public void TryDeactivateDeactivatesIScreenState()
+        WeakReference weakChild = Test();
+
+        GC.Collect();
+
+        ((IScreenState)this.parent).Close();
+        Assert.Null(weakChild.Target);
+    }
+
+    [Test]
+    public void ConductWithCloses()
+    {
+        this.child.Object.ConductWith(this.parent);
+        ((IScreenState)this.parent).Close();
+        this.child.Verify(x => x.Close());
+    }
+
+    [Test]
+    public void ConductWithDoesNotRetain()
+    {
+        WeakReference Test()
         {
-            var screen = new Mock<IScreenState>();
-            ScreenExtensions.TryDeactivate(screen.Object);
-            screen.Verify(x => x.Deactivate());
+            var child = new Screen();
+            child.ConductWith(this.parent);
+            return new WeakReference(child);
         }
 
-        [Test]
-        public void TryDeactivateDoesNothingToNonIScreenState()
-        {
-            var screen = new Mock<IGuardClose>(MockBehavior.Strict);
-            ScreenExtensions.TryDeactivate(screen.Object);
-        }
+        WeakReference weakChild = Test();
 
-        [Test]
-        public void TryCloseClosesIScreenState()
-        {
-            var screen = new Mock<IScreenState>();
-            ScreenExtensions.TryClose(screen.Object);
-            screen.Verify(x => x.Close());
-        }
+        GC.Collect();
 
-        [Test]
-        public void TryDisposeDisposesIDisposable()
-        {
-            var screen = new Mock<IDisposable>();
-            ScreenExtensions.TryDispose(screen.Object);
-            screen.Verify(x => x.Dispose());
-        }
-
-        [Test]
-        public void TryCloseDoesNothingToNonIScreenState()
-        {
-            var screen = new Mock<IGuardClose>(MockBehavior.Strict);
-            ScreenExtensions.TryClose(screen.Object);
-        }
-
-        [Test]
-        public void ActivateWithActivates()
-        {
-            this.child.Object.ActivateWith(this.parent);
-            ((IScreenState)this.parent).Activate();
-            this.child.Verify(x => x.Activate());
-        }
-
-        [Test]
-        public void ActivateWithDoesNotRetainChild()
-        {
-            WeakReference Test()
-            {
-                var child = new Screen();
-                child.ActivateWith(this.parent);
-                return new WeakReference(child);
-            }
-
-            var weakChild = Test();
-
-            GC.Collect();
-
-            ((IScreenState)this.parent).Activate();
-            Assert.Null(weakChild.Target);
-        }
-
-        [Test]
-        public void ConductWithActivates()
-        {
-            this.child.Object.ConductWith(this.parent);
-            ((IScreenState)this.parent).Activate();
-            this.child.Verify(x => x.Activate());
-        }
-
-        [Test]
-        public void DeactivateWithDeactivates()
-        {
-            // Needs to be active....
-            ((IScreenState)this.parent).Activate();
-            this.child.Object.DeactivateWith(this.parent);
-            ((IScreenState)this.parent).Deactivate();
-            this.child.Verify(x => x.Deactivate());
-        }
-
-        [Test]
-        public void DeactivateDoesNotRetainChild()
-        {
-            WeakReference Test()
-            {
-                var child = new Screen();
-                child.DeactivateWith(this.parent);
-                return new WeakReference(child);
-            }
-
-            var weakChild = Test();
-
-            GC.Collect();
-
-            ((IScreenState)this.parent).Deactivate();
-            Assert.Null(weakChild.Target);
-        }
-
-        [Test]
-        public void ConductWithDeactivates()
-        {
-            // Needs to be active....
-            ((IScreenState)this.parent).Activate();
-            this.child.Object.ConductWith(this.parent);
-            ((IScreenState)this.parent).Deactivate();
-            this.child.Verify(x => x.Deactivate());
-        }
-
-        [Test]
-        public void CloseWithCloses()
-        {
-            this.child.Object.CloseWith(this.parent);
-            ((IScreenState)this.parent).Close();
-            this.child.Verify(x => x.Close());
-        }
-
-        [Test]
-        public void CloseWithDoesNotRetain()
-        {
-            WeakReference Test()
-            {
-                var child = new Screen();
-                child.CloseWith(this.parent);
-                return new WeakReference(child);
-            }
-
-            var weakChild = Test();
-
-            GC.Collect();
-
-            ((IScreenState)this.parent).Close();
-            Assert.Null(weakChild.Target);
-        }
-
-        [Test]
-        public void ConductWithCloses()
-        {
-            this.child.Object.ConductWith(this.parent);
-            ((IScreenState)this.parent).Close();
-            this.child.Verify(x => x.Close());
-        }
-
-        [Test]
-        public void ConductWithDoesNotRetain()
-        {
-            WeakReference Test()
-            {
-                var child = new Screen();
-                child.ConductWith(this.parent);
-                return new WeakReference(child);
-            }
-
-            var weakChild = Test();
-
-            GC.Collect();
-
-            Assert.Null(weakChild.Target);
-        }
+        Assert.Null(weakChild.Target);
     }
 }

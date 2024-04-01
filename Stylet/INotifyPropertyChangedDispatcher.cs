@@ -1,16 +1,15 @@
 ﻿using System;
 
-namespace Stylet
+namespace Stylet;
+
+/// <summary>
+/// Knows how to dispatch its PropertyChanged events using a given dispatcher
+/// </summary>
+public interface INotifyPropertyChangedDispatcher
 {
     /// <summary>
-    /// Knows how to dispatch its PropertyChanged events using a given dispatcher
+    /// Gets or sets the dispatcher to use.
+    /// Called with an action, which should itself be called in the appropriate context
     /// </summary>
-    public interface INotifyPropertyChangedDispatcher
-    {
-        /// <summary>
-        /// Gets or sets the dispatcher to use.
-        /// Called with an action, which should itself be called in the appropriate context
-        /// </summary>
-        Action<Action> PropertyChangedDispatcher { get; set; }
-    }
+    Action<Action> PropertyChangedDispatcher { get; set; }
 }

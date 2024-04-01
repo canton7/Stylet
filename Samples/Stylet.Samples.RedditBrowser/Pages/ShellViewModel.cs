@@ -1,35 +1,34 @@
 ﻿using Stylet.Samples.RedditBrowser.Events;
 using System;
 
-namespace Stylet.Samples.RedditBrowser.Pages
+namespace Stylet.Samples.RedditBrowser.Pages;
+
+public class ShellViewModel : Conductor<IScreen>.Collection.OneActive, IHandle<OpenSubredditEvent>
 {
-    public class ShellViewModel : Conductor<IScreen>.Collection.OneActive, IHandle<OpenSubredditEvent>
+    private readonly ISubredditViewModelFactory subredditViewModelFactory;
+
+    public TaskbarViewModel Taskbar { get; private set; }
+
+    public ShellViewModel(IEventAggregator events, TaskbarViewModel taskbarViewModel, ISubredditViewModelFactory subredditViewModelFactory)
     {
-        private ISubredditViewModelFactory subredditViewModelFactory;
+        this.DisplayName = "Reddit Browser";
 
-        public TaskbarViewModel Taskbar { get; private set; }
+        this.Taskbar = taskbarViewModel;
+        this.subredditViewModelFactory = subredditViewModelFactory;
 
-        public ShellViewModel(IEventAggregator events, TaskbarViewModel taskbarViewModel, ISubredditViewModelFactory subredditViewModelFactory)
-        {
-            this.DisplayName = "Reddit Browser";
-
-            this.Taskbar = taskbarViewModel;
-            this.subredditViewModelFactory = subredditViewModelFactory;
-
-            events.Subscribe(this);
-        }
-
-        public void Handle(OpenSubredditEvent message)
-        {
-            var item = this.subredditViewModelFactory.CreateSubredditViewModel();
-            item.Subreddit = message.Subreddit;
-            item.SortMode = message.SortMode;
-            this.ActivateItem(item);
-        }
+        events.Subscribe(this);
     }
 
-    public interface ISubredditViewModelFactory
+    public void Handle(OpenSubredditEvent message)
     {
-        SubredditViewModel CreateSubredditViewModel();
+        SubredditViewModel item = this.subredditViewModelFactory.CreateSubredditViewModel();
+        item.Subreddit = message.Subreddit;
+        item.SortMode = message.SortMode;
+        this.ActivateItem(item);
     }
+}
+
+public interface ISubredditViewModelFactory
+{
+    SubredditViewModel CreateSubredditViewModel();
 }

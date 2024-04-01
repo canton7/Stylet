@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace Stylet.Samples.OverridingViewManager
+namespace Stylet.Samples.OverridingViewManager;
+
+public class ShellViewModel
 {
-    public class ShellViewModel
-    {
-    }
 }

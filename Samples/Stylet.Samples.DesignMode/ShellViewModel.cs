@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace Stylet.Samples.DesignMode
+namespace Stylet.Samples.DesignMode;
+
+public class ShellViewModel
 {
-    class ShellViewModel
-    {
-    }
 }

@@ -1,6 +1,14 @@
 Stylet Changelog
 ================
 
+v1.3.7
+------
+
+ - Bump System.Drawing.Common from 4.6.0 to 4.7.3 due to vulnerability
+ - Don't invoke EventAggregator handlers inside a lock (#263, #380)
+ - Add [JsonIgnore] to PropertyChangedDispatcher (#339)
+ - Update template, Samples and Bootstrappers to .NET 8
+
 v1.3.6
 ------
 

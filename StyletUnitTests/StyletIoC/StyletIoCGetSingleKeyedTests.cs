@@ -2,67 +2,69 @@
 using StyletIoC;
 using System.Linq;
 
-namespace StyletUnitTests.StyletIoC
+namespace StyletUnitTests.StyletIoC;
+
+[TestFixture]
+public class StyletIoCGetSingleKeyedTests
 {
-    [TestFixture]
-    public class StyletIoCGetSingleKeyedTests
+    private interface IC { }
+
+    private class C1 : IC { }
+
+    private class C2 : IC { }
+
+    private class C3 : IC { }
+
+    [Inject("key1")]
+    private class C4 : IC { }
+
+    [Test]
+    public void GetReturnsKeyedType()
     {
-        interface IC { }
-        class C1 : IC { }
-        class C2 : IC { }
-        class C3 : IC { }
+        var builder = new StyletIoCBuilder();
+        builder.Bind<IC>().To<C1>().WithKey("key1");
+        builder.Bind<IC>().To<C2>().WithKey("key2");
+        IContainer ioc = builder.BuildContainer();
 
-        [Inject("key1")]
-        class C4 : IC { }
+        Assert.IsInstanceOf<C1>(ioc.Get<IC>("key1"));
+        Assert.IsInstanceOf<C2>(ioc.Get<IC>("key2"));
+    } 
 
-        [Test]
-        public void GetReturnsKeyedType()
-        {
-            var builder = new StyletIoCBuilder();
-            builder.Bind<IC>().To<C1>().WithKey("key1");
-            builder.Bind<IC>().To<C2>().WithKey("key2");
-            var ioc = builder.BuildContainer();
+    [Test]
+    public void GetAllReturnsKeyedTypes()
+    {
+        var builder = new StyletIoCBuilder();
+        builder.Bind<IC>().To<C1>().WithKey("key1");
+        builder.Bind<IC>().To<C2>().WithKey("key1");
+        builder.Bind<IC>().To<C3>();
+        IContainer ioc = builder.BuildContainer();
 
-            Assert.IsInstanceOf<C1>(ioc.Get<IC>("key1"));
-            Assert.IsInstanceOf<C2>(ioc.Get<IC>("key2"));
-        } 
+        var results = ioc.GetAll<IC>("key1").ToList();
 
-        [Test]
-        public void GetAllReturnsKeyedTypes()
-        {
-            var builder = new StyletIoCBuilder();
-            builder.Bind<IC>().To<C1>().WithKey("key1");
-            builder.Bind<IC>().To<C2>().WithKey("key1");
-            builder.Bind<IC>().To<C3>();
-            var ioc = builder.BuildContainer();
+        Assert.AreEqual(results.Count, 2);
+        Assert.IsInstanceOf<C1>(results[0]);
+        Assert.IsInstanceOf<C2>(results[1]);
+    }
 
-            var results = ioc.GetAll<IC>("key1").ToList();
+    [Test]
+    public void AttributeIsUsed()
+    {
+        var builder = new StyletIoCBuilder();
+        builder.Bind<IC>().To<C3>();
+        builder.Bind<IC>().To<C4>();
+        IContainer ioc = builder.BuildContainer();
 
-            Assert.AreEqual(results.Count, 2);
-            Assert.IsInstanceOf<C1>(results[0]);
-            Assert.IsInstanceOf<C2>(results[1]);
-        }
+        Assert.IsInstanceOf<C4>(ioc.Get<IC>("key1"));
+    }
 
-        [Test]
-        public void AttributeIsUsed()
-        {
-            var builder = new StyletIoCBuilder();
-            builder.Bind<IC>().To<C3>();
-            builder.Bind<IC>().To<C4>();
-            var ioc = builder.BuildContainer();
+    [Test]
+    public void GivenKeyOverridesAttribute()
+    {
+        var builder = new StyletIoCBuilder();
+        builder.Bind<IC>().To<C3>();
+        builder.Bind<IC>().To<C4>().WithKey("key2");
+        IContainer ioc = builder.BuildContainer();
 
-            Assert.IsInstanceOf<C4>(ioc.Get<IC>("key1"));
-        }
-
-        [Test]
-        public void GivenKeyOverridesAttribute()
-        {
-            var builder = new StyletIoCBuilder();
-            builder.Bind<IC>().To<C3>();
-            builder.Bind<IC>().To<C4>().WithKey("key2");
-            var ioc = builder.BuildContainer();
-
-            Assert.IsInstanceOf<C4>(ioc.Get<IC>("key2"));
-        }
+        Assert.IsInstanceOf<C4>(ioc.Get<IC>("key2"));
     }
 }
