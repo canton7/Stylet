@@ -28,6 +28,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedAllSources>true</EmbedAllSources>
     <DebugType>portable</DebugType>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net452'">
@@ -42,6 +43,9 @@
     <None Include="Stylet.ruleset" />
     <None Include="..\StyletIcon.png" Pack="true" PackagePath="\" />
     <None Include="..\NuGet\readme.txt" Pack="true" PackagePath="." />
+    <Page Include="DpiAwareIcon.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
 
     <Page Include="MessageBoxView.xaml">
       <SubType>Designer</SubType>

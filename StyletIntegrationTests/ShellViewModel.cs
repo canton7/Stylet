@@ -53,7 +53,7 @@ namespace StyletIntegrationTests
             await Task.Run(() => dispatcher.Send(() => { lock(log) { log.Add("One"); }; }));
             lock (log) { log.Add("Two"); };
 
-            await Task.Run(() => dispatcher.Post(() => { lock (log) { log.Add("Three"); }; }));
+            Task.Run(() => dispatcher.Post(() => { lock (log) { log.Add("Three"); }; })).GetAwaiter().GetResult();
             lock (log) { log.Add("Four"); };
 
             // OK, so at this point there's a queued message saying to add Three to the log
@@ -64,6 +64,8 @@ namespace StyletIntegrationTests
                 this.windowManager.ShowMessageBox("Success", icon: MessageBoxImage.Information);
             else
                 this.windowManager.ShowMessageBox("Failure");
+
+            MessageBox.Show("Success", "Success", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         public void ShowActionTargetSaved()

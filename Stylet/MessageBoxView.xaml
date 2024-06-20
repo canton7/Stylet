@@ -24,9 +24,12 @@
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
-        <Image Grid.Row="0" Grid.Column="1"
-               Source="{Binding ImageIcon, Converter={x:Static s:IconToBitmapSourceConverter.Instance}}"
-               Visibility="{Binding ImageIcon, Converter={x:Static s:BoolToVisibilityConverter.Instance}}">
+        <!--Source="{Binding ImageIcon, Converter={x:Static s:IconToBitmapSourceConverter.Instance}}"-->
+        <stylet:DpiAwareIcon Grid.Row="0" Grid.Column="1"
+                             IconName="Foooo"
+                             Visibility="{Binding ImageIcon, Converter={x:Static s:BoolToVisibilityConverter.Instance}}"
+                             Width="30"
+                             Height="30">
             <Image.Style>
                 <Style TargetType="Image">
                     <Setter Property="VerticalAlignment" Value="Center"/>
@@ -39,7 +42,7 @@
                     </Style.Triggers>
                 </Style>
             </Image.Style>
-        </Image>
+        </stylet:DpiAwareIcon>
 
         <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Text}" Margin="8,25,15,30" TextWrapping="Wrap" TextAlignment="{Binding TextAlignment}"/>
 
