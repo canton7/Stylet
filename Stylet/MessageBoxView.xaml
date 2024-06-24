@@ -24,12 +24,10 @@
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
-        <!--Source="{Binding ImageIcon, Converter={x:Static s:IconToBitmapSourceConverter.Instance}}"-->
         <stylet:DpiAwareIcon Grid.Row="0" Grid.Column="1"
-                             IconName="Foooo"
-                             Visibility="{Binding ImageIcon, Converter={x:Static s:BoolToVisibilityConverter.Instance}}"
-                             Width="30"
-                             Height="30">
+                             Icon="{Binding Icon}"
+                             Width="32"
+                             Height="32">
             <Image.Style>
                 <Style TargetType="Image">
                     <Setter Property="VerticalAlignment" Value="Center"/>

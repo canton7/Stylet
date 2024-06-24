@@ -29,13 +29,13 @@ namespace Stylet;
 internal partial class DpiAwareIcon : System.Windows.Controls.Image
 {
 
-    public string IconName
+    public MessageBoxImage? Icon
     {
-        get => (string)this.GetValue(IconNameProperty);
-        set => this.SetValue(IconNameProperty, value);
+        get => (MessageBoxImage?)this.GetValue(IconProperty);
+        set => this.SetValue(IconProperty, value);
     }
-    public static readonly DependencyProperty IconNameProperty =
-        DependencyProperty.Register("IconName", typeof(string), typeof(DpiAwareIcon), new PropertyMetadata(null, (d, e) => ((DpiAwareIcon)d).RenderIcon()));
+    public static readonly DependencyProperty IconProperty =
+        DependencyProperty.Register(nameof(Icon), typeof(MessageBoxImage?), typeof(DpiAwareIcon), new PropertyMetadata(null, (d, e) => ((DpiAwareIcon)d).RenderIcon()));
 
     public DpiAwareIcon()
     {
@@ -50,9 +50,27 @@ internal partial class DpiAwareIcon : System.Windows.Controls.Image
 
     private unsafe void RenderIcon()
     {
-        if (!this.IsLoaded || this.IconName == null)
+        if (!this.IsLoaded || this.Icon == null)
         {
             this.Source = null;
+            this.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        NativeMethods.SHSTOCKICONID? icon = this.Icon switch
+        {
+            MessageBoxImage.None => null,
+            MessageBoxImage.Error => NativeMethods.SHSTOCKICONID.SIID_ERROR,
+            MessageBoxImage.Question => NativeMethods.SHSTOCKICONID.SIID_HELP,
+            MessageBoxImage.Exclamation => NativeMethods.SHSTOCKICONID.SIID_WARNING,
+            MessageBoxImage.Asterisk => NativeMethods.SHSTOCKICONID.SIID_INFO,
+            _ => null,
+        };
+
+        if (icon == null)
+        {
+            this.Source = null;
+            this.Visibility = Visibility.Collapsed;
             return;
         }
 
@@ -63,7 +81,7 @@ internal partial class DpiAwareIcon : System.Windows.Controls.Image
         {
             cbSize = (uint)Marshal.SizeOf(typeof(NativeMethods.SHSTOCKICONINFO))
         };
-        int result = NativeMethods.SHGetStockIconInfo(NativeMethods.SHSTOCKICONID.SIID_WARNING, NativeMethods.SHGSI.SHGSI_ICON, ref sii);
+        int result = NativeMethods.SHGetStockIconInfo(icon.Value, NativeMethods.SHGSI.SHGSI_ICON, ref sii);
         if (result == 0 && sii.hIcon != IntPtr.Zero)
         {
             try
@@ -78,6 +96,7 @@ internal partial class DpiAwareIcon : System.Windows.Controls.Image
         }
 
         this.Source = imageSource;
+        this.Visibility = imageSource == null ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private class NativeMethods

@@ -65,7 +65,7 @@ namespace StyletIntegrationTests
             else
                 this.windowManager.ShowMessageBox("Failure");
 
-            MessageBox.Show("Success", "Success", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("Success", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         public void ShowActionTargetSaved()

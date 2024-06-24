@@ -59,6 +59,7 @@ public class MessageBoxViewModel : Screen, IMessageBoxViewModel
     /// <summary>
     /// Gets or sets the mapping of MessageBoxImage to the SystemIcon to display. You can customize this if you really want.
     /// </summary>
+    [Obsolete("This is no longer supported")]
     public static IDictionary<MessageBoxImage, Icon> IconMapping { get; set; }
 
     /// <summary>
@@ -94,6 +95,7 @@ public class MessageBoxViewModel : Screen, IMessageBoxViewModel
             { MessageBoxButton.YesNoCancel, new[] { MessageBoxResult.Yes, MessageBoxResult.No, MessageBoxResult.Cancel } },
         };
 
+#pragma warning disable CS0618 // Type or member is obsolete
         IconMapping = new Dictionary<MessageBoxImage, Icon>()
         {
             // Most of the MessageBoxImage values are duplicates - we can't list them here
@@ -103,6 +105,7 @@ public class MessageBoxViewModel : Screen, IMessageBoxViewModel
             { MessageBoxImage.Exclamation, SystemIcons.Exclamation },
             { MessageBoxImage.Information, SystemIcons.Information },
         };
+#pragma warning restore CS0618 // Type or member is obsolete
 
         SoundMapping = new Dictionary<MessageBoxImage, SystemSound>()
         {
@@ -212,6 +215,7 @@ public class MessageBoxViewModel : Screen, IMessageBoxViewModel
     /// <summary>
     /// Gets or the icon which is shown next to the text in the View
     /// </summary>
+    [Obsolete("This is no longer supported")]
     public virtual Icon ImageIcon => IconMapping[this.Icon];
 
     /// <summary>
